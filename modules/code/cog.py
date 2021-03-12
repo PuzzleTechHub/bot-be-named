@@ -6,7 +6,6 @@ import asyncio
 import os
 import modules.code.utils as utils
 import constants
-import time
 import pandas as pd
 from aio_timers import Timer
 from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
@@ -32,7 +31,7 @@ class CodeCog(commands.Cog):
         self.codes = pd.DataFrame(self.sheet.get_all_values(), columns=constants.COLUMNS)
         
         # Reload the google sheet every hour
-        bot.loop.create_task(self.reload())
+        bot.loop.create_task(self.reload_sheet())
             
     @commands.command(name='startrace', aliases=['StarTrace'])
     async def startrace(self, ctx):
@@ -159,13 +158,12 @@ class CodeCog(commands.Cog):
         embeds, self.current_races[channel][constants.ANSWERS] = utils.create_code_embed(self.current_races[channel][constants.LEVEL], self.codes)
         
         await ctx.send(embed=embed)
-        time = Timer(constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
+        Timer(constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
 
     @commands.command(name='reload')
     @commands.has_role(constants.BOT_WHISPERER)
     async def reload(self, ctx):
         """
-        Admin Command.
         Reload the Google Sheet so we can update our codes instantly.
         Usage: ~reload
         """
@@ -202,7 +200,7 @@ class CodeCog(commands.Cog):
 
     # Reload the Google sheet every hour so we can dynamically add
     # Without needing to restart the bot
-    async def reload(self):
+    async def reload_sheet(self):
         await self.bot.wait_until_ready()
         while True:
             await asyncio.sleep(3600) # 1 hour
