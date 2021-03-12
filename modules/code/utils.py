@@ -36,7 +36,7 @@ def get_opening_statement() -> discord.Embed:
     :return embed: (discord.Embed) the embed that includes the welcome message
     """
     embed = create_embed()
-    embed.add_field(name=f"Welcome!", value=f"You have started a new race! Level 1 will start in about {constants.BREAK_TIME} seconds from this message! You will have {constants.TIME_LIMIT} seconds to complete levels 1-5. After every 5th puzzle, you will get {constants.BONUS_TIME} additional seconds (i.e you get {constants.TIME_LIMIT + constants.BONUS_TIME} seconds to complete levels 6-10). Good luck and have fun!")
+    embed.add_field(name=f"Welcome!", value=f"You have started a new race! Level 1 will start in about {constants.BREAK_TIME} seconds from this message! You will have {constants.TIME_LIMIT} seconds to complete levels 1-5. After every {constants.NUM_LEVELS}th level, you will get {constants.BONUS_TIME} additional seconds (i.e you get {constants.TIME_LIMIT + constants.BONUS_TIME} seconds to complete levels 6-10). Good luck and have fun!")
     return embed
 
 
@@ -52,7 +52,7 @@ def create_code_embed(level, codes):
     code_answers = []
     embed_list = []
     embed = create_embed()
-    embed.add_field(name=f"Level {level}", value=f"Welcome to level {level}! You will have {constants.TIME_LIMIT + constants.BONUS_TIME * math.floor(level / 5)} " + \
+    embed.add_field(name=f"Level {level}", value=f"Welcome to level {level}! You will have {constants.TIME_LIMIT + constants.BONUS_TIME * math.floor(level / constants.NUM_LEVELS)} " + \
     f"seconds to solve {level} {constants.CODE}s, beginning now.", inline=False)
     embed_list.append(embed)
     for i in range(level):

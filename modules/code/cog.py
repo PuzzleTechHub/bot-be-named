@@ -92,6 +92,7 @@ class CodeCog(commands.Cog):
         if len(toks) < 2:
             # pigpen default
             cipher_abbrev = 'pi'
+            used_cipher = constants.PIGPEN
         elif len(toks) == 2:
             for cipher in constants.CIPHERS:
                 if toks[1].lower() == cipher:
@@ -217,7 +218,7 @@ class CodeCog(commands.Cog):
         """
         for embed in embeds:
             await ctx.send(embed=embed)
-        timer = Timer(constants.TIME_LIMIT + constants.BONUS_TIME * math.floor(self.current_races[channel][constants.LEVEL] / 5), self.send_times_up_message, callback_args=(ctx, channel, self.current_races[channel][constants.LEVEL]), callback_async=True)
+        timer = Timer(constants.TIME_LIMIT + constants.BONUS_TIME * math.floor(self.current_races[channel][constants.LEVEL] / constants.NUM_LEVELS), self.send_times_up_message, callback_args=(ctx, channel, self.current_races[channel][constants.LEVEL]), callback_async=True)
         return
 
     async def send_times_up_message(self, ctx, channel, level):
