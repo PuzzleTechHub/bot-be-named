@@ -4,6 +4,7 @@ import json
 import os
 import constants
 from oauth2client.service_account import ServiceAccountCredentials
+import math
 
 
 def create_embed() -> discord.Embed:
@@ -15,7 +16,7 @@ def create_embed() -> discord.Embed:
     return discord.Embed(color=constants.EMBED_COLOR)
 
 
-def create_level_prep_embed(level, teamname) -> discord.Embed:
+def create_level_prep_embed(level) -> discord.Embed:
     """
     Create an embed to let the team know their next level will start soon.
     
@@ -24,57 +25,46 @@ def create_level_prep_embed(level, teamname) -> discord.Embed:
     :return embed: (discord.Embed) the embed that includes the level-up message.
     """
     embed = create_embed()
-    embed.add_field(name=f"Level {level} Complete!", value=f"Well done, {teamname}! Level {level+1} will begin in {constants.BREAK_TIME} seconds.")
+    embed.add_field(name=f"Level {level} Complete!", value=f"Well done! Level {level+1} will begin in {constants.BREAK_TIME} seconds.")
     return embed
 
 
-def get_opening_statement(teamname) -> discord.Embed:
+def get_opening_statement() -> discord.Embed:
     """
     Assemble the opening message to send to the team before their puzzle begins
 
-    :param teamname: (str) the team name
     :return embed: (discord.Embed) the embed that includes the welcome message
     """
     embed = create_embed()
-    embed.add_field(name=f"Welcome, {teamname}", value=f"You have started a new race! Level 1 will start in about {constants.BREAK_TIME} seconds from this message! Good luck and have fun!")
+    embed.add_field(name=f"Welcome!", value=f"You have started a new race! Level 1 will start in about {constants.BREAK_TIME} seconds from this message! You will have {constants.TIME_LIMIT} seconds to complete levels 1-5. After every 5th puzzle, you will get {constants.BONUS_TIME} additional seconds (i.e you get {constants.TIME_LIMIT + constants.BONUS_TIME} seconds to complete levels 6-10). Good luck and have fun!")
     return embed
 
 
-def create_code_embed(level, codes, used_code_ids):
+def create_code_embed(level, codes):
     """
     Function to create the code embed
     :param level: (int) The level of the current puzzle solvers
     :param codes: (pandas.DataFrame) the current set of codes
-    :param used_code_ids: (list of int) The list of code ids the team has already seen
 
     :return embeds: (list of discord.Embed) The embeds we create for the code
-    :return used_code_ids: (list of int) an updated used_code_ids
     :return code_answer: (list of str) the answers to the given codes
     """
     code_answers = []
     embed_list = []
     embed = create_embed()
-    embed.add_field(name=f"Level {level}", value=f"Welcome to level {level}! You will have {constants.TIME_LIMIT} " + \
+    embed.add_field(name=f"Level {level}", value=f"Welcome to level {level}! You will have {constants.TIME_LIMIT + constants.BONUS_TIME * math.floor(level / 5)} " + \
     f"seconds to solve {level} {constants.CODE}s, beginning now.", inline=False)
     embed_list.append(embed)
     for i in range(level):
         code_proposal = codes.sample()
-        duplicate_counter = 0
-        while code_proposal[constants.ID].item() in used_code_ids:
-            code_proposal = codes.sample()
-            duplicate_counter += 1
-            # Uh we don't want to get stuck here forever. If they've gotten this many duplicates, f it I'm down for a dup
-            if duplicate_counter > 50:
-                break
         embed_list.append(create_embed())
         embed_list[-1].add_field(name=f"{constants.CODE.capitalize()} #{i+1}", value=f"{code_proposal[constants.CODE].item()}", inline=False)
         embed_list[-1].set_image(url=code_proposal[constants.CODE].item())
         code_answers.append(code_proposal[constants.ANSWER].item().replace(' ', ''))
-        used_code_ids.append(code_proposal.index.item())
     embed_list.append(create_embed())
     embed_list[-1].add_field(name="Answering", value=f"Use {constants.BOT_PREFIX}answer to make a guess on any of the {constants.CODE}s.",
                     inline=False)
-    return embed_list, used_code_ids, code_answers
+    return embed_list, code_answers
 
 
 def create_no_code_embed() -> discord.Embed:
@@ -90,11 +80,10 @@ def create_no_code_embed() -> discord.Embed:
     return embed
 
 
-def get_answer_result(team, user_answer, current_answers) -> str:
+def get_answer_result(user_answer, current_answers) -> str:
     """
     Return either correct or incorrect based on the team's answer and the list of codes.
 
-    :param team: (int) the team ID 
     :param user_answer: (str) the answer given by the user
     :param current_answers: (list of str) the remaining answers for that team in the level
 
