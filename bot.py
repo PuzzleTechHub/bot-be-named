@@ -23,8 +23,7 @@ def main():
             print(f"{client.user.name} has connected to the following guild: {guild.name} (id: {guild.id})")
         
 
-    #client.run(DISCORD_TOKEN)
-    client.run('Nzk0MzcyNjE3MjA1MzE3NjYy.X-53Jg.nezvCHWH07zeGYTV4PREKphCZsU')
+    client.run(DISCORD_TOKEN)
         
 if __name__ == '__main__':
     main()
