@@ -5,6 +5,7 @@ import os
 import constants
 from oauth2client.service_account import ServiceAccountCredentials
 import math
+import pandas as pd
 
 
 def create_embed() -> discord.Embed:
@@ -52,15 +53,15 @@ def create_code_embed(level, codes):
     code_answers = []
     embed_list = []
     embed = create_embed()
-    embed.add_field(name=f"Level {level}", value=f"Welcome to level {level}! You will have {constants.TIME_LIMIT + constants.BONUS_TIME * math.floor(level / constants.NUM_LEVELS)} " + \
+    embed.add_field(name=f"Level {level}", value=f"Welcome to level {level}! You will have {compute_level_time(level)} " + \
     f"seconds to solve {level} {constants.CODE}s, beginning now.", inline=False)
     embed_list.append(embed)
     for i in range(level):
         code_proposal = codes.sample()
         embed_list.append(create_embed())
-        embed_list[-1].add_field(name=f"{constants.CODE.capitalize()} #{i+1}", value=f"{code_proposal[constants.CODE].item()}", inline=False)
-        embed_list[-1].set_image(url=code_proposal[constants.CODE].item())
-        code_answers.append(code_proposal[constants.ANSWER].item().replace(' ', ''))
+        embed_list[-1].add_field(name=f"{constants.CODE.capitalize()} #{i+1}", value=f"{code_proposal[constants.URL].item()}", inline=False)
+        embed_list[-1].set_image(url=code_proposal[constants.URL].item())
+        code_answers.append(code_proposal[constants.ANSWER].item().replace(' ', '').lower())
     embed_list.append(create_embed())
     embed_list[-1].add_field(name="Answering", value=f"Use {constants.BOT_PREFIX}answer to make a guess on any of the {constants.CODE}s.",
                     inline=False)
@@ -89,7 +90,7 @@ def get_answer_result(user_answer, current_answers) -> str:
 
     :return result: (str) either correct or incorrect
     """
-    user_answer = user_answer.upper()
+    user_answer = user_answer.lower()
     if user_answer in current_answers:
             current_answers.pop(current_answers.index(user_answer))
             result = constants.CORRECT
@@ -99,19 +100,23 @@ def get_answer_result(user_answer, current_answers) -> str:
     return result
 
 
-def create_solved_embed(teamname, answer) -> discord.Embed:
+def compute_level_time(level):
     """
-    Create embed which has the answer to the puzzle.
-
-    :param team_name: (str) the name of the team
-    :param answer: (str) the puzzle answer
-
-    :return embed: (discord.Embed) the embed containing the puzzle answer
+    60 seconds on levels 1-5
+    +10 on levels 6-10
+    +10 on levels 10-15
+    ...
     """
-    embed = create_embed()
-    embed.add_field(name="Congratulations!", value=f"Congrats, {teamname} on a job well done! You successfully solved all {constants.NUM_LEVELS} levels. Here is the answer to the puzzle", inline=False)
-    embed.add_field(name="Puzzle Answer", value=answer)
-    return embed
+    return constants.TIME_LIMIT + constants.BONUS_TIME * math.floor((level - 1) / constants.NUM_LEVELS)
+
+
+def get_dataframe_from_gsheet(sheet):
+    """
+    Load in all the values from the google sheet.
+    NOTE: excludes headers from gsheet and replaces them with the ones in constants
+    :return: (pd.DataFrame)
+    """
+    return pd.DataFrame(sheet.get_all_values()[1:], columns=constants.COLUMNS)
 
 
 def create_gspread_client():

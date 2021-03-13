@@ -13,6 +13,17 @@ import math
 
 load_dotenv()
 
+# TODO: 
+# Practice Mode with a timer?
+#   - One code at a time
+#   - Timer increases with each correct answer?
+#   - Maybe start shooting out 2 at a time?
+#   - High scores?
+# Challenge mode with a certain level cap?
+#   - Say ~challenge 3
+#   - After 3 levels, gives a success message and ends the race
+# Change
+
 
 class CodeCog(commands.Cog):
     def __init__(self, bot):
@@ -25,15 +36,20 @@ class CodeCog(commands.Cog):
         # Google Sheets Authentication and Initialization
         self.client = utils.create_gspread_client()
 
-        self.sheet_key = os.getenv('SHEET_KEY').replace('\'', '')
+        # Default to HP Sheet
+        self.sheet_key = os.getenv('HP_SHEET_KEY').replace('\'', '')
         self.sheet = self.client.open_by_key(self.sheet_key).sheet1
         # Store list of codes as a dataframe
-        self.codes = pd.DataFrame(self.sheet.get_all_values(), columns=constants.COLUMNS)
+        self.codes = utils.get_dataframe_from_gsheet(self.sheet)
+        self.sheet_map = {
+            constants.HP: utils.get_dataframe_from_gsheet(self.client.open_by_key(os.getenv("HP_SHEET_KEY").replace('\'', '')).sheet1),
+            constants.ENG: utils.get_dataframe_from_gsheet(self.client.open_by_key(os.getenv("ENG_SHEET_KEY").replace('\'', '')).sheet1)
+        }
         
         # Reload the google sheet every hour
         bot.loop.create_task(self.reload_sheet())
             
-    @commands.command(name='startrace', aliases=['StarTrace'])
+    @commands.command(name='startrace', aliases=['StarTrace', 'StartRace'])
     async def startrace(self, ctx):
         """
         Start your race! You will have 60 seconds per level to solve the codes
@@ -51,8 +67,18 @@ class CodeCog(commands.Cog):
         # Create entry in current_races
         self.current_races[channel] = dict()
         self.current_races[channel][constants.LEVEL] = 1
+        # TODO: NEW: add a sheet option to hold multiple sheets
+        # ~startrace eng gives you 1000 random english word sheet
+        # ~startrace hp gives you the harry potter sheet
+        if len(ctx.message.content.split()) > 1 and ctx.message.content.split()[1] in constants.SHEETS:
+            self.current_races[channel][constants.CODE] = self.sheet_map[ctx.message.content.split()[1]]
+            embeds, self.current_races[channel][constants.ANSWERS] = utils.create_code_embed(
+                self.current_races[channel][constants.LEVEL], self.current_races[channel][constants.CODE])
+
         # Creates the embeds containing the codes for that level as well as updates the IDs we're using and the acceptable answers for the level
-        embeds, self.current_races[channel][constants.ANSWERS] = utils.create_code_embed(self.current_races[channel][constants.LEVEL], self.codes)
+        else:
+            embeds, self.current_races[channel][constants.ANSWERS] = utils.create_code_embed(
+                self.current_races[channel][constants.LEVEL], self.codes)
 
         await ctx.send(embed=utils.get_opening_statement())
         # In a short time, send the codes
@@ -61,6 +87,7 @@ class CodeCog(commands.Cog):
     @commands.command(name='endrace')
     async def endrace(self, ctx):
         """
+        DONT USE PLS
         Ends the race
         Usage: ~endrace
         """
@@ -77,43 +104,44 @@ class CodeCog(commands.Cog):
         embed.add_field(name="Experimental", value="ehm, this command is still in development. It actually probably didn't do anything, sorry!", inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command(name='pigpenpls', aliases=['practice'])
-    async def pigpenpls(self, ctx):
+    @commands.command(name='practice', aliases=['pigpenpls'])
+    async def practice(self, ctx):
         """
-        Gives a cipher of a specific type
-        Usage: ~pigpenpls <cipher_name>
+        Gives a cipher of a specific type. Defaults to random
+        Usage: ~practice <cipher_name>
         """
-        print("Received ~pigpenpls")
+        print("Received ~practice")
         toks = ctx.message.content.split()
         cipher_abbrev = None
         embed = utils.create_embed()
         used_cipher = None
+        # Supply no arguments: randomly sample
+        # Supply 2 arguments: sample specific code
+        # Supply more arguments: incorrect
         if len(toks) < 2:
-            # pigpen default
-            cipher_abbrev = 'pi'
-            used_cipher = constants.PIGPEN
+            # get random cipher
+            proposal_row = self.codes.sample()
+            used_cipher = proposal_row[constants.CODE].item()
         elif len(toks) == 2:
-            for cipher in constants.CIPHERS:
-                if toks[1].lower() == cipher:
-                    cipher_abbrev = toks[1][:2]
-                    used_cipher = cipher
-                    break
-            if cipher_abbrev is None:
-                embed.add_field(name="Incorrect Usage", value="Usage: ~pigpenpls or "
-                                "~pigpenpls <braille, morse, semaphore>")
+            if toks[1].lower() in self.codes[constants.CODE].value_counts().index:
+                used_cipher = toks[1].lower()
+            else:
+                embed.add_field(name=f"{constants.CODE.capitalize()} Not Found",
+                                value=f"Sorry! We can't find that {constants.CODE} in our database.")
+                embed.add_field(name=f"Currently Supported {constants.CODE.capitalize()}",
+                                value=f"{', '.join([index[0] for index in self.codes[constants.CODE].value_counts.index])}")
                 await ctx.send(embed=embed)
                 return
+            proposal_row = self.codes[[self.codes[constants.CODE] == used_cipher]].sample()
         else:
-            embed.add_field(name="Incorrect Usage", value="Usage: ~pigpenpls or "
-                            "~pigpenpls <braille, morse, semaphore>")
+            embed.add_field(name="Incorrect Usage", value="Usage: ~practice or "
+                            f"~practice <{constants.CODE}_name>")
             await ctx.send(embed=embed)
             return
-        code_proposal = self.codes.sample()
-        while cipher_abbrev not in code_proposal[constants.CODE].item():
-            code_proposal = self.codes.sample()
-        embed.add_field(name=f"{used_cipher}", value=f"{code_proposal[constants.CODE].item()}")
-        embed.add_field(name="Answer", value=f"|| {code_proposal[constants.ANSWER].item()} ||")
-        embed.set_image(url=code_proposal[constants.CODE].item())
+
+        embed.add_field(name=f"{used_cipher.capitalize()}", value=f"{proposal_row[constants.URL].item()}")
+        embed.add_field(name="Answer", value=f"|| {proposal_row[constants.ANSWER].item()} ||")
+        embed.set_image(url=proposal_row[constants.URL].item())
         await ctx.send(embed=embed)
 
     # Command to check the user's answer. They will be replied to telling them whether or not their answer is correct
@@ -137,7 +165,8 @@ class CodeCog(commands.Cog):
         print(f"All current answers: {self.current_races[channel][constants.ANSWERS]}")
         
         # Remove the command and whitespace from the answer.
-        user_answer = ctx.message.content.replace(f'{constants.BOT_PREFIX}answer', '').replace(' ', '')
+        #user_answer = ctx.message.content.replace(f'{constants.BOT_PREFIX}answer', '').replace(' ', '')
+        user_answer = ''.join(ctx.message.content.split()[1:])
         result = utils.get_answer_result(user_answer, self.current_races[channel][constants.ANSWERS])
         
         if result == constants.CORRECT:
@@ -155,7 +184,12 @@ class CodeCog(commands.Cog):
         # Proceed to next level. Perform computation ahead of time.
         self.current_races[channel][constants.LEVEL] += 1
         # Creates all code embeds, updates used code IDS, and refreshes current answers for the next level.
-        embeds, self.current_races[channel][constants.ANSWERS] = utils.create_code_embed(self.current_races[channel][constants.LEVEL], self.codes)
+        if constants.CODE in self.current_races[channel]:
+            embeds, self.current_races[channel][constants.ANSWERS] = utils.create_code_embed(
+                self.current_races[channel][constants.LEVEL], self.current_races[channel][constants.CODE])
+        else:
+            embeds, self.current_races[channel][constants.ANSWERS] = utils.create_code_embed(
+                self.current_races[channel][constants.LEVEL], self.codes)
         
         await ctx.send(embed=embed)
         Timer(constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
@@ -168,7 +202,7 @@ class CodeCog(commands.Cog):
         Usage: ~reload
         """
         self.sheet = self.client.open_by_key(self.sheet_key).sheet1
-        self.codes = pd.DataFrame(self.sheet.get_all_values(), columns=constants.COLUMNS)
+        self.codes = utils.get_dataframe_from_gsheet(self.sheet)
         print(f"{constants.BOT_PREFIX}reload used. Reloaded {constants.CODE} sheet")
         embed = utils.create_embed()
         embed.add_field(name="Sheet Reloaded",
@@ -205,7 +239,7 @@ class CodeCog(commands.Cog):
         while True:
             await asyncio.sleep(3600) # 1 hour
             self.sheet = self.client.open_by_key(self.sheet_key).sheet1
-            self.codes = pd.DataFrame(self.sheet.get_all_values(), columns=constants.COLUMNS)
+            self.codes = utils.get_dataframe_from_gsheet(self.sheet)
             print(f"Reloaded {constants.CODE} sheet on schedule")
 
     async def start_new_level(self, ctx, channel, embeds):
@@ -216,7 +250,7 @@ class CodeCog(commands.Cog):
         """
         for embed in embeds:
             await ctx.send(embed=embed)
-        timer = Timer(constants.TIME_LIMIT + constants.BONUS_TIME * math.floor(self.current_races[channel][constants.LEVEL] / constants.NUM_LEVELS), self.send_times_up_message, callback_args=(ctx, channel, self.current_races[channel][constants.LEVEL]), callback_async=True)
+        timer = Timer(utils.compute_level_time(self.current_races[channel][constants.LEVEL]), self.send_times_up_message, callback_args=(ctx, channel, self.current_races[channel][constants.LEVEL]), callback_async=True)
         return
 
     async def send_times_up_message(self, ctx, channel, level):
