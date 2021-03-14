@@ -1,14 +1,11 @@
 from discord.ext import commands
 import constants
 import discord
-# KEV
-from modules.code.cog import CodeCog
-import inspect
+
 
 class HelpCog(commands.Cog):
     def __init__(self, bot):
         pass
-
 
     @commands.command(name='codebreaker')
     async def real_help(self, ctx):

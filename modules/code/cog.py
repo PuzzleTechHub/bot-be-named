@@ -139,7 +139,7 @@ class CodeCog(commands.Cog):
                                 value=f"{', '.join([index[0] for index in self.codes[constants.CODE].value_counts.index])}")
                 await ctx.send(embed=embed)
                 return
-            proposal_row = self.codes[[self.codes[constants.CODE] == used_cipher]].sample()
+            proposal_row = self.codes[self.codes[constants.CODE] == used_cipher].sample()
         else:
             embed.add_field(name="Incorrect Usage", value="Usage: ~practice or "
                             f"~practice <{constants.CODE}_name>")
