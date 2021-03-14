@@ -30,14 +30,19 @@ def create_level_prep_embed(level) -> discord.Embed:
     return embed
 
 
-def get_opening_statement() -> discord.Embed:
+def get_opening_statement(sheet_used) -> discord.Embed:
     """
     Assemble the opening message to send to the team before their puzzle begins
 
     :return embed: (discord.Embed) the embed that includes the welcome message
     """
     embed = create_embed()
-    embed.add_field(name=f"Welcome!", value=f"You have started a new race! Level 1 will start in about {constants.BREAK_TIME} seconds from this message! You will have {constants.TIME_LIMIT} seconds to complete levels 1-5. After every {constants.NUM_LEVELS}th level, you will get {constants.BONUS_TIME} additional seconds (i.e you get {constants.TIME_LIMIT + constants.BONUS_TIME} seconds to complete levels 6-10). Good luck and have fun!")
+    embed.add_field(name=f"Welcome!", value=f"You have started a new race against the {sheet_used} wordlist! "
+                                            f"Level 1 will start in about {constants.BREAK_TIME} seconds from this message! "
+                                            f"You will have {constants.TIME_LIMIT} seconds to complete levels 1-5. "
+                                            f"After every {constants.NUM_LEVELS}th level, you will get {constants.BONUS_TIME} "
+                                            f"additional seconds (i.e you get {constants.TIME_LIMIT + constants.BONUS_TIME} "
+                                            f"seconds to complete levels 6-10). Good luck and have fun!")
     return embed
 
 

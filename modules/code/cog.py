@@ -74,8 +74,10 @@ class CodeCog(commands.Cog):
         # TODO: NEW: add a sheet option to hold multiple sheets
         # ~startrace eng gives you 1000 random english word sheet
         # ~startrace hp gives you the harry potter sheet
+        sheet_used = None
         if len(ctx.message.content.split()) > 1 and ctx.message.content.split()[1] in self.sheet_map:
-            self.current_races[channel][constants.CODE] = self.sheet_map[ctx.message.content.split()[1]]
+            sheet_used = ctx.message.content.split()[1]
+            self.current_races[channel][constants.CODE] = self.sheet_map[sheet_used]
             embeds, self.current_races[channel][constants.ANSWERS] = utils.create_code_embed(
                 self.current_races[channel][constants.LEVEL], self.current_races[channel][constants.CODE])
 
@@ -83,8 +85,9 @@ class CodeCog(commands.Cog):
         else:
             embeds, self.current_races[channel][constants.ANSWERS] = utils.create_code_embed(
                 self.current_races[channel][constants.LEVEL], self.codes)
+            sheet_used = constants.HP
 
-        await ctx.send(embed=utils.get_opening_statement())
+        await ctx.send(embed=utils.get_opening_statement(sheet_used))
         # In a short time, send the codes
         time = Timer(constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
 
