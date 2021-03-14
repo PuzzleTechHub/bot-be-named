@@ -28,7 +28,8 @@ SEMAPHORE = 'semaphore'
 MORSE = 'morse'
 BRAILLE = 'braille'
 HP = 'hp'
-ENG = 'eng'
-SHEETS = [HP, ENG]
+COMMON = 'common'
+CHALLENGE = 'challenge'
+SHEETS = [HP, COMMON, CHALLENGE]
 
 CIPHERS = [PIGPEN, SEMAPHORE, MORSE, BRAILLE]

@@ -42,8 +42,12 @@ class CodeCog(commands.Cog):
         # Store list of codes as a dataframe
         self.codes = utils.get_dataframe_from_gsheet(self.sheet)
         self.sheet_map = {
-            constants.HP: utils.get_dataframe_from_gsheet(self.client.open_by_key(os.getenv("HP_SHEET_KEY").replace('\'', '')).sheet1),
-            constants.ENG: utils.get_dataframe_from_gsheet(self.client.open_by_key(os.getenv("ENG_SHEET_KEY").replace('\'', '')).sheet1)
+            constants.HP: utils.get_dataframe_from_gsheet(
+                self.client.open_by_key(os.getenv("HP_SHEET_KEY").replace('\'', '')).sheet1),
+            constants.COMMON: utils.get_dataframe_from_gsheet(
+                self.client.open_by_key(os.getenv("COMMON_SHEET_KEY").replace('\'', '')).sheet1),
+            constants.CHALLENGE: utils.get_dataframe_from_gsheet(
+                self.client.open_by_key(os.getenv("CHALLENGE_SHEET_KEY").replace('\'', '')).sheet1),
         }
         
         # Reload the google sheet every hour
@@ -70,7 +74,7 @@ class CodeCog(commands.Cog):
         # TODO: NEW: add a sheet option to hold multiple sheets
         # ~startrace eng gives you 1000 random english word sheet
         # ~startrace hp gives you the harry potter sheet
-        if len(ctx.message.content.split()) > 1 and ctx.message.content.split()[1] in constants.SHEETS:
+        if len(ctx.message.content.split()) > 1 and ctx.message.content.split()[1] in self.sheet_map:
             self.current_races[channel][constants.CODE] = self.sheet_map[ctx.message.content.split()[1]]
             embeds, self.current_races[channel][constants.ANSWERS] = utils.create_code_embed(
                 self.current_races[channel][constants.LEVEL], self.current_races[channel][constants.CODE])
