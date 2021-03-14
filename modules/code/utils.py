@@ -37,7 +37,7 @@ def get_opening_statement(sheet_used) -> discord.Embed:
     :return embed: (discord.Embed) the embed that includes the welcome message
     """
     embed = create_embed()
-    embed.add_field(name=f"Welcome!", value=f"You have started a new race against the {sheet_used} wordlist! "
+    embed.add_field(name=f"Welcome!", value=f"You have started a new race against the {sheet_used.capitalize()} wordlist! "
                                             f"Level 1 will start in about {constants.BREAK_TIME} seconds from this message! "
                                             f"You will have {constants.TIME_LIMIT} seconds to complete levels 1-5. "
                                             f"After every {constants.NUM_LEVELS}th level, you will get {constants.BONUS_TIME} "

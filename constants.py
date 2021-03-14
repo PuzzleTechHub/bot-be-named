@@ -27,9 +27,9 @@ PIGPEN = 'pigpen'
 SEMAPHORE = 'semaphore'
 MORSE = 'morse'
 BRAILLE = 'braille'
-HP = 'Harry Potter'
-COMMON = 'Common English'
-CHALLENGE = 'Challenge English'
+HP = 'hp'
+COMMON = 'common'
+CHALLENGE = 'challenge'
 SHEETS = [HP, COMMON, CHALLENGE]
 
 CIPHERS = [PIGPEN, SEMAPHORE, MORSE, BRAILLE]
