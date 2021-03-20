@@ -108,7 +108,7 @@ class CodeCog(commands.Cog):
         self.current_races.pop(channel)
         embed = utils.create_embed()
         embed.add_field(name="Race Stopped", value=f"To start a new race, use {constants.BOT_PREFIX}startrace", inline=False)
-        embed.add_field(name="Experimental", value="ehm, this command is still in development. It actually probably didn't do anything, sorry!", inline=False)
+        embed.add_field(name="Experimental", value="ehm, this command is still in development. It actually probably didn't do anything, sorry :(!", inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(name='practice', aliases=['pigpenpls'])
