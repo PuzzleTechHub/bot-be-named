@@ -208,7 +208,6 @@ class CodeCog(commands.Cog):
         Reload the Google Sheet so we can update our codes instantly.
         Usage: ~reload
         """
-        self.sheet = self.client.open_by_key(self.sheet_key).sheet1
         self.codes = utils.get_dataframe_from_gsheet(self.sheet)
         print(f"{constants.BOT_PREFIX}reload used. Reloaded {constants.CODE} sheet")
         embed = utils.create_embed()
@@ -245,7 +244,6 @@ class CodeCog(commands.Cog):
         await self.bot.wait_until_ready()
         while True:
             await asyncio.sleep(3600) # 1 hour
-            self.sheet = self.client.open_by_key(self.sheet_key).sheet1
             self.codes = utils.get_dataframe_from_gsheet(self.sheet)
             print(f"Reloaded {constants.CODE} sheet on schedule")
 
