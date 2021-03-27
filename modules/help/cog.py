@@ -111,6 +111,21 @@ def solved_help():
     embed.add_field(name=f"{constants.BOT_PREFIX}solved",
                     value=f"Prepends 'solved' to the channel name you're currently in!",
                     inline=False)
+    embed.add_field(name=f"{constants.BOT_PREFIX}unsolved",
+                    value=f"Removes 'solved' to the channel name you're currently in!",
+                    inline=False)
+    embed.add_field(name=f"{constants.BOT_PREFIX}solvedish",
+                    value=f"Prepends 'solvedish' to the channel name you're currently in!",
+                    inline=False)
+    embed.add_field(name=f"{constants.BOT_PREFIX}unsolvedish",
+                    value=f"Removes 'solved' to the channel name you're currently in!",
+                    inline=False)
+    embed.add_field(name=f"{constants.BOT_PREFIX}backsolved",
+                    value=f"Prepends 'backsolved' to the channel name you're currently in!",
+                    inline=False)
+    embed.add_field(name=f"{constants.BOT_PREFIX}unbacksolved",
+                    value=f"Removes'backsolved' to the channel name you're currently in!",
+                    inline=False)
     embed = more_help(embed, constants.SOLVED_README)
     return embed
 

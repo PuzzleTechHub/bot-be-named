@@ -4,8 +4,6 @@ from modules.solved.prefix import Prefix
 import modules.code.utils as utils
 
 
-# TODO: Return new channel name instead of making the edit in the add/remove prefix function
-# Will be useful for testing
 class SolvedCog(commands.Cog):
 	"""Checks for `solved` and `unsolved` command
 	Toggles `solved-` prefix on channel name"""
@@ -37,7 +35,7 @@ class SolvedCog(commands.Cog):
 		if p.has_prefix():
 			# edit channel name to remove prefix
 			new_channel_name = p.remove_prefix()
-			embed.add_field(name=f"{constants.SUCCESS}!", value=f"Marking {channel.mention} as unsolved!")
+			embed.add_field(name=f"{constants.SUCCESS}!", value=f"Marking {channel.mention} as {prefix}!")
 		# already has prefix
 		else:
 			embed.add_field(name=f"{constants.FAILED}!", value=f"Channel is not marked as {prefix}!")
@@ -104,14 +102,9 @@ class SolvedCog(commands.Cog):
 		# log command in console
 		print("Received backsolved")
 		channel = ctx.message.channel
-		print("before add prefix")
 		embed, new_channel_name = self.add_prefix(channel, constants.BACKSOLVED_PREFIX)
-		print("after add prefix")
-		print(f"new channel name is {new_channel_name}")
 		await channel.edit(name=new_channel_name)
-		print("edited name")
 		await ctx.send(embed=embed)
-		print("end of function")
 
 	@commands.command(name="unbacksolved")
 	@commands.has_any_role(
@@ -125,7 +118,6 @@ class SolvedCog(commands.Cog):
 		embed, new_channel_name = self.remove_prefix(channel, constants.BACKSOLVED_PREFIX)
 		await channel.edit(name=new_channel_name)
 		await ctx.send(embed=embed)
-		print("end of function")
 
 
 def setup(bot):
