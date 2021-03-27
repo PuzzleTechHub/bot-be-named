@@ -44,7 +44,8 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                 channel_id = args[0]
             channel = self.bot.get_channel(channel_id)
             # Write the chat log. Replace attachments with their filename (for easy reference)
-            with open(os.path.join(ARCHIVE, channel.name + '_' + TEXT_LOG_PATH), 'w') as f:
+            text_log_path = os.path.join(ARCHIVE, channel.name + '_' + TEXT_LOG_PATH)
+            with open(text_log_path, 'w') as f:
                 async for msg in channel.history(limit=None, oldest_first=True):
                     #print(f"{msg.created_at} - {msg.author.display_name.rjust(25, ' ')}: {msg.clean_content}")
                     f.write(f"[ {msg.created_at.strftime('%m-%d-%Y, %H:%M:%S')} ] "
@@ -78,7 +79,7 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                 await ctx.send(embed=embed, file=file)
             except discord.errors.HTTPException:
                 await ctx.send("Images too large. Only sending chat history")
-                await ctx.send(file=discord.File(os.path.join(ARCHIVE, TEXT_LOG_PATH)))
+                await ctx.send(file=discord.File(text_log_path))
             print("Sent embed")
             # Remove the archive directory and remake
             shutil.rmtree(ARCHIVE)
