@@ -13,7 +13,7 @@ channel_id = 799271641669697537
 
 ARCHIVE = 'archive'
 IMAGES = 'images'
-TEXT_LOG_PATH = 'channel_text_log.txt'
+TEXT_LOG_PATH = 'text_log.txt'
 client = discord.Client()
 
 class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
@@ -44,7 +44,7 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                 channel_id = args[0]
             channel = self.bot.get_channel(channel_id)
             # Write the chat log. Replace attachments with their filename (for easy reference)
-            with open(os.path.join(ARCHIVE, TEXT_LOG_PATH), 'w') as f:
+            with open(os.path.join(ARCHIVE, channel.name + '_' + TEXT_LOG_PATH), 'w') as f:
                 async for msg in channel.history(limit=None, oldest_first=True):
                     #print(f"{msg.created_at} - {msg.author.display_name.rjust(25, ' ')}: {msg.clean_content}")
                     f.write(f"[ {msg.created_at.strftime('%m-%d-%Y, %H:%M:%S')} ] "
