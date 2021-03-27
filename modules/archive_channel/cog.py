@@ -22,7 +22,8 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
         self.bot = bot
         self.compression = zipfile.ZIP_DEFLATED
 
-        shutil.rmtree(ARCHIVE)
+        if os.path.exists(ARCHIVE):
+            shutil.rmtree(ARCHIVE)
         os.mkdir(ARCHIVE)
         os.mkdir(os.path.join(ARCHIVE, IMAGES))
 
