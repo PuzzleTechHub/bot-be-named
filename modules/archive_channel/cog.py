@@ -32,6 +32,7 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
     @commands.command(name="archivechannel")
     async def archivechannel(self, ctx, *args):
         """Command to download channel's history"""
+        # TODO: Need error handling for asking a channel we don't have access to or invalid channel name
         print("Received archivechannel")
         embed = utils.create_embed()
         # Check if the user supplied a channel
@@ -55,16 +56,19 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                         proposed_path = original_path
                         dupe_counter = 1
                         while os.path.exists(proposed_path):
-                            proposed_path = original_path.split('.')[0] + f' ({dupe_counter})' + original_path.split('.')[1]
+                            proposed_path = original_path.split('.')[0] + f' ({dupe_counter}).' + original_path.split('.')[1]
                             dupe_counter += 1
                         await attachment.save(proposed_path)
+                    # Important: Write the newline after each comment is done
                     f.write("\n")
             ZIP_FILENAME = channel.name + '_archive.zip'
+            # Create a zipfile and then walk through all the saved chatlogs and images, and zip em up
             with zipfile.ZipFile(ZIP_FILENAME, mode='w') as zf:
                 for root, directories, files in os.walk(ARCHIVE):
                     for filename in files:
                         zf.write(os.path.join(root, filename), compress_type=self.compression)
-
+            # TODO: It may often be the case that we will be above 8MB (max filesize).
+            # In that case, maybe we should split into multiple zips
             file = discord.File(ZIP_FILENAME)
             embed.add_field(name=f"{constants.SUCCESS}", value=f"Here is the archive")
             try:
@@ -73,9 +77,11 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                 await ctx.send("Images too large. Only sending chat history")
                 await ctx.send(file=discord.File(os.path.join(ARCHIVE, TEXT_LOG_PATH)))
             print("Sent embed")
+            # Remove the archive directory and remake
             shutil.rmtree(ARCHIVE)
             os.mkdir(ARCHIVE)
             os.mkdir(os.path.join(ARCHIVE, IMAGES))
+        # No arguments provided
         else:
             embed.add_field(name=f"{constants.FAILED}!", value=f"You must specify a channel!")
             await ctx.send(embed=embed)
