@@ -102,7 +102,10 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
             print(channel.name)
             print(channel.text_channels)
             for text_channel in channel.text_channels:
-                await self.archivechannel(ctx, text_channel.id)
+                try:
+                    await self.archivechannel(ctx, text_channel.id)
+                except discord.errors.Forbidden:
+                    continue
 
 
 def setup(bot):
