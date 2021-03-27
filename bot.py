@@ -2,14 +2,14 @@ import os
 from dotenv.main import load_dotenv
 import discord
 from discord.ext import commands
-load_dotenv()
+load_dotenv(override=True)
 import constants
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 
 
 def main():
     intents = discord.Intents.default()
-    client = commands.Bot(constants.BOT_PREFIX, intents=intents)#, help_command=None)
+    client = commands.Bot(constants.BOT_PREFIX, intents=intents, help_command=None)
 
     # Get the modules of all cogs whose directory structure is modules/<module_name>/cog.py
     for folder in os.listdir("modules"):

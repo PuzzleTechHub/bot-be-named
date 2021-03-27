@@ -159,7 +159,6 @@ class CodeCog(commands.Cog):
         Usage: ~answer <your answer>
         """
         channel = ctx.channel.id
-        # log command in console
         print(f"Received answer from {channel}")
         
         # if the team isn't puzzling then we need to instruct them to use startpuzzle command first.
