@@ -63,6 +63,14 @@ IMAGES = 'images'
 TEXT_LOG_PATH = 'text_log.txt'
 
 ################
+#### SOLVED ####
+################
+
+SOLVED_PREFIX = 'solved'
+SOLVEDISH_PREFIX = 'solvedish'
+BACKSOLVED_PREFIX = 'backsolved'
+
+################
 #### LOOKUP ####
 ################
 
@@ -82,10 +90,10 @@ REGISTERED_SITES = {
     HPWIKI: HPWIKISITE
 }
 
-
 ################
 ##### HELP #####
 ################
+
 HELP = 'Help'
 CIPHER_RACE = 'Cipher Race'
 CIPHER_RACE_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/code'
