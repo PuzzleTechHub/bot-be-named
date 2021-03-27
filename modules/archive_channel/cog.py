@@ -34,18 +34,30 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
         """Command to download channel's history"""
         print("Received archivechannel")
         embed = utils.create_embed()
+        # Check if the user supplied a channel
         if len(args) > 0:
+            # Allows them to do e.g. ~archivechannel #MH-general
             channel_id = int(args[0].replace('>', '').replace('<#', ''))
             channel = self.bot.get_channel(channel_id)
+            # Write the chat log. Replace attachments with their filename (for easy reference)
             with open(os.path.join(ARCHIVE, TEXT_LOG_PATH), 'w') as f:
                 async for msg in channel.history(limit=None, oldest_first=True):
                     #print(f"{msg.created_at} - {msg.author.display_name.rjust(25, ' ')}: {msg.clean_content}")
                     f.write(f"[ {msg.created_at.strftime('%m-%d-%Y, %H:%M:%S')} ] "
                             f"{msg.author.display_name.rjust(25, ' ')}: "
                             f"{msg.clean_content}")
+                    # Save attachments TODO is this necessary? Might waste space
                     for attachment in msg.attachments:
                         f.write(f" {attachment.filename}")
-                        await attachment.save(os.path.join(ARCHIVE, IMAGES, attachment.filename))
+                        # change duplicate filenames
+                        # img.png would become img (1).png
+                        original_path = os.path.join(ARCHIVE, IMAGES, attachment.filename)
+                        proposed_path = original_path
+                        dupe_counter = 1
+                        while os.path.exists(proposed_path):
+                            proposed_path = original_path.split('.')[0] + f' ({dupe_counter})' + original_path.split('.')[1]
+                            dupe_counter += 1
+                        await attachment.save(proposed_path)
                     f.write("\n")
             ZIP_FILENAME = channel.name + '_archive.zip'
             with zipfile.ZipFile(ZIP_FILENAME, mode='w') as zf:
