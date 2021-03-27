@@ -74,9 +74,8 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
             # TODO: It may often be the case that we will be above 8MB (max filesize).
             # In that case, maybe we should split into multiple zips
             file = discord.File(ZIP_FILENAME)
-            embed.add_field(name=f"{constants.SUCCESS}", value=f"Here is the archive")
             try:
-                await ctx.send(embed=embed, file=file)
+                await ctx.send(file=file)
             except discord.errors.HTTPException:
                 await ctx.send("Images too large. Only sending chat history")
                 await ctx.send(file=discord.File(text_log_path))
