@@ -54,3 +54,20 @@ COMMON = 'common'
 CHALLENGE = 'challenge'
 SHEETS = [HP, COMMON, CHALLENGE]
 
+########################
+#### ARCHIVE CHANNEL ###
+########################
+
+ARCHIVE = 'archive'
+IMAGES = 'images'
+TEXT_LOG_PATH = 'text_log.txt'
+
+################
+#### LOOKUP ####
+################
+
+PAUSE_TIME= 1
+QUERY_NUM = 10
+DCODE_FR = 'dcode.fr'
+WIKIPEDIA = 'wikipedia'
+
