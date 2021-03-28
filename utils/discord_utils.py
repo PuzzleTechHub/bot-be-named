@@ -15,5 +15,5 @@ def create_no_argument_embed(arg_name='argument') -> discord.Embed:
     :param arg_name: (str) The type of argument needed (e.g. channel)
     """
     embed = create_embed()
-    embed.add_field(name=f'{constants.FAILED}!', value=f"You need to supply an {arg_name}!")
+    embed.add_field(name=f'{constants.FAILED}!', value=f"You need to supply a {arg_name}!")
     return embed
