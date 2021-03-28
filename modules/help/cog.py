@@ -134,15 +134,15 @@ def archive_channel_help():
     embed = discord.Embed(title=f"{constants.ARCHIVE_CHANNEL} {constants.HELP}",
                           url=constants.ARCHIVE_CHANNEL_README,
                           color=constants.EMBED_COLOR)
-    embed.add_field(name=f"{constants.BOT_PREFIX}archivechannel <channel_id or #>",
+    embed.add_field(name=f"{constants.BOT_PREFIX}archivechannel <channel_name_or_id>",
                     value=f"Archives a channel! Gathers the chat history into a txt file, and compreses all attachments "
                           f"into a zip file.\n"
                           f"If you're in the same server as the channel you want to archive, you can use #channel_name. "
                           f"Otherwise, you need the channel ID.\n"
                           f"Note: Zips over 8MB will exceed discord's max file size. In that case, bot will only send the chat log.",
                     inline=False)
-    embed.add_field(name=f"{constants.BOT_PREFIX}archivecategory <category_id>",
-                    value=f"Archives a category! Will create a separate archive for each channel.\n"
+    embed.add_field(name=f"{constants.BOT_PREFIX}archivecategory <category_name_or_id>",
+                    value=f"Archives a category! Will create a separate archive for each text channel.\n"
                           f"*Whispers* It just uses {constants.BOT_PREFIX}archivechannel for each text "
                           f"channel in the category.",
                     inline=False)
