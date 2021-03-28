@@ -43,11 +43,13 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                 f.write("\n")
             text_file_size = f.tell()
 
-        ZIP_FILENAME = channel.name + '_archive.zip'
+        ZIP_FILENAME = os.path.join(constants.ARCHIVE, channel.name + '_archive.zip')
         # Create a zipfile and then walk through all the saved chatlogs and images, and zip em up
         with zipfile.ZipFile(ZIP_FILENAME, mode='w') as zf:
             for root, directories, files in os.walk(constants.ARCHIVE):
                 for filename in files:
+                    if filename == ZIP_FILENAME.split('/')[-1]: # Don't include self
+                        continue
                     zf.write(os.path.join(root, filename), compress_type=self.compression)
             zf_file_size = zf.fp.tell()
         # TODO: It may often be the case that we will be above 8MB (max filesize).
@@ -63,14 +65,16 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                 embed.add_field(name="ERROR: History Too Big",
                                 value=f"Sorry about that! The chat log in {channel.mention} is too big for me to send.\n"
                                       f"The max file size I can send in this server is "
-                                      f"{filesize_limit}B, but the chat log is {textfile_size}B",
+                                      f"`{(filesize_limit/constants.BYTES_TO_MEGABYTES):.2f}MB`, but the chat log is "
+                                      f"`{(textfile_size/constants.BYTES_TO_MEGABYTES):.2f}MB`",
                                 inline=False)
                 file = None
             else:
                 embed.add_field(name="WARNING: Attachments Too Big",
                                 value=f"There are too many photos in {channel.mention} for me to send. The max file size "
-                                      f"I can send in this server is {filesize_limit}B but the zip is "
-                                      f"{zipfile_size}B. I'll only be able to send you the chat log.",
+                                      f"I can send in this server is "
+                                      f"`{(filesize_limit/constants.BYTES_TO_MEGABYTES):.2f}MB` but the zip is "
+                                      f"`{(zipfile_size/constants.BYTES_TO_MEGABYTES):.2f}MB`. I'll only be able to send you the chat log.",
                                 inline=False)
                 file = textfile
         else:
@@ -118,7 +122,12 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                             inline=False)
             await ctx.send(embed=embed)
             return
-        file, embed = self.get_file_and_embed(channel, ctx.guild.filesize_limit, zipfile, zipfile_size, textfile, textfile_size)
+        file, embed = self.get_file_and_embed(channel,
+                                              ctx.guild.filesize_limit,
+                                              zipfile,
+                                              zipfile_size,
+                                              textfile,
+                                              textfile_size)
         await ctx.send(file=file, embed=embed)
 
     @commands.command(name="archivecategory")
