@@ -94,19 +94,15 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
             await ctx.send(embed=discord_utils.create_no_argument_embed('channel'))
             return
         # TODO: check discord docs for id=args[0] possibility?
-        channel = discord.utils.get(ctx.guild.channels, name=args[0])
-        if channel is None:
-            # Allows them to do e.g. ~archivechannel #MH-general
-            try:
-                channel_id = int(args[0].replace('>', '').replace('<#', ''))
-                channel = self.bot.get_channel(channel_id)
-            except ValueError:
-                embed = discord_utils.create_embed()
-                embed.add_field(name="ERROR: Cannot find channel",
-                                value=f"Sorry, I cannot find a channel with name {args[0]}",
-                                inline=False)
-                await ctx.send(embed=embed)
-                return
+        try:
+            channel = self.find_channel(ctx.guild.channels, ' '.join(args))
+        except ValueError:
+            embed = discord_utils.create_embed()
+            embed.add_field(name="ERROR: Cannot find channel",
+                            value=f"Sorry, I cannot find a channel with name {' '.join(args)}",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return
         # If we've gotten to this point, we know we have a channel so we should probably let the user know.
         start_embed = self.get_start_embed(channel)
         await ctx.send(embed=start_embed)
@@ -139,11 +135,16 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
             # No arguments provided
             await ctx.send(embed=discord_utils.create_no_argument_embed('category'))
             return
-        category = discord.utils.get(ctx.guild.channels, name=args[0])
 
-        if category is None:
-            channel_id = int(args[0].replace('>', '').replace('<#', ''))
-            category = self.bot.get_channel(channel_id)
+        try:
+            category = self.find_channel(ctx.guild.channels, ' '.join(args))
+        except ValueError:
+            embed = discord_utils.create_embed()
+            embed.add_field(name="ERROR: Cannot find category",
+                            value=f"Sorry, I cannot find a category with name {' '.join(args)}",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return
 
         start_embed = self.get_start_embed(category)
         await ctx.send(embed=start_embed)
@@ -168,6 +169,13 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                 await ctx.send(embed=embed)
                 continue
 
+    def find_channel(self, channels, channel_name):
+        channel = discord.utils.get(channels, name=channel_name)
+
+        if channel is None:
+            channel_id = int(channel_name.replace('>', '').replace('<#', ''))
+            channel = self.bot.get_channel(channel_id)
+        return channel
 
     def get_start_embed(self, channel):
         embed = discord_utils.create_embed()
