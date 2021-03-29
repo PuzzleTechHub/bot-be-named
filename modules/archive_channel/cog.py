@@ -9,6 +9,8 @@ from utils import discord_utils
 load_dotenv(override=True)
 
 
+# TODO: This code's gonna need some refactoring. We should be able to save a lot of space, since most of the commands
+# Use a lot of the same code. Also, archiving is super slow.
 class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
     """Downloads a channel's history and sends it as a file to the user"""
     def __init__(self, bot):
@@ -103,6 +105,14 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
             embed = discord_utils.create_embed()
             embed.add_field(name="ERROR: Cannot find channel",
                             value=f"Sorry, I cannot find a channel with name {' '.join(args)}",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return
+        if not channel.type == 'text':
+            embed = discord_utils.create_embed()
+            embed.add_field(name="ERROR: Cannot archive non-text channels",
+                            value=f"Sorry! I can only archive text channels, but "
+                                  f"{channel} is a {channel.type} channel.",
                             inline=False)
             await ctx.send(embed=embed)
             return
