@@ -61,7 +61,9 @@ class CodeCog(commands.Cog):
         if channel in self.current_races:
             print("startrace called from a channel that's already racing!!")
             embed = utils.create_embed()
-            embed.add_field(name="Already Racing!", value=f"Stop trying to start a new race while you have one going! Use {constants.BOT_PREFIX}endrace to end the current race.")
+            embed.add_field(name="Already Racing!",
+                            value=f"Stop trying to start a new race while you have one going!",
+                            inline=False)
             await ctx.send(embed=embed)
             return
         # Housekeeping
@@ -99,14 +101,22 @@ class CodeCog(commands.Cog):
         channel = ctx.channel.id
         if channel not in self.current_races:
             embed = utils.create_embed()
-            embed.add_field(name="No race!", value="This channel doesn't have a race going on. You can't end something that hasn't started!", inline=False)
-            embed.add_field(name="Start Race", value=f"To start a race, use {constants.BOT_PREFIX}startrace", inline=False)
+            embed.add_field(name="No race!",
+                            value="This channel doesn't have a race going on. You can't end something that hasn't started!",
+                            inline=False)
+            embed.add_field(name="Start Race",
+                            value=f"To start a race, use {constants.BOT_PREFIX}startrace",
+                            inline=False)
             await ctx.send(embed=embed)
             return
         self.current_races.pop(channel)
         embed = utils.create_embed()
-        embed.add_field(name="Race Stopped", value=f"To start a new race, use {constants.BOT_PREFIX}startrace", inline=False)
-        embed.add_field(name="Experimental", value="ehm, this command is still in development. It actually probably didn't do anything, sorry!", inline=False)
+        embed.add_field(name="Race Stopped",
+                        value=f"To start a new race, use {constants.BOT_PREFIX}startrace",
+                        inline=False)
+        embed.add_field(name="Experimental",
+                        value="ehm, this command is still in development. It actually probably didn't do anything, sorry!",
+                        inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(name='practice', aliases=['pigpenpls'])
@@ -132,25 +142,29 @@ class CodeCog(commands.Cog):
                 used_cipher = toks[1].lower()
             else:
                 embed.add_field(name=f"{code_constants.CODE.capitalize()} Not Found",
-                                value=f"Sorry! We can't find that {code_constants.CODE} in our database.")
+                                value=f"Sorry! We can't find that {code_constants.CODE} in our database.",
+                                inline=False)
                 embed.add_field(name=f"Currently Supported {code_constants.CODE.capitalize()}",
-                                value=f"{', '.join([index[0] for index in self.codes[code_constants.CODE].value_counts.index])}")
+                                value=f"{', '.join([index[0] for index in self.codes[code_constants.CODE].value_counts.index])}",
+                                inline=False)
                 await ctx.send(embed=embed)
                 return
             proposal_row = self.codes[self.codes[code_constants.CODE] == used_cipher].sample()
         else:
-            embed.add_field(name="Incorrect Usage", value="Usage: ~practice or "
-                            f"~practice <{code_constants.CODE}_name>")
+            embed.add_field(name="Incorrect Usage",
+                            value=f"Usage: {constants.BOT_PREFIX}practice or {constants.BOT_PREFIX}practice <{code_constants.CODE}_name>")
             await ctx.send(embed=embed)
             return
 
-        embed.add_field(name=f"{used_cipher.capitalize()}", value=f"{proposal_row[code_constants.URL].item()}")
-        embed.add_field(name="Answer", value=f"|| {proposal_row[code_constants.ANSWER].item()} ||")
+        embed.add_field(name=f"{used_cipher.capitalize()}",
+                        value=f"{proposal_row[code_constants.URL].item()}")
+        embed.add_field(name="Answer",
+                        value=f"|| {proposal_row[code_constants.ANSWER].item()} ||")
         embed.set_image(url=proposal_row[code_constants.URL].item())
         await ctx.send(embed=embed)
 
     # Command to check the user's answer. They will be replied to telling them whether or not their answer is correct
-    @commands.command(name='answer')
+    @commands.command(name='answer', aliases=['a'])
     async def answer(self, ctx):
         """
         Check your  answer
@@ -162,8 +176,12 @@ class CodeCog(commands.Cog):
         # if the team isn't puzzling then we need to instruct them to use startpuzzle command first.
         if channel not in self.current_races:
             embed = utils.create_embed()
-            embed.add_field(name="No race!", value="This channel doesn't have a race going on. You can't answer anything!", inline=False)
-            embed.add_field(name="Start Race", value=f"To start a race, use {constants.BOT_PREFIX}startrace", inline=False)
+            embed.add_field(name="No race!",
+                            value="This channel doesn't have a race going on. You can't answer anything!",
+                            inline=False)
+            embed.add_field(name="Start Race",
+                            value=f"To start a race, use {constants.BOT_PREFIX}startrace",
+                            inline=False)
             await ctx.send(embed=embed)
             return
         print(f"All current answers: {self.current_races[channel][code_constants.ANSWERS]}")
@@ -211,7 +229,8 @@ class CodeCog(commands.Cog):
         print(f"{constants.BOT_PREFIX}reload used. Reloaded {code_constants.CODE} sheet")
         embed = utils.create_embed()
         embed.add_field(name="Sheet Reloaded",
-        value="Google sheet successfully reloaded")
+                        value="Google sheet successfully reloaded",
+                        inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(name='reset')
@@ -225,7 +244,9 @@ class CodeCog(commands.Cog):
         """
         self.current_races = {}
         embed = utils.create_embed()
-        embed.add_field(name="Success", value="Bot has been reset. I feel brand new!")
+        embed.add_field(name="Success",
+                        value="Bot has been reset. I feel brand new!",
+                        inline=False)
         await ctx.send(embed=embed)
 
 
@@ -269,8 +290,14 @@ class CodeCog(commands.Cog):
         print(f"{channel}'s time is up, unlucky.")
         # Create an embed to send to the team. 
         embed = discord.Embed(color=constants.EMBED_COLOR)
-        embed.add_field(name="Time's up!", value=f"Sorry! Your time is up. You still had {len(self.current_races[channel][code_constants.ANSWERS])} {code_constants.CODE} left to solve for level {level}. If you'd like to re-attempt the race, use the {constants.BOT_PREFIX}startrace command!", inline=False)
-        embed.add_field(name="Answers", value=f"The answers to the remaining codes were:\n{chr(10).join(self.current_races[channel][code_constants.ANSWERS])}", inline=False)
+        embed.add_field(name="Time's up!",
+                        value=f"Sorry! Your time is up. You still had {len(self.current_races[channel][code_constants.ANSWERS])} "
+                              f"{code_constants.CODE} left to solve for level {level}. "
+                              f"If you'd like to re-attempt the race, use the {constants.BOT_PREFIX}startrace command!",
+                        inline=False)
+        embed.add_field(name="Answers",
+                        value=f"The answers to the remaining codes were:\n"
+                              f"{chr(10).join(self.current_races[channel][code_constants.ANSWERS])}", inline=False)
         await ctx.send(embed=embed)
         self.current_races.pop(channel)
         return
