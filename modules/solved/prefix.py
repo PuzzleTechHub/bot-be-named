@@ -8,7 +8,7 @@ class Prefix:
 		return self.original[: self.prefix_len] == self.prefix_str
 
 	def add_prefix(self):
-		return f"{self.prefix_str}-{self.original}"
+		return f"{self.prefix_str}{self.original}"
 
 	def remove_prefix(self):
-		return self.original[self.prefix_len + 1 :]
+		return self.original[self.prefix_len :]

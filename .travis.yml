@@ -1,0 +1,16 @@
+language: python
+python:
+- '3.7'
+install:
+- pip install -r requirements.txt
+script:
+- python -m pytest
+notifications:
+  email: esslinger.k@northeastern.edu
+deploy:
+  provider: heroku
+  app: discord-cipherbot
+  api_key:
+    secure: m6rv7OcyfjNtM89CvJmTTQJA3UqjoIhplMd3ziGyaVrFYM8BG1oJ0wTcGEAjxk+yW96fs1tuWhBI7pkSImM3Km9EJD9jq1eTERM13AOyig4YdwrW2HjQInukputJ+rzWElCjJgfZWspPbCdoxA8507dTB0IerRkJwLjPFA6PP3Vj2WAgpvFDVCltfLk/fIQaVIuvWwDRkrPaDPhz7ncRQIwxPmDX/7ZDU+TLG5OVeZ2QRz5IjeZsfLcI5Zw07J9gQpPcPO96PGBzVR2l2N2JQZZiDX6uousDWWnpHFgqj7W9c7vWepswjqc6ql+Nk6IVNG3Iqk26Slj9z7be6fZ6ERnwiOXs8jKa4JafCk3knx0ajtTCeGzqII2+RktlnhNbc1Q+om5hjb8zwdDIbhfp4s47iQoRCzSnpkHXqNDpoT/LBogQ4/P9yvdc3ism3NFCDHDOBcTWsLNBxESoMqaWzMDp+0Qi9I7ox37B2BbG9j/8iPAPPVtq74U9IH/D7P74MQXvt2lAKDe8lrv74YR0628C4mT5GGKKzEE2qCECU57BI1Fw1En2W5/NmyhIZKQQousksKWQjKQ93aqX/8w6Qy7ikFwQrP+IdJtYEhYqRt81x9jFKUwHeW4bhv/e9MS5OKGCEZZhZYp7sfdljjCWwe9523UPddfni/F5gTpU260=
+  on:
+    repo: kevslinger/DiscordCipherRace
