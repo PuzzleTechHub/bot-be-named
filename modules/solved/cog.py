@@ -1,7 +1,8 @@
 import constants
 from discord.ext import commands
 from modules.solved.prefix import Prefix
-import modules.code.utils as utils
+from modules.solved import solved_constants
+from utils import discord_utils
 
 
 class SolvedCog(commands.Cog):
@@ -12,7 +13,7 @@ class SolvedCog(commands.Cog):
 
 	def add_prefix(self, channel, prefix):
 		"""Adds prefix to channel name"""
-		embed = utils.create_embed()
+		embed = discord_utils.create_embed()
 		# create prefix checking object
 		p = Prefix(channel, prefix)
 		new_channel_name = str(channel)
@@ -27,19 +28,16 @@ class SolvedCog(commands.Cog):
 
 	def remove_prefix(self, channel, prefix):
 		"""Remove prefix from channel name"""
-		embed = utils.create_embed()
+		embed = discord_utils.create_embed()
 		# create prefix checking object
 		p = Prefix(channel, prefix)
-		new_channel_name = str(channel)
+		new_channel_name = None
 		# check if already solved
 		if p.has_prefix():
 			# edit channel name to remove prefix
 			new_channel_name = p.remove_prefix()
 			embed.add_field(name=f"{constants.SUCCESS}!", value=f"Marking {channel.mention} as {prefix}!")
-		# already has prefix
-		else:
-			embed.add_field(name=f"{constants.FAILED}!", value=f"Channel is not marked as {prefix}!")
-		return embed, new_channel_name
+		return new_channel_name
 
 	@commands.command(name="solved")
 	@commands.has_any_role(
@@ -50,7 +48,7 @@ class SolvedCog(commands.Cog):
 		# log command in console
 		print("Received solved")
 		channel = ctx.message.channel
-		embed, new_channel_name = self.add_prefix(channel, constants.SOLVED_PREFIX)
+		embed, new_channel_name = self.add_prefix(channel, solved_constants.SOLVED_PREFIX)
 		await channel.edit(name=new_channel_name)
 		await ctx.send(embed=embed)
 
@@ -63,8 +61,16 @@ class SolvedCog(commands.Cog):
 		# log command in console
 		print("Received unsolved")
 		channel = ctx.message.channel
-		embed, new_channel_name = self.remove_prefix(ctx.message.channel, constants.SOLVED_PREFIX)
-		await channel.edit(name=new_channel_name)
+		for prefix in solved_constants.PREFIXES:
+			new_channel_name = self.remove_prefix(ctx.message.channel, prefix)
+			if new_channel_name:
+				await channel.edit(name=new_channel_name)
+				embed = discord_utils.create_embed()
+				embed.add_field(name=f"{constants.SUCCESS}!", value=f"Marking {channel.mention} as un{prefix}!")
+				await ctx.send(embed=embed)
+				return
+		embed = discord_utils.create_embed()
+		embed.add_field(name=f"{constants.FAILED}!", value=f"Channel is not marked as {solved_constants.SOLVED_PREFIX}!")
 		await ctx.send(embed=embed)
 
 	@commands.command(name="solvedish")
@@ -76,20 +82,7 @@ class SolvedCog(commands.Cog):
 		# log command in console
 		print("Received solvedish")
 		channel = ctx.message.channel
-		embed, new_channel_name = self.add_prefix(ctx.message.channel, constants.SOLVEDISH_PREFIX)
-		await channel.edit(name=new_channel_name)
-		await ctx.send(embed=embed)
-
-	@commands.command(name="unsolvedish")
-	@commands.has_any_role(
-		constants.VERIFIED_PUZZLER,
-	)
-	async def unsolvedish(self, ctx):
-		"""removes solvedish prefix from channel name"""
-		# log command in console
-		print("Received unsolvedish")
-		channel = ctx.message.channel
-		embed, new_channel_name = self.remove_prefix(channel, constants.SOLVEDISH_PREFIX)
+		embed, new_channel_name = self.add_prefix(ctx.message.channel, solved_constants.SOLVEDISH_PREFIX)
 		await channel.edit(name=new_channel_name)
 		await ctx.send(embed=embed)
 
@@ -102,20 +95,7 @@ class SolvedCog(commands.Cog):
 		# log command in console
 		print("Received backsolved")
 		channel = ctx.message.channel
-		embed, new_channel_name = self.add_prefix(channel, constants.BACKSOLVED_PREFIX)
-		await channel.edit(name=new_channel_name)
-		await ctx.send(embed=embed)
-
-	@commands.command(name="unbacksolved")
-	@commands.has_any_role(
-		constants.VERIFIED_PUZZLER,
-	)
-	async def unbacksolved(self, ctx):
-		"""removes backsolved prefix from channel name"""
-		# log command in console
-		print("Received unbacksolved")
-		channel = ctx.message.channel
-		embed, new_channel_name = self.remove_prefix(channel, constants.BACKSOLVED_PREFIX)
+		embed, new_channel_name = self.add_prefix(channel, solved_constants.BACKSOLVED_PREFIX)
 		await channel.edit(name=new_channel_name)
 		await ctx.send(embed=embed)
 

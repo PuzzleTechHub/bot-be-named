@@ -4,11 +4,9 @@
 
 Use `~solved` when you've solved a puzzle in your channel! The bot will prepend `solved-` to 
 the channel name so everyone will know the puzzle has been solved. 
-Use `~unsolved` to remove the `solved` prefix.
-
-Other options (same functionality):
-- `~solvedish` and `~unsolvedish`
-- `~backsolved` and `~unbacksolved`
+Use `~unsolved` to remove the prefix. Similarly, `~solvedish` will add 
+`solvedish-` and `~backsolved` will add `backsolved-` to the start of
+the channel.
 
 ## Issues
 

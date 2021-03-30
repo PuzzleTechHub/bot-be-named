@@ -3,6 +3,7 @@ import gspread
 import json
 import os
 import constants
+from modules.code import code_constants
 from oauth2client.service_account import ServiceAccountCredentials
 import math
 import pandas as pd
@@ -26,7 +27,7 @@ def create_level_prep_embed(level) -> discord.Embed:
     :return embed: (discord.Embed) the embed that includes the level-up message.
     """
     embed = create_embed()
-    embed.add_field(name=f"Level {level} Complete!", value=f"Well done! Level {level+1} will begin in {constants.BREAK_TIME} seconds.")
+    embed.add_field(name=f"Level {level} Complete!", value=f"Well done! Level {level+1} will begin in {code_constants.BREAK_TIME} seconds.")
     return embed
 
 
@@ -38,10 +39,10 @@ def get_opening_statement(sheet_used) -> discord.Embed:
     """
     embed = create_embed()
     embed.add_field(name=f"Welcome!", value=f"You have started a new race against the {sheet_used.capitalize()} wordlist! "
-                                            f"Level 1 will start in about {constants.BREAK_TIME} seconds from this message! "
-                                            f"You will have {constants.TIME_LIMIT} seconds to complete levels 1-5. "
-                                            f"After every {constants.NUM_LEVELS}th level, you will get {constants.BONUS_TIME} "
-                                            f"additional seconds (i.e you get {constants.TIME_LIMIT + constants.BONUS_TIME} "
+                                            f"Level 1 will start in about {code_constants.BREAK_TIME} seconds from this message! "
+                                            f"You will have {code_constants.TIME_LIMIT} seconds to complete levels 1-5. "
+                                            f"After every {code_constants.NUM_LEVELS}th level, you will get {code_constants.BONUS_TIME} "
+                                            f"additional seconds (i.e you get {code_constants.TIME_LIMIT + code_constants.BONUS_TIME} "
                                             f"seconds to complete levels 6-10). Good luck and have fun!")
     return embed
 
@@ -59,16 +60,16 @@ def create_code_embed(level, codes):
     embed_list = []
     embed = create_embed()
     embed.add_field(name=f"Level {level}", value=f"Welcome to level {level}! You will have {compute_level_time(level)} " + \
-    f"seconds to solve {level} {constants.CODE}s, beginning now.", inline=False)
+    f"seconds to solve {level} {code_constants.CODE}s, beginning now.", inline=False)
     embed_list.append(embed)
     for i in range(level):
         code_proposal = codes.sample()
         embed_list.append(create_embed())
-        embed_list[-1].add_field(name=f"{constants.CODE.capitalize()} #{i+1}", value=f"{code_proposal[constants.URL].item()}", inline=False)
-        embed_list[-1].set_image(url=code_proposal[constants.URL].item())
-        code_answers.append(code_proposal[constants.ANSWER].item().replace(' ', '').lower())
+        embed_list[-1].add_field(name=f"{code_constants.CODE.capitalize()} #{i+1}", value=f"{code_proposal[code_constants.URL].item()}", inline=False)
+        embed_list[-1].set_image(url=code_proposal[code_constants.URL].item())
+        code_answers.append(code_proposal[code_constants.ANSWER].item().replace(' ', '').lower())
     embed_list.append(create_embed())
-    embed_list[-1].add_field(name="Answering", value=f"Use {constants.BOT_PREFIX}answer to make a guess on any of the {constants.CODE}s.",
+    embed_list[-1].add_field(name="Answering", value=f"Use {constants.BOT_PREFIX}answer to make a guess on any of the {code_constants.CODE}s.",
                     inline=False)
     return embed_list, code_answers
 
@@ -80,7 +81,7 @@ def create_no_code_embed() -> discord.Embed:
     :return embed: (discord.Embed) The embed we create
     """
     embed = create_embed()
-    embed.add_field(name=f"No Current {constants.CODE.capitalize()}", 
+    embed.add_field(name=f"No Current {code_constants.CODE.capitalize()}",
                     value=f"You haven't started the race. To start, use command {constants.BOT_PREFIX}startrace.",
                     inline=False)
     return embed
@@ -98,9 +99,9 @@ def get_answer_result(user_answer, current_answers) -> str:
     user_answer = user_answer.lower()
     if user_answer in current_answers:
             current_answers.pop(current_answers.index(user_answer))
-            result = constants.CORRECT
+            result = code_constants.CORRECT
     else:
-        result = constants.INCORRECT
+        result = code_constants.INCORRECT
 
     return result
 
@@ -112,7 +113,7 @@ def compute_level_time(level):
     +10 on levels 10-15
     ...
     """
-    return constants.TIME_LIMIT + constants.BONUS_TIME * math.floor((level - 1) / constants.NUM_LEVELS)
+    return code_constants.TIME_LIMIT + code_constants.BONUS_TIME * math.floor((level - 1) / code_constants.NUM_LEVELS)
 
 
 def get_dataframe_from_gsheet(sheet):
@@ -121,7 +122,7 @@ def get_dataframe_from_gsheet(sheet):
     NOTE: excludes headers from gsheet and replaces them with the ones in constants
     :return: (pd.DataFrame)
     """
-    return pd.DataFrame(sheet.get_all_values()[1:], columns=constants.COLUMNS)
+    return pd.DataFrame(sheet.get_all_values()[1:], columns=code_constants.COLUMNS)
 
 
 def create_gspread_client():

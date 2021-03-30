@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from utils import discord_utils
 import constants
+from modules.lookup import lookup_constants
 
 #######
 # TODO: DELETE wikipedia, google, and dcode now that search works
@@ -24,11 +25,11 @@ class LookupCog(commands.Cog, name="Lookup"):
             await ctx.send(discord_utils.create_no_argument_embed("Target Site and Query"))
             return
         target_site = args[0].lower()
-        if target_site in constants.REGISTERED_SITES:
-            target_site = constants.REGISTERED_SITES[target_site]
+        if target_site in lookup_constants.REGISTERED_SITES:
+            target_site = lookup_constants.REGISTERED_SITES[target_site]
         # If we do a google search, we want to return the 10 top results
         # Otherwise, we want to just send the most relevant result
-        if target_site == constants.GOOGLE:
+        if target_site == lookup_constants.GOOGLE:
             is_google_search = True
         else:
             is_google_search = False
@@ -47,9 +48,9 @@ class LookupCog(commands.Cog, name="Lookup"):
         #   If we can't find it, return the google query I think
         embed = discord_utils.create_embed()
         results = []
-        for result in googlesearch.search(query, num=constants.QUERY_NUM,
-                                          stop=constants.QUERY_NUM,
-                                          pause=constants.PAUSE_TIME):
+        for result in googlesearch.search(query, num=lookup_constants.QUERY_NUM,
+                                          stop=lookup_constants.QUERY_NUM,
+                                          pause=lookup_constants.PAUSE_TIME):
             if target_site in result:
                 embed.add_field(name=f"{target_site.capitalize()} Result for {original_query}",
                                 value=result)
@@ -74,9 +75,9 @@ class LookupCog(commands.Cog, name="Lookup"):
             # Join args
             query = ' '.join(args)
             results = []
-            for j in googlesearch.search(query, num=constants.QUERY_NUM,
-                                         stop=constants.QUERY_NUM,
-                                         pause=constants.PAUSE_TIME):
+            for j in googlesearch.search(query, num=lookup_constants.QUERY_NUM,
+                                         stop=lookup_constants.QUERY_NUM,
+                                         pause=lookup_constants.PAUSE_TIME):
                 results.append(j)
             embed.add_field(name='Search Results', value=f"Here's what I've found for {query}:\n"
                                                          f"{chr(10).join(results)}")
@@ -91,26 +92,26 @@ class LookupCog(commands.Cog, name="Lookup"):
         if len(args) > 0:
             embed = discord_utils.create_embed()
             original_query = ' '.join(args)
-            query = original_query + ' ' + constants.DCODE_FR
+            query = original_query + ' ' + lookup_constants.DCODE_FR
             wiki_link = None
             found_wiki_link = False
             # We only care about the first wikipedia link. But if we can't find one
             # Let's return the first dcode.fr link.
             for j in googlesearch.search(query,
-                                         num=constants.QUERY_NUM,
-                                         stop=constants.QUERY_NUM,
-                                         pause=constants.PAUSE_TIME):
-                if constants.DCODE_FR in j:
-                    embed.add_field(name=f"{constants.DCODE_FR.capitalize()} Result!", value=j)
+                                         num=lookup_constants.QUERY_NUM,
+                                         stop=lookup_constants.QUERY_NUM,
+                                         pause=lookup_constants.PAUSE_TIME):
+                if lookup_constants.DCODE_FR in j:
+                    embed.add_field(name=f"{lookup_constants.DCODE_FR.capitalize()} Result!", value=j)
                     await ctx.send(embed=embed)
                     return
-                if constants.WIKIPEDIA in j and not found_wiki_link:
+                if lookup_constants.WIKIPEDIA in j and not found_wiki_link:
                     wiki_link = j
                     found_wiki_link = True
             if found_wiki_link:
-                embed.add_field(name=f"{constants.WIKIPEDIA.capitalize()} Result",
-                                value=f"Sorry! Couldn't find a {constants.DCODE_FR} link for {original_query}.\n"
-                                      f"Found a {constants.WIKIPEDIA} link: \n{wiki_link}")
+                embed.add_field(name=f"{lookup_constants.WIKIPEDIA.capitalize()} Result",
+                                value=f"Sorry! Couldn't find a {lookup_constants.DCODE_FR} link for {original_query}.\n"
+                                      f"Found a {lookup_constants.WIKIPEDIA} link: \n{wiki_link}")
             else:
                 embed.add_field(name="No dice!", value=f"Sorry! Could not find a result for {original_query}")
         else:
@@ -124,26 +125,26 @@ class LookupCog(commands.Cog, name="Lookup"):
         if len(args) > 0:
             embed = discord_utils.create_embed()
             original_query = ' '.join(args)
-            query = original_query + ' ' + constants.WIKIPEDIA
+            query = original_query + ' ' + lookup_constants.WIKIPEDIA
             wiki_link = None
             found_dcode_link = False
             # We only care about the first dcode link. But if we can't find one
             # Let's return the first wikipedia link.
             for j in googlesearch.search(query,
-                                         num=constants.QUERY_NUM,
-                                         stop=constants.QUERY_NUM,
-                                         pause=constants.PAUSE_TIME):
-                if constants.WIKIPEDIA in j:
-                    embed.add_field(name=f"{constants.WIKIPEDIA.capitalize()} Result!", value=j)
+                                         num=lookup_constants.QUERY_NUM,
+                                         stop=lookup_constants.QUERY_NUM,
+                                         pause=lookup_constants.PAUSE_TIME):
+                if lookup_constants.WIKIPEDIA in j:
+                    embed.add_field(name=f"{lookup_constants.WIKIPEDIA.capitalize()} Result!", value=j)
                     await ctx.send(embed=embed)
                     return
-                if constants.DCODE_FR in j and not found_dcode_link:
+                if lookup_constants.DCODE_FR in j and not found_dcode_link:
                     wiki_link = j
                     found_dcode_link = True
             if found_dcode_link:
-                embed.add_field(name=f"{constants.DCODE_FR.capitalize()} Result",
-                                value=f"Sorry! Couldn't find a {constants.WIKIPEDIA} link for {original_query}"
-                                      f"Found a {constants.DCODE_FR} link \n{wiki_link}")
+                embed.add_field(name=f"{lookup_constants.DCODE_FR.capitalize()} Result",
+                                value=f"Sorry! Couldn't find a {lookup_constants.WIKIPEDIA} link for {original_query}"
+                                      f"Found a {lookup_constants.DCODE_FR} link \n{wiki_link}")
             else:
                 embed.add_field(name="No dice!", value=f"Sorry! Could not find a result for {original_query}")
         else:

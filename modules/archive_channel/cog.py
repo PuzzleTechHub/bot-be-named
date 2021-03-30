@@ -6,6 +6,7 @@ import os
 import shutil
 import zipfile
 from utils import discord_utils
+from modules.archive_channel import archive_constants
 load_dotenv(override=True)
 
 
@@ -21,11 +22,11 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
 
     # TODO: While we're going through messages, it would be nice to see if we've already hit the 8MB limit somehow?
     # That would speed up the archiving of categories and servers by a lot. I guess it would be hard since we aren't
-    # Comparessing in real-time. We could try, though.
+    # Compressing in real-time. We could try, though.
     async def archive_one_channel(self, channel):
         """Download a channel's history"""
         # Write the chat log. Replace attachments with their filename (for easy reference)
-        text_log_path = os.path.join(constants.ARCHIVE, channel.name + '_' + constants.TEXT_LOG_PATH)
+        text_log_path = os.path.join(archive_constants.ARCHIVE, channel.name + '_' + archive_constants.TEXT_LOG_PATH)
         with open(text_log_path, 'w') as f:
             async for msg in channel.history(limit=None, oldest_first=True):
                 #print(f"{msg.created_at} - {msg.author.display_name.rjust(25, ' ')}: {msg.clean_content}")
@@ -37,7 +38,7 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                     f.write(f" {attachment.filename}")
                     # change duplicate filenames
                     # img.png would become img (1).png
-                    original_path = os.path.join(constants.ARCHIVE, constants.IMAGES, attachment.filename)
+                    original_path = os.path.join(archive_constants.ARCHIVE, archive_constants.IMAGES, attachment.filename)
                     proposed_path = original_path
                     dupe_counter = 1
                     while os.path.exists(proposed_path):
@@ -48,10 +49,10 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                 f.write("\n")
             text_file_size = f.tell()
 
-        ZIP_FILENAME = os.path.join(constants.ARCHIVE, channel.name + '_archive.zip')
+        ZIP_FILENAME = os.path.join(archive_constants.ARCHIVE, channel.name + '_archive.zip')
         # Create a zipfile and then walk through all the saved chatlogs and images, and zip em up
         with zipfile.ZipFile(ZIP_FILENAME, mode='w') as zf:
-            for root, directories, files in os.walk(constants.ARCHIVE):
+            for root, directories, files in os.walk(archive_constants.ARCHIVE):
                 for filename in files:
                     if filename == ZIP_FILENAME.split('/')[-1]: # Don't include self
                         continue
@@ -70,16 +71,16 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                 embed.add_field(name="ERROR: History Too Big",
                                 value=f"Sorry about that! The chat log in {channel.mention} is too big for me to send.\n"
                                       f"The max file size I can send in this server is "
-                                      f"`{(filesize_limit/constants.BYTES_TO_MEGABYTES):.2f}MB`, but the chat log is "
-                                      f"`{(textfile_size/constants.BYTES_TO_MEGABYTES):.2f}MB`",
+                                      f"`{(filesize_limit/archive_constants.BYTES_TO_MEGABYTES):.2f}MB`, but the chat log is "
+                                      f"`{(textfile_size/archive_constants.BYTES_TO_MEGABYTES):.2f}MB`",
                                 inline=False)
                 file = None
             else:
                 embed.add_field(name="WARNING: Attachments Too Big",
                                 value=f"There are too many photos in {channel.mention} for me to send. The max file size "
                                       f"I can send in this server is "
-                                      f"`{(filesize_limit/constants.BYTES_TO_MEGABYTES):.2f}MB` but the zip is "
-                                      f"`{(zipfile_size/constants.BYTES_TO_MEGABYTES):.2f}MB`. I'll only be able to send you the chat log.",
+                                      f"`{(filesize_limit/archive_constants.BYTES_TO_MEGABYTES):.2f}MB` but the zip is "
+                                      f"`{(zipfile_size/archive_constants.BYTES_TO_MEGABYTES):.2f}MB`. I'll only be able to send you the chat log.",
                                 inline=False)
                 file = textfile
         else:
@@ -88,6 +89,7 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
         return file, embed
 
     @commands.command(name="archivechannel")
+    @commands.has_role(constants.BOT_WHISPERER)
     async def archivechannel(self, ctx, *args):
         """Command to download channel's history"""
         # TODO: Need error handling for asking a channel we don't have access to or invalid channel name
@@ -140,6 +142,7 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
         await ctx.send(file=file, embed=embed)
 
     @commands.command(name="archivecategory")
+    @commands.has_guild_permissions(administrator=True)
     async def archivecategory(self, ctx, *args):
         """Command to download the history of every text channel in the category"""
         print("Received archivecategory")
@@ -236,10 +239,10 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
 
     def reset_archive_dir(self):
         # Remove the archive directory and remake
-        if os.path.exists(constants.ARCHIVE):
-            shutil.rmtree(constants.ARCHIVE)
-        os.mkdir(constants.ARCHIVE)
-        os.mkdir(os.path.join(constants.ARCHIVE, constants.IMAGES))
+        if os.path.exists(archive_constants.ARCHIVE):
+            shutil.rmtree(archive_constants.ARCHIVE)
+        os.mkdir(archive_constants.ARCHIVE)
+        os.mkdir(os.path.join(archive_constants.ARCHIVE, archive_constants.IMAGES))
 
 
 def setup(bot):
