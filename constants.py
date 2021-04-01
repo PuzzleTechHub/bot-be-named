@@ -6,8 +6,9 @@ EMBED_COLOR = 0xd4e4ff
 BOT_NAME = "The Bot Who Must Not Be Named"
 
 # Roles
+# TODO: Use role ID instead of string?
 BOT_WHISPERER = "bot-whisperer"
-VERIFIED_PUZZLER = 'verified-puzzler'
+VERIFIED_PUZZLER = 'Verified Puzzler'
 
 # Command success/fail
 SUCCESS = "Success"
