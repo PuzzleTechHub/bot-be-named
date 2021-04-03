@@ -22,7 +22,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         """
         print("Received search")
         if len(args) < 2:
-            await ctx.send(discord_utils.create_no_argument_embed("Target Site and Query"))
+            await ctx.send(embed=discord_utils.create_no_argument_embed("Target Site and Query"))
             return
         target_site = args[0].lower()
         if target_site in lookup_constants.REGISTERED_SITES:
