@@ -15,7 +15,7 @@ def create_embed() -> discord.Embed:
     return discord.Embed(color=constants.EMBED_COLOR)
 
 
-def create_level_prep_embed(level) -> discord.Embed:
+def create_level_prep_embed(level: int) -> discord.Embed:
     """
     Create an embed to let the team know their next level will start soon.
     
@@ -44,7 +44,7 @@ def get_opening_statement(sheet_used) -> discord.Embed:
     return embed
 
 
-def create_code_embed(level, codes):
+def create_code_embed(level: int, codes: pd.DataFrame):
     """
     Function to create the code embed
     :param level: (int) The level of the current puzzle solvers
@@ -84,7 +84,7 @@ def create_no_code_embed() -> discord.Embed:
     return embed
 
 
-def get_answer_result(user_answer, current_answers) -> str:
+def get_answer_result(user_answer: str, current_answers: list) -> str:
     """
     Return either correct or incorrect based on the team's answer and the list of codes.
 
@@ -103,7 +103,7 @@ def get_answer_result(user_answer, current_answers) -> str:
     return result
 
 
-def compute_level_time(level):
+def compute_level_time(level: int) -> int:
     """
     60 seconds on levels 1-5
     +10 on levels 6-10
@@ -113,7 +113,7 @@ def compute_level_time(level):
     return code_constants.TIME_LIMIT + code_constants.BONUS_TIME * math.floor((level - 1) / code_constants.NUM_LEVELS)
 
 
-def get_dataframe_from_gsheet(sheet):
+def get_dataframe_from_gsheet(sheet) -> pd.DataFrame:
     """
     Load in all the values from the google sheet.
     NOTE: excludes headers from gsheet and replaces them with the ones in constants

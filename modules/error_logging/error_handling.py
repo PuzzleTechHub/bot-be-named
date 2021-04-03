@@ -1,6 +1,8 @@
 import traceback
 from discord import logging
 from discord.ext.commands import errors
+from modules.error_logging import error_constants
+from datetime import datetime
 
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
@@ -19,6 +21,7 @@ class ErrorHandler:
         """Send error to user and error log channel"""
         error_details = self.trace if self.trace != "NoneType: None\n" else self.error
         logging.warning(error_details)
+        self.__log_to_file(error_constants.ERROR_LOGFILE, error_details)
 
         return self.__user_error_message()
 
@@ -54,3 +57,8 @@ class ErrorHandler:
                 return f"You must have the {self.error.missing_roles[0]} role to use this command."
         else:
             return None
+
+    def __log_to_file(self, filename: str, text: str):
+        """Appends the error to the error log file"""
+        with open(filename, "a") as f:
+            f.write(f"[ {datetime.now().strftime('%m-%d-%Y, %H:%M:%S')} ] {text}\n\n")

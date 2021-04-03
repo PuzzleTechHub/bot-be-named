@@ -1,8 +1,10 @@
 import constants
 from discord.ext import commands
-import modules.code.utils as utils
+import modules.code.code_utils as utils
 
 
+# Big thanks to denvercoder1 and his professor-vector-discord-bot repo
+# https://github.com/DenverCoder1/professor-vector-discord-bot
 class CreateChannelCog(commands.Cog, name="Create Channel"):
 	"""Checks for `createchannel` command
 	Creates channel in same category with given name"""

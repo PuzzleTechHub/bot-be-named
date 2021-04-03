@@ -1,15 +1,29 @@
-import sys
 from discord.ext import commands
 from modules.error_logging.error_handling import ErrorHandler
-from utils import discord_utils
 from modules.error_logging import error_constants
+from utils import discord_utils
+import sys
 
-## Big thanks to denvercoder1 and his professor-vector-discord-bot repo
-## https://github.com/DenverCoder1/professor-vector-discord-bot
+
+
+# Big thanks to denvercoder1 and his professor-vector-discord-bot repo
+# https://github.com/DenverCoder1/professor-vector-discord-bot
 class ErrorLogCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.error_channel = self.bot.get_channel(error_constants.ERROR_LOG_CHANNEL_ID)
+
+    @commands.command(name="errorlog")
+    async def errorlog(self, ctx, num_lines: int = 50):
+        """Shows errors in reverse chronological order"""
+        print("Received errorlog")
+        with open(error_constants.ERROR_LOGFILE, "r") as f:
+            lines = f.readlines()
+            last_n_lines = "".join(lines[-num_lines:])
+            # Trim the length of the log messages
+            if len(last_n_lines) > 1990:
+                last_n_lines = f"...\n{last_n_lines[-1990:]}"
+            await ctx.send(f"```{last_n_lines}```")
+
 
 async def on_error(event, *args, **kwargs):
     """When an exception is raised, log it in err.log and bot log channel"""

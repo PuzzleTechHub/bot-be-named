@@ -1,8 +1,11 @@
 import constants
 import discord
 from discord.ext import commands
-import modules.code.utils as utils # TODO: move utils from code to something more general
+import modules.code.code_utils as utils # TODO: move utils from code to something more general
 
+
+# Big thanks to denvercoder1 and his professor-vector-discord-bot repo
+# https://github.com/DenverCoder1/professor-vector-discord-bot
 class MoveChannelCog(commands.Cog, name="Move Channel"):
 	"""Checks for `movechannel` command
 	Moves current channel to given category"""

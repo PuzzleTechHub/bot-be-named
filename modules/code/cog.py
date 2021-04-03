@@ -3,7 +3,8 @@ import discord
 from discord.ext import commands
 import asyncio
 import os
-import modules.code.utils as utils
+import modules.code.code_utils as utils
+from code_utils import google_utils
 from modules.code import code_constants
 import constants
 from aio_timers import Timer
@@ -32,7 +33,7 @@ class CodeCog(commands.Cog):
         self.current_races = {}
 
         # Google Sheets Authentication and Initialization
-        self.client = utils.create_gspread_client()
+        self.client = google_utils.create_gspread_client()
 
         # Default to HP Sheet
         self.sheet_key = os.getenv('HP_SHEET_KEY').replace('\'', '')
