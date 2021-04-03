@@ -4,7 +4,7 @@ from discord.ext import commands
 import asyncio
 import os
 import modules.code.code_utils as utils
-from code_utils import google_utils
+from utils import google_utils
 from modules.code import code_constants
 import constants
 from aio_timers import Timer
