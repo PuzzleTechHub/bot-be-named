@@ -9,6 +9,7 @@ BOT_NAME = "The Bot Who Must Not Be Named"
 # TODO: Use role ID instead of string?
 BOT_WHISPERER = "bot-whisperer"
 VERIFIED_PUZZLER = 'Verified Puzzler'
+TA_VERIFIED_PUZZLER_ROLE_ID = 812906479794520135
 
 # Command success/fail
 SUCCESS = "Success"

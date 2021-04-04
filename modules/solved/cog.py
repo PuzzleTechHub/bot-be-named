@@ -18,23 +18,16 @@ class SolvedCog(commands.Cog):
 
 	def add_prefix(self, channel, prefix: str):
 		"""Adds prefix to channel name"""
-		embed = discord_utils.create_embed()
-		print('HELLO THERE')
 		# create prefix checking object
 		p = Prefix(channel, prefix)
-		new_channel_name = str(channel)
+		new_channel_name = None
 		# check if already solved
 		if not p.has_prefix():
 			new_channel_name = p.add_prefix()
-			embed.add_field(name=f"{constants.SUCCESS}!", value=f"Marking {channel.mention} as {prefix[:-1]}!")
-		# already solved
-		else:
-			embed.add_field(name=f"{constants.FAILED}!", value=f"Channel already marked as {prefix[:-1]}!")
-		return embed, new_channel_name
+		return new_channel_name
 
 	def remove_prefix(self, channel, prefix: str) -> str:
 		"""Remove prefix from channel name"""
-		embed = discord_utils.create_embed()
 		# create prefix checking object
 		p = Prefix(channel, prefix)
 		new_channel_name = None
@@ -55,31 +48,17 @@ class SolvedCog(commands.Cog):
 		# log command in console
 		print("Received solved")
 		channel = ctx.message.channel
-		embed, new_channel_name = self.add_prefix(channel, solved_constants.SOLVED_PREFIX)
-		await channel.edit(name=new_channel_name)
-		await ctx.send(embed=embed)
-
-	@commands.command(name="unsolved")
-	@commands.has_any_role(
-		constants.VERIFIED_PUZZLER,
-	)
-	async def unsolved(self, ctx: commands.context):
-		"""removes one of the solved prefixes from channel name
-
-		Usage: ~unsolved"""
-		# log command in console
-		print("Received unsolved")
-		channel = ctx.message.channel
-		for prefix in solved_constants.PREFIXES:
-			new_channel_name = self.remove_prefix(ctx.message.channel, prefix)
-			if new_channel_name:
-				await channel.edit(name=new_channel_name)
-				embed = discord_utils.create_embed()
-				embed.add_field(name=f"{constants.SUCCESS}!", value=f"Marking {channel.mention} as un{prefix[:-1]}!")
-				await ctx.send(embed=embed)
-				return
 		embed = discord_utils.create_embed()
-		embed.add_field(name=f"{constants.FAILED}!", value=f"Channel is not marked as {solved_constants.SOLVED_PREFIX[:-1]}!")
+		new_channel_name = self.add_prefix(channel, solved_constants.SOLVED_PREFIX)
+		if new_channel_name:
+			await channel.edit(name=new_channel_name)
+			embed.add_field(name=f"{constants.SUCCESS}!",
+							value=f"Marking {channel.mention} as {solved_constants.SOLVED_PREFIX[:-1]}!",
+							inline=False)
+		else:
+			embed.add_field(name=f"{constants.FAILED}!",
+							value=f"Channel already marked as {solved_constants.SOLVED_PREFIX[:-1]}!",
+							inline=False)
 		await ctx.send(embed=embed)
 
 	@commands.command(name="solvedish")
@@ -93,7 +72,17 @@ class SolvedCog(commands.Cog):
 		# log command in console
 		print("Received solvedish")
 		channel = ctx.message.channel
-		embed, new_channel_name = self.add_prefix(ctx.message.channel, solved_constants.SOLVEDISH_PREFIX)
+		embed = discord_utils.create_embed()
+		new_channel_name = self.add_prefix(ctx.message.channel, solved_constants.SOLVEDISH_PREFIX)
+		if new_channel_name:
+			await channel.edit(name=new_channel_name)
+			embed.add_field(name=f"{constants.SUCCESS}!",
+							value=f"Marking {channel.mention} as {solved_constants.SOLVEDISH_PREFIX[:-1]}!",
+							inline=False)
+		else:
+			embed.add_field(name=f"{constants.FAILED}!",
+							value=f"Channel already marked as {solved_constants.SOLVEDISH_PREFIX[:-1]}!",
+							inline=False)
 		await channel.edit(name=new_channel_name)
 		await ctx.send(embed=embed)
 
@@ -108,10 +97,44 @@ class SolvedCog(commands.Cog):
 		# log command in console
 		print("Received backsolved")
 		channel = ctx.message.channel
-		embed, new_channel_name = self.add_prefix(channel, solved_constants.BACKSOLVED_PREFIX)
-		await channel.edit(name=new_channel_name)
+		embed = discord_utils.create_embed()
+		new_channel_name = self.add_prefix(channel, solved_constants.BACKSOLVED_PREFIX)
+		if new_channel_name:
+			await channel.edit(name=new_channel_name)
+			embed.add_field(name=f"{constants.SUCCESS}",
+							value=f"Marking {channel.mention} as {solved_constants.BACKSOLVED_PREFIX[:-1]}!",
+							inline=False)
+		else:
+			embed.add_field(name=f"{constants.FAILED}",
+							value=f"Channel already marked as {solved_constants.BACKSOLVED_PREFIX[:-1]}!",
+							inline=False)
 		await ctx.send(embed=embed)
 
+	@commands.command(name="unsolved")
+	@commands.has_any_role(
+		constants.VERIFIED_PUZZLER,
+	)
+	async def unsolved(self, ctx: commands.context):
+		"""removes one of the solved prefixes from channel name
+
+		Usage: ~unsolved"""
+		# log command in console
+		print("Received unsolved")
+		channel = ctx.message.channel
+		embed = discord_utils.create_embed()
+		for prefix in solved_constants.PREFIXES:
+			new_channel_name = self.remove_prefix(ctx.message.channel, prefix)
+			if new_channel_name:
+				await channel.edit(name=new_channel_name)
+				embed.add_field(name=f"{constants.SUCCESS}!",
+								value=f"Marking {channel.mention} as un{prefix[:-1]}!",
+								inline=False)
+				await ctx.send(embed=embed)
+				return
+		embed.add_field(name=f"{constants.FAILED}!",
+						value=f"Channel is not marked as {solved_constants.SOLVED_PREFIX[:-1]}!",
+						inline=False)
+		await ctx.send(embed=embed)
 
 def setup(bot):
 	bot.add_cog(SolvedCog(bot))

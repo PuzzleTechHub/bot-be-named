@@ -47,9 +47,6 @@ class ErrorHandler:
         elif isinstance(self.error, errors.CommandInvokeError):
             return f"Error while executing the command."
         elif isinstance(self.error, errors.MissingAnyRole): #TODO: need MissingAnyRole?
-            print(self.error)
-            print(dir(self.error))
-            print(self.error.missing_roles)
             if len(self.error.missing_roles) > 1:
                 return f"You must have one of the following roles to use this command: " \
                        f"{', '.join(self.error.missing_roles)}"

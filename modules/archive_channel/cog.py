@@ -89,7 +89,9 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
         return file, embed
 
     @commands.command(name="archivechannel")
-    @commands.has_role(constants.BOT_WHISPERER)
+    @commands.has_any_role(
+        constants.BOT_WHISPERER
+    )
     async def archivechannel(self, ctx, *args):
         """Command to download channel's history"""
         # TODO: Need error handling for asking a channel we don't have access to or invalid channel name

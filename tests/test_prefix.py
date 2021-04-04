@@ -59,7 +59,7 @@ def test_add_prefix(channel, prefix, new_channel):
                           (f"{solved_constants.BACKSOLVED_PREFIX}puzzle4", solved_constants.SOLVED_PREFIX, f"{solved_constants.BACKSOLVED_PREFIX}puzzle4"),
                           (f"{solved_constants.BACKSOLVED_PREFIX}puzzle4", solved_constants.BACKSOLVED_PREFIX, f"puzzle4"),
                           (f"{solved_constants.BACKSOLVED_PREFIX}puzzle4", solved_constants.SOLVEDISH_PREFIX, f"{solved_constants.BACKSOLVED_PREFIX}puzzle4")])
-def test_add_prefix(channel, prefix, new_channel):
+def test_remove_prefix(channel, prefix, new_channel):
     prefix = Prefix(channel, prefix)
     if prefix.has_prefix():
         assert new_channel == prefix.remove_prefix()

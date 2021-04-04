@@ -13,6 +13,7 @@ class ErrorLogCog(commands.Cog):
         self.bot = bot
 
     @commands.command(name="errorlog")
+    @commands.is_owner()
     async def errorlog(self, ctx, num_lines: int = 50):
         """Shows errors in reverse chronological order"""
         print("Received errorlog")
@@ -54,7 +55,7 @@ async def on_error(event, *args, **kwargs):
                             value=user_error,
                             inline=False)
     await args[0].channel.send(embed=embed)
-    #await error_channel.send(embed=embed)
+
 
 async def on_command_error(ctx, error):
     """When a command exception is raised, log it in err.log and bot log channel"""
@@ -68,7 +69,7 @@ async def on_command_error(ctx, error):
                         inline=False)
         await ctx.send(embed=embed)
     else:
-        print("None")
+        print("on_command_error has no user_error")
 
 
 def setup(bot):

@@ -15,6 +15,7 @@ class CreateChannelCog(commands.Cog, name="Create Channel"):
 	@commands.command(name="createchannel")
 	@commands.has_any_role(
 		constants.VERIFIED_PUZZLER,
+		constants.TA_VERIFIED_PUZZLER_ROLE_ID
 	)
 	async def createchannel(self, ctx, name: str = ""):
 		"""Command to create channel in same category with given name"""
