@@ -62,7 +62,6 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
         # In that case, we just need to send the textfile
         return discord.File(ZIP_FILENAME), zf_file_size, discord.File(text_log_path), text_file_size
 
-
     def get_file_and_embed(self, channel, filesize_limit, zipfile, zipfile_size, textfile, textfile_size):
         """Check if zipfile and textfile can be sent or not, create embed with message"""
         embed = discord_utils.create_embed()
@@ -104,7 +103,7 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
             return
         # TODO: check discord docs for id=args[0] possibility?
         try:
-            channel = self.find_channel(ctx.guild.channels, ' '.join(args))
+            channel = discord_utils.find_channel(self.bot, ctx.guild.channels, ' '.join(args))
         except ValueError:
             embed = discord_utils.create_embed()
             embed.add_field(name="ERROR: Cannot find channel",
@@ -155,7 +154,7 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
             return
 
         try:
-            category = self.find_channel(ctx.guild.channels, ' '.join(args))
+            category = discord_utils.find_channel(self.bot, ctx.guild.channels, ' '.join(args))
         except ValueError:
             embed = discord_utils.create_embed()
             embed.add_field(name="ERROR: Cannot find category",
@@ -218,14 +217,6 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                                 inline=False)
                 await ctx.send(embed=embed)
                 continue
-
-    def find_channel(self, channels, channel_name):
-        channel = discord.utils.get(channels, name=channel_name)
-
-        if channel is None:
-            channel_id = int(channel_name.replace('>', '').replace('<#', ''))
-            channel = self.bot.get_channel(channel_id)
-        return channel
 
     def get_start_embed(self, channel_or_guild):
         embed = discord_utils.create_embed()

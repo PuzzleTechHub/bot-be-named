@@ -46,12 +46,34 @@ class ErrorHandler:
             return f"That command is disabled or under maintenance."
         elif isinstance(self.error, errors.CommandInvokeError):
             return f"Error while executing the command."
-        elif isinstance(self.error, errors.MissingAnyRole): #TODO: need MissingAnyRole?
-            if len(self.error.missing_roles) > 1:
+        elif isinstance(self.error, errors.MissingAnyRole):
+            # Get the missing role list. Some may be integers (role IDs)
+            # Others might be strings TODO: only use one or the other?
+            # If it's an int, we want to convert to a string for the people to understand
+            # It might be a channel specific role, so in that case it would come back as none
+            # We don't want to add none (for the join later on)
+            # If it's a string, just append it
+            missing_role_list = []
+            for missing_role in self.error.missing_roles:
+                if isinstance(missing_role, int):
+                    role = self.message.guild.get_role(missing_role)
+                    if role is not None:
+                        missing_role_list.append(role)
+                else:
+                    missing_role_list.append(missing_role)
+            # Some integers might have the same role name so just remove duplicates
+            missing_role_list = set(missing_role_list)
+            # Send all possible perms to give them access to the command
+            if len(missing_role_list) > 1:
                 return f"You must have one of the following roles to use this command: " \
-                       f"{', '.join(self.error.missing_roles)}"
+                       f"{', '.join(missing_role_list)}"
+            # This would happen if the perm is not available in that server.
+            elif len(missing_role_list) <= 0:
+                return f"You don't have the necessary permissions to use that command! Speak with kevslinger to " \
+                       f"get your permissions set up for that."
             else:
-                return f"You must have the {self.error.missing_roles[0]} role to use this command."
+                # One role for the command.
+                return f"You must have the {next(iter(missing_role_list))} role to use this command."
         else:
             return None
 

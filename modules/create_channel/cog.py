@@ -22,21 +22,21 @@ class CreateChannelCog(commands.Cog, name="Create Channel"):
 		# log command in console
 		print("Received createchannel")
 		embed = utils.create_embed()
-		# check for channel name argument
-		if len(name) > 0:
-			# get guild and category
-			guild = ctx.message.guild
-			category = ctx.channel.category
-			# create channel
-			channel = await guild.create_text_channel(name, category=category)
-			embed.add_field(name="Success!", value=f"Created channel {channel.mention} in {category}!")
-			# reply to user
-			await ctx.send(embed=embed)
 		# no argument passed
-		else:
+		if len(name) <= 0:
 			embed.add_field(name="Failed!", value=f"You must specify a channel name!")
 			# reply to user
 			await ctx.send(embed=embed)
+			return
+		# get guild and category
+		guild = ctx.message.guild
+		category = ctx.channel.category
+		# create channel
+		channel = await guild.create_text_channel(name, category=category)
+		embed.add_field(name="Success!", value=f"Created channel {channel.mention} in {category}!")
+		# reply to user
+		await ctx.send(embed=embed)
+
 
 
 def setup(bot):

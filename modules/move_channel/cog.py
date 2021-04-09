@@ -16,6 +16,7 @@ class MoveChannelCog(commands.Cog, name="Move Channel"):
 	@commands.command(name="movechannel")
 	@commands.has_any_role(
 		constants.VERIFIED_PUZZLER,
+		constants.TA_VERIFIED_PUZZLER_ROLE_ID
 	)
 	async def movechannel(self, ctx, *args):
 		"""Command to move channel to category with given name"""
