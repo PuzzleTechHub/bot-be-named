@@ -39,14 +39,17 @@ class CodeCog(commands.Cog):
         self.sheet_key = os.getenv('HP_SHEET_KEY').replace('\'', '')
         self.sheet = self.client.open_by_key(self.sheet_key).sheet1
         # Store list of codes as a dataframe
-        self.codes = utils.get_dataframe_from_gsheet(self.sheet)
+        self.codes = google_utils.get_dataframe_from_gsheet(self.sheet, code_constants.COLUMNS)
         self.sheet_map = {
-            code_constants.HP: utils.get_dataframe_from_gsheet(
-                self.client.open_by_key(os.getenv("HP_SHEET_KEY").replace('\'', '')).sheet1),
-            code_constants.COMMON: utils.get_dataframe_from_gsheet(
-                self.client.open_by_key(os.getenv("COMMON_SHEET_KEY").replace('\'', '')).sheet1),
-            code_constants.CHALLENGE: utils.get_dataframe_from_gsheet(
-                self.client.open_by_key(os.getenv("CHALLENGE_SHEET_KEY").replace('\'', '')).sheet1),
+            code_constants.HP: google_utils.get_dataframe_from_gsheet(
+                self.client.open_by_key(os.getenv("HP_SHEET_KEY").replace('\'', '')).sheet1,
+                code_constants.COLUMNS),
+            code_constants.COMMON: google_utils.get_dataframe_from_gsheet(
+                self.client.open_by_key(os.getenv("COMMON_SHEET_KEY").replace('\'', '')).sheet1,
+                code_constants.COLUMNS),
+            code_constants.CHALLENGE: google_utils.get_dataframe_from_gsheet(
+                self.client.open_by_key(os.getenv("CHALLENGE_SHEET_KEY").replace('\'', '')).sheet1,
+                code_constants.COLUMNS),
         }
         
         # Reload the google sheet every hour
@@ -226,7 +229,7 @@ class CodeCog(commands.Cog):
         Reload the Google Sheet so we can update our codes instantly.
         Usage: ~reload
         """
-        self.codes = utils.get_dataframe_from_gsheet(self.sheet)
+        self.codes = google_utils.get_dataframe_from_gsheet(self.sheet, code_constants.COLUMNS)
         print(f"{constants.BOT_PREFIX}reload used. Reloaded {code_constants.CODE} sheet")
         embed = utils.create_embed()
         embed.add_field(name="Sheet Reloaded",
@@ -265,7 +268,7 @@ class CodeCog(commands.Cog):
         await self.bot.wait_until_ready()
         while True:
             await asyncio.sleep(3600) # 1 hour
-            self.codes = utils.get_dataframe_from_gsheet(self.sheet)
+            self.codes = google_utils.get_dataframe_from_gsheet(self.sheet, code_constants.COLUMNS)
             print(f"Reloaded {code_constants.CODE} sheet on schedule")
 
     async def start_new_level(self, ctx, channel, embeds):

@@ -47,6 +47,7 @@ async def on_error(event, *args, **kwargs):
                             inline=False)
     # other errors
     else:
+        print("Other error occurred")
         msg = f"An error occurred during and event and was not reported: {event}"
         user_error = ErrorHandler(args[0], error, msg).handle_error()# TODO: change args[0] to ""
         if user_error:

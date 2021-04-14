@@ -20,15 +20,19 @@ class ErrorHandler:
     def handle_error(self):
         """Send error to user and error log channel"""
         error_details = self.trace if self.trace != "NoneType: None\n" else self.error
+        print(f"In handle_error")
         logging.warning(error_details)
+        print(f"Printing from handle_error {error_details}")
         self.__log_to_file(error_constants.ERROR_LOGFILE, error_details)
+        user_error = self.__user_error_message()
+        if user_error == -1: # No error from __user_error_message
+            return error_details
+        else:
+            return user_error
 
-        return self.__user_error_message()
-
-
-    def __user_error_message(self):
+    def __user_error_message(self) -> str:
         if isinstance(self.error, errors.CommandNotFound):
-            pass  # ignore command not found
+            return None  # ignore command not found
         elif isinstance(self.error, errors.MissingRequiredArgument):
             return f"Argument {self.error.param} required."
         elif isinstance(self.error, errors.TooManyArguments):
@@ -75,7 +79,7 @@ class ErrorHandler:
                 # One role for the command.
                 return f"You must have the {next(iter(missing_role_list))} role to use this command."
         else:
-            return None
+            return -1 # No Error found
 
     def __log_to_file(self, filename: str, text: str):
         """Appends the error to the error log file"""

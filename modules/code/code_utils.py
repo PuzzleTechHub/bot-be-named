@@ -111,17 +111,3 @@ def compute_level_time(level: int) -> int:
     ...
     """
     return code_constants.TIME_LIMIT + code_constants.BONUS_TIME * math.floor((level - 1) / code_constants.NUM_LEVELS)
-
-
-def get_dataframe_from_gsheet(sheet) -> pd.DataFrame:
-    """
-    Load in all the values from the google sheet.
-    NOTE: excludes headers from gsheet and replaces them with the ones in constants
-    :return: (pd.DataFrame)
-    """
-    return pd.DataFrame(sheet.get_all_values()[1:], columns=code_constants.COLUMNS)
-
-
-
-
-

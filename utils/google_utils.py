@@ -1,5 +1,6 @@
 import gspread
 import os
+import pandas as pd
 from oauth2client.service_account import ServiceAccountCredentials
 import constants
 import json
@@ -20,3 +21,20 @@ def create_gspread_client():
             json.dump(json_creds, f)
     creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scopes)
     return gspread.authorize(creds)
+
+
+def get_dataframe_from_gsheet(sheet: gspread.Spreadsheet, columns: list) -> pd.DataFrame:
+    """
+    Load in all the values from the google sheet.
+    NOTE: excludes headers from gsheet and replaces them with the ones in constants
+    :param sheet: (gspread.Spreadsheet)
+    :param columns: (list of str)
+    :return: (pd.DataFrame)
+    """
+    return pd.DataFrame(sheet.get_all_values()[1:], columns=columns)
+
+
+def update_sheet_from_df(sheet: gspread.Spreadsheet, df: pd.DataFrame):
+    """Dump the current dataframe onto the google sheet"""
+    sheet.update([df.columns.values.tolist()] + df.values.tolist())
+

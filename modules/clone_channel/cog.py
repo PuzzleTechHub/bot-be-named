@@ -18,7 +18,7 @@ class CloneChannelCog(commands.Cog, name="Create Channel"):
     async def clonechannel(self, ctx, original: str = "", new: str = ""):
         """Command to create channel in same category with given name"""
         # log command in console
-        print("Received createchannel")
+        print("Received clonechannel")
         embed = discord_utils.create_embed()
         # no argument passed
         if len(original) <= 1:
