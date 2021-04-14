@@ -3,13 +3,16 @@
 
 ## Modules
 
-- [Code](https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/code) a fun cipher race!
-- [Create Channel](https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/create_channel) for Creating Discord Channels
-- [Move Channel](https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/move_channel) for Moving Discord Channels
-- [Solved](https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/solved) for marking Discord Channels as Solved
-- [Archive Channel](https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/archive_channel) for downloading channel contents into a Zip
-- [Lookup](https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/lookup) for getting quick google results
-- [Error Logging](https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/error_logging) displays errors for the user (no commands)
+- [Archive Channel](./modules/archive_channel) for downloading channel contents into a Zip
+- [Clone Channel](./modules/clone_channel) for cloning a channel's permissions into a new channel  
+- [Code](./modules/code) a fun cipher race!
+- [Create Channel](./modules/create_channel) for Creating Discord Channels
+- [Error Logging](./modules/error_logging) for Getting Error Logs
+- [Lookup](./modules/lookup) for Searching the internet  
+- [Move Channel](./modules/move_channel) for Moving Discord Channels
+- [Solved](./modules/solved) for marking Discord Channels as Solved
+- [Time](./modules/time) for finding the time anywhere in the world
+
 
 ## Acknowledgements
 
