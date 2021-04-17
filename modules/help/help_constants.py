@@ -15,4 +15,6 @@ ARCHIVE_CHANNEL = 'Archive Channel'
 ARCHIVE_CHANNEL_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/archive_channel'
 LOOKUP = 'Lookup'
 LOOKUP_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/lookup'
-MODULES = [CIPHER_RACE, CREATE_CHANNEL, MOVE_CHANNEL, SOLVED, ARCHIVE_CHANNEL, LOOKUP]
+TIME = 'Time'
+TIME_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/time'
+MODULES = [CIPHER_RACE, CREATE_CHANNEL, MOVE_CHANNEL, SOLVED, ARCHIVE_CHANNEL, LOOKUP, TIME]

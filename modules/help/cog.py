@@ -47,6 +47,10 @@ class HelpCog(commands.Cog):
                             value=f"Search the interwebs (google)!\n"
                                   f"Read more on the [GitHub README]({help_constants.LOOKUP_README})",
                             inline=False)
+            embed.add_field(name=help_constants.TIME,
+                            value=f"Current time anywhere in the world!\n"
+                                  f"Read more on the [GitHub README]({help_constants.TIME_README})",
+                            inline=False)
         else:
             module = ' '.join(args).lower()
             if module in MODULE_TO_HELP:
@@ -162,6 +166,18 @@ def lookup_help():
     return embed
 
 
+def time_help():
+    embed = discord.Embed(title=f"{help_constants.TIME} {help_constants.HELP}",
+                          url=help_constants.TIME_README,
+                          color=constants.EMBED_COLOR)
+    embed.add_field(name=f"{constants.BOT_PREFIX}time <location>",
+                    value=f"Find the time zone and current time anywhere in the world!\n"
+                          f"e.g. {constants.BOT_PREFIX}time New York City",
+                    inline=False)
+    embed = more_help(embed, help_constants.TIME_README)
+    return embed
+
+
 def more_help(embed, readme_link):
     return embed.add_field(name=f"More {help_constants.HELP}",
                            value=f"Want to know more? Check out the [GitHub README]({readme_link})",
@@ -174,7 +190,8 @@ MODULE_TO_HELP = {
     help_constants.MOVE_CHANNEL.lower(): move_channel_help,
     help_constants.SOLVED.lower(): solved_help,
     help_constants.ARCHIVE_CHANNEL.lower(): archive_channel_help,
-    help_constants.LOOKUP.lower(): lookup_help
+    help_constants.LOOKUP.lower(): lookup_help,
+    help_constants.TIME.lower(): time_help
 }
 
 
