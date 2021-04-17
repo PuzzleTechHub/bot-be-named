@@ -18,14 +18,14 @@ class MockChannel:
                           ("puzzle1", solved_constants.BACKSOLVED_PREFIX, f"{solved_constants.BACKSOLVED_PREFIX}puzzle1"),
                           ("puzzle1", solved_constants.SOLVEDISH_PREFIX, f"{solved_constants.SOLVEDISH_PREFIX}puzzle1"),
                           (f"{solved_constants.SOLVED_PREFIX}puzzle2", solved_constants.SOLVED_PREFIX, None),
-                          (f"{solved_constants.SOLVED_PREFIX}puzzle2", solved_constants.BACKSOLVED_PREFIX, f"{solved_constants.BACKSOLVED_PREFIX}{solved_constants.SOLVED_PREFIX}puzzle2"),
-                          (f"{solved_constants.SOLVED_PREFIX}puzzle2", solved_constants.SOLVEDISH_PREFIX, f"{solved_constants.SOLVEDISH_PREFIX}{solved_constants.SOLVED_PREFIX}puzzle2"),
-                          (f"{solved_constants.SOLVEDISH_PREFIX}puzzle3", solved_constants.SOLVED_PREFIX, f"{solved_constants.SOLVED_PREFIX}{solved_constants.SOLVEDISH_PREFIX}puzzle3"),
-                          (f"{solved_constants.SOLVEDISH_PREFIX}puzzle3", solved_constants.BACKSOLVED_PREFIX, f"{solved_constants.BACKSOLVED_PREFIX}{solved_constants.SOLVEDISH_PREFIX}puzzle3"),
+                          (f"{solved_constants.SOLVED_PREFIX}puzzle2", solved_constants.BACKSOLVED_PREFIX, f"{solved_constants.BACKSOLVED_PREFIX}puzzle2"),
+                          (f"{solved_constants.SOLVED_PREFIX}puzzle2", solved_constants.SOLVEDISH_PREFIX, f"{solved_constants.SOLVEDISH_PREFIX}puzzle2"),
+                          (f"{solved_constants.SOLVEDISH_PREFIX}puzzle3", solved_constants.SOLVED_PREFIX, f"{solved_constants.SOLVED_PREFIX}puzzle3"),
+                          (f"{solved_constants.SOLVEDISH_PREFIX}puzzle3", solved_constants.BACKSOLVED_PREFIX, f"{solved_constants.BACKSOLVED_PREFIX}puzzle3"),
                           (f"{solved_constants.SOLVEDISH_PREFIX}puzzle3", solved_constants.SOLVEDISH_PREFIX, None),
-                          (f"{solved_constants.BACKSOLVED_PREFIX}puzzle4", solved_constants.SOLVED_PREFIX, f"{solved_constants.SOLVED_PREFIX}{solved_constants.BACKSOLVED_PREFIX}puzzle4"),
+                          (f"{solved_constants.BACKSOLVED_PREFIX}puzzle4", solved_constants.SOLVED_PREFIX, f"{solved_constants.SOLVED_PREFIX}puzzle4"),
                           (f"{solved_constants.BACKSOLVED_PREFIX}puzzle4", solved_constants.BACKSOLVED_PREFIX, None),
-                          (f"{solved_constants.BACKSOLVED_PREFIX}puzzle4", solved_constants.SOLVEDISH_PREFIX, f"{solved_constants.SOLVEDISH_PREFIX}{solved_constants.BACKSOLVED_PREFIX}puzzle4")])
+                          (f"{solved_constants.BACKSOLVED_PREFIX}puzzle4", solved_constants.SOLVEDISH_PREFIX, f"{solved_constants.SOLVEDISH_PREFIX}puzzle4")])
 def test_add_prefix(original_name, prefix, new_name):
     """Ensure prefix gets added if it does not exist, otherwise return original channel name"""
     solved_cog = SolvedCog(None)

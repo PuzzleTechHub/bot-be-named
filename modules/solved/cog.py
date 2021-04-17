@@ -23,6 +23,14 @@ class SolvedCog(commands.Cog):
 		new_channel_name = None
 		# check if already solved
 		if not p.has_prefix():
+			# Abusing p notation here
+			# Remove other prefixes that might be present
+			# e.g. ~backsolved on solved-channel should remove solved- and add backsolved-
+			for other_prefix in [op for op in solved_constants.PREFIXES if op != prefix]:
+				p = Prefix(channel, other_prefix)
+				if p.has_prefix():
+					new_channel_name = p.remove_prefix()
+			p = Prefix(new_channel_name, prefix)
 			new_channel_name = p.add_prefix()
 		return new_channel_name
 
