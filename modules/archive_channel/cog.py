@@ -1,13 +1,12 @@
 import discord
 from discord.ext import commands
-from dotenv.main import load_dotenv
 import constants
 import os
 import shutil
 import zipfile
 from utils import discord_utils
 from modules.archive_channel import archive_constants
-load_dotenv(override=True)
+import asyncio
 
 
 # TODO: This code's gonna need some refactoring. We should be able to save a lot of space, since most of the commands
@@ -17,6 +16,7 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
     def __init__(self, bot):
         self.bot = bot
         self.compression = zipfile.ZIP_DEFLATED
+        self.lock = asyncio.Lock()
 
         self.reset_archive_dir()
 
@@ -95,52 +95,56 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
         """Command to download channel's history"""
         # TODO: Need error handling for asking a channel we don't have access to or invalid channel name
         print("Received archivechannel")
-        self.reset_archive_dir()
         # Check if the user supplied a channel
         if len(args) < 1:
             # No arguments provided
             await ctx.send(embed=discord_utils.create_no_argument_embed('channel'))
             return
-        # TODO: check discord docs for id=args[0] possibility?
-        try:
-            channel = discord_utils.find_channel(self.bot, ctx.guild.channels, ' '.join(args))
-        except ValueError:
-            embed = discord_utils.create_embed()
-            embed.add_field(name="ERROR: Cannot find channel",
-                            value=f"Sorry, I cannot find a channel with name {' '.join(args)}",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return
-        if not channel.type == 'text':
-            embed = discord_utils.create_embed()
-            embed.add_field(name="ERROR: Cannot archive non-text channels",
-                            value=f"Sorry! I can only archive text channels, but "
-                                  f"{channel} is a {channel.type} channel.",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return
-        # If we've gotten to this point, we know we have a channel so we should probably let the user know.
-        start_embed = self.get_start_embed(channel)
-        await ctx.send(embed=start_embed)
-        try:
-            # zipfile, textfile
-            zipfile, zipfile_size, textfile, textfile_size = await self.archive_one_channel(channel)
-        except discord.errors.Forbidden:
-            embed = discord_utils.create_embed()
-            embed.add_field(name="ERROR: No access",
-                            value=f"Sorry! I don't have access to {channel}. You'll need "
-                                   f"to give me permission to view the channel if you want "
-                                   f"to archive it",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return
-        file, embed = self.get_file_and_embed(channel,
-                                              ctx.guild.filesize_limit,
-                                              zipfile,
-                                              zipfile_size,
-                                              textfile,
-                                              textfile_size)
-        await ctx.send(file=file, embed=embed)
+        # If we don't have the lock, let the user know it may take a while.
+        if self.lock.locked():
+            await ctx.send(embed=self.get_delay_embed())
+        # LOCK EVERYTHING
+        async with self.lock:
+            self.reset_archive_dir()
+            try:
+                channel = discord_utils.find_channel(self.bot, ctx.guild.channels, ' '.join(args))
+            except ValueError:
+                embed = discord_utils.create_embed()
+                embed.add_field(name="ERROR: Cannot find channel",
+                                value=f"Sorry, I cannot find a channel with name {' '.join(args)}",
+                                inline=False)
+                await ctx.send(embed=embed)
+                return
+            if not channel.type.name == 'text':
+                embed = discord_utils.create_embed()
+                embed.add_field(name="ERROR: Cannot archive non-text channels",
+                                value=f"Sorry! I can only archive text channels, but "
+                                      f"{channel} is a {channel.type} channel.",
+                                inline=False)
+                await ctx.send(embed=embed)
+                return
+            # If we've gotten to this point, we know we have a channel so we should probably let the user know.
+            start_embed = self.get_start_embed(channel)
+            await ctx.send(embed=start_embed)
+            try:
+                # zipfile, textfile
+                zipfile, zipfile_size, textfile, textfile_size = await self.archive_one_channel(channel)
+            except discord.errors.Forbidden:
+                embed = discord_utils.create_embed()
+                embed.add_field(name="ERROR: No access",
+                                value=f"Sorry! I don't have access to {channel}. You'll need "
+                                       f"to give me permission to view the channel if you want "
+                                       f"to archive it",
+                                inline=False)
+                await ctx.send(embed=embed)
+                return
+            file, embed = self.get_file_and_embed(channel,
+                                                  ctx.guild.filesize_limit,
+                                                  zipfile,
+                                                  zipfile_size,
+                                                  textfile,
+                                                  textfile_size)
+            await ctx.send(file=file, embed=embed)
 
     @commands.command(name="archivecategory")
     @commands.has_guild_permissions(administrator=True)
@@ -152,39 +156,43 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
             # No arguments provided
             await ctx.send(embed=discord_utils.create_no_argument_embed('category'))
             return
-
-        try:
-            category = discord_utils.find_channel(self.bot, ctx.guild.channels, ' '.join(args))
-        except ValueError:
-            embed = discord_utils.create_embed()
-            embed.add_field(name="ERROR: Cannot find category",
-                            value=f"Sorry, I cannot find a category with name {' '.join(args)}",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return
-
-        start_embed = self.get_start_embed(category)
-        await ctx.send(embed=start_embed)
-        for text_channel in category.text_channels:
-            self.reset_archive_dir()
+        # If we don't have the lock, let the user know it may take a while.
+        if self.lock.locked():
+            await ctx.send(embed=self.get_delay_embed())
+        # LOCK EVERYTHING
+        async with self.lock:
             try:
-                zipfile, zipfile_size, textfile, textfile_size = await self.archive_one_channel(text_channel)
-                file, embed = self.get_file_and_embed(text_channel,
-                                                      ctx.guild.filesize_limit,
-                                                      zipfile,
-                                                      zipfile_size,
-                                                      textfile,
-                                                      textfile_size)
-                await ctx.send(file=file, embed=embed)
-            except discord.errors.Forbidden:
+                category = discord_utils.find_channel(self.bot, ctx.guild.channels, ' '.join(args))
+            except ValueError:
                 embed = discord_utils.create_embed()
-                embed.add_field(name="ERROR: No access",
-                                value=f"Sorry! I don't have access to {text_channel.mention}. You'll need "
-                                      f"to give me permission to view the channel if you want "
-                                      f"to archive it",
+                embed.add_field(name="ERROR: Cannot find category",
+                                value=f"Sorry, I cannot find a category with name {' '.join(args)}",
                                 inline=False)
                 await ctx.send(embed=embed)
-                continue
+                return
+
+            start_embed = self.get_start_embed(category)
+            await ctx.send(embed=start_embed)
+            for text_channel in category.text_channels:
+                self.reset_archive_dir()
+                try:
+                    zipfile, zipfile_size, textfile, textfile_size = await self.archive_one_channel(text_channel)
+                    file, embed = self.get_file_and_embed(text_channel,
+                                                          ctx.guild.filesize_limit,
+                                                          zipfile,
+                                                          zipfile_size,
+                                                          textfile,
+                                                          textfile_size)
+                    await ctx.send(file=file, embed=embed)
+                except discord.errors.Forbidden:
+                    embed = discord_utils.create_embed()
+                    embed.add_field(name="ERROR: No access",
+                                    value=f"Sorry! I don't have access to {text_channel.mention}. You'll need "
+                                          f"to give me permission to view the channel if you want "
+                                          f"to archive it",
+                                    inline=False)
+                    await ctx.send(embed=embed)
+                    continue
 
     # TODO: This code is mostly copy/pasted from archivecategory
     @commands.command(name="archiveserver")
@@ -194,29 +202,34 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
 
         WARNING: This command will take *very* long on any reasonably aged server"""
         print("Received archiveserver")
-        start_embed = self.get_start_embed(ctx.guild)
-        await ctx.send(embed=start_embed)
-
-        for text_channel in ctx.guild.text_channels:
-            self.reset_archive_dir()
-            try:
-                zipfile, zipfile_size, textfile, textfile_size = await self.archive_one_channel(text_channel)
-                file, embed = self.get_file_and_embed(text_channel,
-                                                      ctx.guild.filesize_limit,
-                                                      zipfile,
-                                                      zipfile_size,
-                                                      textfile,
-                                                      textfile_size)
-                await ctx.send(file=file, embed=embed)
-            except discord.errors.Forbidden:
-                embed = discord_utils.create_embed()
-                embed.add_field(name="ERROR: No access",
-                                value=f"Sorry! I don't have access to {text_channel.mention}. You'll need "
-                                      f"to give me permission to view the channel if you want "
-                                      f"to archive it",
-                                inline=False)
-                await ctx.send(embed=embed)
-                continue
+        # If we don't have the lock, let the user know it may take a while.
+        if self.lock.locked():
+            await ctx.send(embed=self.get_delay_embed())
+        else:
+            start_embed = self.get_start_embed(ctx.guild)
+            await ctx.send(embed=start_embed)
+        # LOCK EVERYTHING
+        async with self.lock:
+            for text_channel in ctx.guild.text_channels:
+                self.reset_archive_dir()
+                try:
+                    zipfile, zipfile_size, textfile, textfile_size = await self.archive_one_channel(text_channel)
+                    file, embed = self.get_file_and_embed(text_channel,
+                                                          ctx.guild.filesize_limit,
+                                                          zipfile,
+                                                          zipfile_size,
+                                                          textfile,
+                                                          textfile_size)
+                    await ctx.send(file=file, embed=embed)
+                except discord.errors.Forbidden:
+                    embed = discord_utils.create_embed()
+                    embed.add_field(name="ERROR: No access",
+                                    value=f"Sorry! I don't have access to {text_channel.mention}. You'll need "
+                                          f"to give me permission to view the channel if you want "
+                                          f"to archive it",
+                                    inline=False)
+                    await ctx.send(embed=embed)
+                    continue
 
     def get_start_embed(self, channel_or_guild):
         embed = discord_utils.create_embed()
@@ -227,6 +240,14 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
                         inline=False)
         embed.add_field(name="Problems?",
                         value="Taking too long? Let `@kevslinger` know",
+                        inline=False)
+        return embed
+
+    def get_delay_embed(self):
+        embed = discord_utils.create_embed()
+        embed.add_field(name="Warning: Delay!",
+                        value="Hi! It appears we're a little busy at the moment, so our archiving may take a while. "
+                              "Sorry about that! We'll get to it as soon as possible.",
                         inline=False)
         return embed
 
