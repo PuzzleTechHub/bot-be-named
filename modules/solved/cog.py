@@ -30,7 +30,10 @@ class SolvedCog(commands.Cog):
 				p = Prefix(channel, other_prefix)
 				if p.has_prefix():
 					new_channel_name = p.remove_prefix()
-			p = Prefix(new_channel_name, prefix)
+			if new_channel_name is None:
+				p = Prefix(channel, prefix)
+			else:
+				p = Prefix(new_channel_name, prefix)
 			new_channel_name = p.add_prefix()
 		return new_channel_name
 
