@@ -1,5 +1,12 @@
-# BOT (still working on name)
+# BOT (Bot Be Named)
 [![Build Status](https://travis-ci.com/kevslinger/DiscordCipherRace.svg?branch=main)](https://travis-ci.com/kevslinger/DiscordCipherRace)
+
+##How to install
+
+```virtualenv venv -p=3.7
+pip install -r requirements.txt
+source venv/bin/activate
+python bot.py```
 
 ## Modules
 
