@@ -3,10 +3,12 @@
 
 ##How to install
 
-```virtualenv venv -p=3.7
+```
+virtualenv venv -p=3.7
 pip install -r requirements.txt
 source venv/bin/activate
-python bot.py```
+python bot.py
+```
 
 
 ## Modules
