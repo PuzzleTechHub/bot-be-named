@@ -2,10 +2,10 @@ import geopy
 import os
 from discord.ext import commands
 from utils import discord_utils
-import datetime
+from datetime import datetime
 
 class TimeCog(commands.Cog, name="Time"):
-    """Opens up the Casino"""
+    """Get time and timezone of any location"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -16,6 +16,11 @@ class TimeCog(commands.Cog, name="Time"):
     async def time(self, ctx, *args):
         """Return the time in the specified location"""
         print("Received time")
+        # No location provided
+        if len(args) < 1:
+            embed = discord_utils.create_no_argument_embed("location")
+            await ctx.send(embed=embed)
+            return
         # Allow long input (e.g. St. Louis, Missouri, USA)
         location = " ".join(args)
 
@@ -53,9 +58,8 @@ class TimeCog(commands.Cog, name="Time"):
 
 def format_time(time):
     """Rearrange time str. Comes in as YYYY-MM-DD HH:MM, change to MM-DD-YYYY HH:MM"""
-    date = datetime.datetime.strptime(time, "%Y-%m-%d %H:%M")
-    return f"{date.month}-{date.day}-{date.year} {date.hour}:{date.minute}"
-
+    date = datetime.strptime(time, "%Y-%m-%d %H:%M")
+    return date.strftime('%B %d, %H:%M')
 
 def setup(bot):
     bot.add_cog(TimeCog(bot))

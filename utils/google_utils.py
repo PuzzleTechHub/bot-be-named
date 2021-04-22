@@ -10,7 +10,8 @@ def create_gspread_client():
     Create the client to be able to access google drive (sheets)
     """
     # Scope of what we can do in google drive
-    scopes = ['https://www.googleapis.com/auth/spreadsheets']
+    scopes = ['https://www.googleapis.com/auth/spreadsheets',
+              'https://www.googleapis.com/auth/drive']
 
     # Write the credentials file if we don't have it
     if not os.path.exists('client_secret.json'):
