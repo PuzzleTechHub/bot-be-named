@@ -1,18 +1,21 @@
 import os
-import json
 import discord
 from discord.ext import commands
 from utils import discord_utils
 from dotenv.main import load_dotenv
 load_dotenv(override=True)
 import constants
+from utils import google_utils
+from gspread.exceptions import CellNotFound
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 
+gspread_client = google_utils.create_gspread_client()
+prefix_sheet = gspread_client.open_by_key(os.getenv('PREFIX_SHEET_KEY')).sheet1
 
 def get_prefix(client, message):
-    with open(constants.PREFIX_JSON_FILE, 'r') as f:
-        prefixes = json.load(f)
-    return prefixes[str(message.guild.id)]
+    cell = prefix_sheet.find(str(message.guild.id))
+
+    return prefix_sheet.cell(cell.row, cell.col+1).value
 
 
 def main():
@@ -27,31 +30,25 @@ def main():
     @client.event
     async def on_ready():
         await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="you solve👀 |~help"))
-        # Keep a json file of all the servers the bot is in and what command prefix to use for them.
-        if not os.path.exists(os.path.join(os.getcwd(), constants.PREFIX_JSON_FILE)):
-            with open(constants.PREFIX_JSON_FILE, 'w') as f:
-                json.dump({}, f)
-        # Read in the prefix file, then check if the guild is in it.
-        with open(constants.PREFIX_JSON_FILE, 'r') as f:
-            prefixes = json.load(f)
+        # Keep a google sheet of all the servers the bot is in and what command prefix to use for them.
         for guild in client.guilds:
-
-            if str(guild.id) not in prefixes:
-                prefixes[str(guild.id)] = constants.DEFAULT_BOT_PREFIX
+            try:
+                # Check if the guild is in the sheet.
+                cell = prefix_sheet.find(str(guild.id))
+                prefix = prefix_sheet.cell(cell.row, cell.col+1).value
+            except CellNotFound:
+                prefix = constants.DEFAULT_BOT_PREFIX
+                prefix_sheet.append_row([guild.name, str(guild.id), prefix])
                 print(f"Added {constants.DEFAULT_BOT_PREFIX} as prefix in {guild}")
 
-            print(f"{client.user.name} has connected to the following guild: {guild.name} (id: {guild.id}) with prefix {prefixes[str(guild.id)]}")
-        with open(constants.PREFIX_JSON_FILE, 'w') as f:
-            json.dump(prefixes, f)
+            print(f"{client.user.name} has connected to the following guild: {guild.name} (id: {guild.id}) with prefix {prefix}")
 
     @client.event
     async def on_message(message):
         if client.user.mentioned_in(message):
             print("I have been mentioned")
-            with open(constants.PREFIX_JSON_FILE, 'r') as f:
-                prefixes = json.load(f)
-            pre = prefixes[str(message.guild.id)]
-
+            cell = prefix_sheet.find(str(message.guild.id))
+            pre = prefix_sheet.cell(cell.row, cell.col+1).value
             embed = discord_utils.create_embed()
             embed.add_field(name="Prefix",
                             value=f"My prefix in this server is \"{pre}\". Use {pre}help "

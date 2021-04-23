@@ -31,12 +31,17 @@ class HelpCog(commands.Cog):
                                    "to start a race! "
                                   f"\nRead more on the [GitHub README]({help_constants.CIPHER_RACE_README})",
                             inline=False)
+            embed.add_field(name=help_constants.CLONE_CHANNEL,
+                            value=f"Create a new channel with the same permissions as a current channel!\n"
+                                  f"Use {ctx.prefix}clonechannel <cloned-channel> <new-channel-name> "
+                                  f"to clone the channel",
+                            inline=False)
             embed.add_field(name=help_constants.CREATE_CHANNEL,
-                            value=f"Create a channel! Use {ctx.prefix}createchannel <channel_name> "
+                            value=f"Create a channel! Use {ctx.prefix}createchannel <channel-name> "
                                   f"to create a channel.",
                             inline=False)
             embed.add_field(name=help_constants.MOVE_CHANNEL,
-                            value=f"Move a channel to another category! Use {ctx.prefix}movechannel <category_name> "
+                            value=f"Move a channel to another category! Use {ctx.prefix}movechannel <category-name> "
                                   f"to move the channel.",
                             inline=False)
             embed.add_field(name=help_constants.SOLVED,
@@ -98,6 +103,17 @@ def cipher_race_help(prefix: str):
                     inline=False)
     embed = more_help(embed, help_constants.CIPHER_RACE_README)
     #TODO: Add reload and reset?
+    return embed
+
+
+def clone_channel_help(prefix: str):
+    embed = discord.Embed(title=f"{help_constants.CREATE_CHANNEL} {help_constants.HELP}",
+                          url=help_constants.CREATE_CHANNEL_README,
+                          color=constants.EMBED_COLOR)
+    embed.add_field(name=f"{prefix}clone-channel <#cloned-channel> <new-channel-name>",
+                    value=f"Create a new channel with the same permissions as #cloned-channel",
+                    inline=False)
+    embed = more_help(embed, help_constants.CLONE_CHANNEL_README)
     return embed
 
 
@@ -199,6 +215,7 @@ def more_help(embed, readme_link):
 MODULE_TO_HELP = {
     help_constants.ADMIN.lower(): admin_help,
     help_constants.CIPHER_RACE.lower(): cipher_race_help,
+    help_constants.CLONE_CHANNEL.lower(): clone_channel_help,
     help_constants.CREATE_CHANNEL.lower(): create_channel_help,
     help_constants.MOVE_CHANNEL.lower(): move_channel_help,
     help_constants.SOLVED.lower(): solved_help,
