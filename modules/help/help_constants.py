@@ -3,6 +3,8 @@
 ################
 
 HELP = 'Help'
+ADMIN = 'Admin'
+ADMIN_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/admin'
 CIPHER_RACE = 'Cipher Race'
 CIPHER_RACE_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/code'
 CREATE_CHANNEL = 'Create Channel'

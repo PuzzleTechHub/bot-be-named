@@ -9,11 +9,40 @@ class SheetsCog(commands.Cog, name="Sheets"):
     """A collection of commands for Google Sheests management"""
     def __init__(self, bot):
         self.bot = bot
+        self.gspread_client = google_utils.create_gspread_client()
+        self.category_tether_tab = self.gspread_client.open_by_key(sheets_constants.SHEET_ID).worksheet(sheets_constants.CATEGORY_TAB)
+        #self.tether_df = google_utils.get_dataframe_from_gsheet(self.tether_sheet, sheets_constants.COLUMNS)
+        print(self.category_tether_tab.get_all_values())
 
-        # self.gspread_client = google_utils.create_gspread_client()
-        # self.tether_sheet = self.gspread_client.open_by_key(os.getenv("GSHEETS_TETHER_KEY")).sheet1
-        # self.tether_df = google_utils.get_dataframe_from_gsheet(self.tether_sheet, sheets_constants.COLUMNS)
+    @commands.command(name="addsheettether")
+    async def addsheettether(self, ctx, *args):
+        if len(args) < 1:
+            embed = discord_utils.create_no_argument_embed('Sheet Link')
+            await ctx.send(embed=embed)
+            return 0
+        curr_cat = str(ctx.message.channel.category)
+        curr_cat_id = str(ctx.message.channel.category_id)
+        curr_guild = str(ctx.message.channel.guild)
+        curr_sheet = args[0]
+        #if ctx.message.channel.category in self.tether_df[sheet_constants.CATEGORY]:
+        allvals = self.category_tether_tab.get_all_values()
+        i=1
+        idx=0
+        for row in allvals:
+            if(row[0] == curr_cat_id):
+                idx = i
+                break
+            i=i+1
 
+        if(idx==0):
+            values = [curr_cat_id, curr_guild + " - " + curr_cat, str(curr_sheet)]
+            self.category_tether_tab.append_row(values)
+        else:
+            values = [[curr_cat_id, curr_guild + " - " + curr_cat, str(curr_sheet)]]
+            rownum = "A"+str(idx)+":C"+str(idx)
+            self.category_tether_tab.update(rownum, values)
+        print("Received sheettether")
+        print(curr_cat+"\n"+curr_cat_id+"\n"+curr_guild+"\n"+curr_sheet+"\n")
 
     @commands.command(name="sheetcreatetab")
     async def sheetcreatetab(self, ctx, *args):

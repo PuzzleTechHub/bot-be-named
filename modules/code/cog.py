@@ -4,7 +4,7 @@ from discord.ext import commands
 import asyncio
 import os
 import modules.code.code_utils as utils
-from utils import google_utils
+from utils import google_utils, discord_utils
 from modules.code import code_constants
 import constants
 from aio_timers import Timer
@@ -78,17 +78,16 @@ class CodeCog(commands.Cog):
         # TODO: NEW: add a sheet option to hold multiple sheets
         # ~startrace eng gives you 1000 random english word sheet
         # ~startrace hp gives you the harry potter sheet
-        sheet_used = None
         if len(ctx.message.content.split()) > 1 and ctx.message.content.split()[1] in self.sheet_map:
             sheet_used = ctx.message.content.split()[1]
             self.current_races[channel][code_constants.CODE] = self.sheet_map[sheet_used]
             embeds, self.current_races[channel][code_constants.ANSWERS] = utils.create_code_embed(
-                self.current_races[channel][code_constants.LEVEL], self.current_races[channel][code_constants.CODE])
+                self.current_races[channel][code_constants.LEVEL], self.current_races[channel][code_constants.CODE], ctx.prefix)
 
         # Creates the embeds containing the codes for that level as well as updates the IDs we're using and the acceptable answers for the level
         else:
             embeds, self.current_races[channel][code_constants.ANSWERS] = utils.create_code_embed(
-                self.current_races[channel][code_constants.LEVEL], self.codes)
+                self.current_races[channel][code_constants.LEVEL], self.codes, ctx.prefix)
             sheet_used = code_constants.HP
 
         await ctx.send(embed=utils.get_opening_statement(sheet_used))
@@ -109,14 +108,14 @@ class CodeCog(commands.Cog):
                             value="This channel doesn't have a race going on. You can't end something that hasn't started!",
                             inline=False)
             embed.add_field(name="Start Race",
-                            value=f"To start a race, use {constants.BOT_PREFIX}startrace",
+                            value=f"To start a race, use {ctx.prefix}startrace",
                             inline=False)
             await ctx.send(embed=embed)
             return
         self.current_races.pop(channel)
         embed = utils.create_embed()
         embed.add_field(name="Race Stopped",
-                        value=f"To start a new race, use {constants.BOT_PREFIX}startrace",
+                        value=f"To start a new race, use {ctx.prefix}startrace",
                         inline=False)
         embed.add_field(name="Experimental",
                         value="ehm, this command is still in development. It actually probably didn't do anything, sorry!",
@@ -156,7 +155,7 @@ class CodeCog(commands.Cog):
             proposal_row = self.codes[self.codes[code_constants.CODE] == used_cipher].sample()
         else:
             embed.add_field(name="Incorrect Usage",
-                            value=f"Usage: {constants.BOT_PREFIX}practice or {constants.BOT_PREFIX}practice <{code_constants.CODE}_name>")
+                            value=f"Usage: {ctx.prefix}practice or {ctx.prefix}practice <{code_constants.CODE}_name>")
             await ctx.send(embed=embed)
             return
 
@@ -184,14 +183,13 @@ class CodeCog(commands.Cog):
                             value="This channel doesn't have a race going on. You can't answer anything!",
                             inline=False)
             embed.add_field(name="Start Race",
-                            value=f"To start a race, use {constants.BOT_PREFIX}startrace",
+                            value=f"To start a race, use {ctx.prefix}startrace",
                             inline=False)
             await ctx.send(embed=embed)
             return
         print(f"All current answers: {self.current_races[channel][code_constants.ANSWERS]}")
         
         # Remove the command and whitespace from the answer.
-        #user_answer = ctx.message.content.replace(f'{constants.BOT_PREFIX}answer', '').replace(' ', '')
         user_answer = ''.join(ctx.message.content.split()[1:])
         result = utils.get_answer_result(user_answer, self.current_races[channel][code_constants.ANSWERS])
         
@@ -212,10 +210,10 @@ class CodeCog(commands.Cog):
         # Creates all code embeds, updates used code IDS, and refreshes current answers for the next level.
         if code_constants.CODE in self.current_races[channel]:
             embeds, self.current_races[channel][code_constants.ANSWERS] = utils.create_code_embed(
-                self.current_races[channel][code_constants.LEVEL], self.current_races[channel][code_constants.CODE])
+                self.current_races[channel][code_constants.LEVEL], self.current_races[channel][code_constants.CODE], ctx.prefix)
         else:
             embeds, self.current_races[channel][code_constants.ANSWERS] = utils.create_code_embed(
-                self.current_races[channel][code_constants.LEVEL], self.codes)
+                self.current_races[channel][code_constants.LEVEL], self.codes, ctx.prefix)
         
         await ctx.send(embed=embed)
         Timer(code_constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
@@ -230,7 +228,7 @@ class CodeCog(commands.Cog):
         Usage: ~reload
         """
         self.codes = google_utils.get_dataframe_from_gsheet(self.sheet, code_constants.COLUMNS)
-        print(f"{constants.BOT_PREFIX}reload used. Reloaded {code_constants.CODE} sheet")
+        print(f"Reload used. Reloaded {code_constants.CODE} sheet")
         embed = utils.create_embed()
         embed.add_field(name="Sheet Reloaded",
                         value="Google sheet successfully reloaded",
@@ -297,7 +295,7 @@ class CodeCog(commands.Cog):
         embed.add_field(name="Time's up!",
                         value=f"Sorry! Your time is up. You still had {len(self.current_races[channel][code_constants.ANSWERS])} "
                               f"{code_constants.CODE} left to solve for level {level}. "
-                              f"If you'd like to re-attempt the race, use the {constants.BOT_PREFIX}startrace command!",
+                              f"If you'd like to re-attempt the race, use the {ctx.prefix}startrace command!",
                         inline=False)
         embed.add_field(name="Answers",
                         value=f"The answers to the remaining codes were:\n"

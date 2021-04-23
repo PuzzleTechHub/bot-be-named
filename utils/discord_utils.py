@@ -28,6 +28,7 @@ def populate_embed(names: list, values: list, inline: bool = False) -> discord.E
                         inline=inline)
     return embed
 
+
 def find_channel(bot, channels, channel_name):
     channel = discord.utils.get(channels, name=channel_name)
 

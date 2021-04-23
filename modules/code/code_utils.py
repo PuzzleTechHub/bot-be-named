@@ -1,5 +1,6 @@
 import pandas as pd
 from modules.code import code_constants
+from utils import discord_utils
 import discord
 import constants
 import math
@@ -44,11 +45,12 @@ def get_opening_statement(sheet_used) -> discord.Embed:
     return embed
 
 
-def create_code_embed(level: int, codes: pd.DataFrame):
+def create_code_embed(level: int, codes: pd.DataFrame, prefix: str):
     """
     Function to create the code embed
     :param level: (int) The level of the current puzzle solvers
     :param codes: (pandas.DataFrame) the current set of codes
+    :param prefix: (str) The bot prefix for the server the message came from
 
     :return embeds: (list of discord.Embed) The embeds we create for the code
     :return code_answer: (list of str) the answers to the given codes
@@ -66,20 +68,21 @@ def create_code_embed(level: int, codes: pd.DataFrame):
         embed_list[-1].set_image(url=code_proposal[code_constants.URL].item())
         code_answers.append(code_proposal[code_constants.ANSWER].item().replace(' ', '').lower())
     embed_list.append(create_embed())
-    embed_list[-1].add_field(name="Answering", value=f"Use {constants.BOT_PREFIX}answer to make a guess on any of the {code_constants.CODE}s.",
+    embed_list[-1].add_field(name="Answering", value=f"Use {prefix}answer to make a guess on any of the {code_constants.CODE}s.",
                     inline=False)
     return embed_list, code_answers
 
 
-def create_no_code_embed() -> discord.Embed:
+def create_no_code_embed(prefix: str) -> discord.Embed:
     """
     Function to create an embed to say there is no code
+    :param prefix: (str) the prefix for the server
 
     :return embed: (discord.Embed) The embed we create
     """
     embed = create_embed()
     embed.add_field(name=f"No Current {code_constants.CODE.capitalize()}",
-                    value=f"You haven't started the race. To start, use command {constants.BOT_PREFIX}startrace.",
+                    value=f"You haven't started the race. To start, use the {prefix}startrace command.",
                     inline=False)
     return embed
 
