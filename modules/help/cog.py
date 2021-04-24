@@ -98,6 +98,9 @@ def cipher_race_help(prefix: str):
                     value=f"Get a randomly selected word and cipher to decode at your own pace!\n"
                           f"Optional: Choose a cipher from {', '.join(code_constants.CIPHERS)}\n"
                           f"e.g. {prefix}practice {code_constants.PIGPEN}\n"
+                          f"Optional: Choose a sheet from {', '.join(code_constants.SHEETS)}\n"
+                          f"e.g. {prefix}practice {code_constants.MORSE} {code_constants.CHALLENGE}\n"
+                          f"If you supply a sheet, you *must* supply a cipher first (i.e. order matters!)\n"
                           f"Note: the bot will NOT check your answer. When you've solved, check it yourself by "
                           f"uncovering the spoiler text next to the image!",
                     inline=False)

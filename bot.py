@@ -1,21 +1,27 @@
 import os
 import discord
 from discord.ext import commands
-from utils import discord_utils
+from utils import admin_utils, discord_utils, google_utils
 from dotenv.main import load_dotenv
 load_dotenv(override=True)
 import constants
-from utils import google_utils
 from gspread.exceptions import CellNotFound
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 
 gspread_client = google_utils.create_gspread_client()
-prefix_sheet = gspread_client.open_by_key(os.getenv('PREFIX_SHEET_KEY')).sheet1
+prefix_sheet = gspread_client.open_by_key(os.getenv('MASTER_SHEET_KEY')).worksheet(constants.PREFIX_TAB_NAME)
+
+def get_prefixes():
+    prfx = {}
+    prefix_list = prefix_sheet.get_all_values()[1:]
+    for row in prefix_list:
+        prfx[row[1]] = row[2]
+    return prfx
+
+PREFIXES = get_prefixes()
 
 def get_prefix(client, message):
-    cell = prefix_sheet.find(str(message.guild.id))
-
-    return prefix_sheet.cell(cell.row, cell.col+1).value
+    return PREFIXES[str(message.guild.id)]
 
 
 def main():
@@ -26,6 +32,7 @@ def main():
     for folder in os.listdir("modules"):
         if os.path.exists(os.path.join("modules", folder, "cog.py")):
             client.load_extension(f"modules.{folder}.cog")
+
 
     @client.event
     async def on_ready():
@@ -43,6 +50,7 @@ def main():
 
             print(f"{client.user.name} has connected to the following guild: {guild.name} (id: {guild.id}) with prefix {prefix}")
 
+
     @client.event
     async def on_message(message):
         if client.user.mentioned_in(message):
@@ -57,6 +65,22 @@ def main():
             await message.channel.send(embed=embed)
 
         await client.process_commands(message)
+
+
+    @admin_utils.is_owner_or_admin()
+    @client.command(name="setprefix")
+    async def setprefix(ctx, prefix: str):
+        print("Received setprefix")
+        find_cell = prefix_sheet.find(str(ctx.message.guild.id))
+        prefix_sheet.update_cell(find_cell.row, find_cell.col+1, prefix)
+        PREFIXES[str(ctx.message.guild.id)] = prefix
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=constants.SUCCESS,
+                        value=f"Prefix for this server set to {prefix}",
+                        inline=False)
+        await ctx.send(embed=embed)
+
 
     client.run(DISCORD_TOKEN)
 

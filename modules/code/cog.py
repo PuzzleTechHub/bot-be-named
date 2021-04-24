@@ -1,6 +1,7 @@
 from dotenv.main import load_dotenv
 import discord
 from discord.ext import commands
+from discord.ext.tasks import loop
 import asyncio
 import os
 import modules.code.code_utils as utils
@@ -35,36 +36,39 @@ class CodeCog(commands.Cog):
         # Google Sheets Authentication and Initialization
         self.client = google_utils.create_gspread_client()
 
-        # Default to HP Sheet
-        self.sheet_key = os.getenv('HP_SHEET_KEY').replace('\'', '')
-        self.sheet = self.client.open_by_key(self.sheet_key).sheet1
-        # Store list of codes as a dataframe
-        self.codes = google_utils.get_dataframe_from_gsheet(self.sheet, code_constants.COLUMNS)
+
+        self.spreadsheet = self.client.open_by_key(os.getenv('CIPHER_RACE_SHEET_KEY').replace('\'', ''))
         self.sheet_map = {
             code_constants.HP: google_utils.get_dataframe_from_gsheet(
-                self.client.open_by_key(os.getenv("HP_SHEET_KEY").replace('\'', '')).sheet1,
-                code_constants.COLUMNS),
+                self.spreadsheet.worksheet(code_constants.HP_SHEET_TAB_NAME),
+                code_constants.COLUMNS
+            ),
             code_constants.COMMON: google_utils.get_dataframe_from_gsheet(
-                self.client.open_by_key(os.getenv("COMMON_SHEET_KEY").replace('\'', '')).sheet1,
-                code_constants.COLUMNS),
+                self.spreadsheet.worksheet(code_constants.COMMON_SHEET_TAB_NAME),
+                code_constants.COLUMNS
+            ),
             code_constants.CHALLENGE: google_utils.get_dataframe_from_gsheet(
-                self.client.open_by_key(os.getenv("CHALLENGE_SHEET_KEY").replace('\'', '')).sheet1,
-                code_constants.COLUMNS),
+                self.spreadsheet.worksheet(code_constants.CHALLENGE_SHEET_TAB_NAME),
+                code_constants.COLUMNS
+            )
         }
         
-        # Reload the google sheet every hour
-        bot.loop.create_task(self.reload_sheet())
+    # Reload the google sheet every hour
+    @commands.Cog.listener()
+    async def on_ready(self):
+        """When discord is connected"""
+        self.reload_sheet.start()
             
     @commands.command(name='startrace', aliases=['StarTrace', 'StartRace'])
-    async def startrace(self, ctx):
+    async def startrace(self, ctx, sheet: str = code_constants.HP):
         """
         Start your race! You will have 60 seconds per level to solve the codes
-        Usage: ~startrace
+        Usage: ~startrace <optional sheet> where sheet is {hp, challenge, common}
         """
         channel = ctx.channel.id
         if channel in self.current_races:
             print("startrace called from a channel that's already racing!!")
-            embed = utils.create_embed()
+            embed = discord_utils.create_embed()
             embed.add_field(name="Already Racing!",
                             value=f"Stop trying to start a new race while you have one going!",
                             inline=False)
@@ -75,22 +79,17 @@ class CodeCog(commands.Cog):
         # Create entry in current_races
         self.current_races[channel] = dict()
         self.current_races[channel][code_constants.LEVEL] = 1
-        # TODO: NEW: add a sheet option to hold multiple sheets
-        # ~startrace eng gives you 1000 random english word sheet
+        # ~startrace challenge gives you 1000 random english word sheet
         # ~startrace hp gives you the harry potter sheet
-        if len(ctx.message.content.split()) > 1 and ctx.message.content.split()[1] in self.sheet_map:
-            sheet_used = ctx.message.content.split()[1]
-            self.current_races[channel][code_constants.CODE] = self.sheet_map[sheet_used]
-            embeds, self.current_races[channel][code_constants.ANSWERS] = utils.create_code_embed(
-                self.current_races[channel][code_constants.LEVEL], self.current_races[channel][code_constants.CODE], ctx.prefix)
+        # ~startrace common gives you 1000 very common english words
+        if sheet not in self.sheet_map:
+            sheet = code_constants.HP
 
-        # Creates the embeds containing the codes for that level as well as updates the IDs we're using and the acceptable answers for the level
-        else:
-            embeds, self.current_races[channel][code_constants.ANSWERS] = utils.create_code_embed(
-                self.current_races[channel][code_constants.LEVEL], self.codes, ctx.prefix)
-            sheet_used = code_constants.HP
+        self.current_races[channel][code_constants.CODE] = self.sheet_map[sheet]
+        embeds, self.current_races[channel][code_constants.ANSWERS] = utils.create_code_embed(
+            self.current_races[channel][code_constants.LEVEL], self.current_races[channel][code_constants.CODE], ctx.prefix)
 
-        await ctx.send(embed=utils.get_opening_statement(sheet_used))
+        await ctx.send(embed=utils.get_opening_statement(sheet))
         # In a short time, send the codes
         time = Timer(code_constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
 
@@ -103,7 +102,7 @@ class CodeCog(commands.Cog):
         """
         channel = ctx.channel.id
         if channel not in self.current_races:
-            embed = utils.create_embed()
+            embed = discord_utils.create_embed()
             embed.add_field(name="No race!",
                             value="This channel doesn't have a race going on. You can't end something that hasn't started!",
                             inline=False)
@@ -113,7 +112,7 @@ class CodeCog(commands.Cog):
             await ctx.send(embed=embed)
             return
         self.current_races.pop(channel)
-        embed = utils.create_embed()
+        embed = discord_utils.create_embed()
         embed.add_field(name="Race Stopped",
                         value=f"To start a new race, use {ctx.prefix}startrace",
                         inline=False)
@@ -123,41 +122,49 @@ class CodeCog(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name='practice', aliases=['pigpenpls'])
-    async def practice(self, ctx):
+    async def practice(self, ctx, code: str = None, sheet: str = code_constants.HP):
         """
         Gives a cipher of a specific type. Defaults to random
-        Usage: ~practice <cipher_name>
+        Usage: ~practice (optional: <cipher_name> <sheet>)
+        If you want to supply sheet, must supply cipher_name
         """
         print("Received ~practice")
-        toks = ctx.message.content.split()
-        cipher_abbrev = None
-        embed = utils.create_embed()
-        used_cipher = None
+        embed = discord_utils.create_embed()
         # Supply no arguments: randomly sample
         # Supply 2 arguments: sample specific code
         # Supply more arguments: incorrect
-        if len(toks) < 2:
+
+        if sheet not in code_constants.SHEETS:
+            embed.add_field(name=f"Sheet not found!",
+                            value=f"We don't recognize the {sheet.capitalize()} sheet. Defaulting to {code_constants.HP}.\n"
+                                  f"Current sheet options are: {', '.join(code_constants.SHEETS)}",
+                            inline=False)
+            sheet = code_constants.HP
+        # If the code is not supplied, we randomly sample
+        # If code is supplied but it's not one of our ciphers, send an error but still randomly sample.
+        if code not in code_constants.CIPHERS:
             # get random cipher
-            proposal_row = self.codes.sample()
+            proposal_row = self.sheet_map[sheet].sample()
             used_cipher = proposal_row[code_constants.CODE].item()
-        elif len(toks) == 2:
-            if toks[1].lower() in self.codes[code_constants.CODE].value_counts().index:
-                used_cipher = toks[1].lower()
+            # Code was supplied but not in our list of codes
+            if code is not None:
+                embed.add_field(name=f"{code_constants.CODE.capitalize()} not found!",
+                                value=f"We don't recognize {code.capitalize()}. Current options are: {', '.join(code_constants.CIPHERS)}.\n"
+                                      f"Randomly selecting {used_cipher}.",
+                                inline=False)
+        else:
+            # Make sure the wordlist actually uses that cipher
+            if code.lower() in self.sheet_map[sheet][code_constants.CODE].value_counts().index:
+                used_cipher = code.lower()
+                proposal_row = self.sheet_map[sheet][self.sheet_map[sheet][code_constants.CODE] == used_cipher].sample()
+            # That cipher isn't in the sheet, send error message
             else:
                 embed.add_field(name=f"{code_constants.CODE.capitalize()} Not Found",
-                                value=f"Sorry! We can't find that {code_constants.CODE} in our database.",
-                                inline=False)
-                embed.add_field(name=f"Currently Supported {code_constants.CODE.capitalize()}",
-                                value=f"{', '.join([index[0] for index in self.codes[code_constants.CODE].value_counts.index])}",
+                                value=f"Sorry! We can't find that {code_constants.CODE} in the {sheet} sheet.\n"
+                                      f"Current {code_constants.CODE} options: {', '.join([index[0] for index in self.sheet_map[sheet][code_constants.CODE].value_counts.index])}",
                                 inline=False)
                 await ctx.send(embed=embed)
                 return
-            proposal_row = self.codes[self.codes[code_constants.CODE] == used_cipher].sample()
-        else:
-            embed.add_field(name="Incorrect Usage",
-                            value=f"Usage: {ctx.prefix}practice or {ctx.prefix}practice <{code_constants.CODE}_name>")
-            await ctx.send(embed=embed)
-            return
 
         embed.add_field(name=f"{used_cipher.capitalize()}",
                         value=f"{proposal_row[code_constants.URL].item()}")
@@ -168,7 +175,7 @@ class CodeCog(commands.Cog):
 
     # Command to check the user's answer. They will be replied to telling them whether or not their answer is correct
     @commands.command(name='answer', aliases=['a'])
-    async def answer(self, ctx):
+    async def answer(self, ctx, *args):
         """
         Check your  answer
         Usage: ~answer <your answer>
@@ -178,7 +185,7 @@ class CodeCog(commands.Cog):
         
         # if the team isn't puzzling then we need to instruct them to use startpuzzle command first.
         if channel not in self.current_races:
-            embed = utils.create_embed()
+            embed = discord_utils.create_embed()
             embed.add_field(name="No race!",
                             value="This channel doesn't have a race going on. You can't answer anything!",
                             inline=False)
@@ -190,7 +197,7 @@ class CodeCog(commands.Cog):
         print(f"All current answers: {self.current_races[channel][code_constants.ANSWERS]}")
         
         # Remove the command and whitespace from the answer.
-        user_answer = ''.join(ctx.message.content.split()[1:])
+        user_answer = ''.join(args)
         result = utils.get_answer_result(user_answer, self.current_races[channel][code_constants.ANSWERS])
         
         if result == code_constants.CORRECT:
@@ -227,9 +234,22 @@ class CodeCog(commands.Cog):
         Reload the Google Sheet so we can update our codes instantly.
         Usage: ~reload
         """
-        self.codes = google_utils.get_dataframe_from_gsheet(self.sheet, code_constants.COLUMNS)
+        self.sheet_map = {
+            code_constants.HP: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(code_constants.HP_SHEET_TAB_NAME),
+                code_constants.COLUMNS
+            ),
+            code_constants.COMMON: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(code_constants.COMMON_SHEET_TAB_NAME),
+                code_constants.COLUMNS
+            ),
+            code_constants.CHALLENGE: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(code_constants.CHALLENGE_SHEET_TAB_NAME),
+                code_constants.COLUMNS
+            )
+        }
         print(f"Reload used. Reloaded {code_constants.CODE} sheet")
-        embed = utils.create_embed()
+        embed = discord_utils.create_embed()
         embed.add_field(name="Sheet Reloaded",
                         value="Google sheet successfully reloaded",
                         inline=False)
@@ -245,7 +265,7 @@ class CodeCog(commands.Cog):
         Note: Does not reload google sheet. Use ~reload for that
         """
         self.current_races = {}
-        embed = utils.create_embed()
+        embed = discord_utils.create_embed()
         embed.add_field(name="Success",
                         value="Bot has been reset. I feel brand new!",
                         inline=False)
@@ -262,12 +282,24 @@ class CodeCog(commands.Cog):
 
     # Reload the Google sheet every hour so we can dynamically add
     # Without needing to restart the bot
+    @loop(hours=24)
     async def reload_sheet(self):
-        await self.bot.wait_until_ready()
-        while True:
-            await asyncio.sleep(3600) # 1 hour
-            self.codes = google_utils.get_dataframe_from_gsheet(self.sheet, code_constants.COLUMNS)
-            print(f"Reloaded {code_constants.CODE} sheet on schedule")
+        """Reload the google sheet every 24 hours"""
+        self.sheet_map = {
+            code_constants.HP: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(code_constants.HP_SHEET_TAB_NAME),
+                code_constants.COLUMNS
+            ),
+            code_constants.COMMON: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(code_constants.COMMON_SHEET_TAB_NAME),
+                code_constants.COLUMNS
+            ),
+            code_constants.CHALLENGE: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(code_constants.CHALLENGE_SHEET_TAB_NAME),
+                code_constants.COLUMNS
+            )
+        }
+        print(f"Reloaded {code_constants.CODE} sheet on schedule")
 
     async def start_new_level(self, ctx, channel, embeds):
         """Send the codes for the next level. Used on a timer
