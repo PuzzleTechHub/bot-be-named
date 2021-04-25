@@ -19,26 +19,34 @@ class HelpCog(commands.Cog):
                                   color=constants.EMBED_COLOR)
             embed.add_field(name="Welcome!",
                             value=f"Welcome to the help page! We offer the following modules. "
-                                  f"Use {constants.BOT_PREFIX}help <module> to learn about "
+                                  f"Use {ctx.prefix}help <module> to learn about "
                                   f"the commands in that module!",
+                            inline=False)
+            embed.add_field(name=help_constants.ADMIN,
+                            value=f"Commands for server admins to use.",
                             inline=False)
             embed.add_field(name=help_constants.CIPHER_RACE,
                             value=f"Race against the clock as you decode ciphers. "
-                                  f"Use {constants.BOT_PREFIX}startrace "
+                                  f"Use {ctx.prefix}startrace "
                                    "to start a race! "
                                   f"\nRead more on the [GitHub README]({help_constants.CIPHER_RACE_README})",
                             inline=False)
+            embed.add_field(name=help_constants.CLONE_CHANNEL,
+                            value=f"Create a new channel with the same permissions as a current channel!\n"
+                                  f"Use {ctx.prefix}clonechannel <cloned-channel> <new-channel-name> "
+                                  f"to clone the channel",
+                            inline=False)
             embed.add_field(name=help_constants.CREATE_CHANNEL,
-                            value=f"Create a channel! Use {constants.BOT_PREFIX}createchannel <channel_name> "
+                            value=f"Create a channel! Use {ctx.prefix}createchannel <channel-name> "
                                   f"to create a channel.",
                             inline=False)
             embed.add_field(name=help_constants.MOVE_CHANNEL,
-                            value=f"Move a channel to another category! Use {constants.BOT_PREFIX}movechannel <category_name> "
+                            value=f"Move a channel to another category! Use {ctx.prefix}movechannel <category-name> "
                                   f"to move the channel.",
                             inline=False)
             embed.add_field(name=help_constants.SOLVED,
                             value=f"Mark a channel as solved! This will prepend 'solved' to the channel name. "
-                                  f"Use {constants.BOT_PREFIX}solved in a channel to mark it as solved!",
+                                  f"Use {ctx.prefix}solved in a channel to mark it as solved!",
                             inline=False)
             embed.add_field(name=help_constants.ARCHIVE_CHANNEL,
                             value=f"Download the contents of a channel in a zip file! For bot mods only.",
@@ -54,7 +62,7 @@ class HelpCog(commands.Cog):
         else:
             module = ' '.join(args).lower()
             if module in MODULE_TO_HELP:
-                embed = MODULE_TO_HELP[module]()
+                embed = MODULE_TO_HELP[module](ctx.prefix)
             else:
                 embed = discord_utils.create_embed()
                 embed.add_field(name="Module not found!",
@@ -63,24 +71,36 @@ class HelpCog(commands.Cog):
                                 inline=False)
         await ctx.send(embed=embed)
 
+def admin_help(prefix: str):
+    embed = discord.Embed(title=f"{help_constants.ADMIN} {help_constants.HELP}",
+                          url=help_constants.ADMIN_README,
+                          color=constants.EMBED_COLOR)
+    embed.add_field(name=f"{prefix}setprefix",
+                    value=f"Sets the prefix for the server.\n"
+                          f"e.g. {prefix}setprefix ~",
+                    inline=False)
+    return embed
 
-def cipher_race_help():
+def cipher_race_help(prefix: str):
     embed = discord.Embed(title=f"{help_constants.CIPHER_RACE} {help_constants.HELP}",
                           url=help_constants.CIPHER_RACE_README,
                           color=constants.EMBED_COLOR)
-    embed.add_field(name=f"{constants.BOT_PREFIX}startrace",
+    embed.add_field(name=f"{prefix}startrace",
                     value=f"Starts a race!\n"
                           f"Optional: choose a wordlist (from {', '.join(code_constants.SHEETS)})\n"
-                          f"e.g. {constants.BOT_PREFIX}startrace {code_constants.COMMON}",
+                          f"e.g. {prefix}startrace {code_constants.COMMON}",
                     inline=False)
-    embed.add_field(name=f"{constants.BOT_PREFIX}answer <your_answer>",
+    embed.add_field(name=f"{prefix}answer <your_answer>",
                     value=f"Answer any of the codes during a race! If you are correct, the bot will react with "
                           f"a {code_constants.CORRECT_EMOJI}. Otherwise, it will react with a {code_constants.INCORRECT_EMOJI}",
                     inline=False)
-    embed.add_field(name=f"{constants.BOT_PREFIX}practice",
+    embed.add_field(name=f"{prefix}practice",
                     value=f"Get a randomly selected word and cipher to decode at your own pace!\n"
                           f"Optional: Choose a cipher from {', '.join(code_constants.CIPHERS)}\n"
-                          f"e.g. {constants.BOT_PREFIX}practice {code_constants.PIGPEN}\n"
+                          f"e.g. {prefix}practice {code_constants.PIGPEN}\n"
+                          f"Optional: Choose a sheet from {', '.join(code_constants.SHEETS)}\n"
+                          f"e.g. {prefix}practice {code_constants.MORSE} {code_constants.CHALLENGE}\n"
+                          f"If you supply a sheet, you *must* supply a cipher first (i.e. order matters!)\n"
                           f"Note: the bot will NOT check your answer. When you've solved, check it yourself by "
                           f"uncovering the spoiler text next to the image!",
                     inline=False)
@@ -89,90 +109,101 @@ def cipher_race_help():
     return embed
 
 
-def create_channel_help():
+def clone_channel_help(prefix: str):
     embed = discord.Embed(title=f"{help_constants.CREATE_CHANNEL} {help_constants.HELP}",
                           url=help_constants.CREATE_CHANNEL_README,
                           color=constants.EMBED_COLOR)
-    embed.add_field(name=f"{constants.BOT_PREFIX}createchannel <channel_name>",
+    embed.add_field(name=f"{prefix}clone-channel <#cloned-channel> <new-channel-name>",
+                    value=f"Create a new channel with the same permissions as #cloned-channel",
+                    inline=False)
+    embed = more_help(embed, help_constants.CLONE_CHANNEL_README)
+    return embed
+
+
+def create_channel_help(prefix: str):
+    embed = discord.Embed(title=f"{help_constants.CREATE_CHANNEL} {help_constants.HELP}",
+                          url=help_constants.CREATE_CHANNEL_README,
+                          color=constants.EMBED_COLOR)
+    embed.add_field(name=f"{prefix}createchannel <channel_name>",
                     value=f"Create a channel named <channel_name> in the same category as the one you're currently in!",
                     inline=False)
     embed = more_help(embed, help_constants.CREATE_CHANNEL_README)
     return embed
 
 
-def move_channel_help():
+def move_channel_help(prefix: str):
     embed = discord.Embed(title=f"{help_constants.MOVE_CHANNEL} {help_constants.HELP}",
                           url=help_constants.MOVE_CHANNEL_README,
                           color=constants.EMBED_COLOR)
-    embed.add_field(name=f"{constants.BOT_PREFIX}movechannel <category_name>",
+    embed.add_field(name=f"{prefix}movechannel <category_name>",
                     value=f"Moves the channel you're currently in to <category_name>",
                     inline=False)
     embed = more_help(embed, help_constants.MOVE_CHANNEL_README)
     return embed
 
 
-def solved_help():
+def solved_help(prefix: str):
     embed = discord.Embed(title=f"{help_constants.SOLVED} {help_constants.HELP}",
                           url=help_constants.SOLVED_README,
                           color=constants.EMBED_COLOR)
-    embed.add_field(name=f"{constants.BOT_PREFIX}solved",
+    embed.add_field(name=f"{prefix}solved",
                     value=f"Prepends 'solved' to the channel name you're currently in!",
                     inline=False)
-    embed.add_field(name=f"{constants.BOT_PREFIX}unsolved",
+    embed.add_field(name=f"{prefix}unsolved",
                     value=f"Removes the prefix (if applicable) to the channel name you're currently in!",
                     inline=False)
-    embed.add_field(name=f"{constants.BOT_PREFIX}solvedish",
+    embed.add_field(name=f"{prefix}solvedish",
                     value=f"Prepends 'solvedish' to the channel name you're currently in!",
                     inline=False)
-    embed.add_field(name=f"{constants.BOT_PREFIX}backsolved",
+    embed.add_field(name=f"{prefix}backsolved",
                     value=f"Prepends 'backsolved' to the channel name you're currently in!",
                     inline=False)
     embed = more_help(embed, help_constants.SOLVED_README)
     return embed
 
 
-def archive_channel_help():
+def archive_channel_help(prefix: str):
     embed = discord.Embed(title=f"{help_constants.ARCHIVE_CHANNEL} {help_constants.HELP}",
                           url=help_constants.ARCHIVE_CHANNEL_README,
                           color=constants.EMBED_COLOR)
-    embed.add_field(name=f"{constants.BOT_PREFIX}archivechannel <channel_name_or_id>",
+    embed.add_field(name=f"{prefix}archivechannel <channel_name_or_id>",
                     value=f"Archives a channel! Gathers the chat history into a txt file, and compreses all attachments "
                           f"into a zip file.\n"
                           f"If you're in the same server as the channel you want to archive, you can use #channel_name. "
                           f"Otherwise, you need the channel ID.\n"
                           f"Note: Zips over 8MB will exceed discord's max file size. In that case, bot will only send the chat log.",
                     inline=False)
-    embed.add_field(name=f"{constants.BOT_PREFIX}archivecategory <category_name_or_id>",
+    embed.add_field(name=f"{prefix}archivecategory <category_name_or_id>",
                     value=f"Archives a category! Will create a separate archive for each text channel.\n"
-                          f"*Whispers* It just uses {constants.BOT_PREFIX}archivechannel for each text "
+                          f"*Whispers* It just uses {prefix}archivechannel for each text "
                           f"channel in the category.",
                     inline=False)
     embed = more_help(embed, help_constants.ARCHIVE_CHANNEL_README)
     return embed
 
 
-def lookup_help():
+def lookup_help(prefix: str):
     embed = discord.Embed(title=f"{help_constants.LOOKUP} {help_constants.HELP}",
                           url=help_constants.LOOKUP_README,
                           color=constants.EMBED_COLOR)
-    embed.add_field(name=f"{constants.BOT_PREFIX}search <target_site> <query>",
+    embed.add_field(name=f"{prefix}search <target_site> <query>",
                     value=f"Search the interwebs!\n"
                           f"<target_site> must match ({', '.join(list(lookup_constants.REGISTERED_SITES.keys()))}) or "
                           f"be a domain name (e.g. 'khanacademy').\n"
-                          f"e.g. {constants.BOT_PREFIX}search hp kevin entwhistle\n"
-                          f"{constants.BOT_PREFIX}search kaspersky cryptography",
+                          f"e.g. {prefix}search hp kevin entwhistle\n"
+                          f"{prefix}search kaspersky cryptography",
                     inline=False)
     embed = more_help(embed, help_constants.LOOKUP_README)
     return embed
 
 
-def time_help():
+def time_help(prefix: str):
     embed = discord.Embed(title=f"{help_constants.TIME} {help_constants.HELP}",
                           url=help_constants.TIME_README,
                           color=constants.EMBED_COLOR)
-    embed.add_field(name=f"{constants.BOT_PREFIX}time <location>",
+    embed.add_field(name=f"{prefix}time <location>",
                     value=f"Find the time zone and current time anywhere in the world!\n"
-                          f"e.g. {constants.BOT_PREFIX}time New York City",
+                          f"e.g. {prefix}time New York City",
                     inline=False)
     embed = more_help(embed, help_constants.TIME_README)
     return embed
@@ -185,7 +216,9 @@ def more_help(embed, readme_link):
 
 
 MODULE_TO_HELP = {
-    help_constants.CIPHER_RACE.lower() : cipher_race_help,
+    help_constants.ADMIN.lower(): admin_help,
+    help_constants.CIPHER_RACE.lower(): cipher_race_help,
+    help_constants.CLONE_CHANNEL.lower(): clone_channel_help,
     help_constants.CREATE_CHANNEL.lower(): create_channel_help,
     help_constants.MOVE_CHANNEL.lower(): move_channel_help,
     help_constants.SOLVED.lower(): solved_help,

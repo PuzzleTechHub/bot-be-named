@@ -1,9 +1,11 @@
 ###################
 ## DISCORD BOT ####
 ###################
-BOT_PREFIX = "~"
+DEFAULT_BOT_PREFIX = "~"
 EMBED_COLOR = 0xd4e4ff
 BOT_NAME = "The Bot Who Must Not Be Named"
+PREFIX_JSON_FILE = "command_prefixes.json"
+PREFIX_TAB_NAME = "Command Prefixes"
 
 # Roles
 # TODO: Use role ID instead of string?

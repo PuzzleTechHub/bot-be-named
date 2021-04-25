@@ -3,8 +3,12 @@
 ################
 
 HELP = 'Help'
+ADMIN = 'Admin'
+ADMIN_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/admin'
 CIPHER_RACE = 'Cipher Race'
 CIPHER_RACE_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/code'
+CLONE_CHANNEL = 'Clone Channel'
+CLONE_CHANNEL_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/clone_channel'
 CREATE_CHANNEL = 'Create Channel'
 CREATE_CHANNEL_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/create_channel'
 MOVE_CHANNEL = 'Move Channel'
@@ -17,4 +21,4 @@ LOOKUP = 'Lookup'
 LOOKUP_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/lookup'
 TIME = 'Time'
 TIME_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/time'
-MODULES = [CIPHER_RACE, CREATE_CHANNEL, MOVE_CHANNEL, SOLVED, ARCHIVE_CHANNEL, LOOKUP, TIME]
+MODULES = [ADMIN, CIPHER_RACE, CLONE_CHANNEL, CREATE_CHANNEL, MOVE_CHANNEL, SOLVED, ARCHIVE_CHANNEL, LOOKUP, TIME]
