@@ -1,8 +1,8 @@
-##Bugfixes
+## Bugfixes
 - Issue to fix - Insufficient perms should give a specific "No perms error code" (movechannel, createchannel?)
 - Help module update to new ChannelManagementCog
 
-##Improvements
+## Improvements
 
 - Add a bunch of aliasing for different commands (createchannel/makechannel etc)
 - Fix archive (create unique archive directory to store text/images in)
@@ -12,7 +12,7 @@
 - sample .env file
 - ~archivechannel should name channel for search reasons.
 
-##Features
+## Features
 
 - Merge back into QQQ with submoduling
 - Help module with buttons to navigate
