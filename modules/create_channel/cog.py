@@ -1,6 +1,6 @@
 import constants
 from discord.ext import commands
-import modules.code.code_utils as utils
+from utils import discord_utils
 
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
