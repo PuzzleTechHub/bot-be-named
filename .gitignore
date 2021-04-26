@@ -2,3 +2,4 @@ __pycache__
 *.json
 .env
 venv/
+error_logfile.txt
