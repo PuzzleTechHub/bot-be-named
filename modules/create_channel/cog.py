@@ -21,7 +21,7 @@ class CreateChannelCog(commands.Cog, name="Create Channel"):
 		"""Command to create channel in same category with given name"""
 		# log command in console
 		print("Received createchannel")
-		embed = utils.create_embed()
+		embed = discord_utils.create_embed()
 		# no argument passed
 		if len(name) <= 0:
 			embed.add_field(name="Failed!", value=f"You must specify a channel name!")

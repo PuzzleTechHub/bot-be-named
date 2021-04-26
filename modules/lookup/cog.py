@@ -12,7 +12,7 @@ class LookupCog(commands.Cog, name="Lookup"):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="search")
+    @commands.command(name="search", aliases=['lookup'])
     async def search(self, ctx, *args):
         """
         Command to search the interwebs! (google)

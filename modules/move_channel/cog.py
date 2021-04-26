@@ -21,7 +21,7 @@ class MoveChannelCog(commands.Cog, name="Move Channel"):
 	async def movechannel(self, ctx, *args):
 		"""Command to move channel to category with given name"""
 		print("Received movechannel")
-		embed = utils.create_embed()
+		embed = discord_utils.create_embed()
 		# check for category name arguments
 		if len(args) > 0:
 			# join arguments to form channel name
