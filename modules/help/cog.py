@@ -40,9 +40,9 @@ class HelpCog(commands.Cog):
                                   f"Use {ctx.prefix}solved in a channel to mark it as solved!"
                                   f"\nRead more on the [GitHub README]({help_constants.SOLVED_README})",
                             inline=False)
-            embed.add_field(name=help_constants.ARCHIVE_CHANNEL,
+            embed.add_field(name=help_constants.ARCHIVE,
                             value=f"Download the contents of a channel in a zip file! For bot mods only."
-                                  f"\nRead more on the [GitHub README]({help_constants.ARCHIVE_CHANNEL_README})",
+                                  f"\nRead more on the [GitHub README]({help_constants.ARCHIVE_README})",
                             inline=False)
             embed.add_field(name=help_constants.LOOKUP,
                             value=f"Search the interwebs (google)!\n"
