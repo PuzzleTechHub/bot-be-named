@@ -1,7 +1,7 @@
 # BOT (Bot Be Named)
 [![Build Status](https://travis-ci.com/kevslinger/DiscordCipherRace.svg?branch=main)](https://travis-ci.com/kevslinger/DiscordCipherRace)
 
-##How to install
+## How to install
 
 ```
 virtualenv venv -p=3.7

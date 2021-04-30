@@ -31,25 +31,18 @@ class HelpCog(commands.Cog):
                                    "to start a race! "
                                   f"\nRead more on the [GitHub README]({help_constants.CIPHER_RACE_README})",
                             inline=False)
-            embed.add_field(name=help_constants.CLONE_CHANNEL,
-                            value=f"Create a new channel with the same permissions as a current channel!\n"
-                                  f"Use {ctx.prefix}clonechannel <cloned-channel> <new-channel-name> "
-                                  f"to clone the channel",
-                            inline=False)
-            embed.add_field(name=help_constants.CREATE_CHANNEL,
-                            value=f"Create a channel! Use {ctx.prefix}createchannel <channel-name> "
-                                  f"to create a channel.",
-                            inline=False)
-            embed.add_field(name=help_constants.MOVE_CHANNEL,
-                            value=f"Move a channel to another category! Use {ctx.prefix}movechannel <category-name> "
-                                  f"to move the channel.",
+            embed.add_field(name=help_constants.CHANNEL_MANAGEMENT,
+                            value=f"Clone, Create, and Move discord channels! For approved users only."
+                                  f"\nRead more on the [GitHub README]({help_constants.CHANNEL_MANAGEMENT_README})",
                             inline=False)
             embed.add_field(name=help_constants.SOLVED,
                             value=f"Mark a channel as solved! This will prepend 'solved' to the channel name. "
-                                  f"Use {ctx.prefix}solved in a channel to mark it as solved!",
+                                  f"Use {ctx.prefix}solved in a channel to mark it as solved!"
+                                  f"\nRead more on the [GitHub README]({help_constants.SOLVED_README})",
                             inline=False)
-            embed.add_field(name=help_constants.ARCHIVE,
-                            value=f"Download the contents of a channel in a zip file! For bot mods only.",
+            embed.add_field(name=help_constants.ARCHIVE_CHANNEL,
+                            value=f"Download the contents of a channel in a zip file! For bot mods only."
+                                  f"\nRead more on the [GitHub README]({help_constants.ARCHIVE_CHANNEL_README})",
                             inline=False)
             embed.add_field(name=help_constants.LOOKUP,
                             value=f"Search the interwebs (google)!\n"
@@ -109,36 +102,20 @@ def cipher_race_help(prefix: str):
     return embed
 
 
-def clone_channel_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.CREATE_CHANNEL} {help_constants.HELP}",
-                          url=help_constants.CREATE_CHANNEL_README,
+def channel_management_help(prefix: str):
+    embed = discord.Embed(title=f"{help_constants.CHANNEL_MANAGEMENT} {help_constants.HELP}",
+                          url=help_constants.CHANNEL_MANAGEMENT_README,
                           color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}clone-channel <#cloned-channel> <new-channel-name>",
                     value=f"Create a new channel with the same permissions as #cloned-channel",
                     inline=False)
-    embed = more_help(embed, help_constants.CLONE_CHANNEL_README)
-    return embed
-
-
-def create_channel_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.CREATE_CHANNEL} {help_constants.HELP}",
-                          url=help_constants.CREATE_CHANNEL_README,
-                          color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}createchannel <channel_name>",
                     value=f"Create a channel named <channel_name> in the same category as the one you're currently in!",
                     inline=False)
-    embed = more_help(embed, help_constants.CREATE_CHANNEL_README)
-    return embed
-
-
-def move_channel_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.MOVE_CHANNEL} {help_constants.HELP}",
-                          url=help_constants.MOVE_CHANNEL_README,
-                          color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}movechannel <category_name>",
                     value=f"Moves the channel you're currently in to <category_name>",
                     inline=False)
-    embed = more_help(embed, help_constants.MOVE_CHANNEL_README)
+    embed = more_help(embed, help_constants.CHANNEL_MANAGEMENT_README)
     return embed
 
 
@@ -218,9 +195,7 @@ def more_help(embed, readme_link):
 MODULE_TO_HELP = {
     help_constants.ADMIN.lower(): admin_help,
     help_constants.CIPHER_RACE.lower(): cipher_race_help,
-    help_constants.CLONE_CHANNEL.lower(): clone_channel_help,
-    help_constants.CREATE_CHANNEL.lower(): create_channel_help,
-    help_constants.MOVE_CHANNEL.lower(): move_channel_help,
+    help_constants.CHANNEL_MANAGEMENT.lower(): channel_management_help,
     help_constants.SOLVED.lower(): solved_help,
     help_constants.ARCHIVE.lower(): archive_help,
     help_constants.LOOKUP.lower(): lookup_help,
