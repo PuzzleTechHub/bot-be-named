@@ -5,13 +5,13 @@ import os
 import shutil
 import zipfile
 from utils import discord_utils
-from modules.archive_channel import archive_constants
+from modules.archive import archive_constants
 import asyncio
 
 
 # TODO: This code's gonna need some refactoring. We should be able to save a lot of space, since most of the commands
 # Use a lot of the same code. Also, archiving is super slow.
-class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
+class ArchiveCog(commands.Cog, name="Archive"):
     """Downloads a channel's history and sends it as a file to the user"""
     def __init__(self, bot):
         self.bot = bot
@@ -260,4 +260,4 @@ class ArchiveChannelCog(commands.Cog, name="Archive Channel"):
 
 
 def setup(bot):
-    bot.add_cog(ArchiveChannelCog(bot))
+    bot.add_cog(ArchiveCog(bot))

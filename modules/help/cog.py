@@ -48,7 +48,7 @@ class HelpCog(commands.Cog):
                             value=f"Mark a channel as solved! This will prepend 'solved' to the channel name. "
                                   f"Use {ctx.prefix}solved in a channel to mark it as solved!",
                             inline=False)
-            embed.add_field(name=help_constants.ARCHIVE_CHANNEL,
+            embed.add_field(name=help_constants.ARCHIVE,
                             value=f"Download the contents of a channel in a zip file! For bot mods only.",
                             inline=False)
             embed.add_field(name=help_constants.LOOKUP,
@@ -162,9 +162,9 @@ def solved_help(prefix: str):
     return embed
 
 
-def archive_channel_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.ARCHIVE_CHANNEL} {help_constants.HELP}",
-                          url=help_constants.ARCHIVE_CHANNEL_README,
+def archive_help(prefix: str):
+    embed = discord.Embed(title=f"{help_constants.ARCHIVE} {help_constants.HELP}",
+                          url=help_constants.ARCHIVE_README,
                           color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}archivechannel <channel_name_or_id>",
                     value=f"Archives a channel! Gathers the chat history into a txt file, and compreses all attachments "
@@ -178,7 +178,7 @@ def archive_channel_help(prefix: str):
                           f"*Whispers* It just uses {prefix}archivechannel for each text "
                           f"channel in the category.",
                     inline=False)
-    embed = more_help(embed, help_constants.ARCHIVE_CHANNEL_README)
+    embed = more_help(embed, help_constants.ARCHIVE_README)
     return embed
 
 
@@ -222,7 +222,7 @@ MODULE_TO_HELP = {
     help_constants.CREATE_CHANNEL.lower(): create_channel_help,
     help_constants.MOVE_CHANNEL.lower(): move_channel_help,
     help_constants.SOLVED.lower(): solved_help,
-    help_constants.ARCHIVE_CHANNEL.lower(): archive_channel_help,
+    help_constants.ARCHIVE.lower(): archive_help,
     help_constants.LOOKUP.lower(): lookup_help,
     help_constants.TIME.lower(): time_help
 }
