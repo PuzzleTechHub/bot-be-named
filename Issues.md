@@ -1,6 +1,7 @@
 ## Bugfixes
 - Issue to fix - Insufficient perms should give a specific "No perms error code" (movechannel, createchannel?)
 - Help module update to new ChannelManagementCog
+- Handle error shoukd gib full stack trace
 
 ## Improvements
 
@@ -11,6 +12,7 @@
 - Better README to repro
 - sample .env file
 - ~archivechannel should name channel for search reasons.
+- We need zips on even channels where text is only being sent
 
 ## Features
 
