@@ -9,7 +9,7 @@ NUM_LEVELS = 5
 # Google Sheet
 ID = "ID"
 URL = "URL"
-CODE = "code"
+CODE = "cipher_race"
 ANSWER = "Answer"
 COLUMNS = [ID, URL, CODE, ANSWER]
 # Answer responses

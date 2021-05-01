@@ -9,8 +9,8 @@ from modules.archive import archive_constants, archive_utils
 import asyncio
 
 
-# TODO: This code's gonna need some refactoring. We should be able to save a lot of space, since most of the commands
-# Use a lot of the same code. Also, archiving is super slow.
+# TODO: This cipher_race's gonna need some refactoring. We should be able to save a lot of space, since most of the commands
+# Use a lot of the same cipher_race. Also, archiving is super slow.
 class ArchiveCog(commands.Cog, name="Archive"):
     """Downloads a channel's history and sends it as a file to the user"""
     def __init__(self, bot):
@@ -93,7 +93,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     @commands.command(name="archivechannel")
     @commands.has_any_role(
-        constants.BOT_WHISPERER
+        constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID,
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
     )
     async def archivechannel(self, ctx, *args):
         """Command to download channel's history"""
@@ -217,7 +219,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         # Clean up the archive dir
         archive_utils.reset_archive_dir()
 
-    # TODO: This code is mostly copy/pasted from archivecategory
+    # TODO: This cipher_race is mostly copy/pasted from archivecategory
     @commands.command(name="archiveserver")
     @commands.has_guild_permissions(administrator=True)
     async def archiveserver(self, ctx):

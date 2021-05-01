@@ -4,9 +4,8 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 import asyncio
 import os
-import modules.code.code_utils as utils
 from utils import google_utils, discord_utils
-from modules.code import code_constants
+from modules.cipher_race import cipher_race_constants, cipher_race_utils
 import constants
 from aio_timers import Timer
 from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
@@ -15,7 +14,7 @@ load_dotenv()
 
 # TODO: 
 # Practice Mode with a timer?
-#   - One code at a time
+#   - One cipher_race at a time
 #   - Timer increases with each correct answer?
 #   - Maybe start shooting out 2 at a time?
 #   - High scores?
@@ -25,9 +24,9 @@ load_dotenv()
 # Change
 
 
-class CodeCog(commands.Cog):
+class CipherRaceCog(commands.Cog, name="Cipher Race"):
     def __init__(self, bot):
-        # Bot and code initializations
+        # Bot and cipher_race initializations
         self.bot = bot
         # The current race will have channel_id as key, with 
         # a dict containing level and current answers
@@ -39,17 +38,17 @@ class CodeCog(commands.Cog):
 
         self.spreadsheet = self.client.open_by_key(os.getenv('CIPHER_RACE_SHEET_KEY').replace('\'', ''))
         self.sheet_map = {
-            code_constants.HP: google_utils.get_dataframe_from_gsheet(
-                self.spreadsheet.worksheet(code_constants.HP_SHEET_TAB_NAME),
-                code_constants.COLUMNS
+            cipher_race_constants.HP: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(cipher_race_constants.HP_SHEET_TAB_NAME),
+                cipher_race_constants.COLUMNS
             ),
-            code_constants.COMMON: google_utils.get_dataframe_from_gsheet(
-                self.spreadsheet.worksheet(code_constants.COMMON_SHEET_TAB_NAME),
-                code_constants.COLUMNS
+            cipher_race_constants.COMMON: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(cipher_race_constants.COMMON_SHEET_TAB_NAME),
+                cipher_race_constants.COLUMNS
             ),
-            code_constants.CHALLENGE: google_utils.get_dataframe_from_gsheet(
-                self.spreadsheet.worksheet(code_constants.CHALLENGE_SHEET_TAB_NAME),
-                code_constants.COLUMNS
+            cipher_race_constants.CHALLENGE: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(cipher_race_constants.CHALLENGE_SHEET_TAB_NAME),
+                cipher_race_constants.COLUMNS
             )
         }
         
@@ -60,7 +59,7 @@ class CodeCog(commands.Cog):
         self.reload_sheet.start()
             
     @commands.command(name='startrace', aliases=['StarTrace', 'StartRace'])
-    async def startrace(self, ctx, sheet: str = code_constants.HP):
+    async def startrace(self, ctx, sheet: str = cipher_race_constants.HP):
         """
         Start your race! You will have 60 seconds per level to solve the codes
         Usage: ~startrace <optional sheet> where sheet is {hp, challenge, common}
@@ -78,20 +77,20 @@ class CodeCog(commands.Cog):
         print(f"Received startrace in channel {channel}")
         # Create entry in current_races
         self.current_races[channel] = dict()
-        self.current_races[channel][code_constants.LEVEL] = 1
+        self.current_races[channel][cipher_race_constants.LEVEL] = 1
         # ~startrace challenge gives you 1000 random english word sheet
         # ~startrace hp gives you the harry potter sheet
         # ~startrace common gives you 1000 very common english words
         if sheet not in self.sheet_map:
-            sheet = code_constants.HP
+            sheet = cipher_race_constants.HP
 
-        self.current_races[channel][code_constants.CODE] = self.sheet_map[sheet]
-        embeds, self.current_races[channel][code_constants.ANSWERS] = utils.create_code_embed(
-            self.current_races[channel][code_constants.LEVEL], self.current_races[channel][code_constants.CODE], ctx.prefix)
+        self.current_races[channel][cipher_race_constants.CODE] = self.sheet_map[sheet]
+        embeds, self.current_races[channel][cipher_race_constants.ANSWERS] = cipher_race_utils.create_code_embed(
+            self.current_races[channel][cipher_race_constants.LEVEL], self.current_races[channel][cipher_race_constants.CODE], ctx.prefix)
 
-        await ctx.send(embed=utils.get_opening_statement(sheet))
+        await ctx.send(embed=cipher_race_utils.get_opening_statement(sheet))
         # In a short time, send the codes
-        time = Timer(code_constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
+        time = Timer(cipher_race_constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
 
     @commands.command(name='endrace')
     async def endrace(self, ctx):
@@ -122,7 +121,7 @@ class CodeCog(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name='practice', aliases=['pigpenpls'])
-    async def practice(self, ctx, code: str = None, sheet: str = code_constants.HP):
+    async def practice(self, ctx, code: str = None, sheet: str = cipher_race_constants.HP):
         """
         Gives a cipher of a specific type. Defaults to random
         Usage: ~practice (optional: <cipher_name> <sheet>)
@@ -131,46 +130,46 @@ class CodeCog(commands.Cog):
         print("Received ~practice")
         embed = discord_utils.create_embed()
         # Supply no arguments: randomly sample
-        # Supply 2 arguments: sample specific code
+        # Supply 2 arguments: sample specific cipher_race
         # Supply more arguments: incorrect
 
-        if sheet not in code_constants.SHEETS:
+        if sheet not in cipher_race_constants.SHEETS:
             embed.add_field(name=f"Sheet not found!",
-                            value=f"We don't recognize the {sheet.capitalize()} sheet. Defaulting to {code_constants.HP}.\n"
-                                  f"Current sheet options are: {', '.join(code_constants.SHEETS)}",
+                            value=f"We don't recognize the {sheet.capitalize()} sheet. Defaulting to {cipher_race_constants.HP}.\n"
+                                  f"Current sheet options are: {', '.join(cipher_race_constants.SHEETS)}",
                             inline=False)
-            sheet = code_constants.HP
-        # If the code is not supplied, we randomly sample
-        # If code is supplied but it's not one of our ciphers, send an error but still randomly sample.
-        if code not in code_constants.CIPHERS:
+            sheet = cipher_race_constants.HP
+        # If the cipher_race is not supplied, we randomly sample
+        # If cipher_race is supplied but it's not one of our ciphers, send an error but still randomly sample.
+        if code not in cipher_race_constants.CIPHERS:
             # get random cipher
             proposal_row = self.sheet_map[sheet].sample()
-            used_cipher = proposal_row[code_constants.CODE].item()
+            used_cipher = proposal_row[cipher_race_constants.CODE].item()
             # Code was supplied but not in our list of codes
             if code is not None:
-                embed.add_field(name=f"{code_constants.CODE.capitalize()} not found!",
-                                value=f"We don't recognize {code.capitalize()}. Current options are: {', '.join(code_constants.CIPHERS)}.\n"
+                embed.add_field(name=f"{cipher_race_constants.CODE.capitalize()} not found!",
+                                value=f"We don't recognize {code.capitalize()}. Current options are: {', '.join(cipher_race_constants.CIPHERS)}.\n"
                                       f"Randomly selecting {used_cipher}.",
                                 inline=False)
         else:
             # Make sure the wordlist actually uses that cipher
-            if code.lower() in self.sheet_map[sheet][code_constants.CODE].value_counts().index:
+            if code.lower() in self.sheet_map[sheet][cipher_race_constants.CODE].value_counts().index:
                 used_cipher = code.lower()
-                proposal_row = self.sheet_map[sheet][self.sheet_map[sheet][code_constants.CODE] == used_cipher].sample()
+                proposal_row = self.sheet_map[sheet][self.sheet_map[sheet][cipher_race_constants.CODE] == used_cipher].sample()
             # That cipher isn't in the sheet, send error message
             else:
-                embed.add_field(name=f"{code_constants.CODE.capitalize()} Not Found",
-                                value=f"Sorry! We can't find that {code_constants.CODE} in the {sheet} sheet.\n"
-                                      f"Current {code_constants.CODE} options: {', '.join([index[0] for index in self.sheet_map[sheet][code_constants.CODE].value_counts.index])}",
+                embed.add_field(name=f"{cipher_race_constants.CODE.capitalize()} Not Found",
+                                value=f"Sorry! We can't find that {cipher_race_constants.CODE} in the {sheet} sheet.\n"
+                                      f"Current {cipher_race_constants.CODE} options: {', '.join([index[0] for index in self.sheet_map[sheet][cipher_race_constants.CODE].value_counts.index])}",
                                 inline=False)
                 await ctx.send(embed=embed)
                 return
 
         embed.add_field(name=f"{used_cipher.capitalize()}",
-                        value=f"{proposal_row[code_constants.URL].item()}")
+                        value=f"{proposal_row[cipher_race_constants.URL].item()}")
         embed.add_field(name="Answer",
-                        value=f"|| {proposal_row[code_constants.ANSWER].item()} ||")
-        embed.set_image(url=proposal_row[code_constants.URL].item())
+                        value=f"|| {proposal_row[cipher_race_constants.ANSWER].item()} ||")
+        embed.set_image(url=proposal_row[cipher_race_constants.URL].item())
         await ctx.send(embed=embed)
 
     # Command to check the user's answer. They will be replied to telling them whether or not their answer is correct
@@ -194,40 +193,42 @@ class CodeCog(commands.Cog):
                             inline=False)
             await ctx.send(embed=embed)
             return
-        print(f"All current answers: {self.current_races[channel][code_constants.ANSWERS]}")
+        print(f"All current answers: {self.current_races[channel][cipher_race_constants.ANSWERS]}")
         
         # Remove the command and whitespace from the answer.
         user_answer = ''.join(args)
-        result = utils.get_answer_result(user_answer, self.current_races[channel][code_constants.ANSWERS])
+        result = cipher_race_utils.get_answer_result(user_answer, self.current_races[channel][cipher_race_constants.ANSWERS])
         
-        if result == code_constants.CORRECT:
-            await ctx.message.add_reaction(EMOJIS[code_constants.CORRECT_EMOJI])
+        if result == cipher_race_constants.CORRECT:
+            await ctx.message.add_reaction(EMOJIS[cipher_race_constants.CORRECT_EMOJI])
         else:
-            await ctx.message.add_reaction(EMOJIS[code_constants.INCORRECT_EMOJI])
+            await ctx.message.add_reaction(EMOJIS[cipher_race_constants.INCORRECT_EMOJI])
 
         # We pop off the correct answers as they are given, so at some point current_answers will be an empty list.
         # If there are more answers left, don't do any of that level complete nonsense.
-        if len(self.current_races[channel][code_constants.ANSWERS]) >= 1:
+        if len(self.current_races[channel][cipher_race_constants.ANSWERS]) >= 1:
             return
         # If there are no answers left for the round, then the team has completed the level
         # Create the next level prep embed
-        embed = utils.create_level_prep_embed(self.current_races[channel][code_constants.LEVEL])
+        embed = cipher_race_utils.create_level_prep_embed(self.current_races[channel][cipher_race_constants.LEVEL])
         # Proceed to next level. Perform computation ahead of time.
-        self.current_races[channel][code_constants.LEVEL] += 1
-        # Creates all code embeds, updates used code IDS, and refreshes current answers for the next level.
-        if code_constants.CODE in self.current_races[channel]:
-            embeds, self.current_races[channel][code_constants.ANSWERS] = utils.create_code_embed(
-                self.current_races[channel][code_constants.LEVEL], self.current_races[channel][code_constants.CODE], ctx.prefix)
+        self.current_races[channel][cipher_race_constants.LEVEL] += 1
+        # Creates all cipher_race embeds, updates used cipher_race IDS, and refreshes current answers for the next level.
+        if cipher_race_constants.CODE in self.current_races[channel]:
+            embeds, self.current_races[channel][cipher_race_constants.ANSWERS] = cipher_race_utils.create_code_embed(
+                self.current_races[channel][cipher_race_constants.LEVEL], self.current_races[channel][cipher_race_constants.CODE], ctx.prefix)
         else:
-            embeds, self.current_races[channel][code_constants.ANSWERS] = utils.create_code_embed(
-                self.current_races[channel][code_constants.LEVEL], self.codes, ctx.prefix)
+            embeds, self.current_races[channel][cipher_race_constants.ANSWERS] = cipher_race_utils.create_code_embed(
+                self.current_races[channel][cipher_race_constants.LEVEL], self.codes, ctx.prefix)
         
         await ctx.send(embed=embed)
-        Timer(code_constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
+        Timer(cipher_race_constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
 
     @commands.command(name='reload')
     @commands.has_any_role(
-        constants.BOT_WHISPERER
+        constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID,
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
     )
     async def reload(self, ctx):
         """
@@ -235,20 +236,20 @@ class CodeCog(commands.Cog):
         Usage: ~reload
         """
         self.sheet_map = {
-            code_constants.HP: google_utils.get_dataframe_from_gsheet(
-                self.spreadsheet.worksheet(code_constants.HP_SHEET_TAB_NAME),
-                code_constants.COLUMNS
+            cipher_race_constants.HP: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(cipher_race_constants.HP_SHEET_TAB_NAME),
+                cipher_race_constants.COLUMNS
             ),
-            code_constants.COMMON: google_utils.get_dataframe_from_gsheet(
-                self.spreadsheet.worksheet(code_constants.COMMON_SHEET_TAB_NAME),
-                code_constants.COLUMNS
+            cipher_race_constants.COMMON: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(cipher_race_constants.COMMON_SHEET_TAB_NAME),
+                cipher_race_constants.COLUMNS
             ),
-            code_constants.CHALLENGE: google_utils.get_dataframe_from_gsheet(
-                self.spreadsheet.worksheet(code_constants.CHALLENGE_SHEET_TAB_NAME),
-                code_constants.COLUMNS
+            cipher_race_constants.CHALLENGE: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(cipher_race_constants.CHALLENGE_SHEET_TAB_NAME),
+                cipher_race_constants.COLUMNS
             )
         }
-        print(f"Reload used. Reloaded {code_constants.CODE} sheet")
+        print(f"Reload used. Reloaded {cipher_race_constants.CODE} sheet")
         embed = discord_utils.create_embed()
         embed.add_field(name="Sheet Reloaded",
                         value="Google sheet successfully reloaded",
@@ -256,7 +257,11 @@ class CodeCog(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name='reset')
-    @commands.has_role(constants.BOT_WHISPERER)
+    @commands.has_any_role(
+        constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID,
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
+    )
     async def reset(self, ctx):
         """
         Admin Command.
@@ -272,8 +277,8 @@ class CodeCog(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    # Function to clean the bot's code so it can start a new one.
-    # UPDATE: Don't reset used code IDs. We have enough. Only do that on a forced ~reset
+    # Function to clean the bot's cipher_race so it can start a new one.
+    # UPDATE: Don't reset used cipher_race IDs. We have enough. Only do that on a forced ~reset
     def reset_code(self, team):
         self.current_level[team] = 1
         self.current_answers[team] = []
@@ -286,20 +291,20 @@ class CodeCog(commands.Cog):
     async def reload_sheet(self):
         """Reload the google sheet every 24 hours"""
         self.sheet_map = {
-            code_constants.HP: google_utils.get_dataframe_from_gsheet(
-                self.spreadsheet.worksheet(code_constants.HP_SHEET_TAB_NAME),
-                code_constants.COLUMNS
+            cipher_race_constants.HP: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(cipher_race_constants.HP_SHEET_TAB_NAME),
+                cipher_race_constants.COLUMNS
             ),
-            code_constants.COMMON: google_utils.get_dataframe_from_gsheet(
-                self.spreadsheet.worksheet(code_constants.COMMON_SHEET_TAB_NAME),
-                code_constants.COLUMNS
+            cipher_race_constants.COMMON: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(cipher_race_constants.COMMON_SHEET_TAB_NAME),
+                cipher_race_constants.COLUMNS
             ),
-            code_constants.CHALLENGE: google_utils.get_dataframe_from_gsheet(
-                self.spreadsheet.worksheet(code_constants.CHALLENGE_SHEET_TAB_NAME),
-                code_constants.COLUMNS
+            cipher_race_constants.CHALLENGE: google_utils.get_dataframe_from_gsheet(
+                self.spreadsheet.worksheet(cipher_race_constants.CHALLENGE_SHEET_TAB_NAME),
+                cipher_race_constants.COLUMNS
             )
         }
-        print(f"Reloaded {code_constants.CODE} sheet on schedule")
+        print(f"Reloaded {cipher_race_constants.CODE} sheet on schedule")
 
     async def start_new_level(self, ctx, channel, embeds):
         """Send the codes for the next level. Used on a timer
@@ -309,7 +314,7 @@ class CodeCog(commands.Cog):
         """
         for embed in embeds:
             await ctx.send(embed=embed)
-        timer = Timer(utils.compute_level_time(self.current_races[channel][code_constants.LEVEL]), self.send_times_up_message, callback_args=(ctx, channel, self.current_races[channel][code_constants.LEVEL]), callback_async=True)
+        timer = Timer(cipher_race_utils.compute_level_time(self.current_races[channel][cipher_race_constants.LEVEL]), self.send_times_up_message, callback_args=(ctx, channel, self.current_races[channel][cipher_race_constants.LEVEL]), callback_async=True)
         return
 
     async def send_times_up_message(self, ctx, channel, level):
@@ -317,7 +322,7 @@ class CodeCog(commands.Cog):
         They need to restart their race.
         """
         # If there are no answers left, we assume the team solved the round
-        if len(self.current_races[channel][code_constants.ANSWERS]) < 1 or self.current_races[channel][code_constants.LEVEL] != level:
+        if len(self.current_races[channel][cipher_race_constants.ANSWERS]) < 1 or self.current_races[channel][cipher_race_constants.LEVEL] != level:
             print(f"{channel}'s time is up, and they have completed the level!")
             return
         
@@ -325,17 +330,17 @@ class CodeCog(commands.Cog):
         # Create an embed to send to the team. 
         embed = discord.Embed(color=constants.EMBED_COLOR)
         embed.add_field(name="Time's up!",
-                        value=f"Sorry! Your time is up. You still had {len(self.current_races[channel][code_constants.ANSWERS])} "
-                              f"{code_constants.CODE} left to solve for level {level}. "
+                        value=f"Sorry! Your time is up. You still had {len(self.current_races[channel][cipher_race_constants.ANSWERS])} "
+                              f"{cipher_race_constants.CODE} left to solve for level {level}. "
                               f"If you'd like to re-attempt the race, use the {ctx.prefix}startrace command!",
                         inline=False)
         embed.add_field(name="Answers",
                         value=f"The answers to the remaining codes were:\n"
-                              f"{chr(10).join(self.current_races[channel][code_constants.ANSWERS])}", inline=False)
+                              f"{chr(10).join(self.current_races[channel][cipher_race_constants.ANSWERS])}", inline=False)
         await ctx.send(embed=embed)
         self.current_races.pop(channel)
         return
 
 
 def setup(bot):
-    bot.add_cog(CodeCog(bot))
+    bot.add_cog(CipherRaceCog(bot))

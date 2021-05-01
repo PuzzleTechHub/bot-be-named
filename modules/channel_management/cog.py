@@ -14,8 +14,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
     @commands.command(name="movechannel")
     @commands.has_any_role(
-        constants.VERIFIED_PUZZLER,
-        constants.TA_VERIFIED_PUZZLER_ROLE_ID
+        constants.TA_VERIFIED_PUZZLER_ROLE_ID,
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
     )
     async def movechannel(self, ctx, *args):
         """Command to move channel to category with given name"""
@@ -48,8 +49,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
     @commands.command(name="createchannel")
     @commands.has_any_role(
-        constants.VERIFIED_PUZZLER,
-        constants.TA_VERIFIED_PUZZLER_ROLE_ID
+        constants.TA_VERIFIED_PUZZLER_ROLE_ID,
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
     )
     async def createchannel(self, ctx, name: str = ""):
         """Command to create channel in same category with given name"""
@@ -73,8 +75,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
     @commands.command(name="clonechannel")
     @commands.has_any_role(
-        constants.VERIFIED_PUZZLER,
-        constants.TA_VERIFIED_PUZZLER_ROLE_ID
+        constants.TA_VERIFIED_PUZZLER_ROLE_ID,
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
     )
     async def clonechannel(self, ctx, original: str = "", new: str = ""):
         """Command to create channel in same category with given name"""

@@ -50,7 +50,9 @@ class SolvedCog(commands.Cog):
 
 	@commands.command(name="solved")
 	@commands.has_any_role(
-		constants.VERIFIED_PUZZLER,
+		constants.TA_VERIFIED_PUZZLER_ROLE_ID,
+		constants.SONI_SERVER_TESTER_ROLE,
+		constants.KEV_SERVER_TESTER_ROLE
 	)
 	async def solved(self, ctx: commands.Context):
 		"""Changes channel name to solved-<channel-name>
@@ -74,7 +76,9 @@ class SolvedCog(commands.Cog):
 
 	@commands.command(name="solvedish")
 	@commands.has_any_role(
-		constants.VERIFIED_PUZZLER,
+		constants.TA_VERIFIED_PUZZLER_ROLE_ID,
+		constants.SONI_SERVER_TESTER_ROLE,
+		constants.KEV_SERVER_TESTER_ROLE
 	)
 	async def solvedish(self, ctx: commands.Context):
 		"""Changes channel name to solvedish-<channel-name>
@@ -99,7 +103,9 @@ class SolvedCog(commands.Cog):
 
 	@commands.command(name="backsolved")
 	@commands.has_any_role(
-		constants.VERIFIED_PUZZLER,
+		constants.TA_VERIFIED_PUZZLER_ROLE_ID,
+		constants.SONI_SERVER_TESTER_ROLE,
+		constants.KEV_SERVER_TESTER_ROLE
 	)
 	async def backsolved(self, ctx: commands.Context):
 		"""Changes channel name to backsolved-<channel-name>
@@ -123,7 +129,9 @@ class SolvedCog(commands.Cog):
 
 	@commands.command(name="unsolved")
 	@commands.has_any_role(
-		constants.VERIFIED_PUZZLER,
+		constants.TA_VERIFIED_PUZZLER_ROLE_ID,
+		constants.SONI_SERVER_TESTER_ROLE,
+		constants.KEV_SERVER_TESTER_ROLE
 	)
 	async def unsolved(self, ctx: commands.context):
 		"""removes one of the solved prefixes from channel name

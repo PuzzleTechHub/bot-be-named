@@ -1,5 +1,5 @@
 import pandas as pd
-from modules.code import code_constants
+from modules.cipher_race import cipher_race_constants
 from utils import discord_utils
 import discord
 import math
@@ -14,7 +14,7 @@ def create_level_prep_embed(level: int) -> discord.Embed:
     :return embed: (discord.Embed) the embed that includes the level-up message.
     """
     embed = discord_utils.create_embed()
-    embed.add_field(name=f"Level {level} Complete!", value=f"Well done! Level {level+1} will begin in {code_constants.BREAK_TIME} seconds.")
+    embed.add_field(name=f"Level {level} Complete!", value=f"Well done! Level {level+1} will begin in {cipher_race_constants.BREAK_TIME} seconds.")
     return embed
 
 
@@ -26,51 +26,51 @@ def get_opening_statement(sheet_used) -> discord.Embed:
     """
     embed = discord_utils.create_embed()
     embed.add_field(name=f"Welcome!", value=f"You have started a new race against the {sheet_used.capitalize()} wordlist! "
-                                            f"Level 1 will start in about {code_constants.BREAK_TIME} seconds from this message! "
-                                            f"You will have {code_constants.TIME_LIMIT} seconds to complete levels 1-5. "
-                                            f"After every {code_constants.NUM_LEVELS}th level, you will get {code_constants.BONUS_TIME} "
-                                            f"additional seconds (i.e you get {code_constants.TIME_LIMIT + code_constants.BONUS_TIME} "
+                                            f"Level 1 will start in about {cipher_race_constants.BREAK_TIME} seconds from this message! "
+                                            f"You will have {cipher_race_constants.TIME_LIMIT} seconds to complete levels 1-5. "
+                                            f"After every {cipher_race_constants.NUM_LEVELS}th level, you will get {cipher_race_constants.BONUS_TIME} "
+                                            f"additional seconds (i.e you get {cipher_race_constants.TIME_LIMIT + cipher_race_constants.BONUS_TIME} "
                                             f"seconds to complete levels 6-10). Good luck and have fun!")
     return embed
 
 
 def create_code_embed(level: int, codes: pd.DataFrame, prefix: str):
     """
-    Function to create the code embed
+    Function to create the cipher_race embed
     :param level: (int) The level of the current puzzle solvers
     :param codes: (pandas.DataFrame) the current set of codes
     :param prefix: (str) The bot prefix for the server the message came from
 
-    :return embeds: (list of discord.Embed) The embeds we create for the code
+    :return embeds: (list of discord.Embed) The embeds we create for the cipher_race
     :return code_answer: (list of str) the answers to the given codes
     """
     code_answers = []
     embed_list = []
     embed = discord_utils.create_embed()
     embed.add_field(name=f"Level {level}", value=f"Welcome to level {level}! You will have {compute_level_time(level)} " + \
-    f"seconds to solve {level} {code_constants.CODE}s, beginning now.", inline=False)
+    f"seconds to solve {level} {cipher_race_constants.CODE}s, beginning now.", inline=False)
     embed_list.append(embed)
     for i in range(level):
         code_proposal = codes.sample()
         embed_list.append(discord_utils.create_embed())
-        embed_list[-1].add_field(name=f"{code_constants.CODE.capitalize()} #{i+1}", value=f"{code_proposal[code_constants.URL].item()}", inline=False)
-        embed_list[-1].set_image(url=code_proposal[code_constants.URL].item())
-        code_answers.append(code_proposal[code_constants.ANSWER].item().replace(' ', '').lower())
+        embed_list[-1].add_field(name=f"{cipher_race_constants.CODE.capitalize()} #{i + 1}", value=f"{code_proposal[cipher_race_constants.URL].item()}", inline=False)
+        embed_list[-1].set_image(url=code_proposal[cipher_race_constants.URL].item())
+        code_answers.append(code_proposal[cipher_race_constants.ANSWER].item().replace(' ', '').lower())
     embed_list.append(discord_utils.create_embed())
-    embed_list[-1].add_field(name="Answering", value=f"Use {prefix}answer to make a guess on any of the {code_constants.CODE}s.",
-                    inline=False)
+    embed_list[-1].add_field(name="Answering", value=f"Use {prefix}answer to make a guess on any of the {cipher_race_constants.CODE}s.",
+                             inline=False)
     return embed_list, code_answers
 
 
 def create_no_code_embed(prefix: str) -> discord.Embed:
     """
-    Function to create an embed to say there is no code
+    Function to create an embed to say there is no cipher_race
     :param prefix: (str) the prefix for the server
 
     :return embed: (discord.Embed) The embed we create
     """
     embed = discord_utils.create_embed()
-    embed.add_field(name=f"No Current {code_constants.CODE.capitalize()}",
+    embed.add_field(name=f"No Current {cipher_race_constants.CODE.capitalize()}",
                     value=f"You haven't started the race. To start, use the {prefix}startrace command.",
                     inline=False)
     return embed
@@ -88,9 +88,9 @@ def get_answer_result(user_answer: str, current_answers: list) -> str:
     user_answer = user_answer.lower()
     if user_answer in current_answers:
             current_answers.pop(current_answers.index(user_answer))
-            result = code_constants.CORRECT
+            result = cipher_race_constants.CORRECT
     else:
-        result = code_constants.INCORRECT
+        result = cipher_race_constants.INCORRECT
 
     return result
 
@@ -102,4 +102,4 @@ def compute_level_time(level: int) -> int:
     +10 on levels 10-15
     ...
     """
-    return code_constants.TIME_LIMIT + code_constants.BONUS_TIME * math.floor((level - 1) / code_constants.NUM_LEVELS)
+    return cipher_race_constants.TIME_LIMIT + cipher_race_constants.BONUS_TIME * math.floor((level - 1) / cipher_race_constants.NUM_LEVELS)

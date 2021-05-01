@@ -15,7 +15,7 @@ python bot.py
 
 - [Archive Channel](./modules/archive_channel) for downloading channel contents into a Zip
 - [Clone Channel](./modules/clone_channel) for cloning a channel's permissions into a new channel  
-- [Code](./modules/code) a fun cipher race!
+- [Cipher Race](modules/cipher_race) a fun cipher race!
 - [Create Channel](./modules/create_channel) for Creating Discord Channels
 - [Error Logging](./modules/error_logging) for Getting Error Logs
 - [Lookup](./modules/lookup) for Searching the internet  
