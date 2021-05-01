@@ -55,6 +55,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
             for root, directories, files in os.walk(archive_constants.ARCHIVE):
                 for filename in files:
                     if filename == ZIP_FILENAME.split('/')[-1]: # Don't include self
+                        #TODO : It means that the first zipfile in the channel with the same name gets ignored. Minor big
                         continue
                     zf.write(os.path.join(root, filename), compress_type=self.compression)
             zf_file_size = zf.fp.tell()
@@ -62,10 +63,10 @@ class ArchiveCog(commands.Cog, name="Archive"):
         # In that case, we just need to send the textfile
         return discord.File(ZIP_FILENAME), zf_file_size, discord.File(text_log_path), text_file_size
 
-    def get_file_and_embed(self, channel, filesize_limit, zipfile, zipfile_size, textfile, textfile_size):
+    def get_file_and_embed(self, channel, filesize_limit, zip_file, zip_file_size, textfile, textfile_size):
         """Check if zipfile and textfile can be sent or not, create embed with message"""
         embed = discord_utils.create_embed()
-        if zipfile_size > filesize_limit:
+        if zip_file_size > filesize_limit:
             if textfile_size > filesize_limit:
                 embed.add_field(name="ERROR: History Too Big",
                                 value=f"Sorry about that! The chat log in {channel.mention} is too big for me to send.\n"
@@ -79,11 +80,14 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                 value=f"There are too many photos in {channel.mention} for me to send. The max file size "
                                       f"I can send in this server is "
                                       f"`{(filesize_limit/archive_constants.BYTES_TO_MEGABYTES):.2f}MB` but the zip is "
-                                      f"`{(zipfile_size/archive_constants.BYTES_TO_MEGABYTES):.2f}MB`. I'll only be able to send you the chat log.",
+                                      f"`{(zip_file_size/archive_constants.BYTES_TO_MEGABYTES):.2f}MB`. I'll only be able to send you the chat log.",
                                 inline=False)
-                file = textfile
+                ZIP_FILENAME = os.path.join(archive_constants.ARCHIVE, channel.name + '_archive.zip')
+                with zipfile.ZipFile(ZIP_FILENAME, mode='w') as zf:
+                    zf.write(os.path.join(archive_constants.ARCHIVE, channel.name + '_' + archive_constants.TEXT_LOG_PATH), compress_type=self.compression)
+                file = zip_file
         else:
-            file = zipfile
+            file = zip_file
             embed = None
         return file, embed
 
@@ -128,7 +132,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
             await ctx.send(embed=start_embed)
             try:
                 # zipfile, textfile
-                zipfile, zipfile_size, textfile, textfile_size = await self.archive_one_channel(channel)
+                zip_file, zip_file_size, textfile, textfile_size = await self.archive_one_channel(channel)
             except discord.errors.Forbidden:
                 embed = discord_utils.create_embed()
                 embed.add_field(name="ERROR: No access",
@@ -140,8 +144,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 return
             file, embed = self.get_file_and_embed(channel,
                                                   ctx.guild.filesize_limit,
-                                                  zipfile,
-                                                  zipfile_size,
+                                                  zip_file,
+                                                  zip_file_size,
                                                   textfile,
                                                   textfile_size)
             await ctx.send(file=file, embed=embed)
@@ -176,11 +180,11 @@ class ArchiveCog(commands.Cog, name="Archive"):
             for text_channel in category.text_channels:
                 self.reset_archive_dir()
                 try:
-                    zipfile, zipfile_size, textfile, textfile_size = await self.archive_one_channel(text_channel)
+                    zip_file, zip_file_size, textfile, textfile_size = await self.archive_one_channel(text_channel)
                     file, embed = self.get_file_and_embed(text_channel,
                                                           ctx.guild.filesize_limit,
-                                                          zipfile,
-                                                          zipfile_size,
+                                                          zip_file,
+                                                          zip_file_size,
                                                           textfile,
                                                           textfile_size)
                     await ctx.send(file=file, embed=embed)
@@ -213,11 +217,11 @@ class ArchiveCog(commands.Cog, name="Archive"):
             for text_channel in ctx.guild.text_channels:
                 self.reset_archive_dir()
                 try:
-                    zipfile, zipfile_size, textfile, textfile_size = await self.archive_one_channel(text_channel)
+                    zip_file, zip_file_size, textfile, textfile_size = await self.archive_one_channel(text_channel)
                     file, embed = self.get_file_and_embed(text_channel,
                                                           ctx.guild.filesize_limit,
-                                                          zipfile,
-                                                          zipfile_size,
+                                                          zip_file,
+                                                          zip_file_size,
                                                           textfile,
                                                           textfile_size)
                     await ctx.send(file=file, embed=embed)
