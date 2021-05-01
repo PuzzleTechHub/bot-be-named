@@ -12,20 +12,21 @@
 - Better README to repro
 - sample .env file
 - ~archivechannel should name channel for search reasons.
-- We need zips on even channels where text is only being sent
+- ~archive command does not exist. Did you mean "Archivechannel"
 
 ## Features
 
 - Merge back into QQQ with submoduling
+- ~housepoints 2021 and ~housecup 2021
 - Help module with buttons to navigate
 - ~stats for keeping track on what channels server had/doesnt
 - Write tests
-- SHeetmanagement : Pinning, run all three commands, clean up
+- SHeetmanagement : Run all three commands, clean up
 - ~renamechannel
 - admin verifiedrole @Verified Puzzler
+- - Do not tether to bot-whisperer (Archive-channel)
 - Category management : ~clonecategory etc
 - Role assign : ~assignrole @rolename @user1 @user2 @user3 
 - Actually decent Help : With arrow keys and full things
 - Simple lookup for all major encodings - ~lookupsheet morse/pigpen etc
-~deleteallmessages : Admin only command
-~archive channel #chan1 #chan2
+- ~archive channel #chan1 #chan2
