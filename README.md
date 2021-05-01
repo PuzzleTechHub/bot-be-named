@@ -14,12 +14,11 @@ python bot.py
 ## Modules
 
 - [Archive Channel](./modules/archive_channel) for downloading channel contents into a Zip
-- [Clone Channel](./modules/clone_channel) for cloning a channel's permissions into a new channel  
+- [Channel Management](./modules/channel_management) for cloning, creating, and moving channels  
 - [Cipher Race](modules/cipher_race) a fun cipher race!
-- [Create Channel](./modules/create_channel) for Creating Discord Channels
+- [Discord](modules/discord) for discord utility commands
 - [Error Logging](./modules/error_logging) for Getting Error Logs
-- [Lookup](./modules/lookup) for Searching the internet  
-- [Move Channel](./modules/move_channel) for Moving Discord Channels
+- [Lookup](./modules/lookup) for Searching the internet
 - [Solved](./modules/solved) for marking Discord Channels as Solved
 - [Time](./modules/time) for finding the time anywhere in the world
 

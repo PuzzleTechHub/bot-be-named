@@ -2,7 +2,12 @@
 
 ## Discord Utility commands
 
-To be added - pin, categroy management, stats, renamechannel
+- `~stats` prints out server stats (e.g. number of members, number of emoji)
+- `~pin` pins the previous message. Alternatively, you can reply to a message with `~pin`,
+which will pin the message you replied to (this is especially useful for fast-moving chats, since
+  the order may get mixed up)
+- `~unpin` unpins the previous message. You can optionally supply a number of messages to unpin
+  (e.g. `~unpin 4`) and that many messages will be unpinned (up to the number of pins in the channel)
 
 ## Issues
 

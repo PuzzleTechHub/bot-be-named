@@ -34,6 +34,10 @@ class HelpCog(commands.Cog):
                             value=f"Clone, Create, and Move discord channels! For approved users only."
                                   f"\nRead more on the [GitHub README]({help_constants.CHANNEL_MANAGEMENT_README})",
                             inline=False)
+            embed.add_field(name=help_constants.DISCORD,
+                            value=f"Discord utility commands like pinning and getting server stats."
+                                  f"\nRead more on the [GitHub README]({help_constants.DISCORD_README})",
+                            inline=False)
             embed.add_field(name=help_constants.SOLVED,
                             value=f"Mark a channel as solved! This will prepend 'solved' to the channel name. "
                                   f"Use {ctx.prefix}solved in a channel to mark it as solved!"
@@ -119,6 +123,24 @@ def channel_management_help(prefix: str):
                     value=f"Moves the channel you're currently in to <category_name>",
                     inline=False)
     embed = more_help(embed, help_constants.CHANNEL_MANAGEMENT_README)
+    return embed
+
+
+def discord_help(prefix: str):
+    embed = discord.Embed(title=f"{help_constants.DISCORD} {help_constants.HELP}",
+                          url=help_constants.DISCORD_README,
+                          color=constants.EMBED_COLOR)
+    embed.add_field(name=f"{prefix}stats",
+                    value="Get server stats!",
+                    inline=False)
+    embed.add_field(name=f"{prefix}pin",
+                    value="Pin the previous message! You can also reply to a message with {prefix}pin and the bot will"
+                          " pin the message you replied to.",
+                    inline=False)
+    embed.add_field(name=f"{prefix}unpin <optional: number_to_unpin (default 1)>",
+                    value="Unpins the most recent <number_to_unpin> messages!",
+                    inline=False)
+    embed = more_help(embed, help_constants.DISCORD_README)
     return embed
 
 
@@ -220,6 +242,7 @@ MODULE_TO_HELP = {
     help_constants.ADMIN.lower(): admin_help,
     help_constants.CIPHER_RACE.lower(): cipher_race_help,
     help_constants.CHANNEL_MANAGEMENT.lower(): channel_management_help,
+    help_constants.DISCORD.lower(): discord_help,
     help_constants.SOLVED.lower(): solved_help,
     help_constants.ARCHIVE.lower(): archive_help,
     help_constants.LOOKUP.lower(): lookup_help,

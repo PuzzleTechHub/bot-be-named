@@ -5,7 +5,7 @@
 ## Improvements
 
 - ~~Add a bunch of aliasing for different commands (createchannel/makechannel etc)~~
-- Sheet management :  Deduplication check, check if tethering exists, reordering
+- Sheet management : reordering
 - Better README to repro
 - ~archivechannel should name channel for search reasons.
 - ~archive command does not exist. Did you mean "Archivechannel"
@@ -15,10 +15,7 @@
 ## Features
 
 - QQQ: ~housepoints 2021 and ~housecup 2021
-- Help module with buttons to navigate
 - Write tests
-- ~stats for keeping track on what channels server had/doesnt
-- Sheetmanagement : Run all three commands, clean up
 - ~renamechannel
 - admin verifiedrole @Verified Puzzler
 - Category management : ~clonecategory etc
