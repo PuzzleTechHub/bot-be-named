@@ -5,7 +5,7 @@ import os
 import shutil
 import zipfile
 from utils import discord_utils
-from modules.archive import archive_constants
+from modules.archive import archive_constants, archive_utils
 import asyncio
 
 
@@ -18,7 +18,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         self.compression = zipfile.ZIP_DEFLATED
         self.lock = asyncio.Lock()
 
-        self.reset_archive_dir()
+        archive_utils.reset_archive_dir()
 
     # TODO: While we're going through messages, it would be nice to see if we've already hit the 8MB limit somehow?
     # That would speed up the archiving of categories and servers by a lot. I guess it would be hard since we aren't
@@ -105,11 +105,15 @@ class ArchiveCog(commands.Cog, name="Archive"):
             await ctx.send(embed=discord_utils.create_no_argument_embed('channel'))
             return
         # If we don't have the lock, let the user know it may take a while.
+        msg = None
         if self.lock.locked():
-            await ctx.send(embed=self.get_delay_embed())
+            msg = await ctx.send(embed=archive_utils.get_delay_embed())
         # LOCK EVERYTHING
         async with self.lock:
-            self.reset_archive_dir()
+            # If we printed a message about being delayed bc of lock, we can delete that now.
+            if msg:
+                await msg.delete()
+            archive_utils.reset_archive_dir()
             try:
                 channel = discord_utils.find_channel(self.bot, ctx.guild.channels, ' '.join(args))
             except ValueError:
@@ -128,8 +132,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 await ctx.send(embed=embed)
                 return
             # If we've gotten to this point, we know we have a channel so we should probably let the user know.
-            start_embed = self.get_start_embed(channel)
-            await ctx.send(embed=start_embed)
+            start_embed = await self.get_start_embed(channel)
+            msg = await ctx.send(embed=start_embed)
             try:
                 # zipfile, textfile
                 zip_file, zip_file_size, textfile, textfile_size = await self.archive_one_channel(channel)
@@ -149,6 +153,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                                   textfile,
                                                   textfile_size)
             await ctx.send(file=file, embed=embed)
+            await msg.delete()
+        # Clean up the archive dir
+        archive_utils.reset_archive_dir()
 
     @commands.command(name="archivecategory")
     @commands.has_guild_permissions(administrator=True)
@@ -161,10 +168,14 @@ class ArchiveCog(commands.Cog, name="Archive"):
             await ctx.send(embed=discord_utils.create_no_argument_embed('category'))
             return
         # If we don't have the lock, let the user know it may take a while.
+        msg = None
         if self.lock.locked():
-            await ctx.send(embed=self.get_delay_embed())
+            msg = await ctx.send(embed=archive_utils.get_delay_embed())
         # LOCK EVERYTHING
         async with self.lock:
+            if msg:
+                await msg.delete()
+
             try:
                 category = discord_utils.find_channel(self.bot, ctx.guild.channels, ' '.join(args))
             except ValueError:
@@ -175,10 +186,10 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 await ctx.send(embed=embed)
                 return
 
-            start_embed = self.get_start_embed(category)
-            await ctx.send(embed=start_embed)
+            start_embed = await self.get_start_embed(category, category.text_channels)
+            msg = await ctx.send(embed=start_embed)
             for text_channel in category.text_channels:
-                self.reset_archive_dir()
+                archive_utils.reset_archive_dir()
                 try:
                     zip_file, zip_file_size, textfile, textfile_size = await self.archive_one_channel(text_channel)
                     file, embed = self.get_file_and_embed(text_channel,
@@ -197,6 +208,14 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                     inline=False)
                     await ctx.send(embed=embed)
                     continue
+            await msg.delete()
+            embed = discord_utils.create_embed()
+            embed.add_field(name="All Done!",
+                            value=f"Successfully archived {category}",
+                            inline=False)
+            await ctx.send(embed=embed)
+        # Clean up the archive dir
+        archive_utils.reset_archive_dir()
 
     # TODO: This code is mostly copy/pasted from archivecategory
     @commands.command(name="archiveserver")
@@ -207,15 +226,18 @@ class ArchiveCog(commands.Cog, name="Archive"):
         WARNING: This command will take *very* long on any reasonably aged server"""
         print("Received archiveserver")
         # If we don't have the lock, let the user know it may take a while.
+        msg = None
         if self.lock.locked():
-            await ctx.send(embed=self.get_delay_embed())
-        else:
-            start_embed = self.get_start_embed(ctx.guild)
-            await ctx.send(embed=start_embed)
+            msg = await ctx.send(embed=archive_utils.get_delay_embed())
+
         # LOCK EVERYTHING
         async with self.lock:
+            start_embed = await self.get_start_embed(ctx.guild, ctx.guild.text_channels)
+            await msg.delete()
+            msg = await ctx.send(embed=start_embed)
+
             for text_channel in ctx.guild.text_channels:
-                self.reset_archive_dir()
+                archive_utils.reset_archive_dir()
                 try:
                     zip_file, zip_file_size, textfile, textfile_size = await self.archive_one_channel(text_channel)
                     file, embed = self.get_file_and_embed(text_channel,
@@ -234,33 +256,31 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                     inline=False)
                     await ctx.send(embed=embed)
                     continue
+            await msg.delete()
+            embed = discord_utils.create_embed()
+            embed.add_field(name="All Done!",
+                            value=f"Successfully archived {ctx.guild}",
+                            inline=False)
+            await ctx.send(embed=embed)
+        # Clean up the archive dir
+        archive_utils.reset_archive_dir()
 
-    def get_start_embed(self, channel_or_guild):
+    async def get_start_embed(self, channel_or_guild, multiple_channels=None):
+        owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
         embed = discord_utils.create_embed()
         embed.add_field(name="Archive Started",
                         value=f"Your archiving of {channel_or_guild.mention if hasattr(channel_or_guild, 'mention') else channel_or_guild}"
                               f" has begun! This may take a while. If I run into "
                               f"any errors, I'll let you know.",
                         inline=False)
+        if multiple_channels:
+            embed.add_field(name="List of Channels to Archive",
+                            value=f"{chr(10).join([channel.name for channel in multiple_channels])}",
+                            inline=False)
         embed.add_field(name="Problems?",
-                        value="Taking too long? Let `@kevslinger` know",
+                        value=f"Taking too long? Let {owner.mention} know",
                         inline=False)
         return embed
-
-    def get_delay_embed(self):
-        embed = discord_utils.create_embed()
-        embed.add_field(name="Warning: Delay!",
-                        value="Hi! It appears we're a little busy at the moment, so our archiving may take a while. "
-                              "Sorry about that! We'll get to it as soon as possible.",
-                        inline=False)
-        return embed
-
-    def reset_archive_dir(self):
-        # Remove the archive directory and remake
-        if os.path.exists(archive_constants.ARCHIVE):
-            shutil.rmtree(archive_constants.ARCHIVE)
-        os.mkdir(archive_constants.ARCHIVE)
-        os.mkdir(os.path.join(archive_constants.ARCHIVE, archive_constants.IMAGES))
 
 
 def setup(bot):
