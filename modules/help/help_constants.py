@@ -17,4 +17,6 @@ LOOKUP = 'Lookup'
 LOOKUP_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/lookup'
 TIME = 'Time'
 TIME_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/time'
-MODULES = [ADMIN, CIPHER_RACE, CHANNEL_MANAGEMENT, SOLVED, ARCHIVE, LOOKUP, TIME]
+SHEETS = 'Sheets'
+SHEETS_README = 'https://github.com/kevslinger/DiscordCipherRace/tree/main/modules/sheets'
+MODULES = [ADMIN, CIPHER_RACE, CHANNEL_MANAGEMENT, SOLVED, ARCHIVE, LOOKUP, TIME, SHEETS]

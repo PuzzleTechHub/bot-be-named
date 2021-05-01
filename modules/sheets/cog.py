@@ -130,12 +130,19 @@ class SheetsCog(commands.Cog, name="Sheets"):
             return
         tab_name = str(args[0])
 
+        curr_cat = str(ctx.message.channel.category)        
         curr_cat_id = str(ctx.message.channel.category_id)
 
         idx,curr_sheet = self.findsheettether(curr_cat_id)
         curr_sheet_link = f"https://docs.google.com/spreadsheets/d/{curr_sheet}/"
 
-        #tba - Check for findsheettether EXISTING
+        if idx == 0:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"Error",
+                value=f"The category **{curr_cat}** is not tethered to any Google sheet.",
+                inline=False)
+            await ctx.send(embed=embed)
+            return
 
         try:
             test_gspread_client = google_utils.create_gspread_client()
@@ -149,12 +156,24 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-        #TBA - Deduplicaiton check
+        try:
+            test2_gspread_client = google_utils.create_gspread_client()
+            test2_category_tether_tab = test2_gspread_client.open_by_key(curr_sheet).worksheet(tab_name)
+            template2_id = test2_category_tether_tab.id
+        except Exception as e:
+            pass
+        else:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"Error",
+                             value=f"The [Google sheet at link]({curr_sheet_link}) already has a tab named **{tab_name}**. Cannot create a tab with same name.",
+                             inline=False)
+            await ctx.send(embed=embed)
+            return
 
         try:
             test_gspread_client = google_utils.create_gspread_client()
             test_category_tether = test_gspread_client.open_by_key(curr_sheet) 
-            newsheet = test_category_tether.duplicate_sheet(source_sheet_id=template_id,new_sheet_name=tab_name, )
+            newsheet = test_category_tether.duplicate_sheet(source_sheet_id=template_id,new_sheet_name=tab_name, insert_sheet_index=4)
         except Exception as e:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"Error",
@@ -170,10 +189,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
                          value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
                          inline=False)
         msg = await ctx.send(embed=embed)
-        #TBA - Reorder them to the end
         await msg.pin()
         print("Received sheetcreatetab")
-    # TBA - PIN
 
 def setup(bot):
     bot.add_cog(SheetsCog(bot))

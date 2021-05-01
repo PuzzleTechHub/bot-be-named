@@ -6,7 +6,6 @@ from modules.help import help_constants
 from modules.lookup import lookup_constants
 from modules.code import code_constants
 
-
 class HelpCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -51,6 +50,10 @@ class HelpCog(commands.Cog):
             embed.add_field(name=help_constants.TIME,
                             value=f"Current time anywhere in the world!\n"
                                   f"Read more on the [GitHub README]({help_constants.TIME_README})",
+                            inline=False)
+            embed.add_field(name=help_constants.SHEETS,
+                            value=f"GSheet management from Discord.\n"
+                                  f"Read more on the [GitHub README]({help_constants.SHEETS_README})",
                             inline=False)
         else:
             module = ' '.join(args).lower()
@@ -185,6 +188,27 @@ def time_help(prefix: str):
     embed = more_help(embed, help_constants.TIME_README)
     return embed
 
+def sheets_help(prefix: str):
+    embed = discord.Embed(title=f"{help_constants.SHEETS} {help_constants.HELP}",
+                          url=help_constants.SHEETS_README,
+                          color=constants.EMBED_COLOR)
+    embed.add_field(name=f"{prefix}addsheettether <string>",
+                    value=f"Connects the current category to a GSheet with <string> ID\n"
+                          f"This command is necessary before the other sheet commands\n"
+                          f"e.g. {prefix}addsheettether 1ZuOT4g8nGTrJrBvuknTIHWfLhmUzuquQtAKLCIdsLt4",
+                    inline=False)
+    embed.add_field(name=f"{prefix}displaysheettether",
+                    value=f"Links the GSheet connected to current category\n",
+                    inline=False)
+    embed.add_field(name=f"{prefix}removesheettether <string>",
+                    value=f"Unconnects the current category from the linked GSheet\n",
+                    inline=False)
+    embed.add_field(name=f"{prefix}sheetcreatetab <Tabname>",
+                    value=f"Makes a new tab in the connected GSheet, links it at the current channel and pins it.\n"
+                          f"e.g. {prefix}sheetcreatetab Puzzle1",
+                    inline=False)
+    embed = more_help(embed, help_constants.TIME_README)
+    return embed
 
 def more_help(embed, readme_link):
     return embed.add_field(name=f"More {help_constants.HELP}",
@@ -199,7 +223,8 @@ MODULE_TO_HELP = {
     help_constants.SOLVED.lower(): solved_help,
     help_constants.ARCHIVE.lower(): archive_help,
     help_constants.LOOKUP.lower(): lookup_help,
-    help_constants.TIME.lower(): time_help
+    help_constants.TIME.lower(): time_help,
+    help_constants.SHEETS.lower(): sheets_help
 }
 
 
