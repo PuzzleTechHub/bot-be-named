@@ -137,6 +137,9 @@ def discord_help(prefix: str):
                     value="Pin the previous message! You can also reply to a message with {prefix}pin and the bot will"
                           " pin the message you replied to.",
                     inline=False)
+    embed.add_field(name=f"{prefix}pinme",
+                    value="Pins the message",
+                    inline=False)
     embed.add_field(name=f"{prefix}unpin <optional: number_to_unpin (default 1)>",
                     value="Unpins the most recent <number_to_unpin> messages!",
                     inline=False)

@@ -30,6 +30,19 @@ class DiscordCog(commands.Cog, name="Discord"):
                             inline=False)
             await ctx.send(embed=embed)
 
+    @commands.command(name="pinme")
+    async def pinme(self, ctx):
+        """Pins the message"""
+        print("Received pinme")
+        try:
+            await ctx.message.pin()
+        except discord.HTTPException:
+            embed = discord_utils.create_embed()
+            embed.add_field(name="Error!",
+                            value=f"Issue pinning message. Perhaps I don't have permissions to pin?",
+                            inline=False)
+            await ctx.send(embed=embed)
+
     @commands.command(name="unpin")
     async def unpin(self, ctx, num_to_unpin: int = 1):
         """Unpin <num_to_unpin> messages, or all if num if 0"""
