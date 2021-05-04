@@ -95,6 +95,19 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         await ctx.send(embed=embed)
 
+    @commands.command(name="catstats")
+    async def catstats(self, ctx):
+        """Get category stats"""
+        print("Received catstats")
+        cat = ctx.message.channel.category
+        embed = discord_utils.create_embed()
+        embed.add_field(name="Category Name",
+                        value=f"{cat.name}")
+        embed.add_field(name="Text Channels",
+                        value=f"{len(cat.text_channels)}")
+        embed.add_field(name="Voice Channels",
+                        value=f"{len(cat.voice_channels)}")
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(DiscordCog(bot))
