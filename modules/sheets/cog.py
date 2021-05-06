@@ -12,21 +12,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         self.gspread_client = google_utils.create_gspread_client()
         self.category_tether_tab = self.gspread_client.open_by_key(os.getenv('MASTER_SHEET_KEY')).worksheet(sheets_constants.CATEGORY_TAB)
 
-    def findsheettether(self, curr_cat_id):
-        """Finds the tethered sheet for a category, or 0 and None if not found"""
-        allvals = self.category_tether_tab.get_all_values()
-        i=1
-        idx=0
-        curr_sheet = None
-        for row in allvals:
-            if row[0] == curr_cat_id:
-                idx = i
-                # The 3rd column is where the sheet keys are stored
-                curr_sheet=row[2]
-                break
-            i=i+1
-        return idx, curr_sheet
-
     @commands.command(name="addsheettether", aliases=['editsheettether'])
     async def addsheettether(self, ctx, sheet_key_or_link: str = None):
         """Add a sheet to the current channel's category"""
