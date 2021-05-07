@@ -47,8 +47,7 @@ async def on_error(event, *args, **kwargs):
                             inline=False)
     # other errors
     else:
-        print("Other error occurred")
-        msg = f"An error occurred during and event and was not reported: {event}"
+        msg = f"An error occurred during an event and was not reported: {event}"
         user_error = ErrorHandler(args[0], error, msg).handle_error()# TODO: change args[0] to ""
         if user_error:
             embed = discord_utils.create_embed()
@@ -60,7 +59,6 @@ async def on_error(event, *args, **kwargs):
 
 async def on_command_error(ctx, error):
     """When a command exception is raised, log it in err.log and bot log channel"""
-    print(f"Printing from on_command_error: {error}")
     details = f"**Error while running command**\n'''\n{ctx.message.clean_content}\n'''"
     user_error = ErrorHandler(ctx.message, error, details).handle_error()
     if user_error:

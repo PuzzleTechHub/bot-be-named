@@ -11,6 +11,7 @@
 - ~archive command does not exist. Did you mean "Archivechannel"
 - Help : arrow keys for navigation?
 - ~archivechannel #chan1 #chan2
+- Allow minimal bot to run without .env file
 
 ## Features
 

@@ -1,3 +1,4 @@
+import sys
 import traceback
 from discord import logging
 from discord.ext.commands import errors
@@ -15,6 +16,7 @@ class ErrorHandler:
         self.human_readable_msg = human_readable_msg
         # Formats the error as traceback
         self.trace = traceback.format_exc()
+        traceback.print_exception(type(self.error), self.error, self.error.__traceback__, file=sys.stderr)
 
 
     def handle_error(self):
@@ -51,33 +53,25 @@ class ErrorHandler:
         elif isinstance(self.error, errors.CommandInvokeError):
             return f"Error while executing the command."
         elif isinstance(self.error, errors.MissingAnyRole):
-            # Get the missing role list. Some may be integers (role IDs)
-            # Others might be strings TODO: only use one or the other?
-            # If it's an int, we want to convert to a string for the people to understand
+            # Get the missing role list.
+            # We need to convert the role IDs to strings for the people to understand
             # It might be a channel specific role, so in that case it would come back as none
             # We don't want to add none (for the join later on)
             # If it's a string, just append it
             missing_role_list = []
+            print(self.error.missing_roles)
             for missing_role in self.error.missing_roles:
-                if isinstance(missing_role, int):
-                    role = self.message.guild.get_role(missing_role)
-                    if role is not None:
-                        missing_role_list.append(role)
-                else:
-                    missing_role_list.append(missing_role)
-            # Some integers might have the same role name so just remove duplicates
-            missing_role_list = set(missing_role_list)
+                role = self.message.guild.get_role(missing_role)
+                if role is not None:
+                    missing_role_list.append(role.name)
             # Send all possible perms to give them access to the command
-            if len(missing_role_list) > 1:
+            if len(missing_role_list) >= 1:
                 return f"You must have one of the following roles to use this command: " \
                        f"{', '.join(missing_role_list)}"
             # This would happen if the perm is not available in that server.
-            elif len(missing_role_list) <= 0:
+            else:
                 return f"You don't have the necessary permissions to use that command! Speak with kevslinger to " \
                        f"get your permissions set up for that."
-            else:
-                # One role for the command.
-                return f"You must have the {next(iter(missing_role_list))} role to use this command."
         else:
             return -1 # No Error found
 
@@ -85,3 +79,4 @@ class ErrorHandler:
         """Appends the error to the error log file"""
         with open(filename, "a") as f:
             f.write(f"[ {datetime.now().strftime('%m-%d-%Y, %H:%M:%S')} ] {text}\n\n")
+            traceback.print_exception(type(self.error), self.error, self.error.__traceback__, file=f)
