@@ -23,29 +23,37 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         print("Received movechannel")
         embed = discord_utils.create_embed()
         # check for category name arguments
-        if len(args) > 0:
-            # join arguments to form channel name
-            category_name = " ".join(args)
-            # get current channel
-            channel = ctx.channel
-            # get new category
-            new_category = discord.utils.get(ctx.guild.channels, name=category_name)
-            if new_category is not None:
-                embed.add_field(name=f"{constants.SUCCESS}!", value=f"Moving {channel.mention} to {new_category}!")
-                # reply to user
-                await ctx.send(embed=embed)
-                # move channel
-                await ctx.channel.edit(category=new_category)
-            else:
-                embed.add_field(name=f"{constants.FAILED}!", value=f"Could not find category `{category_name}`")
-                # reply to user
-                await ctx.send(embed=embed)
-        # no argument passed
-        else:
+        if len(args) <= 0:
             embed.add_field(name=f"{constants.FAILED}!", value=f"You must specify a category!")
             # reply to user
             await ctx.send(embed=embed)
+            return 0
 
+        # join arguments to form channel name
+        category_name = " ".join(args)
+        # get current channel
+        channel = ctx.channel
+        # get new category
+        new_category = discord.utils.get(ctx.guild.channels, name=category_name)
+
+        if new_category is None:
+            embed.add_field(name=f"{constants.FAILED}!", value=f"Could not find category `{category_name}`")
+            # reply to user
+            await ctx.send(embed=embed)
+            return 0
+
+        if len(new_category.channels)>=50:
+            embed.add_field(name=f"{constants.FAILED}!", value=f"Category `{category_name}` is already full, max limit is 50 channels.")
+            # reply to user
+            await ctx.send(embed=embed)
+            return 0
+
+        embed.add_field(name=f"{constants.SUCCESS}!", value=f"Moving {channel.mention} to {new_category}!")
+        # reply to user
+        await ctx.send(embed=embed)
+        # move channel
+        await ctx.channel.edit(category=new_category)
+        
 
     @commands.command(name="createchannel")
     @commands.has_any_role(
@@ -101,6 +109,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         embed.add_field(name="Success!", value=f"Created channel {new_channel.mention} in {category}!")
         # reply to user
         await ctx.send(embed=embed)
+
 
 
 def setup(bot):
