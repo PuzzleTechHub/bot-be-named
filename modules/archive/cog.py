@@ -155,7 +155,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                                   textfile,
                                                   textfile_size)
             await ctx.send(file=file, embed=embed)
-            await msg.delete()
+            if msg:
+                await msg.delete()
         # Clean up the archive dir
         archive_utils.reset_archive_dir()
 
@@ -210,7 +211,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                     inline=False)
                     await ctx.send(embed=embed)
                     continue
-            await msg.delete()
+            if msg:
+                await msg.delete()
             embed = discord_utils.create_embed()
             embed.add_field(name="All Done!",
                             value=f"Successfully archived {category}",
@@ -235,7 +237,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
         # LOCK EVERYTHING
         async with self.lock:
             start_embed = await self.get_start_embed(ctx.guild, ctx.guild.text_channels)
-            await msg.delete()
+            if msg:
+                await msg.delete()
             msg = await ctx.send(embed=start_embed)
 
             for text_channel in ctx.guild.text_channels:
@@ -258,7 +261,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                     inline=False)
                     await ctx.send(embed=embed)
                     continue
-            await msg.delete()
+            if msg:
+                await msg.delete()
             embed = discord_utils.create_embed()
             embed.add_field(name="All Done!",
                             value=f"Successfully archived {ctx.guild}",

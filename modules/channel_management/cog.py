@@ -55,7 +55,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.channel.edit(category=new_category)
         
 
-    @commands.command(name="createchannel")
+    @commands.command(name="createchannel", aliases=['makechannel','channelmake','channelcreate'])
     @commands.has_any_role(
         constants.TA_VERIFIED_PUZZLER_ROLE_ID,
         constants.SONI_SERVER_TESTER_ROLE,
