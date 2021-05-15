@@ -55,6 +55,35 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.channel.edit(category=new_category)
         
 
+    @commands.command(name="renamechannel")
+    @commands.has_any_role(
+        constants.TA_VERIFIED_PUZZLER_ROLE_ID,
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
+    )
+    async def renamechannel(self, ctx, *args):
+        """Changes current channel name to whatever is asked
+        Usage: ~renamechannel Newname"""
+        # log command in console
+        embed = discord_utils.create_embed()
+        print("Received renamechannel")
+        if len(args) <= 0:
+            embed.add_field(name=f"{constants.FAILED}!", value=f"You must specify a new channel name!")
+            # reply to user
+            await ctx.send(embed=embed)
+            return 0
+
+        channel = ctx.message.channel
+        old_channel_name = channel.name
+        new_channel_name = " ".join(args)
+
+        await channel.edit(name=new_channel_name)
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                         value=f"Renamed {old_channel_name} to {new_channel_name} : {channel.mention}!",
+                         inline=False)
+        await ctx.send(embed=embed)
+
+
     @commands.command(name="createchannel", aliases=['makechannel','channelmake','channelcreate'])
     @commands.has_any_role(
         constants.TA_VERIFIED_PUZZLER_ROLE_ID,

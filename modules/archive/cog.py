@@ -108,57 +108,61 @@ class ArchiveCog(commands.Cog, name="Archive"):
             return
         # If we don't have the lock, let the user know it may take a while.
         msg = None
-        if self.lock.locked():
-            msg = await ctx.send(embed=archive_utils.get_delay_embed())
-        # LOCK EVERYTHING
-        async with self.lock:
-            # If we printed a message about being delayed bc of lock, we can delete that now.
-            if msg:
-                await msg.delete()
+
+        for channelname in args:
+            if self.lock.locked():
+                msg = await ctx.send(embed=archive_utils.get_delay_embed())
+            # LOCK EVERYTHING
+            async with self.lock:
+                # If we printed a message about being delayed bc of lock, we can delete that now.
+                if msg:
+                    await msg.delete()
+                    msg = None
+                archive_utils.reset_archive_dir()
+                try:
+                    channel = discord_utils.find_channel(self.bot, ctx.guild.channels, channelname)
+                except ValueError:
+                    embed = discord_utils.create_embed()
+                    embed.add_field(name="ERROR: Cannot find channel",
+                                    value=f"Sorry, I cannot find a channel with name {channelname}",
+                                    inline=False)
+                    await ctx.send(embed=embed)
+                    return
+                if not channel.type.name == 'text':
+                    embed = discord_utils.create_embed()
+                    embed.add_field(name="ERROR: Cannot archive non-text channels",
+                                    value=f"Sorry! I can only archive text channels, but "
+                                          f"{channel} is a {channel.type} channel.",
+                                    inline=False)
+                    await ctx.send(embed=embed)
+                    return
+                # If we've gotten to this point, we know we have a channel so we should probably let the user know.
+                start_embed = await self.get_start_embed(channel)
+                msg = await ctx.send(embed=start_embed)
+                try:
+                    # zipfile, textfile
+                    zip_file, zip_file_size, textfile, textfile_size = await self.archive_one_channel(channel)
+                except discord.errors.Forbidden:
+                    embed = discord_utils.create_embed()
+                    embed.add_field(name="ERROR: No access",
+                                    value=f"Sorry! I don't have access to {channel}. You'll need "
+                                           f"to give me permission to view the channel if you want "
+                                           f"to archive it",
+                                    inline=False)
+                    await ctx.send(embed=embed)
+                    return
+                file, embed = self.get_file_and_embed(channel,
+                                                      ctx.guild.filesize_limit,
+                                                      zip_file,
+                                                      zip_file_size,
+                                                      textfile,
+                                                      textfile_size)
+                await ctx.send(file=file, embed=embed)
+                if msg:
+                    await msg.delete()
+                    msg = None
+            # Clean up the archive dir
             archive_utils.reset_archive_dir()
-            try:
-                channel = discord_utils.find_channel(self.bot, ctx.guild.channels, ' '.join(args))
-            except ValueError:
-                embed = discord_utils.create_embed()
-                embed.add_field(name="ERROR: Cannot find channel",
-                                value=f"Sorry, I cannot find a channel with name {' '.join(args)}",
-                                inline=False)
-                await ctx.send(embed=embed)
-                return
-            if not channel.type.name == 'text':
-                embed = discord_utils.create_embed()
-                embed.add_field(name="ERROR: Cannot archive non-text channels",
-                                value=f"Sorry! I can only archive text channels, but "
-                                      f"{channel} is a {channel.type} channel.",
-                                inline=False)
-                await ctx.send(embed=embed)
-                return
-            # If we've gotten to this point, we know we have a channel so we should probably let the user know.
-            start_embed = await self.get_start_embed(channel)
-            msg = await ctx.send(embed=start_embed)
-            try:
-                # zipfile, textfile
-                zip_file, zip_file_size, textfile, textfile_size = await self.archive_one_channel(channel)
-            except discord.errors.Forbidden:
-                embed = discord_utils.create_embed()
-                embed.add_field(name="ERROR: No access",
-                                value=f"Sorry! I don't have access to {channel}. You'll need "
-                                       f"to give me permission to view the channel if you want "
-                                       f"to archive it",
-                                inline=False)
-                await ctx.send(embed=embed)
-                return
-            file, embed = self.get_file_and_embed(channel,
-                                                  ctx.guild.filesize_limit,
-                                                  zip_file,
-                                                  zip_file_size,
-                                                  textfile,
-                                                  textfile_size)
-            await ctx.send(file=file, embed=embed)
-            if msg:
-                await msg.delete()
-        # Clean up the archive dir
-        archive_utils.reset_archive_dir()
 
     @commands.command(name="archivecategory")
     @commands.has_guild_permissions(administrator=True)
@@ -178,7 +182,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         async with self.lock:
             if msg:
                 await msg.delete()
-
+                msg = None
             try:
                 category = discord_utils.find_channel(self.bot, ctx.guild.channels, ' '.join(args))
             except ValueError:
@@ -213,6 +217,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     continue
             if msg:
                 await msg.delete()
+                msg = None
             embed = discord_utils.create_embed()
             embed.add_field(name="All Done!",
                             value=f"Successfully archived {category}",
@@ -239,6 +244,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
             start_embed = await self.get_start_embed(ctx.guild, ctx.guild.text_channels)
             if msg:
                 await msg.delete()
+                msg = None
             msg = await ctx.send(embed=start_embed)
 
             for text_channel in ctx.guild.text_channels:
@@ -263,6 +269,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     continue
             if msg:
                 await msg.delete()
+                msg = None
             embed = discord_utils.create_embed()
             embed.add_field(name="All Done!",
                             value=f"Successfully archived {ctx.guild}",
