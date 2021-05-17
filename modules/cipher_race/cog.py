@@ -2,9 +2,8 @@ from dotenv.main import load_dotenv
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
-import asyncio
 import os
-from utils import google_utils, discord_utils
+from utils import google_utils, discord_utils, admin_utils
 from modules.cipher_race import cipher_race_constants, cipher_race_utils
 import constants
 from aio_timers import Timer
@@ -224,12 +223,8 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         await ctx.send(embed=embed)
         Timer(cipher_race_constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
 
+    @admin_utils.is_owner_or_admin()
     @commands.command(name='reload')
-    @commands.has_any_role(
-        constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID,
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
-    )
     async def reload(self, ctx):
         """
         Reload the Google Sheet so we can update our codes instantly.
@@ -256,12 +251,8 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
                         inline=False)
         await ctx.send(embed=embed)
 
+    @commands.is_owner()
     @commands.command(name='reset')
-    @commands.has_any_role(
-        constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID,
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
-    )
     async def reset(self, ctx):
         """
         Admin Command.
@@ -272,7 +263,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         self.current_races = {}
         embed = discord_utils.create_embed()
         embed.add_field(name="Success",
-                        value="Bot has been reset. I feel brand new!",
+                        value="Bot has been reset, and all races have been forcibly ended. I feel brand new!",
                         inline=False)
         await ctx.send(embed=embed)
 

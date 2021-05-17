@@ -1,7 +1,7 @@
 from discord.ext import commands
 import constants
 import discord
-from utils import discord_utils
+from utils import discord_utils, admin_utils
 from modules.help import help_constants
 from modules.lookup import lookup_constants
 from modules.cipher_race import cipher_race_constants
@@ -71,6 +71,43 @@ class HelpCog(commands.Cog):
                                 inline=False)
         await ctx.send(embed=embed)
 
+    @admin_utils.is_owner_or_admin()
+    @commands.command(name="adminhelp")
+    async def adminhelp(self, ctx):
+        embed = discord.Embed(title=f"Admin {help_constants.HELP}",
+                              url="https://github.com/kevslinger/DiscordCipherRace",
+                              color=constants.EMBED_COLOR)
+        # reload, reset, setprefix, createrole, deleterole
+        embed.add_field(name=f"{ctx.prefix}addrole rolename (Optional: color, pingable)",
+                        value=f"Create a new role (also: createrole)\n"
+                              f"Can add color in hex code, e.g. \n"
+                              f"{ctx.prefix}addrole myrole 1b2f3e\n"
+                              f"Can additionally include whether or not to allow pings (True or False), defaults to True e.g.\n"
+                              f"{ctx.prefix}createrole myrole 0x1b2f3e False",
+                        inline=False)
+        embed.add_field(name=f"{ctx.prefix}assignrole rolename <user1> <user2> ...",
+                        value=f"Assign role to user(s) (also: giverole). Must @ the user(s), but rolename can be "
+                              f"just the name. If role does not exist, bot will create it. e.g.\n"
+                              f"{ctx.prefix}giverole potato @user1 @user2",
+                        inline=False)
+        embed.add_field(name=f"{ctx.prefix}deleterole rolename",
+                        value=f"Delete role with given name (also: removerole, rmrole). Can use the role's mention (i.e. @), too, e.g.\n"
+                              f"{ctx.prefix}deleterole myrole, {ctx.prefix}rmrole @myrole",
+                        inline=False)
+        embed.add_field(name=f"{ctx.prefix}reload",
+                        value=f"Used in Cipher race. Reloads the wordlists (used if you want to add/modify/remove words.\n"
+                              f"Note: Bot reloads automatically every 24 hours.",
+                        inline=False)
+        embed.add_field(name=f"{ctx.prefix}setprefix",
+                        value=f"Set the bot prefix to be used in the server. Currently is {ctx.prefix} in {ctx.guild.name}. e.g.\n"
+                              f"{ctx.prefix}setprefix !",
+                        inline=False)
+        await ctx.send(embed=embed)
+
+#########################################
+# Module-Specific help helper functions #
+#########################################
+
 def admin_help(prefix: str):
     embed = discord.Embed(title=f"{help_constants.ADMIN} {help_constants.HELP}",
                           url=help_constants.ADMIN_README,
@@ -130,8 +167,11 @@ def discord_help(prefix: str):
     embed = discord.Embed(title=f"{help_constants.DISCORD} {help_constants.HELP}",
                           url=help_constants.DISCORD_README,
                           color=constants.EMBED_COLOR)
-    embed.add_field(name=f"{prefix}stats",
-                    value="Get server stats!",
+    embed.add_field(name=f"{prefix}catstats",
+                    value="Get category stats!",
+                    inline=False)
+    embed.add_field(name=f"{prefix}listroles",
+                    value="List all the roles in the server",
                     inline=False)
     embed.add_field(name=f"{prefix}pin",
                     value="Pin the previous message! You can also reply to a message with {prefix}pin and the bot will"
@@ -140,6 +180,9 @@ def discord_help(prefix: str):
     embed.add_field(name=f"{prefix}pinme",
                     value="Pins the message",
                     inline=False)
+    embed.add_field(name=f"{prefix}stats",
+                    value="Get server stats!",
+                    inline=False),
     embed.add_field(name=f"{prefix}unpin <optional: number_to_unpin (default 1)>",
                     value="Unpins the most recent <number_to_unpin> messages!",
                     inline=False)
