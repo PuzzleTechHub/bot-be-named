@@ -260,15 +260,20 @@ def sheets_help(prefix: str):
     embed = discord.Embed(title=f"{help_constants.SHEETS} {help_constants.HELP}",
                           url=help_constants.SHEETS_README,
                           color=constants.EMBED_COLOR)
-    embed.add_field(name=f"{prefix}addsheettether <string>",
+    embed.add_field(name=f"{prefix}tether <string>",
                     value=f"Connects the current category to a GSheet with <string> ID\n"
-                          f"This command is necessary before the other sheet commands\n"
-                          f"e.g. {prefix}addsheettether 1ZuOT4g8nGTrJrBvuknTIHWfLhmUzuquQtAKLCIdsLt4",
+                          f"Either this command or channeltether is necessary before the other sheet commands\n"
+                          f"e.g. {prefix}tether 1ZuOT4g8nGTrJrBvuknTIHWfLhmUzuquQtAKLCIdsLt4",
                     inline=False)
-    embed.add_field(name=f"{prefix}displaysheettether",
+    embed.add_field(name=f"{prefix}channeltether <string>",
+                    value=f"Connects the current channel to a GSheet with <string> ID\n"
+                          f"Either this command or tether is necessary before the other sheet commands\n"
+                          f"e.g. {prefix}tether 1ZuOT4g8nGTrJrBvuknTIHWfLhmUzuquQtAKLCIdsLt4",
+                    inline=False)
+    embed.add_field(name=f"{prefix}displaytether",
                     value=f"Links the GSheet connected to current category\n",
                     inline=False)
-    embed.add_field(name=f"{prefix}removesheettether <string>",
+    embed.add_field(name=f"{prefix}removetether <string>",
                     value=f"Unconnects the current category from the linked GSheet\n",
                     inline=False)
     embed.add_field(name=f"{prefix}sheetcreatetab <Tabname>",
