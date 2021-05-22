@@ -1,3 +1,5 @@
+import string
+
 from discord.ext import commands
 from utils import discord_utils
 import discord
@@ -21,9 +23,24 @@ class MusicRace(commands.Cog, name="Music Race"):
         input_dir = os.path.join(os.getcwd(), "modules", "music_race", "music", "notes")
         os.system(f"ffmpeg -i {os.path.join(input_dir, 'E4.mp3')} -i {os.path.join(input_dir, 'Ab4.mp3')} "
                   f"-i {os.path.join(input_dir, 'B4.mp3')} -filter_complex '[0]adelay=0|0[a];[1]adelay=500|500[b];"
-                  f"[2]adelay=1000|1000[c];[a][b][c]amix=inputs=3' {output_file}")
+                  f"[2]adelay=1000|1000[c];[0]adelay=2000|2000[d];[1]adelay=2000|2000[e];[2]adelay=2000|2000[f];"
+                  f"[a][b][c][d][e][f]amix=inputs=3' {output_file}")
         await ctx.send(file=discord.File(output_file))
 
+    @commands.command(name="playtune")
+    async def playtune(self, ctx, *args):
+        """Play a string of notes together"""
+        notes = []
+        for arg in args:
+            assert len(arg) <= 2 and arg in ['Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G'], \
+                "Arg is not a note"
+            notes.append(arg)
+        inputs = ' '.join([f"-i {os.path.join(os.getcwd(), 'modules', 'music_race', 'music', 'notes', note)}" for note in notes])
+        filter_complex = ';'.join([f"[{idx}]adelay={500*idx}|{500*idx}[{letter}]" for idx, letter in zip(range(len(notes)), list(string.ascii_lowercase))])
+        mix = ''.join([f"[{letter}]" for _, letter in zip(notes, list(string.ascii_lowercase))])
+        output_path = os.path.join(os.getcwd(), "modules", "music_race", "music", "test", "output.mp3")
+        os.system(f"ffmpeg {inputs} -filter_complex '{filter_complex};{mix}amix=inputs=3' {output_path}")
+        await ctx.send(file=discord.File(output_path))
 
     @commands.command(name="chord")
     async def chord(self, ctx):
