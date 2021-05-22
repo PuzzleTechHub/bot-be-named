@@ -37,6 +37,7 @@ def main():
 
     @client.event
     async def on_ready():
+        """When the bot starts up"""
         await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="you solve👀 |~help"))
         # Keep a google sheet of all the servers the bot is in and what command prefix to use for them.
         for guild in client.guilds:
@@ -54,6 +55,7 @@ def main():
 
     @client.event
     async def on_message(message):
+        """On mention, state the bot's prefix for the server"""
         if client.user.mentioned_in(message):
             print("I have been mentioned")
             cell = prefix_sheet.find(str(message.guild.id))
@@ -71,6 +73,7 @@ def main():
     @admin_utils.is_owner_or_admin()
     @client.command(name="setprefix")
     async def setprefix(ctx, prefix: str):
+        """Sets the bot prefix for the server. Only available to server admins or bot owners"""
         print("Received setprefix")
         find_cell = prefix_sheet.find(str(ctx.message.guild.id))
         prefix_sheet.update_cell(find_cell.row, find_cell.col+1, prefix)
