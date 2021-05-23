@@ -25,6 +25,18 @@ CLEANED_NOTES = {
     'B#': 'C'
 }
 
+DURATIONS = {
+    'w': 4,
+    'hd': 3,
+    'h': 2,
+    'qd': 1.5,
+    'q': 1,
+    'ed': 0.75,
+    'e': 0.5,
+    'sd': 0.375,
+    's': 0.25
+}
+
 REST = "R"
 
 # DIRECTORIES
