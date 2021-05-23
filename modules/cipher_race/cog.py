@@ -57,7 +57,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         """When discord is connected"""
         self.reload_sheet.start()
             
-    @commands.command(name='startrace', aliases=['StarTrace', 'StartRace'])
+    @commands.command(name='startrace')
     async def startrace(self, ctx, sheet: str = cipher_race_constants.HP):
         """
         Start your race! You will have 60 seconds per level to solve the codes
@@ -267,15 +267,6 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
                         inline=False)
         await ctx.send(embed=embed)
 
-
-    # Function to clean the bot's cipher_race so it can start a new one.
-    # UPDATE: Don't reset used cipher_race IDs. We have enough. Only do that on a forced ~reset
-    def reset_code(self, team):
-        self.current_level[team] = 1
-        self.current_answers[team] = []
-        self.currently_puzzling[team] = False
-
-
     # Reload the Google sheet every hour so we can dynamically add
     # Without needing to restart the bot
     @loop(hours=24)
@@ -327,7 +318,8 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
                         inline=False)
         embed.add_field(name="Answers",
                         value=f"The answers to the remaining codes were:\n"
-                              f"{chr(10).join(self.current_races[channel][cipher_race_constants.ANSWERS])}", inline=False)
+                              f"{chr(10).join(self.current_races[channel][cipher_race_constants.ANSWERS])}",
+                        inline=False)
         await ctx.send(embed=embed)
         self.current_races.pop(channel)
         return

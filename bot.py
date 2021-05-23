@@ -27,7 +27,7 @@ def get_prefix(client, message):
 def main():
     intents = discord.Intents.default()
     intents.members = True
-    client = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None)
+    client = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None, case_insensitive=True)
 
     # Get the modules of all cogs whose directory structure is modules/<module_name>/cog.py
     for folder in os.listdir("modules"):
