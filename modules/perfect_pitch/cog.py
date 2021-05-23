@@ -17,6 +17,10 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         self.bot = bot
 
     @commands.command(name="playtune")
+    @commands.has_any_role(
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
+    )
     async def playtune(self, ctx, *args):
         """Play a string of notes together"""
 
@@ -32,7 +36,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         tune = perfect_pitch_utils.Tune(ctx.channel.name)
         tune.process_args(args)
 
-        output_path = tune.create_tune()
+        output_path = await tune.create_tune(ctx)
         try:
             await ctx.send(file=discord.File(output_path))
         except FileNotFoundError:
@@ -44,13 +48,22 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
             await ctx.send(embed=embed)
 
     @commands.command(name="chord")
+    @commands.has_any_role(
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
+    )
     async def chord(self, ctx):
         """Sends the user a random chord. Note: all chords come from the 4th octave (middle C)"""
         chord = random.choice(glob.glob(os.path.join(os.getcwd(), "modules", "perfect_pitch", "music", "piano", "chords", "*.mp3")))
         await ctx.send(file=discord.File(chord, filename="random_chord.mp3"))
         await ctx.send(f"Answer: ||{chord.split('/')[-1].replace('.mp3', '').replace('_', ' ').center(15)}||")
 
+    # TODO: CLEAN PLS for the love of christ
     @commands.command(name="note")
+    @commands.has_any_role(
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
+    )
     async def note(self, ctx, *args):
         """Send the user a random note for them to identify.
         Arguments:

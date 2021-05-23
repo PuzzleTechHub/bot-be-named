@@ -47,3 +47,7 @@ TUNES = "tunes"
 
 # INSTRUMENTS
 PIANO = "piano"
+TRUMPET = "trumpet"
+
+# FFMPEG formatting
+PARTITION_SIZE = 20

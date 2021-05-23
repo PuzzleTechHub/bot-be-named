@@ -4,7 +4,7 @@ from modules.perfect_pitch import perfect_pitch_constants
 import os
 import string
 import constants
-
+import numpy as np
 
 class Note:
     def __init__(self, letter, duration, octave, instrument):
@@ -15,6 +15,7 @@ class Note:
             - instrument: e.g. piano, trumpet, etc."""
         self.letter = letter
         self.duration = duration
+        # Rest notes don't have octave, instrument, or files
         if letter == "R":
             self.octave = None
             self.instrument = None
@@ -68,6 +69,8 @@ class Tune:
                     # If they do not properly supply the octave, just ignore it and keep the default
                     pass
             # TODO: add instrument handling here
+            elif arg.startswith('i=') or arg.startswith('instrument='):
+                self.instrument = arg.split('=')[-1].lower()
             # Right now there is only piano so
             # if the arg is not a meter or an octave then it must be a note
             else:
@@ -91,8 +94,8 @@ class Tune:
         """
         # Get duration
         # "L" duration
-        print(note)
-        print(note.split('L'))
+        #print(note)
+        #print(note.split('L'))
         if len(note.split('L')) > 1:
             split_note = note.split('L')
             duration = float(split_note[1])
@@ -121,7 +124,8 @@ class Tune:
 
         return Note(letter, duration, octave, instrument)
 
-    def create_tune(self) -> str:
+    # TODO: remove ctx
+    async def create_tune(self, ctx) -> str:
         """Use FFMPEG to mix the notes, and return the path of the mixed audio"""
         # Store the tune here. NOTE: only one tune per channel, for scaling reasons and within arithmancy puzzling.
         # Maybe fix later?
@@ -130,7 +134,7 @@ class Tune:
         if os.path.exists(output_dir):
             shutil.rmtree(output_dir)
             os.mkdir(output_dir)
-        output_path = os.path.join(output_dir, "tune.mp3")
+        final_output_path = os.path.join(output_dir, "tune.mp3")
         # R represents a resting note, which we want for the timing but we do not want to use as an input since
         # it doesn't have a path.
         # Get all non-resting notes
@@ -139,7 +143,7 @@ class Tune:
         # This adds an additional notes length for each rest.
         delay = 0
 
-        time_indices= []
+        time_indices = []
         for idx, note in enumerate(self.notes):
             if idx > 0:
                 delay += self.default_interval * self.notes[idx-1].duration / self.meter
@@ -147,11 +151,57 @@ class Tune:
                 delay = 0
             if not note.letter == perfect_pitch_constants.REST:
                 time_indices.append(delay)
+        time_indices = np.array(time_indices)
+        # Collect all partition parts
+        partition_paths = []
+        partition_delays = [0]
         # This is the ffmpeg mixing part, where we add each note at the specified delay
-        filter_complex = ''.join([f"[{idx}]adelay={time_indices[idx]}|{time_indices[idx]}[{letter}];"
-                                  for idx, letter in zip(range(len(input_notes)), list(string.ascii_lowercase))])
-        mix = ''.join([f"[{letter}]" for _, letter in zip(input_notes, list(string.ascii_lowercase))])
-        # Call ffmpeg from the command line
-        os.system(f"ffmpeg -y {inputs} -filter_complex '{filter_complex}{mix}amix=inputs={len(input_notes)},volume=13' {output_path}")
+        num_partitions = int(np.ceil(time_indices.shape[0]/perfect_pitch_constants.PARTITION_SIZE))
+        for partition_idx in range(num_partitions):
+            output_path = os.path.join(output_dir, f"partition{partition_idx}.mp3")
+            partition_paths.append(output_path)
 
-        return output_path
+            # Get all notes for that partition
+            partition_input_notes = input_notes[partition_idx*perfect_pitch_constants.PARTITION_SIZE:
+                                                (partition_idx+1)*perfect_pitch_constants.PARTITION_SIZE]
+            print(partition_input_notes)
+            partition_inputs = ' '.join([f"-i {note.path}" for note in partition_input_notes])
+            partition_time_indices = time_indices[partition_idx*perfect_pitch_constants.PARTITION_SIZE:
+                                                  (partition_idx+1)*perfect_pitch_constants.PARTITION_SIZE]
+            if partition_idx < num_partitions - 1:
+                partition_delays.append(time_indices[(partition_idx+1)*perfect_pitch_constants.PARTITION_SIZE-1])
+            time_indices = time_indices - partition_time_indices[-1]
+            filter_complex = ''.join([f"[{idx}]adelay={partition_time_indices[idx]}|{partition_time_indices[idx]}[{letter}];"
+                                      for idx, letter in zip(range(len(partition_input_notes)), list(string.ascii_lowercase))])
+            mix = ''.join([f"[{letter}]" for _, letter in zip(partition_input_notes, list(string.ascii_lowercase))])
+            os.system(
+                f"ffmpeg -y {partition_inputs} -filter_complex '{filter_complex}{mix}amix=inputs={len(partition_input_notes)}' {output_path}"
+            )
+        print()
+        print(partition_delays)
+        print(partition_paths)
+        if num_partitions == 1:
+            return output_path
+        filter_complex = ''.join([f"[{idx}]adelay={partition_delays[idx]}|{partition_delays[idx]}[{letter}];"
+                                 for idx, letter in zip(range(len(partition_delays)), list(string.ascii_lowercase))])
+        mix = ''.join([f"[{letter}]" for _, letter in zip(partition_delays, list(string.ascii_lowercase))])
+        # Call ffmpeg from the command line
+        os.system(
+            f"ffmpeg -y -i {' -i '.join(partition_paths)} -filter_complex '{filter_complex}{mix}amix=inputs={len(partition_delays)},volume=13' {final_output_path}"
+        )
+
+        return final_output_path
+
+# How to split longer songs into multiples....
+# I think it gets up to 26?
+# So maybe we should cut it at, say, 20 notes
+# okay so we can do time indices like normal, but then if we have more than 20 notes we will subtract the ending time
+# from the remaining time_indices (first one need not be 0). We need to keep track of whatever that final time was,
+# because it'll be useful in the end.
+# Programmatically how to do it
+# - do everything up until line 154 (filter complex) the same
+# - don't need 2 separate cases
+# - some iterator like math.ceil(len(notes)/20)?
+#   - So we grab the 20 notes, find the ending time of that segment.
+#   - Subtract all remaining time indices by the ending time.
+#   -
