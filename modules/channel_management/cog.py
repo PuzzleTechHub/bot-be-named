@@ -2,6 +2,7 @@ import constants
 import discord
 from discord.ext import commands
 from utils import discord_utils
+from modules.channel_management import channel_management_utils
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
@@ -43,16 +44,23 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             return 0
 
         if len(new_category.channels)>=50:
-            embed.add_field(name=f"{constants.FAILED}!", value=f"Category `{category_name}` is already full, max limit is 50 channels.")
+            embed.add_field(name=f"{constants.FAILED}!", value=f"Category `{new_category.name}` is already full, max limit is 50 channels.")
             # reply to user
             await ctx.send(embed=embed)
             return 0
 
-        embed.add_field(name=f"{constants.SUCCESS}!", value=f"Moving {channel.mention} to {new_category}!")
+        try:
+            # move channel
+            await ctx.channel.edit(category=new_category)
+        except discord.Forbidden:
+            embed.add_field(name=f"{constants.FAILED}!", value=f"Forbidden! Have you checked if the bot has the required permisisons?")
+            # reply to user
+            await ctx.send(embed=embed)
+            return None
+
+        embed.add_field(name=f"{constants.SUCCESS}!", value=f"Moving {channel.mention} to {new_category.name}!")
         # reply to user
         await ctx.send(embed=embed)
-        # move channel
-        await ctx.channel.edit(category=new_category)
         
 
     @commands.command(name="renamechannel")
@@ -77,38 +85,44 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         old_channel_name = channel.name
         new_channel_name = " ".join(args)
 
-        await channel.edit(name=new_channel_name)
+
+        try:
+            # rename channel
+            await channel.edit(name=new_channel_name)
+        except discord.Forbidden:
+            embed.add_field(name=f"{constants.FAILED}!", value=f"Forbidden! Have you checked if the bot has the required permisisons?")
+            # reply to user
+            await ctx.send(embed=embed)
+            return None
+
+
         embed.add_field(name=f"{constants.SUCCESS}!",
-                         value=f"Renamed {old_channel_name} to {new_channel_name} : {channel.mention}!",
+                         value=f"Renamed `{old_channel_name}` to `{new_channel_name}` : {channel.mention}!",
                          inline=False)
         await ctx.send(embed=embed)
 
-
-    @commands.command(name="createchannel", aliases=['makechannel','channelmake','channelcreate'])
+    @commands.command(name="createchannel", aliases=['makechannel','channelmake','channelcreate','makechan','chanmake','chancreate','createchan'])
     @commands.has_any_role(
         constants.TA_VERIFIED_PUZZLER_ROLE_ID,
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE
     )
     async def createchannel(self, ctx, name: str = ""):
+        """Wrapper function for createchannel for self calls"""
         """Command to create channel in same category with given name"""
+
+        embed = discord_utils.create_embed()
+
         # log command in console
         print("Received createchannel")
-        embed = discord_utils.create_embed()
-        # no argument passed
-        if len(name) <= 0:
-            embed.add_field(name="Failed!", value=f"You must specify a channel name!")
+        channel = await channel_management_utils.createchannelgeneric(ctx,name)
+        if(channel):
+            embed.add_field(name="Success!", value=f"Created channel {channel.mention} in `{channel.category.name}`!")
             # reply to user
             await ctx.send(embed=embed)
-            return
-        # get guild and category
-        guild = ctx.message.guild
-        category = ctx.channel.category
-        # create channel
-        channel = await guild.create_text_channel(name, category=category)
-        embed.add_field(name="Success!", value=f"Created channel {channel.mention} in {category}!")
-        # reply to user
-        await ctx.send(embed=embed)
+        else:
+            #Some error happened. Already handled in generic
+            pass
 
     @commands.command(name="clonechannel")
     @commands.has_any_role(
@@ -121,25 +135,38 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # log command in console
         print("Received clonechannel")
         embed = discord_utils.create_embed()
+
         # no argument passed
-        if len(original) <= 1:
+        if (len(original) <= 1 or len(new) <= 1):
             embed.add_field(name="Failed!", value=f"You must specify a channel to clone and the new channel name!")
             # reply to user
             await ctx.send(embed=embed)
             return
+
         # get guild and category
         guild = ctx.message.guild
         category = ctx.channel.category
-        old_channel = discord_utils.find_channel(self.bot, guild.channels, original)
-        # create channel
-        new_channel = await guild.create_text_channel(new, category=category, overwrites=old_channel.overwrites)
 
+        old_channel = discord_utils.find_channel(self.bot, guild.channels, original)
+
+        if len(category.channels)>=50:
+            embed.add_field(name=f"{constants.FAILED}!", value=f"Category `{category.name}` is already full, max limit is 50 channels.")
+            # reply to user
+            await ctx.send(embed=embed)
+            return 0
+
+        try:
+            # create channel
+            new_channel = await guild.create_text_channel(new, category=category, overwrites=old_channel.overwrites)
+        except discord.Forbidden:
+            embed.add_field(name=f"{constants.FAILED}!", value=f"Forbidden! Have you checked if the bot has the required permisisons?")
+            # reply to user
+            await ctx.send(embed=embed)
+            return None
         
         embed.add_field(name="Success!", value=f"Created channel {new_channel.mention} in {category}!")
         # reply to user
         await ctx.send(embed=embed)
-
-
 
 def setup(bot):
     bot.add_cog(ChannelManagementCog(bot))
