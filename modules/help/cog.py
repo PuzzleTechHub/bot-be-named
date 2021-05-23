@@ -21,41 +21,41 @@ class HelpCog(commands.Cog):
                                   f"Use {ctx.prefix}help <module> to learn about "
                                   f"the commands in that module!",
                             inline=False)
-            embed.add_field(name=help_constants.ADMIN,
+            embed.add_field(name=constants.ADMIN,
                             value=f"Commands for server admins to use.",
                             inline=False)
-            embed.add_field(name=help_constants.CIPHER_RACE,
+            embed.add_field(name=constants.CIPHER_RACE,
                             value=f"Race against the clock as you decode ciphers. "
                                   f"Use {ctx.prefix}startrace "
                                    "to start a race! "
                                   f"\nRead more on the [GitHub README]({help_constants.CIPHER_RACE_README})",
                             inline=False)
-            embed.add_field(name=help_constants.CHANNEL_MANAGEMENT,
+            embed.add_field(name=constants.CHANNEL_MANAGEMENT,
                             value=f"Clone, Create, and Move discord channels! For approved users only."
                                   f"\nRead more on the [GitHub README]({help_constants.CHANNEL_MANAGEMENT_README})",
                             inline=False)
-            embed.add_field(name=help_constants.DISCORD,
+            embed.add_field(name=constants.DISCORD,
                             value=f"Discord utility commands like pinning and getting server stats."
                                   f"\nRead more on the [GitHub README]({help_constants.DISCORD_README})",
                             inline=False)
-            embed.add_field(name=help_constants.SOLVED,
+            embed.add_field(name=constants.SOLVED,
                             value=f"Mark a channel as solved! This will prepend 'solved' to the channel name. "
                                   f"Use {ctx.prefix}solved in a channel to mark it as solved!"
                                   f"\nRead more on the [GitHub README]({help_constants.SOLVED_README})",
                             inline=False)
-            embed.add_field(name=help_constants.ARCHIVE,
+            embed.add_field(name=constants.ARCHIVE,
                             value=f"Download the contents of a channel in a zip file! For bot mods only."
                                   f"\nRead more on the [GitHub README]({help_constants.ARCHIVE_README})",
                             inline=False)
-            embed.add_field(name=help_constants.LOOKUP,
+            embed.add_field(name=constants.LOOKUP,
                             value=f"Search the interwebs (google)!\n"
                                   f"Read more on the [GitHub README]({help_constants.LOOKUP_README})",
                             inline=False)
-            embed.add_field(name=help_constants.TIME,
+            embed.add_field(name=constants.TIME,
                             value=f"Current time anywhere in the world!\n"
                                   f"Read more on the [GitHub README]({help_constants.TIME_README})",
                             inline=False)
-            embed.add_field(name=help_constants.SHEETS,
+            embed.add_field(name=constants.SHEETS,
                             value=f"GSheet management from Discord.\n"
                                   f"Read more on the [GitHub README]({help_constants.SHEETS_README})",
                             inline=False)
@@ -67,7 +67,7 @@ class HelpCog(commands.Cog):
                 embed = discord_utils.create_embed()
                 embed.add_field(name="Module not found!",
                                 value=f"Sorry! Cannot find module {module}. The modules we have are \n"
-                                      f"{', '.join(help_constants.MODULES)}",
+                                      f"{', '.join(constants.MODULES)}",
                                 inline=False)
         await ctx.send(embed=embed)
 
@@ -109,7 +109,7 @@ class HelpCog(commands.Cog):
 #########################################
 
 def admin_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.ADMIN} {help_constants.HELP}",
+    embed = discord.Embed(title=f"{constants.ADMIN} {help_constants.HELP}",
                           url=help_constants.ADMIN_README,
                           color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}setprefix",
@@ -119,7 +119,7 @@ def admin_help(prefix: str):
     return embed
 
 def cipher_race_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.CIPHER_RACE} {help_constants.HELP}",
+    embed = discord.Embed(title=f"{constants.CIPHER_RACE} {help_constants.HELP}",
                           url=help_constants.CIPHER_RACE_README,
                           color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}startrace",
@@ -147,7 +147,7 @@ def cipher_race_help(prefix: str):
 
 
 def channel_management_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.CHANNEL_MANAGEMENT} {help_constants.HELP}",
+    embed = discord.Embed(title=f"{constants.CHANNEL_MANAGEMENT} {help_constants.HELP}",
                           url=help_constants.CHANNEL_MANAGEMENT_README,
                           color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}clone-channel <#cloned-channel> <new-channel-name>",
@@ -164,7 +164,7 @@ def channel_management_help(prefix: str):
 
 
 def discord_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.DISCORD} {help_constants.HELP}",
+    embed = discord.Embed(title=f"{constants.DISCORD} {help_constants.HELP}",
                           url=help_constants.DISCORD_README,
                           color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}catstats",
@@ -191,7 +191,7 @@ def discord_help(prefix: str):
 
 
 def solved_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.SOLVED} {help_constants.HELP}",
+    embed = discord.Embed(title=f"{constants.SOLVED} {help_constants.HELP}",
                           url=help_constants.SOLVED_README,
                           color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}solved",
@@ -211,7 +211,7 @@ def solved_help(prefix: str):
 
 
 def archive_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.ARCHIVE} {help_constants.HELP}",
+    embed = discord.Embed(title=f"{constants.ARCHIVE} {help_constants.HELP}",
                           url=help_constants.ARCHIVE_README,
                           color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}archivechannel <channel_name_or_id>",
@@ -231,7 +231,7 @@ def archive_help(prefix: str):
 
 
 def lookup_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.LOOKUP} {help_constants.HELP}",
+    embed = discord.Embed(title=f"{constants.LOOKUP} {help_constants.HELP}",
                           url=help_constants.LOOKUP_README,
                           color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}search <target_site> <query>",
@@ -246,7 +246,7 @@ def lookup_help(prefix: str):
 
 
 def time_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.TIME} {help_constants.HELP}",
+    embed = discord.Embed(title=f"{constants.TIME} {help_constants.HELP}",
                           url=help_constants.TIME_README,
                           color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}time <location>",
@@ -257,7 +257,7 @@ def time_help(prefix: str):
     return embed
 
 def sheets_help(prefix: str):
-    embed = discord.Embed(title=f"{help_constants.SHEETS} {help_constants.HELP}",
+    embed = discord.Embed(title=f"{constants.SHEETS} {help_constants.HELP}",
                           url=help_constants.SHEETS_README,
                           color=constants.EMBED_COLOR)
     embed.add_field(name=f"{prefix}tether <string>",
@@ -280,7 +280,7 @@ def sheets_help(prefix: str):
                     value=f"Makes a new tab in the connected GSheet, links it at the current channel and pins it.\n"
                           f"e.g. {prefix}sheetcreatetab Puzzle1",
                     inline=False)
-    embed = more_help(embed, help_constants.TIME_README)
+    embed = more_help(embed, help_constants.SHEETS_README)
     return embed
 
 def more_help(embed, readme_link):
@@ -290,15 +290,15 @@ def more_help(embed, readme_link):
 
 
 MODULE_TO_HELP = {
-    help_constants.ADMIN.lower(): admin_help,
-    help_constants.CIPHER_RACE.lower(): cipher_race_help,
-    help_constants.CHANNEL_MANAGEMENT.lower(): channel_management_help,
-    help_constants.DISCORD.lower(): discord_help,
-    help_constants.SOLVED.lower(): solved_help,
-    help_constants.ARCHIVE.lower(): archive_help,
-    help_constants.LOOKUP.lower(): lookup_help,
-    help_constants.TIME.lower(): time_help,
-    help_constants.SHEETS.lower(): sheets_help
+    constants.ADMIN.lower(): admin_help,
+    constants.CIPHER_RACE.lower(): cipher_race_help,
+    constants.CHANNEL_MANAGEMENT.lower(): channel_management_help,
+    constants.DISCORD.lower(): discord_help,
+    constants.SOLVED.lower(): solved_help,
+    constants.ARCHIVE.lower(): archive_help,
+    constants.LOOKUP.lower(): lookup_help,
+    constants.TIME.lower(): time_help,
+    constants.SHEETS.lower(): sheets_help
 }
 
 
