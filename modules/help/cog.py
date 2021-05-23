@@ -156,6 +156,9 @@ def channel_management_help(prefix: str):
     embed.add_field(name=f"{prefix}createchannel <channel_name>",
                     value=f"Create a channel named <channel_name> in the same category as the one you're currently in!",
                     inline=False)
+    embed.add_field(name=f"{prefix}renamechannel <new_channel_name>",
+                    value=f"Renames the current to <new_channel_name>!",
+                    inline=False)
     embed.add_field(name=f"{prefix}movechannel <category_name>",
                     value=f"Moves the channel you're currently in to <category_name>",
                     inline=False)
@@ -260,14 +263,9 @@ def sheets_help(prefix: str):
     embed = discord.Embed(title=f"{help_constants.SHEETS} {help_constants.HELP}",
                           url=help_constants.SHEETS_README,
                           color=constants.EMBED_COLOR)
-    embed.add_field(name=f"{prefix}tether <string>",
-                    value=f"Connects the current category to a GSheet with <string> ID\n"
-                          f"Either this command or channeltether is necessary before the other sheet commands\n"
-                          f"e.g. {prefix}tether 1ZuOT4g8nGTrJrBvuknTIHWfLhmUzuquQtAKLCIdsLt4",
-                    inline=False)
-    embed.add_field(name=f"{prefix}channeltether <string>",
-                    value=f"Connects the current channel to a GSheet with <string> ID\n"
-                          f"Either this command or tether is necessary before the other sheet commands\n"
+    embed.add_field(name=f"{prefix}tether <string> or channeltether <string>",
+                    value=f"Connects the current category/channel to a GSheet with <string> ID or link\n"
+                          f"Either of these commands are necessary before the other sheet commands\n"
                           f"e.g. {prefix}tether 1ZuOT4g8nGTrJrBvuknTIHWfLhmUzuquQtAKLCIdsLt4",
                     inline=False)
     embed.add_field(name=f"{prefix}displaytether",
@@ -277,8 +275,13 @@ def sheets_help(prefix: str):
                     value=f"Unconnects the current category from the linked GSheet\n",
                     inline=False)
     embed.add_field(name=f"{prefix}sheetcreatetab <Tabname>",
-                    value=f"Makes a new tab in the connected GSheet, links it at the current channel and pins it.\n"
+                    value=f"Makes a new tab in the connected GSheet, links it in the current channel and pins it.\n"
                           f"e.g. {prefix}sheetcreatetab Puzzle1",
+                    inline=False)
+    embed.add_field(name=f"{prefix}channelsheetcreatetab <channel_name> (<links to pin>)",
+                    value=f"Makes a new channel in the current category with <channel_name>, then makes a new tab in the connected GSheet with <channel_name>, links it in the new channel and pins it.\n"
+                          f"If there's any extra arguments, say link to puzzle, it posts them in new channel and pins them\n"
+                          f"e.g. {prefix}channelsheetcreatetab Puzzle1 http://puzzlelink.net",
                     inline=False)
     embed = more_help(embed, help_constants.TIME_README)
     return embed
