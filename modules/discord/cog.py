@@ -299,5 +299,53 @@ class DiscordCog(commands.Cog, name="Discord"):
                               color = constants.EMBED_COLOR)
         await ctx.send(embed=embed)
 
+
+    #################
+    # BOTSAY COMMANDS #
+    #################
+    @commands.command(name="botsay")
+    @commands.has_any_role(
+        constants.TA_VERIFIED_PUZZLER_ROLE_ID,
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
+    )
+    async def botsay(self, ctx, chan_name: str, *args):
+        """Say something in another channel"""
+        print("Received botsay")
+
+        embed = discord_utils.create_embed()
+
+        if(len(chan_name)<=0 or len(args)<=0):
+            embed = discord_utils.create_no_argument_embed("Channel or Message")
+            await ctx.send(embed=embed)
+            return 0
+
+        message = " ".join(args)
+
+        guild = ctx.message.guild
+        category = ctx.channel.category
+
+        try:
+            channel = discord_utils.find_channel(self.bot, guild.channels, chan_name)
+        except ValueError:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Error! The channel `{chan_name}` was not found")
+            await ctx.send(embed=embed)
+            return 0
+
+        try:
+            await channel.send(message)   
+        except discord.Forbidden:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if the bot has the required permisisons?")
+            await ctx.send(embed=embed)
+            return 0
+
+        embed.add_field(name=f"Success!",
+                        value=f"Message sent on {channel.mention}!")
+        # reply to user
+        await ctx.send(embed=embed)
+
+
 def setup(bot):
     bot.add_cog(DiscordCog(bot))

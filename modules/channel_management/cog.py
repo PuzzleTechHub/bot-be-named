@@ -144,7 +144,14 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         guild = ctx.message.guild
         category = ctx.channel.category
 
-        old_channel = discord_utils.find_channel(self.bot, guild.channels, original)
+        try:
+            old_channel = discord_utils.find_channel(self.bot, guild.channels, original)
+        except ValueError:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Channel `{original}` was not found.")
+            # reply to user
+            await ctx.send(embed=embed)
+            return
 
         if len(category.channels) >= 50:
             embed.add_field(name=f"{constants.FAILED}!",
