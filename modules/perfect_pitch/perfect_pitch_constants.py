@@ -51,3 +51,4 @@ TRUMPET = "trumpet"
 
 # FFMPEG formatting
 PARTITION_SIZE = 20
+VOLUME = 11

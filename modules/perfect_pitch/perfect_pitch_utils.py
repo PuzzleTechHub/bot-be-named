@@ -124,8 +124,7 @@ class Tune:
 
         return Note(letter, duration, octave, instrument)
 
-    # TODO: remove ctx
-    async def create_tune(self, ctx) -> str:
+    async def create_tune(self) -> str:
         """Use FFMPEG to mix the notes, and return the path of the mixed audio"""
         # Store the tune here. NOTE: only one tune per channel, for scaling reasons and within arithmancy puzzling.
         # Maybe fix later?
@@ -138,12 +137,16 @@ class Tune:
         # R represents a resting note, which we want for the timing but we do not want to use as an input since
         # it doesn't have a path.
         # Get all non-resting notes
+        # TODO: force silence for rest?
         input_notes = list(filter(lambda x: x.letter != perfect_pitch_constants.REST, self.notes))
-        inputs = ' '.join([f"-i {note.path}" for note in input_notes])
-        # This adds an additional notes length for each rest.
+        input_paths = [f"-i {note.path}" for note in input_notes]
+        # We need to keep track of where each note should come in the tune.
+        # Each note after the first will need to be delayed by some amount
         delay = 0
 
         time_indices = []
+        # We enumerate over notes and not input notes here because
+        # We don't actually add REST to the song (input_notes), but we need to keep track of rest's time delays.
         for idx, note in enumerate(self.notes):
             if idx > 0:
                 delay += self.default_interval * self.notes[idx-1].duration / self.meter
@@ -151,44 +154,72 @@ class Tune:
                 delay = 0
             if not note.letter == perfect_pitch_constants.REST:
                 time_indices.append(delay)
-        time_indices = np.array(time_indices)
-        # Collect all partition parts
-        partition_paths = []
-        partition_delays = [0]
-        # This is the ffmpeg mixing part, where we add each note at the specified delay
-        num_partitions = int(np.ceil(time_indices.shape[0]/perfect_pitch_constants.PARTITION_SIZE))
-        for partition_idx in range(num_partitions):
-            output_path = os.path.join(output_dir, f"partition{partition_idx}.mp3")
-            partition_paths.append(output_path)
-
-            # Get all notes for that partition
-            partition_input_notes = input_notes[partition_idx*perfect_pitch_constants.PARTITION_SIZE:
-                                                (partition_idx+1)*perfect_pitch_constants.PARTITION_SIZE]
-            print(partition_input_notes)
-            partition_inputs = ' '.join([f"-i {note.path}" for note in partition_input_notes])
-            partition_time_indices = time_indices[partition_idx*perfect_pitch_constants.PARTITION_SIZE:
-                                                  (partition_idx+1)*perfect_pitch_constants.PARTITION_SIZE]
-            if partition_idx < num_partitions - 1:
-                partition_delays.append(time_indices[(partition_idx+1)*perfect_pitch_constants.PARTITION_SIZE-1])
-            time_indices = time_indices - partition_time_indices[-1]
-            filter_complex = ''.join([f"[{idx}]adelay={partition_time_indices[idx]}|{partition_time_indices[idx]}[{letter}];"
-                                      for idx, letter in zip(range(len(partition_input_notes)), list(string.ascii_lowercase))])
-            mix = ''.join([f"[{letter}]" for _, letter in zip(partition_input_notes, list(string.ascii_lowercase))])
+        # We only need this to be a numpy array if there is more than 1 partition
+        # I think the code should diverge if there is
+        # FFMPEG has a limit of about 26 audio input tracks, so we need to partition if there are more than
+        # 26 notes
+        num_partitions = int(np.ceil(len(time_indices) / perfect_pitch_constants.PARTITION_SIZE))
+        # The code for one partition can be much easier than multiple partitions, so I think we should handle them
+        # differently
+        if num_partitions <= 1:
+            filter_complex = ''.join([f"[{idx}]adelay={time_indices[idx]}|{time_indices[idx]}[{letter}];"
+                                      for idx, letter in
+                                      zip(range(len(time_indices)), list(string.ascii_lowercase))])
+            mix = ''.join([f"[{letter}]" for _, letter in zip(time_indices, list(string.ascii_lowercase))])
+            # Call ffmpeg from the command line
             os.system(
-                f"ffmpeg -y {partition_inputs} -filter_complex '{filter_complex}{mix}amix=inputs={len(partition_input_notes)}' {output_path}"
+                f"ffmpeg -y {' '.join(input_paths)} -filter_complex "
+                f"'{filter_complex}{mix}amix=inputs={len(time_indices)},volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
             )
-        print()
-        print(partition_delays)
-        print(partition_paths)
-        if num_partitions == 1:
-            return output_path
-        filter_complex = ''.join([f"[{idx}]adelay={partition_delays[idx]}|{partition_delays[idx]}[{letter}];"
-                                 for idx, letter in zip(range(len(partition_delays)), list(string.ascii_lowercase))])
-        mix = ''.join([f"[{letter}]" for _, letter in zip(partition_delays, list(string.ascii_lowercase))])
-        # Call ffmpeg from the command line
-        os.system(
-            f"ffmpeg -y -i {' -i '.join(partition_paths)} -filter_complex '{filter_complex}{mix}amix=inputs={len(partition_delays)},volume=13' {final_output_path}"
-        )
+        # Multi-Partition Case
+        else:
+            relative_time_indices = np.array(time_indices).copy()
+            # Store time indices to merge each partition
+            merge_time_indices = []
+            merge_paths = []
+            # Collect all partition parts
+            # This is the ffmpeg mixing part, where we add each note at the specified delay
+
+            for partition_idx in range(num_partitions):
+                partition_start_index = partition_idx * perfect_pitch_constants.PARTITION_SIZE
+                partition_output_path = os.path.join(output_dir, f"partition{partition_idx}.mp3")
+                merge_paths.append(f"-i {partition_output_path}")
+
+                # Get all notes for that partition
+                partition_input_notes = input_notes[partition_start_index:
+                                                    partition_start_index + perfect_pitch_constants.PARTITION_SIZE]
+                print(partition_input_notes)
+                # WAIT WHAT IS THIS that doesn't work....
+                partition_input_paths = input_paths[partition_start_index:
+                                                    partition_start_index + perfect_pitch_constants.PARTITION_SIZE]
+                # partition_inputs = ' '.join([f"-i {note.path}" for note in partition_input_notes])
+                partition_time_indices = relative_time_indices[partition_start_index:
+                                                               partition_start_index + perfect_pitch_constants.PARTITION_SIZE]
+                # TODO we can just copy the array and avoid this awkwardness
+                merge_time_indices.append(time_indices[partition_idx*perfect_pitch_constants.PARTITION_SIZE] - 500 if partition_idx > 0 else 0)
+                #if len(merge_time_indices) > 0:
+                #    merge_time_indices.append(merge_time_indices[-1] + partition_time_indices[0])
+                #else:
+                #    merge_time_indices.append(partition_time_indices[0])
+                # Oh doing this fucks when we have 2 or more, I see
+                relative_time_indices = relative_time_indices - partition_time_indices[-1]
+                filter_complex = ''.join([f"[{idx}]adelay={partition_time_indices[idx]}|{partition_time_indices[idx]}[{letter}];"
+                                          for idx, letter in zip(range(len(partition_input_notes)), list(string.ascii_lowercase))])
+                mix = ''.join([f"[{letter}]" for _, letter in zip(partition_input_notes, list(string.ascii_lowercase))])
+                os.system(
+                    f"ffmpeg -y {' '.join(partition_input_paths)} -filter_complex "
+                    f"'{filter_complex}{mix}amix=inputs={len(partition_input_notes)},volume={perfect_pitch_constants.VOLUME}' {partition_output_path}"
+                )
+
+            # AFTER EACH PARTITION HAS BEEN CREATED, REMERGE THE PARTITIONS
+            filter_complex = ''.join([f"[{idx}]adelay={merge_time_indices[idx]}|{merge_time_indices[idx]}[{letter}];"
+                                      for idx, letter in zip(range(len(merge_time_indices)), list(string.ascii_lowercase))])
+            mix = ''.join([f"[{letter}]" for _, letter in zip(merge_time_indices, list(string.ascii_lowercase))])
+            # Call ffmpeg from the command line
+            os.system(
+                f"ffmpeg -y {' '.join(merge_paths)} -filter_complex "
+                f"'{filter_complex}{mix}amix=inputs={len(merge_time_indices)},volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
+            )
 
         return final_output_path
 

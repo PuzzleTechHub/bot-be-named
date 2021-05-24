@@ -36,15 +36,15 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         tune = perfect_pitch_utils.Tune(ctx.channel.name)
         tune.process_args(args)
 
-        output_path = await tune.create_tune(ctx)
+        output_path = await tune.create_tune()
         try:
-            await ctx.send(file=discord.File(output_path))
+            await ctx.send(file=discord.File(output_path, filename="tune.mp3"))
         except FileNotFoundError:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"Sorry, we had a problem creating your tune! Check out `{ctx.prefix}help` "
                                   f"to see how to use the command, or try: "
-                                  f"`{ctx.prefix}playtune meter=1 octave=1 A B C D` as an example")
+                                  f"`{ctx.prefix}playtune meter=1 octave=5 C D E F` as an example")
             await ctx.send(embed=embed)
 
     @commands.command(name="chord")
