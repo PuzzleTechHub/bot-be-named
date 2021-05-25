@@ -1,26 +1,24 @@
 ## Bugfixes
 - On archive server/archivechannel/wherever else the message size is dependant on a certain size of discord character limit... Learn how to split embeds into multople different embeds of <2K side
+- Finish has_any_role and addverifieds and migrating all bot commands to use them
 
 ## Improvements
 
-- has_any_role should be an array
-- Sheet management : reordering
 - Better README to repro
 - ~archivechannel should name channel for search reasons.
 - ~archive command does not exist. Did you mean "Archivechannel"
 - Help : arrow keys for navigation?
 - Allow minimal bot to run without .env file
 - unpin should give you link of message that was unpinned
+- listpins / chanstats
 
 ## Features
 
 - Write tests
-- admin verifiedrole @Verified Puzzler
 - Category management : ~clonecategory etc
 - Role assign : ~assignrole @rolename @user1 @user2 @user3
 - Simple lookup for all major encodings - ~lookupsheet morse/pigpen etc
 - changenick
-- botsay
 
 - BBN - sight read... music?
 - BBN - Morse code by audio
