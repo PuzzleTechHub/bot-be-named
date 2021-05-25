@@ -305,7 +305,6 @@ class DiscordCog(commands.Cog, name="Discord"):
     #################
     @commands.command(name="botsay")
     @commands.has_any_role(
-        constants.TA_VERIFIED_PUZZLER_ROLE_ID,
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE
     )
