@@ -169,10 +169,10 @@ class Tune:
         # I think the code should diverge if there is
         # FFMPEG has a limit of about 26 audio input tracks, so we need to partition if there are more than
         # 26 notes
-        num_partitions = int(np.ceil(len(time_indices) / perfect_pitch_constants.PARTITION_SIZE))
+        #num_partitions = int(np.ceil(len(time_indices) / perfect_pitch_constants.MAX_PARTITION_SIZE))
         # The code for one partition can be much easier than multiple partitions, so I think we should handle them
         # differently
-        if num_partitions <= 1:
+        if len(input_notes) <= perfect_pitch_constants.MAX_PARTITION_SIZE:
             filter_complex = ''.join([f"[{idx}]adelay={time_indices[idx]}|{time_indices[idx]}[{letter}];"
                                       for idx, letter in
                                       zip(range(len(time_indices)), list(string.ascii_lowercase))])
@@ -184,6 +184,13 @@ class Tune:
             )
         # Multi-Partition Case
         else:
+            # Split notes into equal-part partitions
+            # num_notes /
+            # num paritions: ceil(35 / 25) = 2
+            # partition size: ceil(35 / 2) = 18
+            num_partitions = int(np.ceil(len(input_notes)/perfect_pitch_constants.MAX_PARTITION_SIZE))
+            partition_size = int(np.ceil(len(input_notes) / num_partitions))
+
             relative_time_indices = np.array(time_indices).copy()
             # Store time indices to merge each partition
             merge_time_indices = []
@@ -192,34 +199,32 @@ class Tune:
             # This is the ffmpeg mixing part, where we add each note at the specified delay
 
             for partition_idx in range(num_partitions):
-                partition_start_index = partition_idx * perfect_pitch_constants.PARTITION_SIZE
+                partition_start_index = partition_idx * partition_size
                 partition_output_path = os.path.join(output_dir, f"partition{partition_idx}.mp3")
                 merge_paths.append(f"-i {partition_output_path}")
 
-                # Get all notes for that partition
+                # Get all notes, file paths, and time indices for that partition
                 partition_input_notes = input_notes[partition_start_index:
-                                                    partition_start_index + perfect_pitch_constants.PARTITION_SIZE]
-                print(partition_input_notes)
-                # WAIT WHAT IS THIS that doesn't work....
+                                                    partition_start_index + partition_size]
                 partition_input_paths = input_paths[partition_start_index:
-                                                    partition_start_index + perfect_pitch_constants.PARTITION_SIZE]
-                # partition_inputs = ' '.join([f"-i {note.path}" for note in partition_input_notes])
+                                                    partition_start_index + partition_size]
                 partition_time_indices = relative_time_indices[partition_start_index:
-                                                               partition_start_index + perfect_pitch_constants.PARTITION_SIZE]
-                # TODO we can just copy the array and avoid this awkwardness
-                merge_time_indices.append(time_indices[partition_idx*perfect_pitch_constants.PARTITION_SIZE] - 500 if partition_idx > 0 else 0)
-                #if len(merge_time_indices) > 0:
-                #    merge_time_indices.append(merge_time_indices[-1] + partition_time_indices[0])
-                #else:
-                #    merge_time_indices.append(partition_time_indices[0])
-                # Oh doing this fucks when we have 2 or more, I see
+                                                               partition_start_index + partition_size]
+                # Keep track of the times we will need to merge each partition back in at the end
+                # TODO: We're doing something a little funky with the time...
+                # Either we have to do -1 in the index of merge_time_indices, or we have to subtract the next index for
+                # relative time indices. Technically, the latter way is more correct. the current way kinda looks cleaner.
+                merge_time_indices.append(time_indices[partition_idx*partition_size - 1] if partition_idx > 0 else 0)
+                # Relative time indices keeps track of the delays relative to that partition.
+                # The start of partition 2 should have time 0, so we need to subtract the lar.... see TODO above
                 relative_time_indices = relative_time_indices - partition_time_indices[-1]
-                filter_complex = ''.join([f"[{idx}]adelay={partition_time_indices[idx]}|{partition_time_indices[idx]}[{letter}];"
+                # Create the filter_complex part of the ffmpeg string. This is the part that
+                filter_complex = ''.join([f"[{idx}]atrim=0:{partition_input_notes[idx].duration+0.125},adelay={partition_time_indices[idx]}|{partition_time_indices[idx]}[{letter}];"
                                           for idx, letter in zip(range(len(partition_input_notes)), list(string.ascii_lowercase))])
                 mix = ''.join([f"[{letter}]" for _, letter in zip(partition_input_notes, list(string.ascii_lowercase))])
                 os.system(
                     f"ffmpeg -y {' '.join(partition_input_paths)} -filter_complex "
-                    f"'{filter_complex}{mix}amix=inputs={len(partition_input_notes)},volume={perfect_pitch_constants.VOLUME}' {partition_output_path}"
+                    f"'{filter_complex}{mix}amix=inputs={len(partition_input_notes)}:dropout_transition=1000,volume={perfect_pitch_constants.VOLUME}' {partition_output_path}"
                 )
 
             # AFTER EACH PARTITION HAS BEEN CREATED, REMERGE THE PARTITIONS
