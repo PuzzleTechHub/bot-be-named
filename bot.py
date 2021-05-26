@@ -23,6 +23,24 @@ PREFIXES = get_prefixes()
 def get_prefix(client, message):
     return PREFIXES[str(message.guild.id)]
 
+verified_sheet = gspread_client.open_by_key(os.getenv('MASTER_SHEET_KEY')).worksheet(constants.VERIFIED_TAB_NAME)
+
+def get_verifieds():
+    vrfd = {}
+    verified_list = verified_sheet.get_all_values()[1:]
+    for row in verified_list:
+        if(row[2] in vrfd):
+            vrfd[row[2]].append(int(row[1]))
+        else:
+            vrfd[row[2]] = [int(row[1])]
+    return vrfd
+
+VERIFIEDS = get_verifieds()
+
+def get_verified(client, message, s):
+    return VERIFIEDS[s]
+
+constants.VERIFIEDS = VERIFIEDS
 
 def main():
     intents = discord.Intents.default()
@@ -85,6 +103,50 @@ def main():
                         inline=False)
         await ctx.send(embed=embed)
 
+    @admin_utils.is_owner_or_admin()
+    @client.command(name="addverified")
+    async def addverified(ctx, verifiedname: str, rolename:str):
+        """Add a new verified category for this server. Only available to server admins or bot owners"""
+        print("Received addverified")
+
+        if len(verifiedname) < 1 or len(rolename) < 1:
+            embed = discord_utils.create_no_argument_embed("Role or Role category")
+            await ctx.send(embed=embed)
+            return
+
+        # Get role. Allow people to use the command by pinging the role, or just naming it
+        role_to_assign = None
+        try:
+            # TODO: Fix replace?
+            role_to_assign = ctx.guild.get_role(int(rolename.replace('<@&', '').replace('>', '')))
+        # The input was not an int (i.e. the user gave the name of the role (e.g. ~deleterole rolename))
+        except ValueError:
+            # Search over all roles
+            roles = await ctx.guild.fetch_roles()
+            for role in roles:
+                if role.name.lower() == rolename.lower():
+                    role_to_assign = role
+                    break
+
+        if not role_to_assign:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"Error!",
+                value=f"I couldn't find role {rolename}",
+                inline=False)
+            await ctx.send(embed=embed)
+            return
+
+        values = [ctx.message.guild.name, str(role_to_assign.id), verifiedname]
+        verified_sheet.append_row(values)
+
+        VERIFIEDS = get_verifieds()
+        constants.VERIFIEDS = VERIFIEDS
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=constants.SUCCESS,
+                        value=f"Added the role {role_to_assign.mention} for this server set to {verifiedname}",
+                        inline=False)
+        await ctx.send(embed=embed)
 
     client.run(DISCORD_TOKEN)
 

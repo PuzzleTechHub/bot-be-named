@@ -6,6 +6,8 @@ Want everyone to see the same search you're looking for? Consider the `~search` 
 
 `~search <target_site> <query>` Will check google and get the first hit with `target_site` in the URL
 `~search google <query>` will return the top 10 hits from google instead.
+`~wiki <query>` will use wikipedia as the target site
+`~google <query>` will use google as the target site
 
 Available shortcuts for `<target_site>`:
 

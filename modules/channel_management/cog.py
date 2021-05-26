@@ -71,11 +71,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         
 
     @commands.command(name="renamechannel")
-    @commands.has_any_role(
-        constants.TA_VERIFIED_PUZZLER_ROLE_ID,
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
-    )
+    @commands.has_any_role(*constants.VERIFIEDS["Verified"])
     async def renamechannel(self, ctx, *args):
         """Changes current channel name to whatever is asked
         Usage: ~renamechannel Newname"""

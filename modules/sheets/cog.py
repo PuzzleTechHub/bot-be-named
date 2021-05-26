@@ -300,7 +300,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         new_chan, chan_create_embed = await channel_management_utils.createchannelgeneric(ctx.guild,
                                                                                           ctx.channel.category,
                                                                                           chan_name)
-
         # Error creating channel
         if not new_chan:
             await ctx.send(embed=chan_create_embed)
