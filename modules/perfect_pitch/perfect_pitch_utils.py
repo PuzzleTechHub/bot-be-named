@@ -6,6 +6,17 @@ import string
 import constants
 import numpy as np
 
+# We have a chord class and a note class....
+# A note is a special instance of a chord?
+
+class Chord:
+    def __init__(self, notes):
+        self.notes = notes
+        self.num_notes = len(notes)
+        # All notes in the chord must have the same duration
+        self.duration = notes[0].duration
+
+
 class Note:
     def __init__(self, letter, duration, octave, instrument):
         """Arguments:
@@ -50,6 +61,7 @@ class Tune:
             - meter: {m, meter}={float>0}
             - octave: {o, octave}={int\in[0,...,7]}
             - instrument: {piano}
+            -
         """
         for arg in args:
             # Check if arg is meter
@@ -137,7 +149,6 @@ class Tune:
         # R represents a resting note, which we want for the timing but we do not want to use as an input since
         # it doesn't have a path.
         # Get all non-resting notes
-        # TODO: force silence for rest?
         input_notes = list(filter(lambda x: x.letter != perfect_pitch_constants.REST, self.notes))
         input_paths = [f"-i {note.path}" for note in input_notes]
         # We need to keep track of where each note should come in the tune.
