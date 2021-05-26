@@ -244,6 +244,12 @@ def lookup_help(prefix: str):
                           f"e.g. {prefix}search hp kevin entwhistle\n"
                           f"{prefix}search kaspersky cryptography",
                     inline=False)
+    embed.add_field(name=f"{prefix}google <query>",
+                    value="Search google!",
+                    inline=False)
+    embed.add_field(name=f"{prefix}wikipedia <query>",
+                    value=f"Also {prefix}wiki",
+                    inline=False)
     embed = more_help(embed, help_constants.LOOKUP_README)
     return embed
 

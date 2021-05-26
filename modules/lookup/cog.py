@@ -1,18 +1,16 @@
 import googlesearch
 from discord.ext import commands
 from utils import discord_utils
-from modules.lookup import lookup_constants
+from modules.lookup import lookup_constants, lookup_utils
 
-#######
-# TODO: DELETE wikipedia, google, and dcode now that search works
-# Actually I think we should keep google as a default so they don't have to specify google everytime
+
 class LookupCog(commands.Cog, name="Lookup"):
     """Performs a Google Search (for ciphers etc)"""
 
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="search", aliases=['lookup'])
+    @commands.command(name="search")
     async def search(self, ctx, *args):
         """
         Command to search the interwebs! (google)
@@ -62,6 +60,32 @@ class LookupCog(commands.Cog, name="Lookup"):
             embed.add_field(name=f"Search failed!", value=f"Sorry! We weren't able to find a {target_site.capitalize()}"
                                                           f"link for {original_query}. However, here are the top 10 hits on Google:\n"
                                                           f"{chr(10).join(results)}")
+        await ctx.send(embed=embed)
+
+    @commands.command(name="google")
+    async def google(self, ctx, *args):
+        print("Received google")
+        results = lookup_utils.search_query(' '.join(args))
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"Google Result for {' '.join(args)}",
+                        value=f"{chr(10).join(results)}")
+        await ctx.send(embed=embed)
+
+    @commands.command(name="wikipedia", aliases=["wiki"])
+    async def wikipedia(self, ctx, *args):
+        print("Received wikipedia")
+        results = lookup_utils.search_query(' '.join(args), target_site=lookup_constants.WIKI)
+
+        embed = discord_utils.create_embed()
+        if len(results) > 1:
+            embed.add_field(name=f"Search failed!",
+                            value=f"Sorry! We weren't able to find a Wikipedia"
+                                  f"link for {' '.join(args)}. However, here are the top 10 hits on Google:\n"
+                                  f"{chr(10).join(results)}")
+        else:
+            embed.add_field(name=f"Wikipedia Result for {' '.join(args)}",
+                            value=f"{chr(10).join(results)}")
         await ctx.send(embed=embed)
 
 
