@@ -26,6 +26,7 @@ CLEANED_NOTES = {
 }
 
 DURATIONS = {
+    'wd': 6,
     'w': 4,
     'hd': 3,
     'h': 2,
@@ -34,7 +35,8 @@ DURATIONS = {
     'ed': 0.75,
     'e': 0.5,
     'sd': 0.375,
-    's': 0.25
+    's': 0.25,
+    't': 0.33
 }
 
 REST = "R"
@@ -50,5 +52,5 @@ PIANO = "piano"
 TRUMPET = "trumpet"
 
 # FFMPEG formatting
-PARTITION_SIZE = 20
+MAX_PARTITION_SIZE = 25
 VOLUME = 11
