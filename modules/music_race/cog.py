@@ -4,15 +4,44 @@ import re
 from discord.ext import commands
 from utils import discord_utils
 import modules.perfect_pitch
+import os
+import numpy as np
 
-answers = ["","GHOSTBUSTERS", "FROZEN", "STARWARS", "ROCKY", "XMEN", "DOCTORWHO", "TITANIC", "HARRYPOTTER", "JAMESBOND", "LIONKING", "AVENGERS"]
-answers_indexes = [6, 3, 2, 3, 2, 1, 7, 1, 7, 2, 7]
+answers = ["FROZEN", "STARWARS", "ROCKY", "XMEN", "TITANIC", "HARRYPOTTER", "JAMESBOND", "LIONKING", "AVENGERS"]
+answers_indexes = [3, 2, 3, 2, 7, 1, 7, 2, 7]
+
+
+def get_letters():
+    letters = {}
+    for i in range(len(answers)):
+        x = answers[i]
+        for j in range(len(x)):
+            c = x[j]
+            if c in letters:
+                letters[c].append((i, j))
+            else:
+                letters[c] = [(i, j)]
+    return letters
+
+
+def get_partition_mapping():
+    map = {}
+    for answer in answers:
+        for idx, letter in enumerate(answer):
+            if letter in map:
+                map[letter].append(f"{answer}_part_{idx}.mp3")
+            else:
+                map[letter] = [f"{answer}_part_{idx}.mp3"]
+    return map
+
 
 class MusicRace(commands.Cog, name="Music Race"):
     
     """"Initialising"""
     def __init__(self, bot):
         self.bot = bot
+        self.letters = get_letters()
+        self.partition_map = get_partition_mapping()
 
 
     async def correct_answer(self, ctx, word, idx):
@@ -23,11 +52,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         """TODO : Send correct playtune... with appropriate number of rests (for indexing)"""
         """TODO : Send correct song with name idx/11.mp3"""
 
-        embed.add_field(name=f"Success!",
-            value=f"Song `{word}` successfully identified")
-            # reply to user
-        await ctx.send(embed=embed)
-        return 1
+
 
     @commands.command(name="puzzleplaceholder")
     @commands.has_any_role(
@@ -39,56 +64,57 @@ class MusicRace(commands.Cog, name="Music Race"):
         print("Recieved puzzleplaceholder")
         embed = discord_utils.create_embed()
 
-        if(len(args)<1):
+        if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("word")
             await ctx.send(embed=embed)
             return
 
-        word = re.sub("[^A-Z]+","",args[0].upper())
+        # Replace any non-letters
+        word = re.sub("[^A-Z]+", "", args[0].upper())
 
-        if(len(word)<1 or len(word)>20):
+        if len(word) < 1 or len(word) > 20:
             embed.add_field(name=f"Error!",
-                value=f"Word provided `{word}` is not between 1-20 letters")
-            # reply to user
+                            value=f"Word provided `{word}` is not between 1-20 letters")
             await ctx.send(embed=embed)
-            return 0
-
-        letters = {}
-        for i in range(len(answers)):
-            x=answers[i]
-            for j in range(len(x)):
-                c=x[j]
-                if(c in letters):
-                    letters[c].append((i,j))
-                else:
-                    letters[c] = [(i,j)]
+            return
 
         if word in answers:
-            idx = answers.index(word)
-            await self.correct_answer(ctx,word,idx)
-            return 1
+            embed.add_field(name=f"Success!",
+                            value=f"Song `{word}` successfully identified")
+            await ctx.send(embed=embed)
+            await ctx.send(
+                file=discord.File(os.path.join(os.getcwd(), "modules", "perfect_pitch", "music", "puzzle_songs",
+                                               word.lower() + "_final.mp3"),
+                                  filename=f"{answers.index(word)+1}of{len(answers)}.mp3"))
+            return
 
+        # We need to figure out the longest substring that is part of the answer
+        # Add that duration of the song.
+        # Afterwards, we need to find all the remaining letters
+        # and add random partitions, or silence.
         finalanswer = []
-        flag = 0
-        allsplices = []
-        for i in range(len(word)):
-            x = word[0:i+1]
-            for j in range(len(answers)):
-                a = answers[j]
-                if(a.startswith(x)):
-                    finalanswer.append((j,i))
+        delay = 0
+        for i in reversed(range(len(word))):
+            x = word[0:i]
+            for answer_idx, answer in enumerate(answers):
+                if answer.startswith(x):
+                    finalanswer.append((answer.lower(), i*3))
+                    delay = i * 3
                     break
+        # At this point, we've matched all we can to the song.
+        # i is now the index of the longest substring that matches
+        # So we need to start from the ith character
+        for j in range(i, len(word)):
             c = word[i]
-            if c not in letters:
-                finalanswer.append((-1,-1))
+            if c not in self.partition_map:
+                delay += 3
                 continue
             else:
-                #TODO: FINISH HIM
-                pass
-            #TODO : FINISH HIM
-        #TODO : FINISH HIM
-        print(letters)
-        await ctx.send(f"{letters}")
+                finalanswer.append(np.random.choice(self.partition_map[c]), delay)
+                delay += 3
+        
+        print(self.letters)
+        await ctx.send(f"{self.letters}")
 
 def setup(bot):
     bot.add_cog(MusicRace(bot))
