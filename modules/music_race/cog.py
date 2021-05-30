@@ -44,7 +44,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         self.letters = get_letters()
         self.partition_map = get_partition_mapping()
 
-    @commands.command(name="puzzleplaceholder")
+    @commands.command(name="puzzleplaceholder", aliases=['pph'])
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE
@@ -60,7 +60,7 @@ class MusicRace(commands.Cog, name="Music Race"):
             return
 
         # Replace any non-letters
-        word = re.sub("[^A-Z]+", "", args[0].upper())
+        word = re.sub("[^A-Z]+", "", "".join(args).upper())
 
         if len(word) < 1 or len(word) > 20:
             embed.add_field(name=f"Error!",
@@ -84,14 +84,21 @@ class MusicRace(commands.Cog, name="Music Race"):
         # and add random partitions, or silence.
         finalanswer = []
         delay = 0
+        # This flag is true if the first letter(s) match the first letter of a song, and false otherwise
+        base_song_flag = True
         for i in reversed(range(len(word))):
+            # Did not find a match
+            if i == 0:
+                base_song_flag = False
+                break
             x = word[0:i]
             for answer_idx, answer in enumerate(answers):
                 if answer.startswith(x):
                     finalanswer.append((answer.lower(), i*3))
                     delay = i * 3
                     break
-            if delay > 0: # If we found a match
+            # If we found a match
+            if delay > 0:
                 break
         print(finalanswer)
         # At this point, we've matched all we can to the song.
@@ -107,17 +114,25 @@ class MusicRace(commands.Cog, name="Music Race"):
                 delay += 3
 
         print(self.letters)
-        debug_output_msg = f"0-{finalanswer[0][1]}: {finalanswer[0][0]}\n"
-        for ans in finalanswer[1:]:
+        debug_output_msg = ""
+        if base_song_flag:
+            list_indexing = 1
+            debug_output_msg += f"0-{finalanswer[0][1]}: {finalanswer[0][0]}\n"
+        else:
+            list_indexing = 0
+        for ans in finalanswer[list_indexing:]:
             debug_output_msg += f"{ans[1]}-{ans[1]+3}: {ans[0]}\n"
 
         await ctx.send(debug_output_msg)
         print(finalanswer)
 
         inputs = ''.join([f"-i {os.path.join(os.getcwd(), 'modules', 'perfect_pitch', 'music', 'puzzle_songs', finalanswer[idx][0] + '.mp3')} " for idx in range(len(finalanswer))])
-        filter_complex = f"[0]atrim=0:{finalanswer[0][1]},adelay=0|0[a];"
-        filter_complex += "".join([f"[{idx+1}]adelay={finalanswer[idx+1][1]*1000}|{finalanswer[idx+1][1]*1000}[{letter}];"
-                                  for idx, letter in zip(range(len(finalanswer[1:])), string.ascii_lowercase[1:])])
+        if base_song_flag:
+            filter_complex = f"[0]atrim=0:{finalanswer[0][1]},adelay=0|0[a];"
+        else:
+            filter_complex = ""
+        filter_complex += "".join([f"[{idx+list_indexing}]atrim=0:3125,adelay={finalanswer[idx+list_indexing][1]*1000+500*idx}|{finalanswer[idx+list_indexing][1]*1000+500*idx}[{letter}];"
+                                  for idx, letter in zip(range(len(finalanswer[list_indexing:])), string.ascii_lowercase[list_indexing:])])
         mix = ''.join([f"[{letter}]" for _, letter in zip(finalanswer, list(string.ascii_lowercase))])
         print(inputs)
         print(filter_complex)
