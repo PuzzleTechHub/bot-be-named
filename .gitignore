@@ -6,3 +6,4 @@ error_logfile.txt
 /archive/
 .idea
 modules/perfect_pitch/music/tunes
+modules/perfect_pitch/music/puzzle_outputs
