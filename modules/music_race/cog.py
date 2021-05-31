@@ -12,19 +12,6 @@ answers = ["FROZEN", "STARWARS", "ROCKY", "XMEN", "TITANIC", "HARRYPOTTER", "JAM
 answers_indexes = [3, 2, 3, 2, 7, 1, 7, 2, 7]
 
 
-def get_letters():
-    letters = {}
-    for i in range(len(answers)):
-        x = answers[i]
-        for j in range(len(x)):
-            c = x[j]
-            if c in letters:
-                letters[c].append((i, j))
-            else:
-                letters[c] = [(i, j)]
-    return letters
-
-
 def get_partition_mapping():
     map = {}
     for answer in answers:
@@ -37,11 +24,9 @@ def get_partition_mapping():
 
 
 class MusicRace(commands.Cog, name="Music Race"):
-    
-    """"Initialising"""
+    """"Puzzle for Arithmancy June 2020! Identify each of the movies based on their theme songs!"""
     def __init__(self, bot):
         self.bot = bot
-        self.letters = get_letters()
         self.partition_map = get_partition_mapping()
 
     @commands.command(name="puzzleplaceholder", aliases=['pph'])
@@ -73,7 +58,11 @@ class MusicRace(commands.Cog, name="Music Race"):
                             value=f"Song `{word}` successfully identified")
             await ctx.send(embed=embed)
             await ctx.send(
-                file=discord.File(os.path.join(os.getcwd(), "modules", "perfect_pitch", "music", "puzzle_songs",
+                file=discord.File(os.path.join(os.getcwd(),
+                                               constants.MODULES_DIR,
+                                               constants.PERFECT_PITCH_DIR,
+                                               perfect_pitch_constants.MUSIC,
+                                               perfect_pitch_constants.PUZZLE_SONGS,
                                                word.lower() + "_final.mp3"),
                                   filename=f"{answers.index(word)+1}of{len(answers)}.mp3"))
             return
@@ -100,7 +89,6 @@ class MusicRace(commands.Cog, name="Music Race"):
             # If we found a match
             if delay > 0:
                 break
-        print(finalanswer)
         # At this point, we've matched all we can to the song.
         # i is now the index of the longest substring that matches
         # So we need to start from the ith character
@@ -113,7 +101,6 @@ class MusicRace(commands.Cog, name="Music Race"):
                 finalanswer.append((np.random.choice(self.partition_map[char]).lower(), delay))
                 delay += 3
 
-        print(self.letters)
         debug_output_msg = ""
         if base_song_flag:
             list_indexing = 1
@@ -122,30 +109,34 @@ class MusicRace(commands.Cog, name="Music Race"):
             list_indexing = 0
         for ans in finalanswer[list_indexing:]:
             debug_output_msg += f"{ans[1]}-{ans[1]+3}: {ans[0]}\n"
-
+        # TODO: Remove once we are more certain about how this works. It ruins the puzzle, obviously
         await ctx.send(debug_output_msg)
-        print(finalanswer)
 
-        inputs = ''.join([f"-i {os.path.join(os.getcwd(), 'modules', 'perfect_pitch', 'music', 'puzzle_songs', finalanswer[idx][0] + '.mp3')} " for idx in range(len(finalanswer))])
+        inputs = ''.join([f"-i {os.path.join(os.getcwd(), constants.MODULES_DIR, constants.PERFECT_PITCH_DIR, perfect_pitch_constants.MUSIC, perfect_pitch_constants.PUZZLE_SONGS, finalanswer[idx][0] + '.mp3')} " for idx in range(len(finalanswer))])
+        # If we they got the start to a song, then we want to play that whole duration uncut.
         if base_song_flag:
             filter_complex = f"[0]atrim=0:{finalanswer[0][1]},adelay=0|0[a];"
         else:
             filter_complex = ""
-        filter_complex += "".join([f"[{idx+list_indexing}]atrim=0:3125,adelay={finalanswer[idx+list_indexing][1]*1000+500*idx}|{finalanswer[idx+list_indexing][1]*1000+500*idx}[{letter}];"
+        # Otherwise, we just chop each song into 3s bits, with 0.5s between them
+        filter_complex += "".join([f"[{idx+list_indexing}]atrim=0:3000,adelay={finalanswer[idx+list_indexing][1]*1000+500*idx}|{finalanswer[idx+list_indexing][1]*1000+500*idx}[{letter}];"
                                   for idx, letter in zip(range(len(finalanswer[list_indexing:])), string.ascii_lowercase[list_indexing:])])
         mix = ''.join([f"[{letter}]" for _, letter in zip(finalanswer, list(string.ascii_lowercase))])
-        print(inputs)
-        print(filter_complex)
-        print(mix)
-        print(len(finalanswer))
-        if not os.path.exists(os.path.join(os.getcwd(), 'modules', 'perfect_pitch', 'music', 'puzzle_outputs', ctx.channel.name)):
-            os.mkdir(os.path.join(os.getcwd(), 'modules', 'perfect_pitch', 'music', 'puzzle_outputs', ctx.channel.name))
+
+        output_dir = os.path.join(os.getcwd(),
+                                  constants.MODULES_DIR,
+                                  constants.PERFECT_PITCH_DIR,
+                                  perfect_pitch_constants.MUSIC,
+                                  perfect_pitch_constants.PUZZLE_OUTPUTS,
+                                  ctx.channel.name)
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
         os.system(
             f"ffmpeg -y  {inputs} " +
             f"-filter_complex '{filter_complex}{mix}amix=inputs={len(finalanswer)}:dropout_transition=1000,volume={perfect_pitch_constants.VOLUME/2}' "
-            f"{os.path.join(os.getcwd(), 'modules', 'perfect_pitch', 'music', 'puzzle_outputs', ctx.channel.name, 'jam.mp3')}"
+            f"{os.path.join(output_dir, 'jam.mp3')}"
         )
-        await ctx.send(file=discord.File(os.path.join(os.getcwd(), 'modules', 'perfect_pitch', 'music', 'puzzle_outputs', ctx.channel.name, 'jam.mp3')))
+        await ctx.send(file=discord.File(os.path.join(output_dir, 'jam.mp3')))
 
 
 def setup(bot):

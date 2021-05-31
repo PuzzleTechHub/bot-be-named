@@ -1,7 +1,7 @@
 
 # We need our notes to be either natural or flat to match the dataset.
 CLEANED_NOTES = {
-    'R': 'R', # REST
+    'R': 'R',  # REST
     'Cb': 'B',
     'C': 'C',
     'C#': 'Db',
@@ -46,11 +46,12 @@ MUSIC = "music"
 NOTES = "notes"
 CHORDS = "chords"
 TUNES = "tunes"
+PUZZLE_SONGS = "puzzle_songs"
+PUZZLE_OUTPUTS = "puzzle_outputs"
 
 # INSTRUMENTS
 PIANO = "piano"
-TRUMPET = "trumpet"
 
 # FFMPEG formatting
-MAX_PARTITION_SIZE = 25
+MAX_PARTITION_SIZE = 25  # Absolute max is 26
 VOLUME = 11

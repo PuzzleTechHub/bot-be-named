@@ -6,16 +6,6 @@ import string
 import constants
 import numpy as np
 
-# We have a chord class and a note class....
-# A note is a special instance of a chord?
-
-class Chord:
-    def __init__(self, notes):
-        self.notes = notes
-        self.num_notes = len(notes)
-        # All notes in the chord must have the same duration
-        self.duration = notes[0].duration
-
 
 class Note:
     def __init__(self, letter, duration, octave, instrument):
@@ -87,6 +77,13 @@ class Tune:
             # if the arg is not a meter or an octave then it must be a note
             else:
                 try:
+                    # TODO: Let's you stack multiple notes at the same time, but it doesn't work very well...
+                    #if 'v' in arg:
+                    #    for chord_idx, chord_note in enumerate(arg.split('v')):
+                    #        self.notes.append(self.get_note(chord_note))
+                    #        if chord_idx < len(arg.split('v')) - 1:
+                    #            self.notes[-1].duration = 0
+                    #else:
                     self.notes.append(self.get_note(arg))
                 except KeyError:
                     print(f"{arg} is not a note")
@@ -104,22 +101,21 @@ class Tune:
         Like C4s, Ab3ed
         Or, for noobs, you can do L<duration>, e.g. C4L2 to represent a half note, C4L0.5 to represent an eighth
         """
-        # Get duration
+        # Get duration, which can come in two forms. "L" or dotted
         # "L" duration
-        #print(note)
-        #print(note.split('L'))
         if len(note.split('L')) > 1:
             split_note = note.split('L')
             duration = float(split_note[1])
             note = split_note[0]
-        # Dotted duration
+        # Duration includes a dot (e.g. wd, hd, ...)
         elif note[-2:] in perfect_pitch_constants.DURATIONS:
             duration = perfect_pitch_constants.DURATIONS[note[-2:]]
             note = note[:-2]
-        # Standard duration
+        # Standard duration (e.g. w, h, e, s)
         elif note[-1:] in perfect_pitch_constants.DURATIONS:
             duration = perfect_pitch_constants.DURATIONS[note[-1:]]
             note = note[:-1]
+        # No duration provided
         else:
             duration = self.default_duration
         # Next, check if last character is an int for octave
@@ -139,7 +135,7 @@ class Tune:
     async def create_tune(self) -> str:
         """Use FFMPEG to mix the notes, and return the path of the mixed audio"""
         # Store the tune here. NOTE: only one tune per channel, for scaling reasons and within arithmancy puzzling.
-        # Maybe fix later?
+        # TODO: Maybe fix later?
         output_dir = os.path.join(os.getcwd(), constants.MODULES_DIR, constants.PERFECT_PITCH.lower().replace(' ', '_'),
                                   perfect_pitch_constants.MUSIC, perfect_pitch_constants.TUNES, self.channel_name)
         if os.path.exists(output_dir):
@@ -169,15 +165,20 @@ class Tune:
         # I think the code should diverge if there is
         # FFMPEG has a limit of about 26 audio input tracks, so we need to partition if there are more than
         # 26 notes
-        #num_partitions = int(np.ceil(len(time_indices) / perfect_pitch_constants.MAX_PARTITION_SIZE))
+
         # The code for one partition can be much easier than multiple partitions, so I think we should handle them
         # differently
         if len(input_notes) <= perfect_pitch_constants.MAX_PARTITION_SIZE:
-            filter_complex = ''.join([f"[{idx}]adelay={time_indices[idx]}|{time_indices[idx]}[{letter}];"
+            filter_complex = ''.join([f"[{idx}]atrim=0:{input_notes[idx].duration+0.125},adelay={time_indices[idx]}|{time_indices[idx]}[{letter}];"
                                       for idx, letter in
                                       zip(range(len(time_indices)), list(string.ascii_lowercase))])
             mix = ''.join([f"[{letter}]" for _, letter in zip(time_indices, list(string.ascii_lowercase))])
             # Call ffmpeg from the command line
+            # TODO: Remove print
+            print(
+                f"ffmpeg -y {' '.join(input_paths)} -filter_complex "
+                f"'{filter_complex}{mix}amix=inputs={len(time_indices)},volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
+            )
             os.system(
                 f"ffmpeg -y {' '.join(input_paths)} -filter_complex "
                 f"'{filter_complex}{mix}amix=inputs={len(time_indices)},volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
@@ -185,7 +186,6 @@ class Tune:
         # Multi-Partition Case
         else:
             # Split notes into equal-part partitions
-            # num_notes /
             # num paritions: ceil(35 / 25) = 2
             # partition size: ceil(35 / 2) = 18
             num_partitions = int(np.ceil(len(input_notes)/perfect_pitch_constants.MAX_PARTITION_SIZE))
@@ -219,12 +219,19 @@ class Tune:
                 # The start of partition 2 should have time 0, so we need to subtract the lar.... see TODO above
                 relative_time_indices = relative_time_indices - partition_time_indices[-1]
                 # Create the filter_complex part of the ffmpeg string. This is the part that
-                filter_complex = ''.join([f"[{idx}]atrim=0:{partition_input_notes[idx].duration+0.125},adelay={partition_time_indices[idx]}|{partition_time_indices[idx]}[{letter}];"
+                filter_complex = ''.join([f"[{idx}]atrim=0:{partition_input_notes[idx].duration+0.125},"
+                                          f"adelay={partition_time_indices[idx]}|{partition_time_indices[idx]}[{letter}];"
                                           for idx, letter in zip(range(len(partition_input_notes)), list(string.ascii_lowercase))])
                 mix = ''.join([f"[{letter}]" for _, letter in zip(partition_input_notes, list(string.ascii_lowercase))])
+                # TODO: remove print
+                print(f"ffmpeg -y {' '.join(partition_input_paths)} -filter_complex "
+                      f"'{filter_complex}{mix}amix=inputs={len(partition_input_notes)}:dropout_transition=1000,"
+                      f"volume={perfect_pitch_constants.VOLUME}' {partition_output_path}"
+                      )
                 os.system(
                     f"ffmpeg -y {' '.join(partition_input_paths)} -filter_complex "
-                    f"'{filter_complex}{mix}amix=inputs={len(partition_input_notes)}:dropout_transition=1000,volume={perfect_pitch_constants.VOLUME}' {partition_output_path}"
+                    f"'{filter_complex}{mix}amix=inputs={len(partition_input_notes)}:dropout_transition=1000,"
+                    f"volume={perfect_pitch_constants.VOLUME}' {partition_output_path}"
                 )
 
             # AFTER EACH PARTITION HAS BEEN CREATED, REMERGE THE PARTITIONS
@@ -232,23 +239,15 @@ class Tune:
                                       for idx, letter in zip(range(len(merge_time_indices)), list(string.ascii_lowercase))])
             mix = ''.join([f"[{letter}]" for _, letter in zip(merge_time_indices, list(string.ascii_lowercase))])
             # Call ffmpeg from the command line
+            print(
+                f"ffmpeg -y {' '.join(merge_paths)} -filter_complex "
+                f"'{filter_complex}{mix}amix=inputs={len(merge_time_indices)},"
+                f"volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
+            )
             os.system(
                 f"ffmpeg -y {' '.join(merge_paths)} -filter_complex "
-                f"'{filter_complex}{mix}amix=inputs={len(merge_time_indices)},volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
+                f"'{filter_complex}{mix}amix=inputs={len(merge_time_indices)},"
+                f"volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
             )
 
         return final_output_path
-
-# How to split longer songs into multiples....
-# I think it gets up to 26?
-# So maybe we should cut it at, say, 20 notes
-# okay so we can do time indices like normal, but then if we have more than 20 notes we will subtract the ending time
-# from the remaining time_indices (first one need not be 0). We need to keep track of whatever that final time was,
-# because it'll be useful in the end.
-# Programmatically how to do it
-# - do everything up until line 154 (filter complex) the same
-# - don't need 2 separate cases
-# - some iterator like math.ceil(len(notes)/20)?
-#   - So we grab the 20 notes, find the ending time of that segment.
-#   - Subtract all remaining time indices by the ending time.
-#   -
