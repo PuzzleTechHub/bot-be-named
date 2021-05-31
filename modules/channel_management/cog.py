@@ -29,7 +29,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         embed = discord_utils.create_embed()
         # check for category name arguments
         if len(args) <= 0:
-            discord_utils.create_no_argument_embed("Category")
+            embed = discord_utils.create_no_argument_embed("Category")
             await ctx.send(embed=embed)
             return
 
