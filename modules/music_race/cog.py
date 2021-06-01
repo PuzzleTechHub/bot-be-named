@@ -10,8 +10,7 @@ import string
 
 answers = ["FROZEN", "STARWARS", "ROCKY", "XMEN", "TITANIC", "HARRYPOTTER", "JAMESBOND", "LIONKING", "AVENGERS"]
 answers_indexes = [3, 2, 3, 2, 7, 1, 7, 2, 7]
-answers_tunes =
-[
+answers_tunes = [
 "~playtune B3h Ch C#h Ch B3h Ch C#h Ch Ee F#s F#s F#e F# Ee Ee Ee Ee Gs Gs Ge G F#e F#e F#e Ee F#s F#s F#e F# Ee Ee Ee Ee Gs Gs Ge G F#e F#e F#e Ee F#s F#s F#e F# Ee Ee Ee Ee Gs Gs Ge G F#e F#e Ee D#5e D5h Be Ae Bh Ee F#s F#s F#e F# Ee Ee Ee Ee Gs Gs Ge G",
 "~playtune o=5 m=1.2 Re Ee F#e Ghd De Be Ahd Ge F#e Ee Ee E Ee F# Ghd Ee F#e Ghd De Be Ahd  Ge Ae B B C6e B Ae Ge Ae Ghd Dqd B4qd A4hd G4 G4 Dqd B4qd G4w",
 "~playtune m=1.3 o=4 E Aqd C5e B Ah E5 D5hd Bhd Aqd C5e B Gh A Ew E Aqd C5e B Ah E5 G5h Gb5 F5h D5 F5qd E5e D#5 Ah C5 Aw C5 E5h C5 E5h C5 F5h E5 D#5h D#5 E5qd C5e A D#h E E5w C5 E5h C5 E5h C5 G5h Gb5 F5h Db5 F5qd E5e D#5 D#h C5 Aw",
