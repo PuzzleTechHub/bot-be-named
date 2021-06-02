@@ -26,14 +26,29 @@ class MusicRace(commands.Cog, name="Music Race"):
         self.bot = bot
         self.partition_map = get_partition_mapping()
 
-    @commands.command(name="puzzleplaceholder", aliases=['pph'])
+    @commands.command(name="musicraceinfo", aliases=["mrinfo"])
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE
     )
-    async def puzzleplaceholder(self, ctx, *args):
-        """Run the music id splicing puzzle"""
-        print("Recieved puzzleplaceholder")
+    async def musicraceinfo(self, ctx):
+        """Give the users everything they need to know about the puzzle"""
+        print("Received musicraceinfo")
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"Hello, and welcome to my puzzle",
+                        value=f"You will be using `{ctx.prefix}guesstune` for this puzzle. Have fun!`")
+
+        await ctx.send(embed=embed)
+
+    @commands.command(name="guesstune")
+    @commands.has_any_role(
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
+    )
+    async def guesstune(self, ctx, *args):
+        """Take a user's guess and give them a response based on what letters they provided"""
+        print("Recieved guesstune")
         embed = discord_utils.create_embed()
 
         if len(args) < 1:
@@ -110,7 +125,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         output_path = os.path.join(output_dir, f"{word}.mp3")
         os.system(
             f"ffmpeg -y  {inputs} " +
-            f"-filter_complex '{filter_complex}{mix}amix=inputs={len(finalanswer)}:dropout_transition=1000,volume={music_race_constants.VOLUME/2}' "
+            f"-filter_complex '{filter_complex}{mix}amix=inputs={len(finalanswer)}:dropout_transition=100,volume={music_race_constants.VOLUME/2},dynaudnorm' "
             f"{output_path}"
         )
         await ctx.send(file=discord.File(output_path))
