@@ -21,7 +21,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     async def playtune(self, ctx, *args):
         """Play a string of notes together"""
         print("Received playtune")
-        tune_dir = os.path.join(os.getcwd(), constants.MODULES_DIR, constants.PERFECT_PITCH_DIR,
+        tune_dir = os.path.join(os.getcwd(), constants.MODULES_DIR, perfect_pitch_constants.PERFECT_PITCH_DIR,
                                 perfect_pitch_constants.MUSIC, perfect_pitch_constants.TUNES, ctx.channel.name)
         # If the channel does not have a directory for them yet, create one
         if not os.path.exists(tune_dir):
@@ -50,7 +50,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     )
     async def chord(self, ctx):
         """Sends the user a random chord. Note: all chords come from the 4th octave (middle C)"""
-        chord = random.choice(glob.glob(os.path.join(os.getcwd(), constants.MODULES_DIR, constants.PERFECT_PITCH_DIR,
+        chord = random.choice(glob.glob(os.path.join(os.getcwd(), constants.MODULES_DIR, perfect_pitch_constants.PERFECT_PITCH_DIR,
                                                      perfect_pitch_constants.MUSIC, perfect_pitch_constants.PIANO,
                                                      perfect_pitch_constants.CHORDS, "*.mp3")))
         await ctx.send(file=discord.File(chord, filename="random_chord.mp3"))
@@ -78,7 +78,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
             # If the user supplied an exact note, send it
             note_path = os.path.join(os.getcwd(),
                                      constants.MODULES_DIR,
-                                     constants.PERFECT_PITCH_DIR,
+                                     perfect_pitch_constants.PERFECT_PITCH_DIR,
                                      perfect_pitch_constants.MUSIC,
                                      perfect_pitch_constants.PIANO,
                                      perfect_pitch_constants.NOTES,
@@ -108,7 +108,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
         mp3_paths = glob.glob(os.path.join(os.getcwd(),
                               constants.MODULES_DIR,
-                              constants.PERFECT_PITCH_DIR,
+                              perfect_pitch_constants.PERFECT_PITCH_DIR,
                               perfect_pitch_constants.MUSIC,
                               perfect_pitch_constants.PIANO,
                               perfect_pitch_constants.NOTES,

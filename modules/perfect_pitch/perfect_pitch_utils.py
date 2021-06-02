@@ -174,11 +174,6 @@ class Tune:
                                       zip(range(len(time_indices)), list(string.ascii_lowercase))])
             mix = ''.join([f"[{letter}]" for _, letter in zip(time_indices, list(string.ascii_lowercase))])
             # Call ffmpeg from the command line
-            # TODO: Remove print
-            print(
-                f"ffmpeg -y {' '.join(input_paths)} -filter_complex "
-                f"'{filter_complex}{mix}amix=inputs={len(time_indices)},volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
-            )
             os.system(
                 f"ffmpeg -y {' '.join(input_paths)} -filter_complex "
                 f"'{filter_complex}{mix}amix=inputs={len(time_indices)},volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
@@ -223,11 +218,7 @@ class Tune:
                                           f"adelay={partition_time_indices[idx]}|{partition_time_indices[idx]}[{letter}];"
                                           for idx, letter in zip(range(len(partition_input_notes)), list(string.ascii_lowercase))])
                 mix = ''.join([f"[{letter}]" for _, letter in zip(partition_input_notes, list(string.ascii_lowercase))])
-                # TODO: remove print
-                print(f"ffmpeg -y {' '.join(partition_input_paths)} -filter_complex "
-                      f"'{filter_complex}{mix}amix=inputs={len(partition_input_notes)}:dropout_transition=1000,"
-                      f"volume={perfect_pitch_constants.VOLUME}' {partition_output_path}"
-                      )
+
                 os.system(
                     f"ffmpeg -y {' '.join(partition_input_paths)} -filter_complex "
                     f"'{filter_complex}{mix}amix=inputs={len(partition_input_notes)}:dropout_transition=1000,"
@@ -239,11 +230,6 @@ class Tune:
                                       for idx, letter in zip(range(len(merge_time_indices)), list(string.ascii_lowercase))])
             mix = ''.join([f"[{letter}]" for _, letter in zip(merge_time_indices, list(string.ascii_lowercase))])
             # Call ffmpeg from the command line
-            print(
-                f"ffmpeg -y {' '.join(merge_paths)} -filter_complex "
-                f"'{filter_complex}{mix}amix=inputs={len(merge_time_indices)},"
-                f"volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
-            )
             os.system(
                 f"ffmpeg -y {' '.join(merge_paths)} -filter_complex "
                 f"'{filter_complex}{mix}amix=inputs={len(merge_time_indices)},"
