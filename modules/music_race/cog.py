@@ -25,6 +25,7 @@ class MusicRace(commands.Cog, name="Music Race"):
     def __init__(self, bot):
         self.bot = bot
         self.partition_map = get_partition_mapping()
+        print(self.partition_map)
 
     @commands.command(name="song")
     @commands.has_any_role(
