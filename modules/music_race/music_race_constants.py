@@ -34,8 +34,8 @@ ANSWERS = {
         TUNE: "~playtune R R R Eed Fs Ge C5h Ded Es Fhd Ged As Be F5h Aed Bs C5 D5 E5 Eed Fs Ge C5h D5ed E5s F5hd Ged Gs E5 D5ed Gs E5 D5ed Gs E5 D5ed Gs E5e D5e E5ed F5s G5e C6h D5ed E5s F5hd G5ed A5s B5e F6h A5ed B5s C6 D6 E6 E5ed F5s G5e C6h D6ed E6s F6hd Ged Gs E5 D5ed Gs E5 D5ed Gs E5 D5ed Gs F5 E5ed Gs F5 E5ed D5s C5h",
     },
     "STARWARS": {
-        DELAY: 2,
-        TUNE: "~playtune R R o=5 F4t F4t F4t Bb4h F5h Ebt Dt Ct Bbh F Ebt Dt Ct Bbh F Ebt Dt Ebt Ch F4t F4t F4t Bb4h Fh Ebt Dt Ct Bbh F Ebt Dt Ct Bbh F Ebt Dt Ebt Ch F4L0.67 F4t G4qd G4e Ebe De Ce Bb4e Bb4t Ct Dt CL0.67 G4t A4 F4ed F4e G4qd G4e Ebe De Ce Bb4e Feq Cs Ch",
+        DELAY: 1,
+        TUNE: "~playtune R o=5 F4t F4t F4t Bb4h F5h Ebt Dt Ct Bbh F Ebt Dt Ct Bbh F Ebt Dt Ebt Ch F4t F4t F4t Bb4h Fh Ebt Dt Ct Bbh F Ebt Dt Ct Bbh F Ebt Dt Ebt Ch F4L0.67 F4t G4qd G4e Ebe De Ce Bb4e Bb4t Ct Dt CL0.67 G4t A4 F4ed F4e G4qd G4e Ebe De Ce Bb4e Feq Cs Ch",
     },
     "MOANA": {
         DELAY: 2,
@@ -46,7 +46,7 @@ ANSWERS = {
         TUNE: "~playtune R R R R R Fe Ge Ge Ah Ge Fe Ge C5h Bbe Ae Fhd R Fe Ge Ahd Bbs As Gs Fs Ge C5h Ae C5e D5h C5h Gh Rh Fqd Fe F F E Fh F E Fh G Ah Gh Fqd Fe F F E Fh F Cw",
     },
     "AVENGERS": {
-        DELAY: 3,
-        TUNE: "~playtune R R R Ds Ds D Ds Ds D Ds Ds Ds Ds Ebs Ebs Eb Ebs Ebs E Es Es Es Es Fs Fs F Fs Fs E Es Es Es Es Ebs Ebs Eb Ebs Ebs Bb3 C Ds Ds D Ds Ds D Ds Ds Ds Ds DS Ebs Ebs Eb Ebs Ebs E Es Es Es Es Fs Fs F Fs Fs E Es Es Es Es Ebs Ebs Eb Ebs Ebs Bb3 C G3w D Ced Bb3s Bb3 Ced Ds D G3hd D Ced Bb3s Bb3 A3 G3w D Ced Bb3s Bb3 Ced Ds D G3hd D Ced Bb3s Bb3 A3 G3w",
+        DELAY: 5,
+        TUNE: "~playtune R R R R R Ds Ds D Ds Ds D Ds Ds Ds Ds Ebs Ebs Eb Ebs Ebs E Es Es Es Es Fs Fs F Fs Fs E Es Es Es Es Ebs Ebs Eb Ebs Ebs Bb3 C Ds Ds D Ds Ds D Ds Ds Ds Ds DS Ebs Ebs Eb Ebs Ebs E Es Es Es Es Fs Fs F Fs Fs E Es Es Es Es Ebs Ebs Eb Ebs Ebs Bb3 C G3w D Ced Bb3s Bb3 Ced Ds D G3hd D Ced Bb3s Bb3 A3 G3w D Ced Bb3s Bb3 Ced Ds D G3hd D Ced Bb3s Bb3 A3 G3w",
     }
 }

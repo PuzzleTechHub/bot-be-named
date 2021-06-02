@@ -13,6 +13,43 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command(name="playtuneinfo", aliases=["ptinfo"])
+    @commands.has_any_role(
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
+    )
+    async def playtuneinfo(self, ctx):
+        """Give the users everything they need to know about the puzzle"""
+        print("Received playtuneinfo")
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"Playtune Info",
+                        value=f"Just use `{ctx.prefix}playtune` followed by the notes you want to play. For example, try `{ctx.prefix}playtune C D E F G Ab4 B#4 C5`"
+                        f"\nUse `R` for Rest. For example, try `{ctx.prefix}playtune C R R R C R R C R C C`"
+                        f"\nUse `m=1` for appropriate meter and `o=4` for the octave to set default for the song. For example, try `{ctx.prefix}playtune m=1 o=5 C D E F`"
+                        f"\nAdd `L` with a number after your note (or use the correct lowercase symbols) to adjust length. For example, try `{ctx.prefix}playtune CL4 CL2 CL1 CL0.5 RL3 Cw Ch Cq Ce`"
+                        f"\nTo see an example with all of them, try `{ctx.prefix}playtunesample`"
+                        )
+        await ctx.send(embed=embed)
+        s = "wd=6, w=4, hd=3, h=2, qd=1.5, q=1, ed=0.75, e=0.5, sd = 0.375, s=0.25"
+
+
+    @commands.command(name="playtunesample", aliases=["ptsample"])
+    @commands.has_any_role(
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
+    )
+    async def playtunesample(self, ctx):
+        """Give the users everything they need to know about the puzzle"""
+        print("Received playtunesample")
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"Playtune Sample",
+                        value=f"`{ctx.prefix}playtune o=5 m=1.2 RL0.5 EL0.5 F#L0.5 GL3 DL0.5 BL0.5 AL3 GL0.5 F#L0.5 EL0.5 EL0.5 E EL0.5 F# GL3 EL0.5 F#L0.5 GL3 DL0.5 BL0.5 AL3 GL0.5 AL0.5 B B C6L0.5 B AL0.5 GL0.5 AL0.5 GL3 DL1.5 B4L1.5 A4L3 G4 G4 DL1.5 B4L1.5 G4L4`"
+                        )
+        await ctx.send(embed=embed)
+
+
     @commands.command(name="playtune")
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,

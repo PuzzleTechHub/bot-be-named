@@ -26,6 +26,21 @@ class MusicRace(commands.Cog, name="Music Race"):
         self.bot = bot
         self.partition_map = get_partition_mapping()
 
+    @commands.command(name="song")
+    @commands.has_any_role(
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE
+    )
+    async def race_end(self, ctx):
+        """Give the users everything they need to know about the puzzle"""
+        print("Received race_end")
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"Success",
+                        value=f"Well done! Now, for your final step, just **PLAY US A SONG**!"
+                            f"\nPlay any tune you like using `{ctx.prefix}playtune`, and tag `@hint` to submit it!"
+                            f"\nTo learn how the playtune command works, just use `{ctx.prefix}playtuneinfo`")
+        await ctx.send(embed=embed)
+
     @commands.command(name="musicraceinfo", aliases=["mrinfo"])
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
@@ -36,8 +51,8 @@ class MusicRace(commands.Cog, name="Music Race"):
         print("Received musicraceinfo")
 
         embed = discord_utils.create_embed()
-        embed.add_field(name=f"Hello, and welcome to my puzzle",
-                        value=f"You will be using `{ctx.prefix}guesstune` for this puzzle. Have fun!`")
+        embed.add_field(name=f"Welcome to Placeholder Music Puzzle!",
+                        value=f"You will be using `{ctx.prefix}guesstune` for this puzzle. For example, try `{ctx.prefix}guesstune PIANO` Have fun!")
 
         await ctx.send(embed=embed)
 
@@ -106,7 +121,9 @@ class MusicRace(commands.Cog, name="Music Race"):
         for ans in finalanswer:
             debug_output_msg += f"{ans[1]}-{ans[1]+3}: {ans[0]}\n"
         # TODO: Remove once we are more certain about how this works. It ruins the puzzle, obviously
-        await ctx.send(debug_output_msg)
+        #await ctx.send(debug_output_msg)
+        print(word)
+        print(debug_output_msg)
 
         inputs = ''.join([f"-i {os.path.join(os.getcwd(), constants.MODULES_DIR, music_race_constants.MUSIC_RACE_DIR, music_race_constants.PUZZLE_SONGS_DIR, finalanswer[idx][0] + '.mp3')} " for idx in range(len(finalanswer))])
         # Otherwise, we just chop each song into 3s bits, with 0.5s between them
