@@ -1,7 +1,11 @@
+import os
+import constants
 
 MUSIC_RACE_DIR = "music_race"
-PUZZLE_OUTPUTS_DIR = "puzzle_outputs"
-PUZZLE_SONGS_DIR = "puzzle_songs"
+PUZZLE_OUTPUTS_DIR = os.path.join(os.getcwd(), constants.MODULES_DIR, MUSIC_RACE_DIR, "puzzle_outputs")
+PUZZLE_PARTIAL_SONGS_DIR = os.path.join(os.getcwd(), constants.MODULES_DIR, MUSIC_RACE_DIR, "puzzle_partial_songs")
+PUZZLE_FULL_SONGS_DIR = os.path.join(os.getcwd(), constants.MODULES_DIR, MUSIC_RACE_DIR, "puzzle_full_songs")
+MP3_EXTENSION = ".mp3"
 
 SONG_SNIPPET_LENGTH = 3
 VOLUME = 11

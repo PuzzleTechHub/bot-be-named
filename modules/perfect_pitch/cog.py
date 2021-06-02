@@ -16,7 +16,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.command(name="playtuneinfo", aliases=["ptinfo"])
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
+        constants.KEV_SERVER_TESTER_ROLE,
+        846095217017749515
     )
     async def playtuneinfo(self, ctx):
         """Give the users everything they need to know about the puzzle"""
@@ -37,7 +38,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.command(name="playtunesample", aliases=["ptsample"])
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
+        constants.KEV_SERVER_TESTER_ROLE,
+        846095217017749515
     )
     async def playtunesample(self, ctx):
         """Give the users everything they need to know about the puzzle"""
@@ -53,7 +55,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.command(name="playtune")
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
+        constants.KEV_SERVER_TESTER_ROLE,
+        846095217017749515
     )
     async def playtune(self, ctx, *args):
         """Play a string of notes together"""
@@ -83,7 +86,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.command(name="chord")
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
+        constants.KEV_SERVER_TESTER_ROLE,
+        846095217017749515
     )
     async def chord(self, ctx):
         """Sends the user a random chord. Note: all chords come from the 4th octave (middle C)"""
@@ -97,7 +101,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.command(name="note")
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
+        constants.KEV_SERVER_TESTER_ROLE,
+        846095217017749515
     )
     async def note(self, ctx, *args):
         """Send the user a random note for them to identify.

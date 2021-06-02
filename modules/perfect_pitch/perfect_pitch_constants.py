@@ -46,7 +46,7 @@ MUSIC = "music"
 NOTES = "notes"
 CHORDS = "chords"
 TUNES = "tunes"
-PUZZLE_SONGS = "puzzle_songs"
+PUZZLE_SONGS = "puzzle_partial_songs"
 PUZZLE_OUTPUTS = "puzzle_outputs"
 PERFECT_PITCH_DIR = "perfect_pitch"
 
