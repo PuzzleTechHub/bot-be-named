@@ -87,7 +87,7 @@ class MusicRace(commands.Cog, name="Music Race"):
             if not os.path.exists(final_song_path):
                 delay = music_race_constants.ANSWERS[word][music_race_constants.DELAY] * 1000
                 os.system(
-                    f"ffmpeg -y -i {os.path.join(music_race_constants.PUZZLE_FULL_SONGS_DIR, word + music_race_constants.MP3_EXTENSION)} -filter_complex 'adelay={delay}|{delay}' {final_song_path}"
+                    f"ffmpeg -y -hide_banner -loglevel error -i {os.path.join(music_race_constants.PUZZLE_FULL_SONGS_DIR, word + music_race_constants.MP3_EXTENSION)} -filter_complex 'adelay={delay}|{delay}' {final_song_path}"
                 )
 
             embed.add_field(name=f"{word}",
@@ -122,13 +122,13 @@ class MusicRace(commands.Cog, name="Music Race"):
             # Increments
             delay += 3
 
-        #debug_output_msg = ""
-        #for ans in finalanswer:
-        #    debug_output_msg += f"{ans[1]}-{ans[1]+3}: {ans[0]}\n"
+        debug_output_msg = ""
+        for ans in finalanswer:
+            debug_output_msg += f"{ans[1]}-{ans[1]+3}: {ans[0]}\n"
         # TODO: Remove once we are more certain about how this works. It ruins the puzzle, obviously
         #await ctx.send(debug_output_msg)
-        #print(word)
-        #print(debug_output_msg)
+        print(word)
+        print(debug_output_msg)
 
         inputs = ''.join([f"-i {os.path.join(music_race_constants.PUZZLE_PARTIAL_SONGS_DIR, finalanswer[idx][0] + '.mp3')} " for idx in range(len(finalanswer))])
         # Otherwise, we just chop each song into 3s bits, with 0.5s between them
@@ -142,7 +142,7 @@ class MusicRace(commands.Cog, name="Music Race"):
 
         output_path = os.path.join(output_dir, f"{word}.mp3")
         os.system(
-            f"ffmpeg -y  {inputs} " +
+            f"ffmpeg -y -hide_banner -loglevel error {inputs} " +
             f"-filter_complex '{filter_complex}{mix}amix=inputs={len(finalanswer)}:dropout_transition=100,volume={music_race_constants.VOLUME/2},loudnorm' "
             f"{output_path}"
         )
