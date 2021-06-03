@@ -13,7 +13,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="playtuneinfo", aliases=["ptinfo"])
+    @commands.command(name="playtuneinfo", aliases=["ptinfo","playtunehelp","pthelp"])
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
@@ -24,12 +24,14 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         print("Received playtuneinfo")
 
         embed = discord_utils.create_embed()
-        embed.add_field(name=f"Playtune Info",
-                        value=f"Just use `{ctx.prefix}playtune` followed by the notes you want to play. For example, try `{ctx.prefix}playtune C D E F G Ab4 B#4 C5`"
+        embed.add_field(name=f"Playtune Help",
+                        value=f"Welcome to Playtune, the bot command to play musical notes of your choice!"
+                        f"\n\nJust use `{ctx.prefix}playtune` followed by the notes you want to play. For example, try `{ctx.prefix}playtune C D E F G Ab4 B#4 C5`"
+                        f"\n\n**Extra Settings**"
                         f"\nUse `R` for Rest. For example, try `{ctx.prefix}playtune C R R R C R R C R C C`"
-                        f"\nUse `m=1` for appropriate meter and `o=4` for the octave to set default for the song. For example, try `{ctx.prefix}playtune m=1 o=5 C D E F`"
-                        f"\nAdd `L` with a number after your note (or use the correct lowercase symbols) to adjust length. For example, try `{ctx.prefix}playtune CL4 CL2 CL1 CL0.5 RL3 Cw Ch Cq Ce`"
-                        f"\nTo see an example with all of them, try `{ctx.prefix}playtunesample`"
+                        f"\nUse `m=1` for meter and `o=4` for the octave to set as default for the song. For example, try `{ctx.prefix}playtune m=0.8 o=5 C D E F`"
+                        f"\nAdd `L2` after your note (or use the correct lowercase symbols) to adjust length. For example, try `{ctx.prefix}playtune CL4 CL2 CL1 CL0.5 RL3 Cw Ch Cq Ce`"
+                        f"\n\nTo see an example with all of them, try `{ctx.prefix}playtunesample`"
                         )
         await ctx.send(embed=embed)
         s = "wd=6, w=4, hd=3, h=2, qd=1.5, q=1, ed=0.75, e=0.5, sd = 0.375, s=0.25"
@@ -78,7 +80,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         except FileNotFoundError:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
-                            value=f"Sorry, we had a problem creating your tune! Check out `{ctx.prefix}help` "
+                            value=f"Sorry, we had a problem creating your tune! Check out `{ctx.prefix}playtunehelp` "
                                   f"to see how to use the command, or try: "
                                   f"`{ctx.prefix}playtune meter=1 octave=5 C D E F` as an example")
             await ctx.send(embed=embed)

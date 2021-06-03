@@ -42,21 +42,21 @@ class MusicRace(commands.Cog, name="Music Race"):
         embed.add_field(name=f"Success",
                         value=f"Well done! Now, for your final step, just **PLAY US A SONG**!"
                             f"\nPlay any tune you like using `{ctx.prefix}playtune`, and tag `@hint` to submit it!"
-                            f"\nTo learn how the playtune command works, just use `{ctx.prefix}playtuneinfo`")
+                            f"\nTo learn how the playtune command works, just use `{ctx.prefix}playtunehelp`")
         await ctx.send(embed=embed)
 
-    @commands.command(name="musicraceinfo", aliases=["mrinfo"])
+    @commands.command(name="notesaw", aliases=["mrinfo","musicpuzzleinfo"])
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE
     )
-    async def musicraceinfo(self, ctx):
+    async def musicpuzzleinfo(self, ctx):
         """Give the users everything they need to know about the puzzle"""
-        print("Received musicraceinfo")
+        print("Received musicpuzzleinfo")
 
         embed = discord_utils.create_embed()
-        embed.add_field(name=f"Welcome to Placeholder Music Puzzle!",
-                        value=f"You will be using `{ctx.prefix}guesstune` for this puzzle. For example, try `{ctx.prefix}guesstune PIANO` Have fun!")
+        embed.add_field(name=f"Welcome to Notesaw!",
+                        value=f"To start the puzzle, use `{ctx.prefix}guesstune`. For example, try `{ctx.prefix}guesstune PIANO`. Have fun!")
 
         await ctx.send(embed=embed)
 
@@ -96,8 +96,9 @@ class MusicRace(commands.Cog, name="Music Race"):
                 # os.system(
                 #    f"ffmpeg-normalize -f -c:a libmp3lame {output_path} -o {output_path}"
                 # )
-            embed.add_field(name=f"{word}",
-                            value=f"`{music_race_constants.ANSWERS[word][music_race_constants.TUNE]}`")
+            embed.add_field(name=f"Well done! You guessed {word}!",
+                            value=f"\nTo play this tune yourself, use this command. (See {ctx.prefix}playtunehelp for more help)"
+                            f"\n\n`{music_race_constants.ANSWERS[word][music_race_constants.TUNE]}`")
             await ctx.send(embed=embed)
             await ctx.send(
                 file=discord.File(final_song_path,

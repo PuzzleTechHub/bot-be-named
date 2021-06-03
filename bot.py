@@ -83,7 +83,8 @@ def main():
                             value=f"My prefix in this server is \"{pre}\". Use {pre}help "
                                   f"to learn about my commands!",
                             inline=False)
-            await message.channel.send(embed=embed)
+            if(False):
+                await message.channel.send(embed=embed)
 
         await client.process_commands(message)
 
