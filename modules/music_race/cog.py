@@ -149,8 +149,8 @@ class MusicRace(commands.Cog, name="Music Race"):
 
         output_path = os.path.join(output_dir, f"{word}.mp3")
         os.system(
-            f"ffmpeg -y -hide_banner -loglevel error {inputs} " +
-            f"-filter_complex '{filter_complex}{mix}amix=inputs={len(finalanswer)}:dropout_transition=100,volume={music_race_constants.VOLUME/2},loudnorm' "
+            f"ffmpeg -y -hide_banner -loglevel error {inputs} -preset veryfast " +
+            f"-filter_complex '{filter_complex}{mix}amix=inputs={len(finalanswer)}:dropout_transition=1000,volume={music_race_constants.VOLUME/2},loudnorm' "
             f"{output_path}"
         )
         # TODO: ffmpeg-normalize is too slow for now. Try to optimize later.

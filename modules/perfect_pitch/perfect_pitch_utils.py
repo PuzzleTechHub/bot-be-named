@@ -176,7 +176,7 @@ class Tune:
             # Call ffmpeg from the command line
             os.system(
                 f"ffmpeg -y {' '.join(input_paths)} -filter_complex "
-                f"'{filter_complex}{mix}amix=inputs={len(time_indices)},volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
+                f"'{filter_complex}{mix}amix=inputs={len(time_indices)}:dropout_transition=1000,volume={perfect_pitch_constants.VOLUME},loudnorm' {final_output_path}"
             )
             # TODO: optimize ffmpeg-normalize
             #os.system(
@@ -226,7 +226,7 @@ class Tune:
                 os.system(
                     f"ffmpeg -y {' '.join(partition_input_paths)} -filter_complex "
                     f"'{filter_complex}{mix}amix=inputs={len(partition_input_notes)}:dropout_transition=1000,"
-                    f"volume={perfect_pitch_constants.VOLUME}' {partition_output_path}"
+                    f"volume={perfect_pitch_constants.VOLUME},loudnorm' {partition_output_path}"
                 )
 
             # AFTER EACH PARTITION HAS BEEN CREATED, REMERGE THE PARTITIONS
@@ -237,7 +237,7 @@ class Tune:
             os.system(
                 f"ffmpeg -y {' '.join(merge_paths)} -filter_complex "
                 f"'{filter_complex}{mix}amix=inputs={len(merge_time_indices)},"
-                f"volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
+                f"volume={perfect_pitch_constants.VOLUME},loudnorm' {final_output_path}"
             )
             # TODO: ffmpeg-normalize is too slow for now
             #os.system(
