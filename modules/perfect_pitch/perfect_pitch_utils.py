@@ -178,6 +178,10 @@ class Tune:
                 f"ffmpeg -y {' '.join(input_paths)} -filter_complex "
                 f"'{filter_complex}{mix}amix=inputs={len(time_indices)},volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
             )
+            # TODO: optimize ffmpeg-normalize
+            #os.system(
+            #    f"ffmpeg-normalize -f -c:a libmp3lame {final_output_path} -o {final_output_path}"
+            #)
         # Multi-Partition Case
         else:
             # Split notes into equal-part partitions
@@ -235,5 +239,9 @@ class Tune:
                 f"'{filter_complex}{mix}amix=inputs={len(merge_time_indices)},"
                 f"volume={perfect_pitch_constants.VOLUME}' {final_output_path}"
             )
+            # TODO: ffmpeg-normalize is too slow for now
+            #os.system(
+            #    f"ffmpeg-normalize -f -c:a libmp3lame {final_output_path} -o {final_output_path}"
+            #)
 
         return final_output_path

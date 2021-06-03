@@ -17,6 +17,8 @@ def get_partition_mapping():
                 map[letter].append(f"{answer}_part_{idx}")
             else:
                 map[letter] = [f"{answer}_part_{idx}"]
+    for letter in filter(lambda x: x not in map, string.ascii_uppercase):
+        map[letter] = ["silence"]
     return map
 
 
@@ -90,7 +92,10 @@ class MusicRace(commands.Cog, name="Music Race"):
                 os.system(
                     f"ffmpeg -y -hide_banner -loglevel error -i {os.path.join(music_race_constants.PUZZLE_FULL_SONGS_DIR, word + music_race_constants.MP3_EXTENSION)} -filter_complex 'adelay={delay}|{delay}' {final_song_path}"
                 )
-
+                # TODO: ffmpeg-normalize is too slow for now. Try to optimize later.
+                # os.system(
+                #    f"ffmpeg-normalize -f -c:a libmp3lame {output_path} -o {output_path}"
+                # )
             embed.add_field(name=f"{word}",
                             value=f"`{music_race_constants.ANSWERS[word][music_race_constants.TUNE]}`")
             await ctx.send(embed=embed)
@@ -147,6 +152,10 @@ class MusicRace(commands.Cog, name="Music Race"):
             f"-filter_complex '{filter_complex}{mix}amix=inputs={len(finalanswer)}:dropout_transition=100,volume={music_race_constants.VOLUME/2},loudnorm' "
             f"{output_path}"
         )
+        # TODO: ffmpeg-normalize is too slow for now. Try to optimize later.
+        #os.system(
+        #    f"ffmpeg-normalize -f -c:a libmp3lame {output_path} -o {output_path}"
+        #)
         await ctx.send(file=discord.File(output_path))
 
 

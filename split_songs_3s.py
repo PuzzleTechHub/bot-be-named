@@ -4,6 +4,7 @@ from modules.music_race import music_race_constants
 
 SPLIT_SONG_LENGTH = 3 # 3 seconds
 
+os.system(f"ffmpeg -f lavfi -i anullsrc=r=44100:cl=mono -t 5 -q:a 9 -acodec libmp3lame {os.path.join(music_race_constants.PUZZLE_PARTIAL_SONGS_DIR, 'silence.mp3')}")
 for song in music_race_constants.ANSWERS:
     for letter_idx, letter in enumerate(song):
         os.system(
