@@ -1,6 +1,9 @@
 import os
 from modules.music_race import music_race_constants
 
+if not os.path.exists(os.path.join(os.getcwd(), "modules", music_race_constants.MUSIC_RACE_DIR, "puzzle_partial_songs")):
+    os.mkdir(os.path.join(os.getcwd(), "modules", music_race_constants.MUSIC_RACE_DIR, "puzzle_partial_songs"))
+
 
 SPLIT_SONG_LENGTH = 3 # 3 seconds
 

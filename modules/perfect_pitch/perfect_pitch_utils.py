@@ -24,9 +24,17 @@ class Note:
         else:
             self.octave = octave
             self.instrument = instrument
-            self.path = os.path.join(os.getcwd(), constants.MODULES_DIR,
+            # TODO: is this the best way to check if a note is inside an instrument's range?
+            proposed_path = os.path.join(os.getcwd(), constants.MODULES_DIR,
                                      constants.PERFECT_PITCH.lower().replace(' ', '_'), perfect_pitch_constants.MUSIC,
                                      self.instrument, perfect_pitch_constants.NOTES, f"{self.letter}{self.octave}.mp3")
+            if os.path.exists(proposed_path):
+                self.path = proposed_path
+            else:
+                self.path = os.path.join(os.getcwd(), constants.MODULES_DIR,
+                                         constants.PERFECT_PITCH.lower().replace(' ', '_'),
+                                         perfect_pitch_constants.MUSIC, "piano", perfect_pitch_constants.NOTES,
+                                         f"{self.letter}{self.octave}.mp3")
 
 
 class Tune:
@@ -41,7 +49,7 @@ class Tune:
         self.default_duration = 1
         # octave to set each note to (unless otherwise specified)
         self.default_octave = 4
-        self.instrument = "piano"
+        self.instrument = perfect_pitch_constants.PIANO
         self.notes = []
         # Used for creating output file
         self.channel_name = channel_name

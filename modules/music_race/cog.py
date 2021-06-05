@@ -45,7 +45,7 @@ class MusicRace(commands.Cog, name="Music Race"):
                             f"\nTo learn how the playtune command works, just use `{ctx.prefix}playtunehelp`")
         await ctx.send(embed=embed)
 
-    @commands.command(name="notesaw", aliases=["mrinfo","musicpuzzleinfo"])
+    @commands.command(name="notesaw", aliases=["mrinfo", "musicpuzzleinfo"])
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE
@@ -56,8 +56,8 @@ class MusicRace(commands.Cog, name="Music Race"):
 
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Welcome to Notesaw!",
-                        value=f"To start the puzzle, use `{ctx.prefix}guesstune`. For example, try `{ctx.prefix}guesstune PIANO`. Have fun!")
-
+                        value=f"To start the puzzle, use `{ctx.prefix}guesstune`. "
+                              f"For example, try `{ctx.prefix}guesstune PIANO`. Have fun!")
         await ctx.send(embed=embed)
 
     @commands.command(name="guesstune")

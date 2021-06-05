@@ -52,6 +52,8 @@ PERFECT_PITCH_DIR = "perfect_pitch"
 
 # INSTRUMENTS
 PIANO = "piano"
+XYLOPHONE = "xylophone"
+MARIMBA = "marimba"
 
 # FFMPEG formatting
 MAX_PARTITION_SIZE = 25  # Absolute max is 26
