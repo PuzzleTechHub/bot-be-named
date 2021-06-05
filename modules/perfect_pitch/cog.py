@@ -49,7 +49,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
                         value=f"Use `i=` at the start of your tune to control the instrument used. For example, try "
                               f"`{ctx.prefix}playtune m=0.8 o=5 i=xylophone C D E F`. Currently supported instruments "
                               f"include {perfect_pitch_constants.PIANO} (default), {perfect_pitch_constants.XYLOPHONE}, "
-                              f"and {perfect_pitch_constants.MARIMBA}.\nUse {ctx.prefix}playtuneinstrument to learn more"
+                              f"and {perfect_pitch_constants.MARIMBA}.\nUse `{ctx.prefix}playtuneinstrument` to learn more"
                               f"about each instrument's range of notes.",
                         inline=False)
         embed.add_field(name=f"Customizing Note Length",
@@ -63,7 +63,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
                         inline=False
                         )
         embed.add_field(name=f"Example",
-                        value=f"To see an example with everything put together, try `{ctx.prefix}playtunesample",
+                        value=f"To see an example with everything put together, try `{ctx.prefix}playtunesample`",
                         inline=False)
         await ctx.send(embed=embed)
 
