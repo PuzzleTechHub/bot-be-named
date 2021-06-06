@@ -15,7 +15,7 @@ class TimeCog(commands.Cog, name="Time"):
     @commands.command(name="time")
     async def time(self, ctx, *args):
         """Return the time in the specified location"""
-        print("Received time")
+        print(f"Received time from {ctx.channel.name}")
         # No location provided
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("location")

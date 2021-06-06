@@ -37,7 +37,7 @@ class MusicRace(commands.Cog, name="Music Race"):
     )
     async def race_end(self, ctx):
         """Give the users everything they need to know about the puzzle"""
-        print("Received race_end")
+        print(f"Received race_end from {ctx.channel.name}")
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Success",
                         value=f"Well done! Now, for your final step, just **BE NOISY**!"
@@ -53,7 +53,7 @@ class MusicRace(commands.Cog, name="Music Race"):
     )
     async def musicpuzzleinfo(self, ctx):
         """Give the users everything they need to know about the puzzle"""
-        print("Received musicpuzzleinfo")
+        print(f"Received musicpuzzleinfo from {ctx.channel.name}")
 
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Welcome to Notesaw!",
@@ -69,7 +69,7 @@ class MusicRace(commands.Cog, name="Music Race"):
     )
     async def guesstune(self, ctx, *args):
         """Take a user's guess and give them a response based on what letters they provided"""
-        print("Recieved guesstune")
+        print(f"Recieved guesstune from {ctx.channel.name}")
         embed = discord_utils.create_embed()
 
         if len(args) < 1:

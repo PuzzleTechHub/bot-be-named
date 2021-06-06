@@ -73,7 +73,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
             await ctx.send(embed=embed)
             return
         # Housekeeping
-        print(f"Received startrace in channel {channel}")
+        print(f"Received startrace from {ctx.channel.name}")
         # Create entry in current_races
         self.current_races[channel] = dict()
         self.current_races[channel][cipher_race_constants.LEVEL] = 1
@@ -98,6 +98,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         Ends the race
         Usage: ~endrace
         """
+        print(f"Received endrace from {ctx.channel.name}")
         channel = ctx.channel.id
         if channel not in self.current_races:
             embed = discord_utils.create_embed()
@@ -126,7 +127,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         Usage: ~practice (optional: <cipher_name> <sheet>)
         If you want to supply sheet, must supply cipher_name
         """
-        print("Received ~practice")
+        print(f"Received ~practice from {ctx.channel.name}")
         embed = discord_utils.create_embed()
         # Supply no arguments: randomly sample
         # Supply 2 arguments: sample specific cipher_race
@@ -179,7 +180,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         Usage: ~answer <your answer>
         """
         channel = ctx.channel.id
-        print(f"Received answer from {channel}")
+        print(f"Received answer from {ctx.channel.name}")
         
         # if the team isn't puzzling then we need to instruct them to use startpuzzle command first.
         if channel not in self.current_races:

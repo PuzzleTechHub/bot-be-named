@@ -23,7 +23,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="pin")
     async def pin(self, ctx):
         """Pin a message (Either a reply or the one above ~pin"""
-        print("Received pin")
+        print(f"Received pin from {ctx.channel.name}")
         if not ctx.message.reference:
             channel_history = await ctx.message.channel.history(limit=2).flatten()
             msg = channel_history[-1]
@@ -42,7 +42,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="pinme")
     async def pinme(self, ctx):
         """Pins the message"""
-        print("Received pinme")
+        print(f"Received pinme from {ctx.channel.name}")
         try:
             await ctx.message.pin()
         except discord.HTTPException:
@@ -55,7 +55,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="unpin")
     async def unpin(self, ctx, num_to_unpin: int = 1):
         """Unpin <num_to_unpin> messages, or all if num if 0"""
-        print("Received unpin")
+        print(f"Received unpin from {ctx.channel.name}")
         if num_to_unpin < 1 or not isinstance(num_to_unpin, int):
             embed = discord_utils.create_no_argument_embed("number of messages to unpin")
             await ctx.send(embed=embed)
@@ -90,7 +90,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="stats")
     async def stats(self, ctx):
         """Get server stats"""
-        print("Received stats")
+        print(f"Received stats from {ctx.channel.name}")
         guild = ctx.guild
         embed = discord_utils.create_embed()
         embed.add_field(name="Members",
@@ -111,7 +111,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="catstats")
     async def catstats(self, ctx):
         """Get category stats"""
-        print("Received catstats")
+        print(f"Received catstats from {ctx.channel.name}")
         cat = ctx.message.channel.category
         embed = discord_utils.create_embed()
         embed.add_field(name="Category Name",
@@ -130,7 +130,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="assignrole", aliases=["giverole"])
     async def assignrole(self, ctx, rolename: str, *args):
         """Assign a role to a list of users"""
-        print("Received assignrole")
+        print(f"Received assignrole from {ctx.channel.name}")
         # User didn't include any people to get the role
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Users to give the role")
@@ -216,7 +216,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             - color: (Optional[hex]) the hex code to be the role's color
             - mentionable: (Optional[str]) whether to allow users to mention the role
         """
-        print("Received createrole")
+        print(f"Received createrole from {ctx.channel.name}")
 
         # Convert color from hex str into int
         if color:
@@ -251,7 +251,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="deleterole", aliases=["removerole", "rmrole"])
     async def deleterole(self, ctx, rolename: str):
         """Remove the role with `rolename`"""
-        print("Received deleterole")
+        print(f"Received deleterole from {ctx.channel.name}")
 
         embed = discord_utils.create_embed()
         role_to_delete = None
@@ -293,6 +293,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="listroles", aliases=["lsroles"])
     async def listroles(self, ctx):
         """List all roles in the server"""
+        print(f"Received listroles from {ctx.channel.name}")
         roles = await ctx.guild.fetch_roles()
         embed = discord.Embed(title=f"Roles in {ctx.guild.name}",
                               description=f"{', '.join([role.mention for role in roles])}",
@@ -300,9 +301,10 @@ class DiscordCog(commands.Cog, name="Discord"):
         await ctx.send(embed=embed)
 
 
-    #################
+    ###################
     # BOTSAY COMMANDS #
-    #################
+    ###################
+
     @commands.command(name="botsay")
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
@@ -310,7 +312,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     )
     async def botsay(self, ctx, chan_name: str, *args):
         """Say something in another channel"""
-        print("Received botsay")
+        print(f"Received botsay from {ctx.channel.name}")
 
         embed = discord_utils.create_embed()
 

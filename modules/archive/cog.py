@@ -100,7 +100,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
     async def archivechannel(self, ctx, *args):
         """Command to download channel's history"""
         # TODO: Need error handling for asking a channel we don't have access to or invalid channel name
-        print("Received archivechannel")
+        print(f"Received archivechannel from {ctx.channel.name}")
         # Check if the user supplied a channel
         if len(args) < 1:
             # No arguments provided
@@ -168,7 +168,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
     @commands.has_guild_permissions(administrator=True)
     async def archivecategory(self, ctx, *args):
         """Command to download the history of every text channel in the category"""
-        print("Received archivecategory")
+        print(f"Received archivecategory from {ctx.channel.name}")
         # Check if the user supplied a channel
         if len(args) < 1:
             # No arguments provided
@@ -233,7 +233,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         """Command to archive every text channel in the server.
 
         WARNING: This command will take *very* long on any reasonably aged server"""
-        print("Received archiveserver")
+        print(f"Received archiveserver from {ctx.channel.name}")
         # If we don't have the lock, let the user know it may take a while.
         msg = None
         if self.lock.locked():

@@ -25,7 +25,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     )
     async def movechannel(self, ctx, *args):
         """Command to move channel to category with given name"""
-        print("Received movechannel")
+        print(f"Received movechannel from {ctx.channel.name}")
         embed = discord_utils.create_embed()
         # check for category name arguments
         if len(args) <= 0:
@@ -77,7 +77,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Usage: ~renamechannel Newname"""
         # log command in console
         embed = discord_utils.create_embed()
-        print("Received renamechannel")
+        print(f"Received renamechannel from {ctx.channel.name}")
         if len(args) <= 0:
             embed.add_field(name=f"{constants.FAILED}!", value=f"You must specify a new channel name!")
             # reply to user
@@ -116,7 +116,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         """Wrapper function for createchannel for self calls"""
         """Command to create channel in same category with given name"""
         # log command in console
-        print("Received createchannel")
+        print(f"Received createchannel from {ctx.channel.name}")
 
         embed = discord_utils.create_embed()
 
@@ -133,7 +133,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def clonechannel(self, ctx, original: str, new: str):
         """Command to create channel in same category with given name"""
         # log command in console
-        print("Received clonechannel")
+        print(f"Received clonechannel from {ctx.channel.name}")
         embed = discord_utils.create_embed()
 
         # get guild and category

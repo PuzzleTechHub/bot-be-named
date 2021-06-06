@@ -16,7 +16,7 @@ class ErrorLogCog(commands.Cog):
     @commands.is_owner()
     async def errorlog(self, ctx, num_lines: int = 50):
         """Shows errors in reverse chronological order"""
-        print("Received errorlog")
+        print(f"Received errorlog from {ctx.channel.name}")
         with open(error_constants.ERROR_LOGFILE, "r") as f:
             lines = f.readlines()
             last_n_lines = "".join(lines[-num_lines:])

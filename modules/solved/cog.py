@@ -59,7 +59,7 @@ class SolvedCog(commands.Cog):
 
 		Usage: ~solved"""
 		# log command in console
-		print("Received solved")
+		print(f"Received solved from {ctx.channel.name}")
 		channel = ctx.message.channel
 		embed = discord_utils.create_embed()
 		new_channel_name = self.add_prefix(channel, solved_constants.SOLVED_PREFIX)
@@ -85,7 +85,7 @@ class SolvedCog(commands.Cog):
 
 		Usage: ~solvedish"""
 		# log command in console
-		print("Received solvedish")
+		print(f"Received solvedish from {ctx.channel.name}")
 		channel = ctx.message.channel
 		embed = discord_utils.create_embed()
 		new_channel_name = self.add_prefix(ctx.message.channel, solved_constants.SOLVEDISH_PREFIX)
@@ -112,7 +112,7 @@ class SolvedCog(commands.Cog):
 
 		Usage: ~backsolved"""
 		# log command in console
-		print("Received backsolved")
+		print(f"Received backsolved from {ctx.channel.name}")
 		channel = ctx.message.channel
 		embed = discord_utils.create_embed()
 		new_channel_name = self.add_prefix(channel, solved_constants.BACKSOLVED_PREFIX)
@@ -138,7 +138,7 @@ class SolvedCog(commands.Cog):
 
 		Usage: ~unsolved"""
 		# log command in console
-		print("Received unsolved")
+		print(f"Received unsolved from {ctx.channel.name}")
 		channel = ctx.message.channel
 		embed = discord_utils.create_embed()
 		for prefix in solved_constants.PREFIXES:

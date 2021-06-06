@@ -21,7 +21,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     )
     async def playtunehelp(self, ctx):
         """Give the users everything they need to know about playtune"""
-        print("Received playtunehelp")
+        print(f"Received playtunehelp from {ctx.channel.name}")
 
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Playtune Help",
@@ -56,7 +56,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     )
     async def playtunecustom(self, ctx):
         """Give the users everything they need to know about customising playtune"""
-        print("Received playtunecustom")
+        print(f"Received playtunecustom from {ctx.channel.name}")
 
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Playtune Customizing",
@@ -98,7 +98,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         846095217017749515
     )
     async def playtuneinstrument(self, ctx):
-        print("Received playtuneinstrument")
+        print(f"Received playtuneinstrument from {ctx.channel.name}")
         embed = discord_utils.create_embed()
         embed.add_field(name="Instruments and Ranges (Low/High)",
                         value=f"{perfect_pitch_constants.PIANO}: B0/C8\n{perfect_pitch_constants.XYLOPHONE}:F4/C8\n"
@@ -112,7 +112,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         846095217017749515
     )
     async def playtunelength(self, ctx):
-        print("Received playtunelength")
+        print(f"Received playtunelength from {ctx.channel.name}")
         embed = discord_utils.create_embed()
         embed.add_field(name="Note Lengths",
                         value="`w`: whole note (4 beats)\n"
@@ -138,7 +138,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     )
     async def playtunesample(self, ctx):
         """Give the users everything they need to know about the puzzle"""
-        print("Received playtunesample")
+        print(f"Received playtunesample from {ctx.channel.name}")
 
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Sample 1",
@@ -157,7 +157,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     )
     async def playtune(self, ctx, *args):
         """Play a string of notes together"""
-        print("Received playtune")
+        print(f"Received playtune from {ctx.channel.name}")
         tune_dir = os.path.join(os.getcwd(), constants.MODULES_DIR, perfect_pitch_constants.PERFECT_PITCH_DIR,
                                 perfect_pitch_constants.MUSIC, perfect_pitch_constants.TUNES, ctx.channel.name)
         # If the channel does not have a directory for them yet, create one
@@ -188,6 +188,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     )
     async def chord(self, ctx):
         """Sends the user a random chord. Note: all chords come from the 4th octave (middle C)"""
+        print(f"Received chord from {ctx.channel.name}")
         chord = random.choice(glob.glob(os.path.join(os.getcwd(), constants.MODULES_DIR, perfect_pitch_constants.PERFECT_PITCH_DIR,
                                                      perfect_pitch_constants.MUSIC, perfect_pitch_constants.PIANO,
                                                      perfect_pitch_constants.CHORDS, "*.mp3")))
@@ -208,7 +209,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
             - Flat_or_Nat (str): Whether you want the note to be flat/sharp or natural
             - Note (str): A specific note (e.g. G4)
         """
-        print("Received note")
+        print(f"Received note from {ctx.channel.name}")
         # User-selected parameters for which notes will appear
         octave = None
         flat_or_nat = ''
