@@ -20,7 +20,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         846095217017749515
     )
     async def playtunehelp(self, ctx):
-        """Give the users everything they need to know about the puzzle"""
+        """Give the users everything they need to know about playtune"""
         print("Received playtunehelp")
 
         embed = discord_utils.create_embed()
@@ -38,6 +38,30 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         embed.add_field(name=f"Meter",
                         value=f"Use `m=` at the start of the command to control the speed of your tune (the default is `1`)."
                               f"\nFor example, try `{ctx.prefix}playtune m=0.8 C D E F`.",
+                        inline=False)
+        embed.add_field(name=f"Customizing",
+                        value=f"You can customise Octaves of songs, what Instruments you want to play, as well as Note Lengths!"
+                              f"\nFor more information about the all of these, use `{ctx.prefix}playtunecustom`",
+                        inline=False)
+        embed.add_field(name=f"Example",
+                        value=f"To see an example with everything put together, try `{ctx.prefix}playtunesample`",
+                        inline=False)
+        await ctx.send(embed=embed)
+
+    @commands.command(name="playtunecustom", aliases=["ptcustom"])
+    @commands.has_any_role(
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE,
+        846095217017749515
+    )
+    async def playtunecustom(self, ctx):
+        """Give the users everything they need to know about customising playtune"""
+        print("Received playtunecustom")
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"Playtune Customizing",
+                        value=f"Here are some of the ways you can customise playtune to get exactly what you want!"
+                              f"\nFor a description of playtune itself, use `{ctx.prefix}playtunehelp`!",
                         inline=False)
         embed.add_field(name=f"Customizing Octave",
                         value=f"Use `o=` at the start of your tune to control the default octave of your tune (the normal default is `4`)."
@@ -118,16 +142,11 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Sample 1",
-                        value=f"`{ctx.prefix}playtune o=5 m=1.2 RL0.5 EL0.5 F#L0.5 GL3 DL0.5 BL0.5 AL3 GL0.5 F#L0.5 "
-                              f"EL0.5 EL0.5 E EL0.5 F# GL3 EL0.5 F#L0.5 GL3 DL0.5 BL0.5 AL3 GL0.5 AL0.5 B B C6L0.5 B "
-                              f"AL0.5 GL0.5 AL0.5 GL3 DL1.5 B4L1.5 A4L3 G4 G4 DL1.5 B4L1.5 G4L4`",
+                        value=f"`{ctx.prefix}playtune m=1 o=4 Ce Ce Cs Cs Ce Cs Cs Ee Cs Cs Ce Ee Ee Es Es Ee Es "
+                        "Es Ge Es Es E De Ds Ds De Ds Ds Ds Ds De Re De De Ds Ds Ds De Ds D Ds Ged Ahd As Bed Ehd "
+                        "Es Ged Ahd As Bed Ew",
                         inline=False
                         )
-        embed.add_field(name=f"Sample 2",
-                        value="`~playtune i=xylophone m=0.8 o=5 Es F#s G#e Es F#s G#e Es F#s G#e Ee Ee B F#h Ee Bs "
-                              "C#6ed G#qd F# R F#s G#s Ae Ee Ee C#e C#s B4s B4e B4e Ee Eed B4ed Eed B4s Es B4s Ee Es "
-                              "C#s F#ed C#ed F#ed C#ed F#e Es F#s G#ed G#`",
-                        inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(name="playtune")

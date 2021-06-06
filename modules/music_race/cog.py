@@ -29,7 +29,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         self.partition_map = get_partition_mapping()
         print(self.partition_map)
 
-    @commands.command(name="song")
+    @commands.command(name="noise")
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
@@ -40,7 +40,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         print("Received race_end")
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Success",
-                        value=f"Well done! Now, for your final step, just **PLAY US A SONG**!"
+                        value=f"Well done! Now, for your final step, just **BE NOISY**!"
                             f"\nPlay any tune you like using `{ctx.prefix}playtune`, and tag `@hint` to submit it!"
                             f"\nTo learn how the playtune command works, just use `{ctx.prefix}playtunehelp`")
         await ctx.send(embed=embed)
