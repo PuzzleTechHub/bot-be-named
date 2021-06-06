@@ -48,7 +48,8 @@ class MusicRace(commands.Cog, name="Music Race"):
     @commands.command(name="notesaw", aliases=["mrinfo", "musicpuzzleinfo"])
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
+        constants.KEV_SERVER_TESTER_ROLE,
+        846095217017749515
     )
     async def musicpuzzleinfo(self, ctx):
         """Give the users everything they need to know about the puzzle"""
