@@ -75,14 +75,15 @@ class MusicRace(commands.Cog, name="Music Race"):
         """Give the users everything they need to know about the puzzle"""
         print(f"Received race_end from {ctx.channel.name}")
         embed = discord_utils.create_embed()
-        try:
-            s = ctx.guild.get_role(constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID).mention
-        except Exception:
-            s = "`@task`"
+        task_role = ctx.guild.get_role(constants.ARITHMANCY_TASK_ROLE_ID)
+        if task_role:
+            task_role_mention = task_role.mention
+        else:
+            task_role_mention = "`@task`"
         embed.add_field(name=f"Success",
                         value=f"Well done! Now, for your final step, just **BE NOISY**!"
                             f"\nPlay any tune you like using `{ctx.prefix}playtune`, and tag "
-                              f"{s} to submit it!"
+                              f"{task_role_mention} to submit it!"
                             f"\nTo learn how the playtune command works, just use `{ctx.prefix}playtunehelp`")
         await ctx.send(embed=embed)
 
