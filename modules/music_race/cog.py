@@ -58,7 +58,7 @@ class MusicRace(commands.Cog, name="Music Race"):
     )
     async def hint(self, ctx):
         print(f"Received hint from {ctx.channel.name}")
-        embed = discord.Embed(title="Hint!",
+        embed = discord.Embed(title="This is not a hint",
                               description="*Hints will always be given at Hogwarts to those who ask for it.*",
                               color=constants.EMBED_COLOR)
         await ctx.send(embed=embed)
@@ -75,10 +75,14 @@ class MusicRace(commands.Cog, name="Music Race"):
         """Give the users everything they need to know about the puzzle"""
         print(f"Received race_end from {ctx.channel.name}")
         embed = discord_utils.create_embed()
+        try:
+            s = ctx.guild.get_role(constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID).mention
+        except Exception:
+            s = "`@task`"
         embed.add_field(name=f"Success",
                         value=f"Well done! Now, for your final step, just **BE NOISY**!"
                             f"\nPlay any tune you like using `{ctx.prefix}playtune`, and tag "
-                              f"{ctx.guild.get_role(constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID).mention} to submit it!"
+                              f"{s} to submit it!"
                             f"\nTo learn how the playtune command works, just use `{ctx.prefix}playtunehelp`")
         await ctx.send(embed=embed)
 
