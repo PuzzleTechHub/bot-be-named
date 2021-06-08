@@ -17,6 +17,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
         846095217017749515
     )
     async def playtunehelp(self, ctx):
@@ -52,6 +53,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
         846095217017749515
     )
     async def playtunecustom(self, ctx):
@@ -95,6 +97,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
         846095217017749515
     )
     async def playtuneinstrument(self, ctx):
@@ -109,6 +112,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
         846095217017749515
     )
     async def playtunelength(self, ctx):
@@ -134,6 +138,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
         846095217017749515
     )
     async def playtunesample(self, ctx):
@@ -147,12 +152,21 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
                         "Es Ged Ahd As Bed Ew`",
                         inline=False
                         )
+        embed.add_field(name=f"Sample 2",
+                        value=f"`{ctx.prefix}playtune m=0.75 F#s A#s C#5s F#5s Rs F#5s Rs F#5s D#5e Bs "
+                              f"C#5 F#s A#s C#5s F#5e F#5e F#5s G#5e E#5s C#5 C#5s C#5s D#5s Rs F#5s Rs G#5s Rs "
+                              f"A#5e G#5s Rs F#5s Red C#5s D#5s F#5s Rs F#5s Rs G#5s Rs F#5s Red F#5s F#5s Re "
+                              f"D#5s F#5s Rs F#5s Rs D#5s Rs A5s Rs G#5s Rs F#5s Re F#5s Rs G#5s Rs F#5s Rs "
+                              f"F#5s G#5s Rs F#5s R Bs D#s Bs G#ed Re Bed Rs A#ed Rs G# C#e D#e C#e Re D#5s "
+                              f"F#5ed A5 G#5s F#5e Rs G#5 G#5s F#5e Rs F#5h`",
+                        inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(name="playtune")
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
         846095217017749515
     )
     async def playtune(self, ctx, *args):
@@ -184,6 +198,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
         846095217017749515
     )
     async def chord(self, ctx):
@@ -200,6 +215,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
         846095217017749515
     )
     async def note(self, ctx, *args):

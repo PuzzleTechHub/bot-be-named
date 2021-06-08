@@ -308,45 +308,86 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="botsay")
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
+        constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID
     )
-    async def botsay(self, ctx, chan_name: str, *args):
+    async def botsay(self, ctx, channel_id_or_name: str, *args):
         """Say something in another channel"""
         print(f"Received botsay from {ctx.channel.name}")
-
-        embed = discord_utils.create_embed()
-
-        if(len(chan_name)<=0 or len(args)<=0):
+        if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Channel or Message")
             await ctx.send(embed=embed)
-            return 0
+            return
 
+        embed = discord_utils.create_embed()
         message = " ".join(args)
-
         guild = ctx.message.guild
-        category = ctx.channel.category
 
         try:
-            channel = discord_utils.find_channel(self.bot, guild.channels, chan_name)
+            channel = discord_utils.find_channel(self.bot, guild.channels, channel_id_or_name)
         except ValueError:
             embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Error! The channel `{chan_name}` was not found")
+                            value=f"Error! The channel `{channel_id_or_name}` was not found")
             await ctx.send(embed=embed)
-            return 0
+            return
 
         try:
             await channel.send(message)   
         except discord.Forbidden:
             embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if the bot has the required permisisons?")
+                            value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
+                                  f"the bot has the required permisisons?")
             await ctx.send(embed=embed)
-            return 0
+            return
 
         embed.add_field(name=f"Success!",
-                        value=f"Message sent on {channel.mention}!")
+                        value=f"Message sent to {channel.mention}: {message}!")
         # reply to user
         await ctx.send(embed=embed)
 
+    @commands.command(name="botsayembed")
+    @commands.has_any_role(
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID
+    )
+    async def botsayembed(self, ctx, channel_id_or_name: str, *args):
+        """Say something in another channel"""
+        print(f"Received botsay from {ctx.channel.name}")
+        if len(args) < 1:
+            embed = discord_utils.create_no_argument_embed("Channel or Message")
+            await ctx.send(embed=embed)
+            return
+
+        message = " ".join(args)
+        guild = ctx.message.guild
+
+        try:
+            channel = discord_utils.find_channel(self.bot, guild.channels, channel_id_or_name)
+        except ValueError:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Error! The channel `{channel_id_or_name}` was not found")
+            await ctx.send(embed=embed)
+            return
+
+        try:
+            sent_embed = discord.Embed(description=message,
+                                  color=constants.EMBED_COLOR)
+            await channel.send(embed=sent_embed)
+        except discord.Forbidden:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
+                                  f"the bot has the required permisisons?")
+            await ctx.send(embed=embed)
+            return
+
+        # reply to user
+        sent_embed.add_field(name=f"{constants.SUCCESS}!",
+                             value=f"Embed sent to {channel.mention}",
+                             inline=False)
+        await ctx.send(embed=sent_embed)
 
 def setup(bot):
     bot.add_cog(DiscordCog(bot))

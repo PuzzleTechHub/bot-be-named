@@ -27,28 +27,66 @@ class MusicRace(commands.Cog, name="Music Race"):
     def __init__(self, bot):
         self.bot = bot
         self.partition_map = get_partition_mapping()
-        print(self.partition_map)
+
+    #########################################
+    ## RANDOM UTIL COMMANDS FOR JUNE PUZZLE #
+    ## TODO: DELETE                         #
+    #########################################
+
+    @commands.command(name="door")
+    @commands.has_any_role(
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
+        846095217017749515  # may_puzzle role in Soni server
+    )
+    async def door(self, ctx):
+        print(f"Received door from {ctx.channel.name}")
+        embed = discord.Embed(title="Crossing Tunnels",
+                              description=f"Well done! You follow Fred and George through all the secret passageways "
+                                          f"and find yourself at the main door! The door opens, revealing... "
+                                          f"`THESORTINGCEREMONY` still in progress! "
+                                          f"Nobody seems to have noticed your absence at all!")
+        await ctx.send(embed=embed)
+
+    @commands.command(name="hint")
+    @commands.has_any_role(
+        constants.SONI_SERVER_TESTER_ROLE,
+        constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
+        846095217017749515  # may_puzzle role in Soni server
+    )
+    async def hint(self, ctx):
+        print(f"Received hint from {ctx.channel.name}")
+        embed = discord.Embed(title="Hint!",
+                              description="*Hints will always be given at Hogwarts to those who ask for it.*",
+                              color=constants.EMBED_COLOR)
+        await ctx.send(embed=embed)
+
 
     @commands.command(name="noise")
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
         846095217017749515 # may_puzzle role in Soni server
     )
-    async def race_end(self, ctx):
+    async def noise(self, ctx):
         """Give the users everything they need to know about the puzzle"""
         print(f"Received race_end from {ctx.channel.name}")
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Success",
                         value=f"Well done! Now, for your final step, just **BE NOISY**!"
-                            f"\nPlay any tune you like using `{ctx.prefix}playtune`, and tag `@hint` to submit it!"
+                            f"\nPlay any tune you like using `{ctx.prefix}playtune`, and tag "
+                              f"{ctx.guild.get_role(constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID).mention} to submit it!"
                             f"\nTo learn how the playtune command works, just use `{ctx.prefix}playtunehelp`")
         await ctx.send(embed=embed)
 
-    @commands.command(name="notesaw", aliases=["mrinfo", "musicpuzzleinfo"])
+    @commands.command(name="notesaw", aliases=["musicpuzzleinfo"])
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
         846095217017749515
     )
     async def musicpuzzleinfo(self, ctx):
@@ -58,15 +96,19 @@ class MusicRace(commands.Cog, name="Music Race"):
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Welcome to Notesaw!",
                         value=f"To start the puzzle, use `{ctx.prefix}guesstune`. "
-                              f"For example, try `{ctx.prefix}guesstune PIANO`. Have fun!"
-                              f"\n Some minor sound glitches may hurt your ear, so adjusting your volume down is recommended."
-                              )
+                              f"For example, try `{ctx.prefix}guesstune PIANO`. Have fun!",
+                        inline=False)
+        embed.add_field(name=f"Notice",
+                        value=f"Headphone users! We recommend turning the volume down a bit. Some minor glitches might "
+                              f"hurt your ear",
+                        inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(name="guesstune")
     @commands.has_any_role(
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE,
+        constants.ARITHMANCY_VERIFIED_ROLE_ID,
         846095217017749515
     )
     async def guesstune(self, ctx, *args):
@@ -132,13 +174,13 @@ class MusicRace(commands.Cog, name="Music Race"):
             # Increments
             delay += 3
 
-        debug_output_msg = ""
-        for ans in finalanswer:
-            debug_output_msg += f"{ans[1]}-{ans[1]+3}: {ans[0]}\n"
+        #debug_output_msg = ""
+        #for ans in finalanswer:
+        #    debug_output_msg += f"{ans[1]}-{ans[1]+3}: {ans[0]}\n"
         # TODO: Remove once we are more certain about how this works. It ruins the puzzle, obviously
         #await ctx.send(debug_output_msg)
-        print(word)
-        print(debug_output_msg)
+        #print(word)
+        #print(debug_output_msg)
 
         inputs = ''.join([f"-i {os.path.join(music_race_constants.PUZZLE_PARTIAL_SONGS_DIR, finalanswer[idx][0] + '.mp3')} " for idx in range(len(finalanswer))])
         # Otherwise, we just chop each song into 3s bits, with 0.5s between them
