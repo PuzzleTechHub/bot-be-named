@@ -144,7 +144,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         embed.add_field(name=f"Sample 1",
                         value=f"`{ctx.prefix}playtune m=1 o=4 Ce Ce Cs Cs Ce Cs Cs Ee Cs Cs Ce Ee Ee Es Es Ee Es "
                         "Es Ge Es Es E De Ds Ds De Ds Ds Ds Ds De Re De De Ds Ds Ds De Ds D Ds Ged Ahd As Bed Ehd "
-                        "Es Ged Ahd As Bed Ew",
+                        "Es Ged Ahd As Bed Ew`",
                         inline=False
                         )
         await ctx.send(embed=embed)
