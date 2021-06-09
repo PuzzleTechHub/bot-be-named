@@ -101,7 +101,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Welcome to Notesaw!",
                         value=f"To start the puzzle, use `{ctx.prefix}guesstune`. "
-                              f"For example, try `{ctx.prefix}guesstune TEST`. Have fun!",
+                              f"For example, try `{ctx.prefix}guesstune PIANO`. Have fun!",
                         inline=False)
         embed.add_field(name=f"Notice",
                         value=f"Headphone users! We recommend turning the volume down a bit. Some minor glitches might "
