@@ -44,8 +44,8 @@ class MusicRace(commands.Cog, name="Music Race"):
         print(f"Received door from {ctx.channel.name}")
         embed = discord.Embed(title="Crossing Tunnels",
                               description=f"Well done! You follow Fred and George through all the secret passageways "
-                                          f"and find yourself at the main door! The door opens, revealing... "
-                                          f"`THESORTINGCEREMONY` still in progress! "
+                                          f"and find yourself at the main door! The door opens, revealing the... "
+                                          f"`SORTINGCEREMONY` still in progress! "
                                           f"Nobody seems to have noticed your absence at all!")
         await ctx.send(embed=embed)
 
