@@ -87,7 +87,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     # STATISTICS COMMANDS #
     #######################
 
-    @commands.command(name="stats")
+    @commands.command(name="stats", aliases=["stat"])
     async def stats(self, ctx):
         """Get server stats"""
         print(f"Received stats from {ctx.channel.name}")
