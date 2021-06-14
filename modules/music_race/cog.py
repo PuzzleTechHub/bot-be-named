@@ -34,12 +34,6 @@ class MusicRace(commands.Cog, name="Music Race"):
     #########################################
 
     @commands.command(name="door")
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515  # may_puzzle role in Soni server
-    )
     async def door(self, ctx):
         print(f"Received door from {ctx.channel.name}")
         embed = discord.Embed(title="Crossing Tunnels",
@@ -50,12 +44,6 @@ class MusicRace(commands.Cog, name="Music Race"):
         await ctx.send(embed=embed)
 
     @commands.command(name="hint")
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515  # may_puzzle role in Soni server
-    )
     async def hint(self, ctx):
         print(f"Received hint from {ctx.channel.name}")
         embed = discord.Embed(title="This is not a hint",
@@ -65,12 +53,6 @@ class MusicRace(commands.Cog, name="Music Race"):
 
 
     @commands.command(name="noise")
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515 # may_puzzle role in Soni server
-    )
     async def noise(self, ctx):
         """Give the users everything they need to know about the puzzle"""
         print(f"Received race_end from {ctx.channel.name}")
@@ -83,17 +65,14 @@ class MusicRace(commands.Cog, name="Music Race"):
         embed.add_field(name=f"Success",
                         value=f"Well done! Now, for your final step, just **BE NOISY**!"
                             f"\nPlay any tune you like using `{ctx.prefix}playtune`, and tag "
-                              f"{task_role_mention} to submit it!"
-                            f"\nTo learn how the playtune command works, just use `{ctx.prefix}playtunehelp`")
+                            f"{task_role_mention} to submit it!"
+                            f"\nTo learn how the playtune command works, just use `{ctx.prefix}playtunehelp`"
+                            f"\n\nPost Solve Note - Once you submit *any* correct tune, you get the following answer phrase - "
+                            f"\n||`WEDDINGOFWILLIAMWEASLEYANDFLEURDELACOUR`||"
+                            )
         await ctx.send(embed=embed)
 
     @commands.command(name="notesaw", aliases=["musicpuzzleinfo"])
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515
-    )
     async def musicpuzzleinfo(self, ctx):
         """Give the users everything they need to know about the puzzle"""
         print(f"Received musicpuzzleinfo from {ctx.channel.name}")
@@ -110,12 +89,6 @@ class MusicRace(commands.Cog, name="Music Race"):
         await ctx.send(embed=embed)
 
     @commands.command(name="guesstune")
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515
-    )
     async def guesstune(self, ctx, *args):
         """Take a user's guess and give them a response based on what letters they provided"""
         print(f"Recieved guesstune from {ctx.channel.name}")

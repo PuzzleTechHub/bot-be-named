@@ -14,12 +14,6 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         self.bot = bot
 
     @commands.command(name="playtunehelp", aliases=["playtuneinfo"])
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515
-    )
     async def playtunehelp(self, ctx):
         """Give the users everything they need to know about playtune"""
         print(f"Received playtunehelp from {ctx.channel.name}")
@@ -50,12 +44,6 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         await ctx.send(embed=embed)
 
     @commands.command(name="playtunecustom", aliases=["ptcustom"])
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515
-    )
     async def playtunecustom(self, ctx):
         """Give the users everything they need to know about customising playtune"""
         print(f"Received playtunecustom from {ctx.channel.name}")
@@ -94,12 +82,6 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         await ctx.send(embed=embed)
 
     @commands.command(name="playtuneinstrument")
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515
-    )
     async def playtuneinstrument(self, ctx):
         print(f"Received playtuneinstrument from {ctx.channel.name}")
         embed = discord_utils.create_embed()
@@ -109,12 +91,6 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         await ctx.send(embed=embed)
 
     @commands.command(name="playtunelength")
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515
-    )
     async def playtunelength(self, ctx):
         print(f"Received playtunelength from {ctx.channel.name}")
         embed = discord_utils.create_embed()
@@ -135,12 +111,6 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         await ctx.send(embed=embed)
 
     @commands.command(name="playtunesample", aliases=["ptsample"])
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515
-    )
     async def playtunesample(self, ctx):
         """Give the users everything they need to know about the puzzle"""
         print(f"Received playtunesample from {ctx.channel.name}")
@@ -163,12 +133,6 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         await ctx.send(embed=embed)
 
     @commands.command(name="playtune")
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515
-    )
     async def playtune(self, ctx, *args):
         """Play a string of notes together"""
         print(f"Received playtune from {ctx.channel.name}")
@@ -195,12 +159,6 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
             await ctx.send(embed=embed)
 
     @commands.command(name="chord")
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515
-    )
     async def chord(self, ctx):
         """Sends the user a random chord. Note: all chords come from the 4th octave (middle C)"""
         print(f"Received chord from {ctx.channel.name}")
@@ -212,12 +170,6 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
     # TODO: CLEAN PLS for the love of christ
     @commands.command(name="note")
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_VERIFIED_ROLE_ID,
-        846095217017749515
-    )
     async def note(self, ctx, *args):
         """Send the user a random note for them to identify.
         Arguments:
