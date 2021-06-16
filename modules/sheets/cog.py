@@ -15,7 +15,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     async def addsheettethergeneric(self, ctx, sheet_key_or_link, curr_guild, curr_catorchan, curr_catorchan_id):
         """Add a sheet to the current channel"""
-        print(f"Received addchannelsheettethergeneric from {ctx.channel.name}")
         # Ensure the user has supplied a new sheet key to tether
 
         if not sheet_key_or_link:
@@ -54,7 +53,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @commands.command(name="addsheettether", aliases=["editsheettether","tether","edittether","addtether"])
     async def addsheettether(self, ctx, sheet_key_or_link: str = None):
         """Add a sheet to the current channel's category"""
-        print(f"Received addsheettether from {ctx.channel.name}")
+        logging_utils.log_command("addsheettether", ctx.channel, ctx.author)
 
         # Get category information
         curr_cat = str(ctx.message.channel.category)
@@ -78,7 +77,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                                "chantether"])
     async def addchannelsheettether(self, ctx, sheet_key_or_link: str = None):
         """Add a sheet to the current channel"""
-        print(f"Received addchannelsheettether from {ctx.channel.name}")
+        logging_utils.log_command("addchannelsheettether", ctx.channel, ctx.author)
 
         # Get channel information
         curr_chan = str(ctx.message.channel)
@@ -115,7 +114,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @commands.command(name="removesheettether", aliases=["deletetether", "removetether"])
     async def removesheettether(self, ctx):
         """Remove the sheet-category tethering"""
-        print(f"Received removesheettether from {ctx.channel.name}")
+        logging_utils.log_command("removesheettether", ctx.channel, ctx.author)
         # Get category and channel information
         curr_cat = str(ctx.message.channel.category)
         curr_cat_id = str(ctx.message.channel.category_id)
@@ -152,7 +151,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @commands.command(name="displaysheettether", aliases=["showsheettether", "showtether", "displaytether"])
     async def displaysheettether(self, ctx):
         """Find the sheet the category is current tethered too"""
-        print(f"Received displaysheettether from {ctx.channel.name}")
+        logging_utils.log_command("displaysheettether", ctx.channel, ctx.author)
         # Get category information
         curr_cat = str(ctx.message.channel.category)
         curr_cat_id = str(ctx.message.channel.category_id)
@@ -183,8 +182,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-    """Actually creates the sheet and handles errors"""
+
     async def sheetcreatetabgeneric(self, ctx, curr_chan_id, curr_cat_id, tab_name):
+        """Actually creates the sheet and handles errors"""
         curr_sheet_link = None
         newsheet = None
 
@@ -261,7 +261,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @commands.command(name="sheetcreatetab", aliases=["sheettab", "sheetcrab"])
     async def sheetcreatetab(self, ctx, *args):
         """Create a New tab on the sheet that is currently tethered to this category"""
-        print(f"Received sheetcreatetab from {ctx.channel.name}")
+        logging_utils.log_command("sheetcreatetab", ctx.channel, ctx.author)
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Tab Name")
             await ctx.send(embed=embed)
@@ -295,7 +295,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                                "chancrab"])
     async def channelsheetcreatetab(self, ctx, chan_name: str, *args):
         """Create a new channel, then a New tab on the sheet that is currently tethered to this category, then pins things"""
-        print(f"Received channelsheetcreatetab from {ctx.channel.name}")
+        logging_utils.log_command("channelsheetcreatetab", ctx.channel, ctx.author)
         # new channel created (or None) and embed with error/success message
         new_chan, chan_create_embed = await channel_management_utils.createchannelgeneric(ctx.guild,
                                                                                           ctx.channel.category,

@@ -1,7 +1,7 @@
 import constants
 import discord
 from discord.ext import commands
-from utils import discord_utils
+from utils import discord_utils, logging_utils
 from modules.channel_management import channel_management_utils
 
 
@@ -25,7 +25,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     )
     async def movechannel(self, ctx, *args):
         """Command to move channel to category with given name"""
-        print(f"Received movechannel from {ctx.channel.name}")
+        logging_utils.log_command("movechannel", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         # check for category name arguments
         if len(args) <= 0:
@@ -76,8 +76,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         """Changes current channel name to whatever is asked
         Usage: ~renamechannel Newname"""
         # log command in console
+        logging_utils.log_command("renamechannel", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
-        print(f"Received renamechannel from {ctx.channel.name}")
         if len(args) <= 0:
             embed.add_field(name=f"{constants.FAILED}!", value=f"You must specify a new channel name!")
             # reply to user
@@ -116,7 +116,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         """Wrapper function for createchannel for self calls"""
         """Command to create channel in same category with given name"""
         # log command in console
-        print(f"Received createchannel from {ctx.channel.name}")
+        logging_utils.log_command("createchannel", ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
 
@@ -133,7 +133,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def clonechannel(self, ctx, original: str, new: str):
         """Command to create channel in same category with given name"""
         # log command in console
-        print(f"Received clonechannel from {ctx.channel.name}")
+        logging_utils.log_command("clonechannel", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         # get guild and category

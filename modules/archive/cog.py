@@ -4,7 +4,7 @@ import constants
 import os
 import shutil
 import zipfile
-from utils import discord_utils
+from utils import discord_utils, logging_utils
 from modules.archive import archive_constants, archive_utils
 import asyncio
 
@@ -100,7 +100,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
     async def archivechannel(self, ctx, *args):
         """Command to download channel's history"""
         # TODO: Need error handling for asking a channel we don't have access to or invalid channel name
-        print(f"Received archivechannel from {ctx.channel.name}")
+        logging_utils.log_command("archivechannel", ctx.channel, ctx.author)
         # Check if the user supplied a channel
         if len(args) < 1:
             # No arguments provided
@@ -168,7 +168,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
     @commands.has_guild_permissions(administrator=True)
     async def archivecategory(self, ctx, *args):
         """Command to download the history of every text channel in the category"""
-        print(f"Received archivecategory from {ctx.channel.name}")
+        logging_utils.log_command("archivecategory", ctx.channel, ctx.author)
         # Check if the user supplied a channel
         if len(args) < 1:
             # No arguments provided
@@ -233,7 +233,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         """Command to archive every text channel in the server.
 
         WARNING: This command will take *very* long on any reasonably aged server"""
-        print(f"Received archiveserver from {ctx.channel.name}")
+        logging_utils.log_command("archiveserver", ctx.channel, ctx.author)
         # If we don't have the lock, let the user know it may take a while.
         msg = None
         if self.lock.locked():

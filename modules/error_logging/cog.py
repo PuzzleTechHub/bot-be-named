@@ -1,7 +1,7 @@
 from discord.ext import commands
 from modules.error_logging.error_handling import ErrorHandler
 from modules.error_logging import error_constants
-from utils import discord_utils
+from utils import discord_utils, logging_utils
 import sys
 
 
@@ -16,7 +16,7 @@ class ErrorLogCog(commands.Cog):
     @commands.is_owner()
     async def errorlog(self, ctx, num_lines: int = 50):
         """Shows errors in reverse chronological order"""
-        print(f"Received errorlog from {ctx.channel.name}")
+        logging_utils.log_command("errorlog", ctx.channel, ctx.author)
         with open(error_constants.ERROR_LOGFILE, "r") as f:
             lines = f.readlines()
             last_n_lines = "".join(lines[-num_lines:])

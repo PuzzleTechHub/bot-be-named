@@ -18,16 +18,18 @@ def get_prefixes():
         prfx[row[1]] = row[2]
     return prfx
 
-PREFIXES = get_prefixes()
 
 def get_prefix(client, message):
-    return PREFIXES[str(message.guild.id)]
+    if message.guild is not None:
+        return PREFIXES[str(message.guild.id)]
+    else:
+        return constants.DEFAULT_BOT_PREFIX
 
-verified_sheet = gspread_client.open_by_key(os.getenv('MASTER_SHEET_KEY')).worksheet(constants.VERIFIED_TAB_NAME)
 
+VERIFIED_SHEET = gspread_client.open_by_key(os.getenv('MASTER_SHEET_KEY')).worksheet(constants.VERIFIED_TAB_NAME)
 def get_verifieds():
     vrfd = {}
-    verified_list = verified_sheet.get_all_values()[1:]
+    verified_list = VERIFIED_SHEET.get_all_values()[1:]
     for row in verified_list:
         if(row[2] in vrfd):
             vrfd[row[2]].append(int(row[1]))
@@ -35,12 +37,15 @@ def get_verifieds():
             vrfd[row[2]] = [int(row[1])]
     return vrfd
 
-VERIFIEDS = get_verifieds()
 
 def get_verified(client, message, s):
     return VERIFIEDS[s]
 
+# TODO: Move these to better locations
+PREFIXES = get_prefixes()
+VERIFIEDS = get_verifieds()
 constants.VERIFIEDS = VERIFIEDS
+
 
 def main():
     intents = discord.Intents.default()
@@ -70,23 +75,23 @@ def main():
 
             print(f"{client.user.name} has connected to the following guild: {guild.name} (id: {guild.id}) with prefix {prefix}")
 
+    # TODO: This function will respond to the user when the bot gets pinged, letting the user know it's prefix
+    # TODO: Is there a way we can toggle it on/off?
+    # @client.event
+    # async def on_message(message):
+        # """On mention, state the bot's prefix for the server"""
+        # if client.user.mentioned_in(message):
+            # print("I have been mentioned")
+            # cell = prefix_sheet.find(str(message.guild.id))
+            # pre = prefix_sheet.cell(cell.row, cell.col+1).value
+            # embed = discord_utils.create_embed()
+            # embed.add_field(name="Prefix",
+            #                 value=f"My prefix in this server is \"{pre}\". Use {pre}help "
+            #                       f"to learn about my commands!",
+            #                 inline=False)
+            # await message.channel.send(embed=embed)
 
-    @client.event
-    async def on_message(message):
-        """On mention, state the bot's prefix for the server"""
-        if client.user.mentioned_in(message):
-            print("I have been mentioned")
-            cell = prefix_sheet.find(str(message.guild.id))
-            pre = prefix_sheet.cell(cell.row, cell.col+1).value
-            embed = discord_utils.create_embed()
-            embed.add_field(name="Prefix",
-                            value=f"My prefix in this server is \"{pre}\". Use {pre}help "
-                                  f"to learn about my commands!",
-                            inline=False)
-            if(False):
-                await message.channel.send(embed=embed)
-
-        await client.process_commands(message)
+        # await client.process_commands(message)
 
 
     @admin_utils.is_owner_or_admin()
@@ -138,7 +143,7 @@ def main():
             return
 
         values = [ctx.message.guild.name, str(role_to_assign.id), verifiedname]
-        verified_sheet.append_row(values)
+        VERIFIED_SHEET.append_row(values)
 
         VERIFIEDS = get_verifieds()
         constants.VERIFIEDS = VERIFIEDS

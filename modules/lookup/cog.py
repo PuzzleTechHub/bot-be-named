@@ -1,6 +1,6 @@
 import googlesearch
 from discord.ext import commands
-from utils import discord_utils
+from utils import discord_utils, logging_utils
 from modules.lookup import lookup_constants, lookup_utils
 
 
@@ -16,7 +16,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         Command to search the interwebs! (google)
         Usage: ~search <target_site> <[query...]>
         """
-        print(f"Received search from {ctx.channel.name}")
+        logging_utils.log_command("search", ctx.channel, ctx.author)
         if len(args) < 2:
             await ctx.send(embed=discord_utils.create_no_argument_embed("Target Site and Query"))
             return
@@ -64,7 +64,7 @@ class LookupCog(commands.Cog, name="Lookup"):
 
     @commands.command(name="google")
     async def google(self, ctx, *args):
-        print(f"Received google from {ctx.channel.name}")
+        logging_utils.log_command("google", ctx.channel, ctx.author)
         results = lookup_utils.search_query(' '.join(args))
 
         embed = discord_utils.create_embed()
@@ -74,7 +74,7 @@ class LookupCog(commands.Cog, name="Lookup"):
 
     @commands.command(name="wikipedia", aliases=["wiki"])
     async def wikipedia(self, ctx, *args):
-        print(f"Received wikipedia from {ctx.channel.name}")
+        logging_utils.log_command("wikipedia", ctx.channel, ctx.author)
         results = lookup_utils.search_query(' '.join(args), target_site=lookup_constants.WIKI)
 
         embed = discord_utils.create_embed()

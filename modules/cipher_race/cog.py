@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 import os
-from utils import google_utils, discord_utils, admin_utils
+from utils import google_utils, discord_utils, admin_utils, logging_utils
 from modules.cipher_race import cipher_race_constants, cipher_race_utils
 import constants
 from aio_timers import Timer
@@ -73,7 +73,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
             await ctx.send(embed=embed)
             return
         # Housekeeping
-        print(f"Received startrace from {ctx.channel.name}")
+        logging_utils.log_command("startrace", ctx.channel, ctx.author)
         # Create entry in current_races
         self.current_races[channel] = dict()
         self.current_races[channel][cipher_race_constants.LEVEL] = 1
@@ -98,7 +98,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         Ends the race
         Usage: ~endrace
         """
-        print(f"Received endrace from {ctx.channel.name}")
+        logging_utils.log_command("endrace", ctx.channel, ctx.author)
         channel = ctx.channel.id
         if channel not in self.current_races:
             embed = discord_utils.create_embed()
@@ -127,7 +127,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         Usage: ~practice (optional: <cipher_name> <sheet>)
         If you want to supply sheet, must supply cipher_name
         """
-        print(f"Received ~practice from {ctx.channel.name}")
+        logging_utils.log_command("practice", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         # Supply no arguments: randomly sample
         # Supply 2 arguments: sample specific cipher_race
@@ -180,7 +180,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         Usage: ~answer <your answer>
         """
         channel = ctx.channel.id
-        print(f"Received answer from {ctx.channel.name}")
+        logging_utils.log_command("answer", ctx.channel, ctx.author)
         
         # if the team isn't puzzling then we need to instruct them to use startpuzzle command first.
         if channel not in self.current_races:

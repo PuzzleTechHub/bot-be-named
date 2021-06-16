@@ -2,7 +2,7 @@ import constants
 from discord.ext import commands
 from modules.solved.prefix import Prefix
 from modules.solved import solved_constants
-from utils import discord_utils
+from utils import discord_utils, logging_utils
 
 
 # TODO: It's awkward but right now the solved constants have a hyphen at the end
@@ -59,7 +59,7 @@ class SolvedCog(commands.Cog):
 
 		Usage: ~solved"""
 		# log command in console
-		print(f"Received solved from {ctx.channel.name}")
+		logging_utils.log_command("solved", ctx.channel, ctx.author)
 		channel = ctx.message.channel
 		embed = discord_utils.create_embed()
 		new_channel_name = self.add_prefix(channel, solved_constants.SOLVED_PREFIX)
@@ -85,7 +85,7 @@ class SolvedCog(commands.Cog):
 
 		Usage: ~solvedish"""
 		# log command in console
-		print(f"Received solvedish from {ctx.channel.name}")
+		logging_utils.log_command("solvedish", ctx.channel, ctx.author)
 		channel = ctx.message.channel
 		embed = discord_utils.create_embed()
 		new_channel_name = self.add_prefix(ctx.message.channel, solved_constants.SOLVEDISH_PREFIX)
@@ -112,7 +112,7 @@ class SolvedCog(commands.Cog):
 
 		Usage: ~backsolved"""
 		# log command in console
-		print(f"Received backsolved from {ctx.channel.name}")
+		logging_utils.log_command("backsolved", ctx.channel, ctx.author)
 		channel = ctx.message.channel
 		embed = discord_utils.create_embed()
 		new_channel_name = self.add_prefix(channel, solved_constants.BACKSOLVED_PREFIX)
@@ -138,7 +138,7 @@ class SolvedCog(commands.Cog):
 
 		Usage: ~unsolved"""
 		# log command in console
-		print(f"Received unsolved from {ctx.channel.name}")
+		logging_utils.log_command("unsolved", ctx.channel, ctx.author)
 		channel = ctx.message.channel
 		embed = discord_utils.create_embed()
 		for prefix in solved_constants.PREFIXES:
