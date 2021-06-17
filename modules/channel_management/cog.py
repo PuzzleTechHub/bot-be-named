@@ -1,8 +1,7 @@
-import constants
-import discord
 from discord.ext import commands
 from utils import discord_utils, logging_utils
-from modules.channel_management import channel_management_utils
+import constants
+import discord
 
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
@@ -47,7 +46,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             await ctx.send(embed=embed)
             return
 
-        if len(new_category.channels) >= 50:
+        if discord_utils.category_is_full(new_category):
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Category `{new_category.name}` is already full, max limit is 50 channels.")
             # reply to user
@@ -68,7 +67,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                         value=f"Moving {channel.mention} to {new_category.name}!")
         # reply to user
         await ctx.send(embed=embed)
-        
 
     @commands.command(name="renamechannel")
     @commands.has_any_role(*constants.VERIFIEDS["Verified"])
@@ -79,7 +77,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         logging_utils.log_command("renamechannel", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         if len(args) <= 0:
-            embed.add_field(name=f"{constants.FAILED}!", value=f"You must specify a new channel name!")
+            embed = discord_utils.create_no_argument_embed("Channel name")
             # reply to user
             await ctx.send(embed=embed)
             return
@@ -87,7 +85,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         channel = ctx.message.channel
         old_channel_name = channel.name
         new_channel_name = " ".join(args)
-
 
         try:
             # rename channel
@@ -112,16 +109,26 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         constants.SONI_SERVER_TESTER_ROLE,
         constants.KEV_SERVER_TESTER_ROLE
     )
-    async def createchannel(self, ctx, name: str = ""):
-        """Wrapper function for createchannel for self calls"""
+    async def createchannel(self, ctx, name: str):
         """Command to create channel in same category with given name"""
         # log command in console
         logging_utils.log_command("createchannel", ctx.channel, ctx.author)
-
         embed = discord_utils.create_embed()
 
-        channel, embed = await channel_management_utils.createchannelgeneric(ctx.guild, ctx.channel.category, name)
+        # Category channel limit
+        if discord_utils.category_is_full(ctx.channel.category):
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Category `{ctx.category.name}` is already full, max limit is 50 channels.")
+            return None, embed
+
+        channel = await discord_utils.createchannelgeneric(ctx.guild, ctx.channel.category, name)
         # Send status (success or fail)
+        if channel:
+            embed.add_field(name=f"{constants.SUCCESS}",
+                            value=f"Created channel {channel.mention} in `{channel.category.name}`!")
+        else:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Forbidden! Have you checked if the bot has the required permisisons?")
         await ctx.send(embed=embed)
 
     @commands.command(name="clonechannel")
@@ -149,14 +156,14 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             await ctx.send(embed=embed)
             return
 
-        if len(category.channels) >= 50:
+        if discord_utils.category_is_full(category):
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Category `{category.name}` is already full, max limit is 50 channels.")
             # reply to user
             await ctx.send(embed=embed)
             return
 
-        # TODO: use genericcreatechannel from channel_management_utils
+        # TODO: use genericcreatechannel from discord_utils?
         try:
             # create channel
             new_channel = await guild.create_text_channel(new, category=category, overwrites=old_channel.overwrites)
@@ -167,7 +174,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             await ctx.send(embed=embed)
             return
         
-        embed.add_field(name="Success!", value=f"Created channel {new_channel.mention} in {category}!")
+        embed.add_field(name=f"{constants.SUCCESS}!", value=f"Created channel {new_channel.mention} in {category}!")
         # reply to user
         await ctx.send(embed=embed)
 

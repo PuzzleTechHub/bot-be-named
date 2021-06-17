@@ -3,6 +3,7 @@ from modules.error_logging.error_handling import ErrorHandler
 from modules.error_logging import error_constants
 from utils import discord_utils, logging_utils
 import sys
+import os
 
 
 
@@ -17,6 +18,14 @@ class ErrorLogCog(commands.Cog):
     async def errorlog(self, ctx, num_lines: int = 50):
         """Shows errors in reverse chronological order"""
         logging_utils.log_command("errorlog", ctx.channel, ctx.author)
+        if not os.path.exists(error_constants.ERROR_LOGFILE):
+            embed = discord_utils.create_embed()
+            embed.add_field(name="Error!",
+                            value=f"Is this an error? Is it a blessing in disguise? I don't know, but there have been "
+                                  f"no errors since I've last started!")
+            await ctx.send(embed=embed)
+            return
+
         with open(error_constants.ERROR_LOGFILE, "r") as f:
             lines = f.readlines()
             last_n_lines = "".join(lines[-num_lines:])

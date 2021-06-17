@@ -36,3 +36,23 @@ def find_channel(bot, channels, channel_name):
         channel_id = int(channel_name.replace('>', '').replace('<#', ''))
         channel = bot.get_channel(channel_id)
     return channel
+
+
+def category_is_full(category: discord.CategoryChannel) -> bool:
+    """Determines whether a category is full (has 50 channels)"""
+    return len(category.channels) >= 50
+
+
+async def createchannelgeneric(guild, category, name) -> discord.TextChannel:
+    """Command to create channel in same category with given name
+    Arguments:
+        - guild (discord.Guild): the guild the channel is being created in
+        - category (discord.CategoryChannel): the category the channel is being created in
+        - name (str): the name for the channel"""
+    try:
+        # create channel
+        channel = await guild.create_text_channel(name, category=category)
+    except discord.Forbidden:
+        return None
+
+    return channel
