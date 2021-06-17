@@ -173,14 +173,14 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         await ctx.send(embed=embed)
 
     # Command to check the user's answer. They will be replied to telling them whether or not their answer is correct
-    @commands.command(name='answer', aliases=['a'])
+    @commands.command(name='answerrace', aliases=['ar'])
     async def answer(self, ctx, *args):
         """
         Check your  answer
         Usage: ~answer <your answer>
         """
         channel = ctx.channel.id
-        logging_utils.log_command("answer", ctx.channel, ctx.author)
+        logging_utils.log_command("answerrace", ctx.channel, ctx.author)
         
         # if the team isn't puzzling then we need to instruct them to use startpuzzle command first.
         if channel not in self.current_races:
@@ -252,7 +252,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
                         inline=False)
         await ctx.send(embed=embed)
 
-    @commands.is_owner()
+    @admin_utils.is_owner_or_admin()
     @commands.command(name='reset')
     async def reset(self, ctx):
         """

@@ -21,6 +21,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     ####################
 
     @commands.command(name="pin")
+    @commands.has_any_role(*constants.VERIFIED)
     async def pin(self, ctx):
         """Pin a message (Either a reply or the one above ~pin"""
         logging_utils.log_command("pin", ctx.channel, ctx.author)
@@ -40,6 +41,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.send(embed=embed)
 
     @commands.command(name="pinme")
+    @commands.has_any_role(*constants.VERIFIED)
     async def pinme(self, ctx):
         """Pins the message"""
         logging_utils.log_command("pinme", ctx.channel, ctx.author)
@@ -53,6 +55,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.send(embed=embed)
 
     @commands.command(name="unpin")
+    @commands.has_any_role(*constants.VERIFIED)
     async def unpin(self, ctx, num_to_unpin: int = 1):
         """Unpin <num_to_unpin> messages, or all if num if 0"""
         logging_utils.log_command("unpin", ctx.channel, ctx.author)
@@ -306,11 +309,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     ###################
 
     @commands.command(name="botsay")
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID
-    )
+    @commands.has_any_role(*constants.TRUSTED)
     async def botsay(self, ctx, channel_id_or_name: str, *args):
         """Say something in another channel"""
         logging_utils.log_command("botsay", ctx.channel, ctx.author)
@@ -346,11 +345,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         await ctx.send(embed=embed)
 
     @commands.command(name="botsayembed")
-    @commands.has_any_role(
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE,
-        constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID
-    )
+    @commands.has_any_role(*constants.TRUSTED)
     async def botsayembed(self, ctx, channel_id_or_name: str, *args):
         """Say something in another channel"""
         logging_utils.log_command("botsayembed", ctx.channel, ctx.author)

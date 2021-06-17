@@ -127,7 +127,7 @@ def cipher_race_help(prefix: str):
                           f"Optional: choose a wordlist (from {', '.join(cipher_race_constants.SHEETS)})\n"
                           f"e.g. {prefix}startrace {cipher_race_constants.COMMON}",
                     inline=False)
-    embed.add_field(name=f"{prefix}answer <your_answer>",
+    embed.add_field(name=f"{prefix}answerrace <your_answer>",
                     value=f"Answer any of the codes during a race! If you are correct, the bot will react with "
                           f"a {cipher_race_constants.CORRECT_EMOJI}. Otherwise, it will react with a {cipher_race_constants.INCORRECT_EMOJI}",
                     inline=False)
