@@ -18,11 +18,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         self.bot = bot
 
     @commands.command(name="movechannel")
-    @commands.has_any_role(
-        constants.TA_VERIFIED_PUZZLER_ROLE_ID,
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
-    )
+    @commands.has_any_role(*constants.VERIFIED)
     async def movechannel(self, ctx, *args):
         """Command to move channel to category with given name"""
         logging_utils.log_command("movechannel", ctx.channel, ctx.author)
@@ -71,7 +67,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         
 
     @commands.command(name="renamechannel")
-    @commands.has_any_role(*constants.VERIFIEDS["Verified"])
+    @commands.has_any_role(*constants.VERIFIED)
     async def renamechannel(self, ctx, *args):
         """Changes current channel name to whatever is asked
         Usage: ~renamechannel Newname"""
@@ -107,11 +103,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     @commands.command(name="createchannel", aliases=['makechannel',
                                                      'makechan',
                                                      'createchan'])
-    @commands.has_any_role(
-        constants.TA_VERIFIED_PUZZLER_ROLE_ID,
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
-    )
+    @commands.has_any_role(*constants.VERIFIED)
     async def createchannel(self, ctx, name: str = ""):
         """Wrapper function for createchannel for self calls"""
         """Command to create channel in same category with given name"""
@@ -125,11 +117,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @commands.command(name="clonechannel")
-    @commands.has_any_role(
-        constants.TA_VERIFIED_PUZZLER_ROLE_ID,
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
-    )
+    @commands.has_any_role(*constants.VERIFIED)
     async def clonechannel(self, ctx, original: str, new: str):
         """Command to create channel in same category with given name"""
         # log command in console

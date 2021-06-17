@@ -4,7 +4,7 @@ import constants
 import os
 import shutil
 import zipfile
-from utils import discord_utils, logging_utils
+from utils import discord_utils, logging_utils, admin_utils
 from modules.archive import archive_constants, archive_utils
 import asyncio
 
@@ -92,11 +92,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         return file, embed
 
     @commands.command(name="archivechannel")
-    @commands.has_any_role(
-        constants.ARITHMANCY_BOT_WHISPERER_ROLE_ID,
-        constants.SONI_SERVER_TESTER_ROLE,
-        constants.KEV_SERVER_TESTER_ROLE
-    )
+    @commands.has_any_role(*constants.TRUSTED)
     async def archivechannel(self, ctx, *args):
         """Command to download channel's history"""
         # TODO: Need error handling for asking a channel we don't have access to or invalid channel name
@@ -165,7 +161,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
             archive_utils.reset_archive_dir()
 
     @commands.command(name="archivecategory")
-    @commands.has_guild_permissions(administrator=True)
+    @admin_utils.is_owner_or_admin()
     async def archivecategory(self, ctx, *args):
         """Command to download the history of every text channel in the category"""
         logging_utils.log_command("archivecategory", ctx.channel, ctx.author)
@@ -228,7 +224,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     # TODO: This cipher_race is mostly copy/pasted from archivecategory
     @commands.command(name="archiveserver")
-    @commands.has_guild_permissions(administrator=True)
+    @admin_utils.is_owner_or_admin()
     async def archiveserver(self, ctx):
         """Command to archive every text channel in the server.
 

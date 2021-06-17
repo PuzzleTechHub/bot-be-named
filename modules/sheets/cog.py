@@ -1,5 +1,6 @@
 from utils import discord_utils, google_utils
 from modules.sheets import sheets_constants
+import constants
 import discord
 from discord.ext import commands
 import os
@@ -51,6 +52,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         return proposed_sheet
 
     @commands.command(name="addsheettether", aliases=["editsheettether","tether","edittether","addtether"])
+    @commands.has_any_role(*constants.VERIFIED)
     async def addsheettether(self, ctx, sheet_key_or_link: str = None):
         """Add a sheet to the current channel's category"""
         logging_utils.log_command("addsheettether", ctx.channel, ctx.author)
@@ -75,6 +77,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                                "editchanneltether",
                                "addchanneltether",
                                "chantether"])
+    @commands.has_any_role(*constants.VERIFIED)
     async def addchannelsheettether(self, ctx, sheet_key_or_link: str = None):
         """Add a sheet to the current channel"""
         logging_utils.log_command("addchannelsheettether", ctx.channel, ctx.author)
@@ -112,6 +115,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         return curr_chan_cell,curr_cat_cell
 
     @commands.command(name="removesheettether", aliases=["deletetether", "removetether"])
+    @commands.has_any_role(*constants.VERIFIED)
     async def removesheettether(self, ctx):
         """Remove the sheet-category tethering"""
         logging_utils.log_command("removesheettether", ctx.channel, ctx.author)
@@ -149,6 +153,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             return
         
     @commands.command(name="displaysheettether", aliases=["showsheettether", "showtether", "displaytether"])
+    @commands.has_any_role(*constants.VERIFIED)
     async def displaysheettether(self, ctx):
         """Find the sheet the category is current tethered too"""
         logging_utils.log_command("displaysheettether", ctx.channel, ctx.author)
@@ -259,6 +264,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         return curr_sheet_link, newsheet
 
     @commands.command(name="sheetcreatetab", aliases=["sheettab", "sheetcrab"])
+    @commands.has_any_role(*constants.VERIFIED)
     async def sheetcreatetab(self, ctx, *args):
         """Create a New tab on the sheet that is currently tethered to this category"""
         logging_utils.log_command("sheetcreatetab", ctx.channel, ctx.author)
@@ -293,6 +299,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                       aliases=["channelsheetcrab",
                                "cheetcrab",
                                "chancrab"])
+    @commands.has_any_role(*constants.VERIFIED)
     async def channelsheetcreatetab(self, ctx, chan_name: str, *args):
         """Create a new channel, then a New tab on the sheet that is currently tethered to this category, then pins things"""
         logging_utils.log_command("channelsheetcreatetab", ctx.channel, ctx.author)
