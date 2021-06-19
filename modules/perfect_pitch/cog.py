@@ -15,7 +15,9 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
     @commands.command(name="playtunehelp", aliases=["playtuneinfo"])
     async def playtunehelp(self, ctx):
-        """Give the users everything they need to know about playtune"""
+        """Learn everything there is to know about playtune
+
+        Usage: `~playtunehelp`"""
         logging_utils.log_command("playtunehelp", ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
@@ -45,7 +47,9 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
     @commands.command(name="playtunecustom", aliases=["ptcustom"])
     async def playtunecustom(self, ctx):
-        """Give the users everything they need to know about customising playtune"""
+        """Learn everything there is to know about customizing playtune
+
+        Usage: `~playtunecustom`"""
         logging_utils.log_command("playtunecustom", ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
@@ -83,6 +87,9 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
     @commands.command(name="playtuneinstrument")
     async def playtuneinstrument(self, ctx):
+        """Learn everything there is to know about the instruments we offer!
+
+        Usage: `~playtuneinstrument`"""
         logging_utils.log_command("playtuneinstrument", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         embed.add_field(name="Instruments and Ranges (Low/High)",
@@ -92,6 +99,9 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
     @commands.command(name="playtunelength")
     async def playtunelength(self, ctx):
+        """Learn everything there is to know about changing the note length
+
+        Usage: `~playtunelength`"""
         logging_utils.log_command("playtunelength", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         embed.add_field(name="Note Lengths",
@@ -112,7 +122,9 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
     @commands.command(name="playtunesample", aliases=["ptsample"])
     async def playtunesample(self, ctx):
-        """Give the users everything they need to know about the puzzle"""
+        """Learn everything there is to know about the puzzle
+
+        Usage: `~playtunesample`"""
         logging_utils.log_command("playtunesample", ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
@@ -134,7 +146,9 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
     @commands.command(name="playtune")
     async def playtune(self, ctx, *args):
-        """Play a string of notes together"""
+        """Play a string of notes together
+
+        Usage: `~playtune`"""
         logging_utils.log_command("playtune", ctx.channel, ctx.author)
         tune_dir = os.path.join(os.getcwd(), constants.MODULES_DIR, perfect_pitch_constants.PERFECT_PITCH_DIR,
                                 perfect_pitch_constants.MUSIC, perfect_pitch_constants.TUNES, ctx.channel.name)
@@ -160,7 +174,9 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
     @commands.command(name="chord")
     async def chord(self, ctx):
-        """Sends the user a random chord. Note: all chords come from the 4th octave (middle C)"""
+        """Sends the user a random chord. Note: all chords come from the 4th octave (middle C)
+
+        Usage: `~chord`"""
         logging_utils.log_command("chord", ctx.channel, ctx.author)
         chord = random.choice(glob.glob(os.path.join(os.getcwd(), constants.MODULES_DIR, perfect_pitch_constants.PERFECT_PITCH_DIR,
                                                      perfect_pitch_constants.MUSIC, perfect_pitch_constants.PIANO,
@@ -176,6 +192,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
             - Octave (int): The specific octave you want a random note from
             - Flat_or_Nat (str): Whether you want the note to be flat/sharp or natural
             - Note (str): A specific note (e.g. G4)
+
+        Usage: `~note Gb4`
         """
         logging_utils.log_command("note", ctx.channel, ctx.author)
         # User-selected parameters for which notes will appear

@@ -7,19 +7,16 @@ import discord
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
 class ChannelManagementCog(commands.Cog, name="Channel Management"):
-    """Set of channel management commands.
-        - create channel
-        - move channel
-        - rename channel
-        - clone channel
-    """
+    """Set of channel management commands."""
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command(name="movechannel")
     @commands.has_any_role(*constants.VERIFIED)
     async def movechannel(self, ctx, *args):
-        """Command to move channel to category with given name"""
+        """Command to move the current channel to category with given name
+
+        Usage: `~movechannel category name`"""
         logging_utils.log_command("movechannel", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         # check for category name arguments
@@ -68,7 +65,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     @commands.has_any_role(*constants.VERIFIED)
     async def renamechannel(self, ctx, *args):
         """Changes current channel name to whatever is asked
-        Usage: ~renamechannel Newname"""
+
+        Usage: `~renamechannel newname`"""
         # log command in console
         logging_utils.log_command("renamechannel", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -102,7 +100,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                                                      'createchan'])
     @commands.has_any_role(*constants.VERIFIED)
     async def createchannel(self, ctx, name: str):
-        """Command to create channel in same category with given name"""
+        """Command to create channel in same category with given name
+
+        Usage: `~createchannel new-channel-name`"""
         # log command in console
         logging_utils.log_command("createchannel", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -126,7 +126,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     @commands.command(name="clonechannel")
     @commands.has_any_role(*constants.VERIFIED)
     async def clonechannel(self, ctx, original: str, new: str):
-        """Command to create channel in same category with given name"""
+        """Command to create channel in same category with given name
+
+        Usage: `~clonechannel #channel-to-clone new-channel-name`"""
         # log command in console
         logging_utils.log_command("clonechannel", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()

@@ -94,7 +94,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
     @commands.command(name="archivechannel")
     @commands.has_any_role(*constants.TRUSTED)
     async def archivechannel(self, ctx, *args):
-        """Command to download channel's history"""
+        """Command to download channel's history
+
+        Usage: `~archivechannel #channel`"""
         # TODO: Need error handling for asking a channel we don't have access to or invalid channel name
         logging_utils.log_command("archivechannel", ctx.channel, ctx.author)
         # Check if the user supplied a channel
@@ -163,7 +165,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
     @commands.command(name="archivecategory")
     @admin_utils.is_owner_or_admin()
     async def archivecategory(self, ctx, *args):
-        """Command to download the history of every text channel in the category"""
+        """Command to download the history of every text channel in the category
+
+        Usage: `~archivecategory category name`"""
         logging_utils.log_command("archivecategory", ctx.channel, ctx.author)
         # Check if the user supplied a channel
         if len(args) < 1:
@@ -226,9 +230,10 @@ class ArchiveCog(commands.Cog, name="Archive"):
     @commands.command(name="archiveserver")
     @admin_utils.is_owner_or_admin()
     async def archiveserver(self, ctx):
-        """Command to archive every text channel in the server.
+        """Command to archive every text channel in the server. WARNING: This command will take *very*
+        long on any reasonably aged server
 
-        WARNING: This command will take *very* long on any reasonably aged server"""
+        Usage: `~archiveserver`"""
         logging_utils.log_command("archiveserver", ctx.channel, ctx.author)
         # If we don't have the lock, let the user know it may take a while.
         msg = None

@@ -4,6 +4,7 @@ from discord.ext import commands
 from utils import discord_utils, logging_utils
 from datetime import datetime
 
+
 class TimeCog(commands.Cog, name="Time"):
     """Get time and timezone of any location"""
 
@@ -14,7 +15,9 @@ class TimeCog(commands.Cog, name="Time"):
 
     @commands.command(name="time")
     async def time(self, ctx, *args):
-        """Return the time in the specified location"""
+        """Return the time in the specified location
+
+        Usage: `~time location`"""
         logging_utils.log_command("time", ctx.channel, ctx.author)
         # No location provided
         if len(args) < 1:
@@ -42,7 +45,6 @@ class TimeCog(commands.Cog, name="Time"):
         embed = discord_utils.populate_embed(names, values, inline=False)
 
         await ctx.send(embed=embed)
-
 
     def get_tz(self, location: str) -> dict:
         """Get timezone from a given string"""

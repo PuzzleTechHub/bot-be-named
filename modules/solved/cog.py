@@ -15,8 +15,7 @@ from utils import discord_utils, logging_utils, admin_utils
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
 class SolvedCog(commands.Cog):
-    """Checks for `solved` and `unsolved` command
-    Toggles `solved-` prefix on channel name"""
+    """Updates channel names as teams are progressing through puzzlehunts"""
     def __init__(self, bot):
         self.bot = bot
 
@@ -52,11 +51,13 @@ class SolvedCog(commands.Cog):
             new_channel_name = p.remove_prefix()
         return new_channel_name
 
-    @commands.command(name="reorderchannels", aliases=["chansort", "chansorted"])
+    @commands.command(name="reorderchannels", aliases=["chansort"])
     @commands.has_any_role(*constants.VERIFIED)
     async def reorderchannels(self, ctx):
         """Reorder channels within a category, in order of unsolved, solvedish, backsolved, solved
-        and alphabetical order within each of those"""
+        and alphabetical order within each of those
+
+        Usage: `~reorderchannels`"""
         logging_utils.log_command("reorderchannels", ctx.channel, ctx.author)
         category = ctx.channel.category
         text_channels = category.text_channels
@@ -82,7 +83,7 @@ class SolvedCog(commands.Cog):
     async def solved(self, ctx: commands.Context):
         """Changes channel name to solved-<channel-name>
 
-        Usage: ~solved"""
+        Usage: `~solved`"""
         # log command in console
         logging_utils.log_command("solved", ctx.channel, ctx.author)
         channel = ctx.message.channel
@@ -102,6 +103,9 @@ class SolvedCog(commands.Cog):
     @commands.command(name="solvedsorted", aliases=["solveds"])
     @commands.has_any_role(*constants.VERIFIED)
     async def solvedsorted(self, ctx: commands.Context):
+        """Prepends `solved` to the channel name, then sorts the channels
+
+        Usage: `~solvedsorted`"""
         await self.solved(ctx)
         await self.reorderchannels(ctx)
 
@@ -110,7 +114,7 @@ class SolvedCog(commands.Cog):
     async def solvedish(self, ctx: commands.Context):
         """Changes channel name to solvedish-<channel-name>
 
-        Usage: ~solvedish"""
+        Usage: `~solvedish`"""
         # log command in console
         logging_utils.log_command("solvedish", ctx.channel, ctx.author)
         channel = ctx.message.channel
@@ -131,6 +135,9 @@ class SolvedCog(commands.Cog):
     @commands.command(name="solvedishsorted", aliases=["solvedishs"])
     @commands.has_any_role(*constants.VERIFIED)
     async def solvedishsorted(self, ctx: commands.Context):
+        """Prepends `solved` to the channel name, and then sorts channels
+
+        Usage: `~solvedishsorted`"""
         await self.solvedish(ctx)
         await self.reorderchannels(ctx)
 
@@ -139,7 +146,7 @@ class SolvedCog(commands.Cog):
     async def backsolved(self, ctx: commands.Context):
         """Changes channel name to backsolved-<channel-name>
 
-        Usage: ~backsolved"""
+        Usage: `~backsolved`"""
         # log command in console
         logging_utils.log_command("backsolved", ctx.channel, ctx.author)
         channel = ctx.message.channel
@@ -159,6 +166,9 @@ class SolvedCog(commands.Cog):
     @commands.command(name="backsolvedsorted", aliases=["backsolveds"])
     @commands.has_any_role(*constants.VERIFIED)
     async def backsolvedsorted(self, ctx: commands.Context):
+        """Prepend `backsolved` to the channel name, then sort the channels
+
+        Usage: `~backsolvedsorted`"""
         await self.backsolved(ctx)
         await self.reorderchannels(ctx)
 
@@ -167,7 +177,7 @@ class SolvedCog(commands.Cog):
     async def unsolved(self, ctx: commands.context):
         """removes one of the solved prefixes from channel name
 
-        Usage: ~unsolved"""
+        Usage: `~unsolved`"""
         # log command in console
         logging_utils.log_command("unsolved", ctx.channel, ctx.author)
         channel = ctx.message.channel
@@ -189,6 +199,9 @@ class SolvedCog(commands.Cog):
     @commands.command(name="unsolvedsorted", aliases=["unsolveds"])
     @commands.has_any_role(*constants.VERIFIED)
     async def unsolvedsorted(self, ctx: commands.context):
+        """Remove any solved/backsolved/solvedish prefix, then sort channels
+
+        Usage: `~unsolvedsorted`"""
         await self.unsolved(ctx)
         await self.reorderchannels(ctx)
 
@@ -207,6 +220,7 @@ class SolvedCog(commands.Cog):
         unsolved = list(filter(lambda x: x not in channel_list_prefixes, unsolved))
 
         return unsolved + channel_list_prefixes
+
 
 def setup(bot):
     bot.add_cog(SolvedCog(bot))
