@@ -412,11 +412,36 @@ class DiscordCog(commands.Cog, name="Discord"):
         await ctx.send(embed=embed)
 
     @admin_utils.is_owner_or_admin()
+    @commands.command(name="addemoji")
+    async def addemoji(self, ctx, *args):
+        """Add an emoji. Note: the user must supply the emoji (for duplication in the server)"""
+        logging_utils.log_command("addemoji", ctx.channel, ctx.author)
+        found_emojis = []
+        for arg in args:
+            emoji_id = int(arg.split(':')[-1].replace('>', ''))
+            for emoji in ctx.guild.emojis:
+                if emoji.id == emoji_id:
+                    found_emojis.append(emoji)
+                    try:
+                        emoji_img = await emoji.url.read()
+                        await ctx.guild.create_custom_emoji(name=emoji.name, image=emoji_img)
+                    except discord.Forbidden:
+                        embed = discord_utils.create_embed()
+                        embed.add_field(name=f"{constants.FAILED}!",
+                                        value=f"I do not have permission to add emoji in {ctx.guild.name}.")
+                        await ctx.send(embed=embed)
+                        return
+        embed = discord.Embed(title="Added new emoji!",
+                              description=f"\n{f''.join([emoji.name for emoji in found_emojis])}"
+                              )
+        await ctx.send(embed=embed)
+
+    @admin_utils.is_owner_or_admin()
     @commands.command(name="deleteemoji", aliases=["removeemoji"])
     async def deleteemoji(self, ctx, *args):
         """Remove emojis from the server. Must use the emojis in the command
         e.g. ~deleteemoji :sadcowboy: :thistbh:"""
-        logging_utils.log_command("addemoji", ctx.channel, ctx.author)
+        logging_utils.log_command("deleteemoji", ctx.channel, ctx.author)
         deleted_emojis = []
         # Each arg must be an emoji
         for arg in args:
@@ -424,8 +449,15 @@ class DiscordCog(commands.Cog, name="Discord"):
             emoji_id = int(arg.split(':')[-1].replace('>', ''))
             for emoji in ctx.guild.emojis:
                 if emoji.id == emoji_id:
-                    await emoji.delete()
-                    deleted_emojis.append(f":{emoji.name}:")
+                    try:
+                        await emoji.delete()
+                        deleted_emojis.append(f":{emoji.name}:")
+                    except discord.Forbidden:
+                        embed = discord_utils.create_embed()
+                        embed.add_field(name=f"{constants.FAILED}!",
+                                        value=f"I do not have permission to delete emojis in {ctx.guild.name}.")
+                        await ctx.send(embed=embed)
+                        return
         embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}!",
                         value=f"Sucessfully removed {', '.join(deleted_emojis)}")
