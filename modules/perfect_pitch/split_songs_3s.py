@@ -1,3 +1,4 @@
+#Previously worked when in bot-be-named main directory, might need to edit paths for it being in perfect_pitch module now
 import os
 from modules.music_race import music_race_constants
 

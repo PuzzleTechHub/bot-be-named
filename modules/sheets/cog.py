@@ -1,5 +1,6 @@
 from utils import discord_utils, google_utils, logging_utils
 from modules.sheets import sheets_constants
+import modules.solved
 import constants
 from discord.ext import commands
 import discord
@@ -177,6 +178,13 @@ class SheetsCog(commands.Cog, name="Sheets"):
                          value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
                          inline=False)
         await ctx.send(embed=embed)
+
+    @commands.command(name="chancrabsorted", aliases=["chancrabs"])
+    @commands.has_any_role(*constants.VERIFIED)
+    async def channelsheetcreatetabsorted(self, ctx: commands.context):
+        await self.channelsheetcreatetab(ctx)
+        #TODO : Move modules.solved.reorderchannels (or maybe sort_channels) to discord_utils then call here
+        #await self.reorderchannels(ctx)
 
     @commands.command(name="displaysheettether", aliases=["showsheettether", "showtether", "displaytether"])
     @commands.has_any_role(*constants.VERIFIED)
