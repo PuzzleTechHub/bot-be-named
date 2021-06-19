@@ -396,5 +396,41 @@ class DiscordCog(commands.Cog, name="Discord"):
         await ctx.send(embed=sent_embed)
 
 
+    ##################
+    # EMOJI COMMANDS #
+    ##################
+
+    # TODO: this command is meant for DEVELOPER purpose. That's why we print out the ID (which is useless to normal user)
+    # For GENERAL purpose (which doesn't make much sense), we would add semicolons before/after emoji name and remove id
+    @admin_utils.is_owner_or_admin()
+    @commands.command(name="listemoji", aliases=["lsemoji"])
+    async def listemoji(self, ctx):
+        """List all emojis in a server"""
+        logging_utils.log_command("listemoji", ctx.channel, ctx.author)
+        embed = discord.Embed(title=f"Emoji in {ctx.guild.name}",
+                              description=f"{chr(10).join([f'{emoji.name} {emoji.id}' for emoji in ctx.guild.emojis])}")
+        await ctx.send(embed=embed)
+
+    @admin_utils.is_owner_or_admin()
+    @commands.command(name="deleteemoji", aliases=["removeemoji"])
+    async def deleteemoji(self, ctx, *args):
+        """Remove emojis from the server. Must use the emojis in the command
+        e.g. ~deleteemoji :sadcowboy: :thistbh:"""
+        logging_utils.log_command("addemoji", ctx.channel, ctx.author)
+        deleted_emojis = []
+        # Each arg must be an emoji
+        for arg in args:
+            # TODO: What's the best way to do this?
+            emoji_id = int(arg.split(':')[-1].replace('>', ''))
+            for emoji in ctx.guild.emojis:
+                if emoji.id == emoji_id:
+                    await emoji.delete()
+                    deleted_emojis.append(f":{emoji.name}:")
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                        value=f"Sucessfully removed {', '.join(deleted_emojis)}")
+        await ctx.send(embed=embed)
+
+
 def setup(bot):
     bot.add_cog(DiscordCog(bot))
