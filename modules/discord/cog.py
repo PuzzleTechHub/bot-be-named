@@ -125,6 +125,17 @@ class DiscordCog(commands.Cog, name="Discord"):
                         value=f"{len(cat.voice_channels)}")
         await ctx.send(embed=embed)
 
+    @admin_utils.is_owner_or_admin()
+    @commands.command(name="listcategories", aliases=["lscategories", "listcats", "lscats"])
+    async def listcategories(self, ctx):
+        """List categories in a server"""
+        logging_utils.log_command("listcategories", ctx.channel, ctx.author)
+        categories = [cat.name for cat in ctx.guild.categories]
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"Categories in {ctx.guild.name}",
+                        value=f"{chr(10).join(categories)}")
+        await ctx.send(embed=embed)
+
     #################
     # ROLE COMMANDS #
     #################
@@ -383,6 +394,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                              value=f"Embed sent to {channel.mention}",
                              inline=False)
         await ctx.send(embed=sent_embed)
+
 
 def setup(bot):
     bot.add_cog(DiscordCog(bot))
