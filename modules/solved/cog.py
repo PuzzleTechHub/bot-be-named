@@ -7,6 +7,8 @@ from modules.solved import solved_constants
 from utils import discord_utils, logging_utils, admin_utils
 
 
+# TODO: We added solvedsorted, solvedishsorted, etc., which are complete copy+extensions of solved
+#       The goal will be to pick solved *or* solvedsorted and delete the other
 # TODO: It's awkward but right now the solved constants have a hyphen at the end
 # Which is why we have [:-1] for all the prefixes. We don't want to have that prefix
 # Sent to the users, but we do need it for prepending to the channel.
@@ -72,6 +74,44 @@ class SolvedCog(commands.Cog):
                             inline=False)
         await ctx.send(embed=embed)
 
+    @commands.command(name="solvedsorted")
+    @commands.has_any_role(*constants.VERIFIED)
+    async def solvedsorted(self, ctx: commands.Context):
+        """Changes channel name to solved-<channel-name> and then sorts the text channels in the category
+
+        Usage: ~solved"""
+        # log command in console
+        logging_utils.log_command("solved", ctx.channel, ctx.author)
+        channel = ctx.message.channel
+        embed = discord_utils.create_embed()
+        new_channel_name = self.add_prefix(channel, solved_constants.SOLVED_PREFIX)
+        if new_channel_name:
+            await channel.edit(name=new_channel_name)
+            embed.add_field(name=f"{constants.SUCCESS}!",
+                            value=f"Marking {channel.mention} as {solved_constants.SOLVED_PREFIX[:-1]}!",
+                            inline=False)
+        else:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Channel already marked as {solved_constants.SOLVED_PREFIX[:-1]}!",
+                            inline=False)
+        await ctx.send(embed=embed)
+
+        channel_order = self.sort_channels(ctx.channel.category.text_channels)
+        for position, channel in enumerate(channel_order):
+            try:
+                await channel.edit(position=position)
+            except discord.Forbidden:
+                embed = discord_utils.create_embed()
+                embed.add_field(name=f"{constants.FAILED}!",
+                                value="I do not have permission to reorder the channels.")
+                await ctx.send(embed=embed)
+                return
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                        value="Channels sorted successfully")
+        await ctx.send(embed=embed)
+
     @commands.command(name="solvedish")
     @commands.has_any_role(*constants.VERIFIED)
     async def solvedish(self, ctx: commands.Context):
@@ -95,6 +135,45 @@ class SolvedCog(commands.Cog):
         await channel.edit(name=new_channel_name)
         await ctx.send(embed=embed)
 
+    @commands.command(name="solvedishsorted")
+    @commands.has_any_role(*constants.VERIFIED)
+    async def solvedishsorted(self, ctx: commands.Context):
+        """Changes channel name to solvedish-<channel-name> and then sorts the text channels in the category
+
+        Usage: ~solvedishsorted"""
+        # log command in console
+        logging_utils.log_command("solvedish", ctx.channel, ctx.author)
+        channel = ctx.message.channel
+        embed = discord_utils.create_embed()
+        new_channel_name = self.add_prefix(ctx.message.channel, solved_constants.SOLVEDISH_PREFIX)
+        if new_channel_name:
+            await channel.edit(name=new_channel_name)
+            embed.add_field(name=f"{constants.SUCCESS}!",
+                            value=f"Marking {channel.mention} as {solved_constants.SOLVEDISH_PREFIX[:-1]}!",
+                            inline=False)
+        else:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Channel already marked as {solved_constants.SOLVEDISH_PREFIX[:-1]}!",
+                            inline=False)
+        await channel.edit(name=new_channel_name)
+        await ctx.send(embed=embed)
+
+        channel_order = self.sort_channels(ctx.channel.category.text_channels)
+        for position, channel in enumerate(channel_order):
+            try:
+                await channel.edit(position=position)
+            except discord.Forbidden:
+                embed = discord_utils.create_embed()
+                embed.add_field(name=f"{constants.FAILED}!",
+                                value="I do not have permission to reorder the channels.")
+                await ctx.send(embed=embed)
+                return
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                        value="Channels sorted successfully")
+        await ctx.send(embed=embed)
+
     @commands.command(name="backsolved")
     @commands.has_any_role(*constants.VERIFIED)
     async def backsolved(self, ctx: commands.Context):
@@ -115,6 +194,44 @@ class SolvedCog(commands.Cog):
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"Channel already marked as {solved_constants.BACKSOLVED_PREFIX[:-1]}!",
                             inline=False)
+        await ctx.send(embed=embed)
+
+    @commands.command(name="backsolvedsorted")
+    @commands.has_any_role(*constants.VERIFIED)
+    async def backsolvedsorted(self, ctx: commands.Context):
+        """Changes channel name to backsolved-<channel-name> and then sorts the text channels in the category
+
+        Usage: ~backsolvedsorted"""
+        # log command in console
+        logging_utils.log_command("backsolved", ctx.channel, ctx.author)
+        channel = ctx.message.channel
+        embed = discord_utils.create_embed()
+        new_channel_name = self.add_prefix(channel, solved_constants.BACKSOLVED_PREFIX)
+        if new_channel_name:
+            await channel.edit(name=new_channel_name)
+            embed.add_field(name=f"{constants.SUCCESS}",
+                            value=f"Marking {channel.mention} as {solved_constants.BACKSOLVED_PREFIX[:-1]}!",
+                            inline=False)
+        else:
+            embed.add_field(name=f"{constants.FAILED}",
+                            value=f"Channel already marked as {solved_constants.BACKSOLVED_PREFIX[:-1]}!",
+                            inline=False)
+        await ctx.send(embed=embed)
+
+        channel_order = self.sort_channels(ctx.channel.category.text_channels)
+        for position, channel in enumerate(channel_order):
+            try:
+                await channel.edit(position=position)
+            except discord.Forbidden:
+                embed = discord_utils.create_embed()
+                embed.add_field(name=f"{constants.FAILED}!",
+                                value="I do not have permission to reorder the channels.")
+                await ctx.send(embed=embed)
+                return
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                        value="Channels sorted successfully")
         await ctx.send(embed=embed)
 
     @commands.command(name="unsolved")
@@ -141,17 +258,61 @@ class SolvedCog(commands.Cog):
                         inline=False)
         await ctx.send(embed=embed)
 
+    @commands.command(name="unsolvedsorted")
+    @commands.has_any_role(*constants.VERIFIED)
+    async def unsolvedsorted(self, ctx: commands.context):
+        """removes one of the solved prefixes from channel name and then sorts the text channels in the category
+
+        Usage: ~unsolved"""
+        # log command in console
+        logging_utils.log_command("unsolved", ctx.channel, ctx.author)
+        channel = ctx.message.channel
+        embed = discord_utils.create_embed()
+        for prefix in solved_constants.PREFIXES:
+            new_channel_name = self.remove_prefix(ctx.message.channel, prefix)
+            if new_channel_name:
+                await channel.edit(name=new_channel_name)
+                embed.add_field(name=f"{constants.SUCCESS}!",
+                                value=f"Marking {channel.mention} as un{prefix[:-1]}!",
+                                inline=False)
+                await ctx.send(embed=embed)
+                return
+        embed.add_field(name=f"{constants.FAILED}!",
+                        value=f"Channel is not marked as {solved_constants.SOLVED_PREFIX[:-1]}!",
+                        inline=False)
+        await ctx.send(embed=embed)
+
+        channel_order = self.sort_channels(ctx.channel.category.text_channels)
+        for position, channel in enumerate(channel_order):
+            try:
+                await channel.edit(position=position)
+            except discord.Forbidden:
+                embed = discord_utils.create_embed()
+                embed.add_field(name=f"{constants.FAILED}!",
+                                value="I do not have permission to reorder the channels.")
+                await ctx.send(embed=embed)
+                return
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                        value="Channels sorted successfully")
+        await ctx.send(embed=embed)
+
     # TODO: move to some utils file somewhere. This function can be very useful and generalized to fit more needs
-    def sort_channels(self, channel_list: list) -> list:
-        """Sort channels according to unsolved, solvedish, backsolved, solved"""
+    def sort_channels(self, channel_list: list, prefixes: list = [solved_constants.SOLVEDISH_PREFIX,
+                                                                  solved_constants.BACKSOLVED_PREFIX,
+                                                                  solved_constants.SOLVED_PREFIX]) -> list:
+        """Sort channels according to some prefixes"""
         channel_list_sorted = sorted(channel_list, key=lambda x: x.name)
 
-        solvedish = list(filter(lambda x: x.name.startswith(solved_constants.SOLVEDISH_PREFIX), channel_list_sorted))
-        backsolved = list(filter(lambda x: x.name.startswith(solved_constants.BACKSOLVED_PREFIX), channel_list_sorted))
-        solved = list(filter(lambda x: x.name.startswith(solved_constants.SOLVED_PREFIX), channel_list_sorted))
-        unsolved = list(filter(lambda x: x not in solved and x not in backsolved and x not in solvedish, channel_list_sorted))
+        channel_list_prefixes = []
+        for prefix in prefixes:
+            channel_list_prefixes += list(filter(lambda x: x.name.startswith(prefix), channel_list_sorted))
 
-        return unsolved + solvedish + backsolved + solved
+        unsolved = channel_list_sorted
+        unsolved = list(filter(lambda x: x not in channel_list_prefixes, unsolved))
+
+        return unsolved + channel_list_prefixes
 
     @admin_utils.is_owner_or_admin()
     @commands.command(name="reorderchannels")
