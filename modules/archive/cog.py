@@ -92,7 +92,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         return file, embed
 
     @commands.command(name="archivechannel")
-    @commands.has_any_role(*constants.TRUSTED)
+    @commands.has_any_role(*constants.VERIFIED)
     async def archivechannel(self, ctx, *args):
         """Command to download channel's history
 
