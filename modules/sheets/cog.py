@@ -228,7 +228,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         tab_name = " ".join(args)
 
-        curr_chan = ctx.messsage.channel
+        curr_chan = ctx.message.channel
         curr_cat = ctx.message.channel.category
         curr_sheet_link, newsheet = await self.sheetcreatetabgeneric(ctx, curr_chan, curr_cat, tab_name)
 
