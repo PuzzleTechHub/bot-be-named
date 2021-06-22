@@ -228,7 +228,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         tab_name = " ".join(args)
 
-        curr_sheet_link, newsheet = await self.sheetcreatetabgeneric(ctx, ctx.messsage.channel, ctx.message.channel.category, tab_name)
+        curr_chan = ctx.messsage.channel
+        curr_cat = ctx.message.channel.category
+        curr_sheet_link, newsheet = await self.sheetcreatetabgeneric(ctx, curr_chan, curr_cat, tab_name)
 
         # Error, already being handled at the generic function
         if not curr_sheet_link or not newsheet.id:
