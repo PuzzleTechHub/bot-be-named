@@ -6,12 +6,8 @@
 ## Improvements
 
 - Better README to repro
-- ~archivechannel should name channel for search reasons.
-- ~archive command does not exist. Did you mean "Archivechannel"
 - Help : arrow keys for navigation?
 - Allow minimal bot to run without .env file
-- unpin should give you link of message that was unpinned
-- listpins / chanstats
 - env to constants.py
 - reply to bot message be toggleable by command
 
@@ -22,7 +18,6 @@
 - Category management : ~clonecategory etc
 - Role assign : ~assignrole @rolename @user1 @user2 @user3
 - Simple lookup for all major encodings - ~lookupsheet morse/pigpen etc
-- changenick
 - ~reorder to reorder channels by solved status
 - On chancrab, make the channel just above highest solved channel
 - command named ~aboutthebot. A simple "bot tutorial" to shortly mention our 3-4 most used commands (~chancrab and ~sheetcrab, along with ~tether.... ~createchannel and ~movechannel... And ~pin ~unpin). Basically the command I'll run at the start of any hunt. "Hey this is what you can do with our bot, haffun now"
@@ -40,5 +35,5 @@
 - QQQ: ~housepoints 2021 and ~housecup 2021
 - QQQ - Command where you can go "~newassignment [Link] [Date]"
 - QQQ - And command where you go "~allassignments" to display them all in a single embed
-- discord bot Duelling, 
+- discord bot Duelling 
 - discord bot WizCards
