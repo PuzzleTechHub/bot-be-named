@@ -54,6 +54,59 @@ class DiscordCog(commands.Cog, name="Discord"):
                             inline=False)
             await ctx.send(embed=embed)
 
+    @commands.command(name="lspin", aliases=["lspins", "listpin", "listpins"])
+    @commands.has_any_role(*constants.VERIFIED)
+    async def listpin(self, ctx):
+        """Lists all the pinned posts in the current channel"""
+        logging_utils.log_command("listpin", ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+        pins = await ctx.message.channel.pins()
+
+        if(len(pins)==0):
+            embed.add_field(name="Success!",
+                            value="There are 0 pinned posts on this channel.",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return 1
+        
+        strmsg = ""
+        i=1
+        for pin in pins:
+            strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
+            i=i+1
+        
+        embed.add_field(name="Success!",
+                        value=f"There are {len(pins)} pinned posts on this channel." 
+                            f"\n{strmsg[:-3]}",
+                        inline=False)
+        await ctx.send(embed=embed)
+
+
+    @admin_utils.is_owner_or_admin()
+    @commands.command(name="changebotnick")
+    async def changebotnick(self, ctx, newnick: str = None):
+        """Change the nick of the bot in this server"""
+        logging_utils.log_command("changebotnick", ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        currnick = ctx.message.guild.me.nick
+
+        try:
+            await ctx.message.guild.me.edit(nick=newnick)
+        except discord.errors.Forbidden:
+            embed = discord_utils.create_embed()
+            embed.add_field(name="ERROR: No access",
+                            value=f"Sorry! I don't have access to change my own nickname.",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return 0
+        
+        embed.add_field(name="Success!",
+                        value=f"Nick successfully changed from `{currnick}` to `{newnick}`",
+                        inline=False)
+        await ctx.send(embed=embed)
+
+    
     @commands.command(name="unpin")
     @commands.has_any_role(*constants.VERIFIED)
     async def unpin(self, ctx, num_to_unpin: int = 1):
@@ -66,13 +119,17 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         embed = discord_utils.create_embed()
         pins = await ctx.message.channel.pins()
+        strmsg = ""
         if num_to_unpin < len(pins):
             pins = pins[:num_to_unpin]
         else:
             num_to_unpin = len(pins)
+        i=1
         for pin in pins:
             try:
                 await pin.unpin()
+                strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
+                i=i+1
             except discord.HTTPException:
                 embed.add_field(name="Error!",
                                 value="I do not have permissions to unpin that message "
@@ -81,8 +138,10 @@ class DiscordCog(commands.Cog, name="Discord"):
                 await ctx.send(embed=embed)
                 return
 
+
         embed.add_field(name="Success!",
-                        value=f"Unpinned the most recent {num_to_unpin} " + ("messages" if num_to_unpin != 1 else "message"),
+                        value=f"Unpinned the most recent {num_to_unpin} " + ("messages" if num_to_unpin != 1 else "message") + 
+                            f"\n{strmsg[:-3]}",
                         inline=False)
         await ctx.send(embed=embed)
 
@@ -126,7 +185,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         await ctx.send(embed=embed)
 
     @admin_utils.is_owner_or_admin()
-    @commands.command(name="listcategories", aliases=["lscategories", "listcats", "lscats"])
+    @commands.command(name="listcategories", aliases=["lscategories", "listcats", "lscats", "listcat", "lscat"])
     async def listcategories(self, ctx):
         """List categories in a server"""
         logging_utils.log_command("listcategories", ctx.channel, ctx.author)
@@ -304,7 +363,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.send(embed=embed)
             return
 
-    @commands.command(name="listroles", aliases=["lsroles"])
+    @commands.command(name="listroles", aliases=["lsroles", "listrole", "lsrole"])
     async def listroles(self, ctx):
         """List all roles in the server"""
         logging_utils.log_command("listroles", ctx.channel, ctx.author)
@@ -411,7 +470,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                               description=f"{chr(10).join([f'{emoji.name} {emoji.id}' for emoji in ctx.guild.emojis])}")
         await ctx.send(embed=embed)
 
-    @admin_utils.is_owner_or_admin()
+    @commands.has_permissions(manage_emojis=True)
     @commands.command(name="addemoji")
     async def addemoji(self, ctx, *args):
         """Add an emoji. Note: the user must supply the emoji (for duplication in the server)"""
@@ -419,18 +478,24 @@ class DiscordCog(commands.Cog, name="Discord"):
         found_emojis = []
         for arg in args:
             emoji_id = int(arg.split(':')[-1].replace('>', ''))
-            for emoji in ctx.guild.emojis:
-                if emoji.id == emoji_id:
-                    found_emojis.append(emoji)
-                    try:
-                        emoji_img = await emoji.url.read()
-                        await ctx.guild.create_custom_emoji(name=emoji.name, image=emoji_img)
-                    except discord.Forbidden:
-                        embed = discord_utils.create_embed()
-                        embed.add_field(name=f"{constants.FAILED}!",
-                                        value=f"I do not have permission to add emoji in {ctx.guild.name}.")
-                        await ctx.send(embed=embed)
-                        return
+            print(emoji_id)
+            found_emojis.append(self.bot.get_emoji(emoji_id))
+
+        print(found_emojis)
+        
+        for emoji in found_emojis:
+            print(emoji)
+            print(emoji.name)
+            print(emoji.id)
+            try:
+                emoji_img = await emoji.url.read()
+                await ctx.guild.create_custom_emoji(name=emoji.name, image=emoji_img)
+            except discord.Forbidden:
+                embed = discord_utils.create_embed()
+                embed.add_field(name=f"{constants.FAILED}!",
+                                value=f"I do not have permission to add emoji in {ctx.guild.name}.")
+                await ctx.send(embed=embed)
+                return
         embed = discord.Embed(title="Added new emoji!",
                               description=f"\n{f''.join([emoji.name for emoji in found_emojis])}"
                               )

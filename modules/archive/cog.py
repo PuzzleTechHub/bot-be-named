@@ -91,6 +91,14 @@ class ArchiveCog(commands.Cog, name="Archive"):
             embed = None
         return file, embed
 
+    @commands.command(name="archive")
+    @commands.has_any_role(*constants.VERIFIED)
+    async def archive(self, ctx, *args):
+        logging_utils.log_command("archive", ctx.channel, ctx.author)
+        embed = discord.Embed(title="Error!",
+                              description=f"The command `{ctx.prefix}archive` does not exist! Did you mean `{ctx.prefix}archivechannel` instead?")
+        await ctx.send(embed=embed)    
+
     @commands.command(name="archivechannel")
     @commands.has_any_role(*constants.VERIFIED)
     async def archivechannel(self, ctx, *args):
