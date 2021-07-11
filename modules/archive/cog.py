@@ -202,7 +202,12 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 return
 
             start_embed = await self.get_start_embed(category, category.text_channels)
-            msg = await ctx.send(embed=start_embed)
+            # SOMETIMES THE EMBED IS TOO LONG FOR DISCORD
+            embeds = discord_utils.split_embed(start_embed)
+            msgs = []
+            for embed in embeds:
+                msgs.append(await ctx.send(embed=embed))
+
             for text_channel in category.text_channels:
                 archive_utils.reset_archive_dir()
                 try:
@@ -223,9 +228,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                     inline=False)
                     await ctx.send(embed=embed)
                     continue
-            if msg:
-                await msg.delete()
-                msg = None
+            if msgs:
+                for msg in msgs:
+                    await msg.delete()
             embed = discord_utils.create_embed()
             embed.add_field(name="All Done!",
                             value=f"Successfully archived {category}",
@@ -254,7 +259,11 @@ class ArchiveCog(commands.Cog, name="Archive"):
             if msg:
                 await msg.delete()
                 msg = None
-            msg = await ctx.send(embed=start_embed)
+            # SOMETIMES THE EMBED IS TOO LONG FOR DISCORD
+            embeds = discord_utils.split_embed(start_embed)
+            msgs = []
+            for embed in embeds:
+                msgs.append(await ctx.send(embed=embed))
 
             for text_channel in ctx.guild.text_channels:
                 archive_utils.reset_archive_dir()
@@ -276,9 +285,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                     inline=False)
                     await ctx.send(embed=embed)
                     continue
-            if msg:
-                await msg.delete()
-                msg = None
+            if msgs:
+                for msg in msgs:
+                    await msg.delete()
             embed = discord_utils.create_embed()
             embed.add_field(name="All Done!",
                             value=f"Successfully archived {ctx.guild}",
