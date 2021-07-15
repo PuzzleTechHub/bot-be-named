@@ -69,7 +69,8 @@ def split_embed(embed: discord.Embed) -> List[discord.Embed]:
     Returns
         - embed_list (List[discord.Embed]):
     """
-    print(embed.to_dict())
+    if embed.title == discord.Embed.Empty:
+        embed.title = ""
     CHARACTER_LIMIT = 2000
     embed_list = []
     character_count = len(embed.title) + len(embed.description)
