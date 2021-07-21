@@ -200,7 +200,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     #################
 
     @admin_utils.is_owner_or_admin()
-    @commands.command(name="assignrole", aliases=["giverole"])
+    @commands.command(name="assignrole", aliases=["giverole","rolegive","roleassign"])
     async def assignrole(self, ctx, rolename: str, *args):
         """Assign a role to a list of users"""
         logging_utils.log_command("assignrole", ctx.channel, ctx.author)
@@ -476,6 +476,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         """Add an emoji. Note: the user must supply the emoji (for duplication in the server)"""
         logging_utils.log_command("addemoji", ctx.channel, ctx.author)
         found_emojis = []
+        print(args)
         for arg in args:
             emoji_id = int(arg.split(':')[-1].replace('>', ''))
             print(emoji_id)

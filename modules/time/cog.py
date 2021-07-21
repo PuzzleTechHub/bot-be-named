@@ -13,6 +13,17 @@ class TimeCog(commands.Cog, name="Time"):
 
         self.geopy_client = geopy.geocoders.GeoNames(os.getenv("GEOPY_USERNAME"))
 
+    @commands.command(name="unixtime")
+    async def unixtime(self, ctx):
+        """Return the current time in Unix format (1626206635)
+
+        Usage: `~unixtime"""
+        logging_utils.log_command("time", ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+        curr_time = int(datetime.timestamp(datetime.now()))
+        embed.add_field(name="Success!", value=f"Current time is {curr_time}", inline=False)
+        await ctx.send(embed=embed)
+
     @commands.command(name="time")
     async def time(self, ctx, *args):
         """Return the time in the specified location
