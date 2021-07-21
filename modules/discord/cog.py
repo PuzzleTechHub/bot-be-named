@@ -62,7 +62,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         embed = discord_utils.create_embed()
         pins = await ctx.message.channel.pins()
 
-        if(len(pins)==0):
+        if len(pins) == 0:
             embed.add_field(name="Success!",
                             value="There are 0 pinned posts on this channel.",
                             inline=False)
@@ -79,7 +79,9 @@ class DiscordCog(commands.Cog, name="Discord"):
                         value=f"There are {len(pins)} pinned posts on this channel." 
                             f"\n{strmsg[:-3]}",
                         inline=False)
-        await ctx.send(embed=embed)
+        embeds = discord_utils.split_embed(embed)
+        for embed in embeds:
+            await ctx.send(embed=embed)
 
 
     @admin_utils.is_owner_or_admin()
