@@ -62,6 +62,7 @@ async def createchannelgeneric(guild, category, name) -> discord.TextChannel:
     return channel
 
 
+# TODO: I'm going to need to rewriter this at some point...
 def split_embed(embed: discord.Embed) -> List[discord.Embed]:
     """Splits embeds that are too long (discord character limit)
     Arguments:
@@ -79,11 +80,17 @@ def split_embed(embed: discord.Embed) -> List[discord.Embed]:
     if character_count > EMBED_CHARACTER_LIMIT:
         print(f"Title and description are too long with {character_count} characters")
         characters_remaining = character_count
-        while characters_remaining > 0:
+        description = embed.description
+        while description != "":
             embed_list.append(discord.Embed(title=embed.title + " (continued)" if len(embed_list) > 0 else embed.title,
                                             color=embed.color))
-            embed_list[-1].description = embed.description[:(EMBED_CHARACTER_LIMIT - len(embed.title))]
-            characters_remaining -= EMBED_CHARACTER_LIMIT - len(embed.title)
+            # Find the point that is closest to the cutoff but with a space.
+            cutoff_point = description[:(EMBED_CHARACTER_LIMIT - len(embed.title))].rfind(' ')
+            if cutoff_point == -1:
+                cutoff_point = EMBED_CHARACTER_LIMIT - len(embed.title) - 1
+            embed_list[-1].description = description[:cutoff_point+1]
+            description = description[cutoff_point+1:]
+            characters_remaining -= cutoff_point
     # If the title + description are small, we can just copy them over
     else:
         embed_list.append(discord.Embed(title=embed.title,
@@ -93,23 +100,30 @@ def split_embed(embed: discord.Embed) -> List[discord.Embed]:
 
     # Iterate over all the proposed fields in the embed
     for field in embed.fields:
-        field_character_count = len(field.value)
+        field_description = field.value
+        field_character_count = len(field_description)
         # Cut down the proposed fields to the appropriate size
         while field_character_count > FIELD_CHARACTER_LIMIT:
             # If we can add a full-sized field to the embed, do it
             if character_count + len(field.name) + FIELD_CHARACTER_LIMIT <= EMBED_CHARACTER_LIMIT:
+                cutoff_point = field_description[:FIELD_CHARACTER_LIMIT].rfind(' ')
+                if cutoff_point == -1:
+                    cutoff_point = FIELD_CHARACTER_LIMIT-1
                 embed_list[-1].add_field(name=field.name,
-                                         value=field.value[:FIELD_CHARACTER_LIMIT],
+                                         value=field_description[:cutoff_point+1],
                                          inline=False)
-                field_character_count -= FIELD_CHARACTER_LIMIT
-                field.value = field.value[FIELD_CHARACTER_LIMIT:]
+                field_character_count -= cutoff_point
+                field_description = field_description[cutoff_point+1:]
             # If we can't add a full field to the embed, add a chopped field and then create a new embed
             else:
+                cutoff_point = field_description[:EMBED_CHARACTER_LIMIT - character_count - len(field.name)].rfind(' ')
+                if cutoff_point == -1:
+                    cutoff_point = EMBED_CHARACTER_LIMIT - character_count - len(field.name) - 1
                 embed_list[-1].add_field(name=field.name,
-                                         value=field.value[:EMBED_CHARACTER_LIMIT - character_count - len(field.name)],
+                                         value=field_description[:cutoff_point+1],
                                          inline=False)
-                field_character_count -= (EMBED_CHARACTER_LIMIT - character_count - len(field.name))
-                field.value = field.value[EMBED_CHARACTER_LIMIT - character_count - len(field.name):]
+                field_character_count -= cutoff_point
+                field_description = field_description[cutoff_point+1:]
                 # We just filled the entire embed up, so now we need to make a new one
                 embed_list.append(discord.Embed(title=embed.title + " (continued)",
                                                 color=embed.color))
@@ -117,31 +131,23 @@ def split_embed(embed: discord.Embed) -> List[discord.Embed]:
         # Once we've gotten to here, we know that the remaining field character count is able to fit in one field.
         # Since the field character limit is smaller than the embed character limit, we know we'd only need one split.
         if field_character_count + len(field.name) + character_count > EMBED_CHARACTER_LIMIT:
+            cutoff_point = field_description[:EMBED_CHARACTER_LIMIT - character_count - len(field.name)].rfind(' ')
+            if cutoff_point == -1:
+                cutoff_point = EMBED_CHARACTER_LIMIT - character_count - len(field.name) - 1
             embed_list[-1].add_field(name=field.name,
-                                     value=field.value[:EMBED_CHARACTER_LIMIT - character_count - len(field.name)],
+                                     value=field_description[:cutoff_point+1],
                                      inline=False)
             embed_list.append(discord.Embed(title=embed.title + " (continued)",
                                             color=embed.color))
+            field_description = field_description[cutoff_point+1:]
             character_count = len(embed_list[-1].title) + len(field.name)
             embed_list[-1].add_field(name=field.name,
-                                     value=field.value[character_count - EMBED_CHARACTER_LIMIT:],
+                                     value=field_description,
                                      inline=False)
 
         # I believe if we run here then we just don't need to split anything.
         else:
             embed_list[-1].add_field(name=field.name,
-                                     value=field.value,
+                                     value=field_description,
                                      inline=field.inline)
     return embed_list
-# [X] Description too long
-# [] Too many fields
-# [] Field too long? (uhhhh)
-# [] Combination of description and field
-
-
-# Assume we are coming from an embed with a description tail
-# Then we have some character count compared to the embed character count
-# We loop over our embeds.
-# If the character count with the field would be larger than the embed character count
-# We should chop off the field
-
