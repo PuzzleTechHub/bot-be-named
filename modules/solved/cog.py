@@ -51,7 +51,7 @@ class SolvedCog(commands.Cog):
             new_channel_name = p.remove_prefix()
         return new_channel_name
 
-    @commands.command(name="reorderchannels", aliases=["chansort"])
+    @commands.command(name="reorderchannels", aliases=["chansort","sortchan"])
     @commands.has_any_role(*constants.VERIFIED)
     async def reorderchannels(self, ctx):
         """Reorder channels within a category, in order of unsolved, solvedish, backsolved, solved
