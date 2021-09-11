@@ -2,6 +2,7 @@ import geopy
 import os
 from discord.ext import commands
 from utils import discord_utils, logging_utils
+from modules.time import time_utils
 from datetime import datetime
 
 
@@ -14,14 +15,28 @@ class TimeCog(commands.Cog, name="Time"):
         self.geopy_client = geopy.geocoders.GeoNames(os.getenv("GEOPY_USERNAME"))
 
     @commands.command(name="unixtime")
-    async def unixtime(self, ctx):
-        """Return the current time in Unix format (1626206635)
+    async def unixtime(self, ctx, *args):
+        """Return the time given (or current time if no argument) in Unix format (1626206635)
 
-        Usage: `~unixtime"""
+        Usage: `~unixtime Tuesday, September 27, 2021 9pm EDT"""
         logging_utils.log_command("time", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
-        curr_time = int(datetime.timestamp(datetime.now()))
-        embed.add_field(name="Success!", value=f"Current time is {curr_time}", inline=False)
+        if len(args) < 1:
+            curr_time = int(datetime.timestamp(datetime.now()))
+            embed.add_field(name="Success!", value=f"Current time is `{curr_time}`", inline=False)
+        else:
+            user_time = time_utils.parse_date(" ".join(args))
+            if user_time is None:
+                embed.add_field(name="Failed!",
+                                value=f"Is {' '.join(args)} a valid time?",
+                                inline=False)
+                await ctx.send(embed=embed)
+                return
+            unix_time = int(datetime.timestamp(user_time))
+            embed.add_field(name="Success!",
+                            value=f"The Unix Time at {' '.join(args)} is `{unix_time}`",
+                            inline=False)
+
         await ctx.send(embed=embed)
 
     @commands.command(name="time")

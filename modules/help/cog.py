@@ -10,7 +10,7 @@ class HelpCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='help')
+    @commands.command(name='fakehelp')
     async def real_help(self, ctx, *args):
         if len(args) < 1:
             embed = discord.Embed(title=f"{help_constants.HELP}",

@@ -6,8 +6,6 @@ import constants
 class NewHelpCommand(commands.MinimalHelpCommand):
     """Custom help command override using embeds"""
 
-    COLOUR = constants.EMBED_COLOR
-
     def get_ending_note(self):
         """Returns note to display at the bottom"""
         prefix = self.clean_prefix
@@ -21,7 +19,7 @@ class NewHelpCommand(commands.MinimalHelpCommand):
     async def send_bot_help(self, mapping: dict):
         """implements bot command help page"""
         prefix = self.clean_prefix
-        embed = discord.Embed(title="Bot Commands", colour=self.COLOUR)
+        embed = discord.Embed(title="Bot Commands", colour=constants.EMBED_COLOR)
         embed.set_author(
             name=self.context.bot.user.name, icon_url=self.context.bot.user.avatar_url
         )
@@ -29,15 +27,18 @@ class NewHelpCommand(commands.MinimalHelpCommand):
         if description:
             embed.description = description
 
-        for cog, commands in mapping.items():
+        no_category_commands = await self.filter_commands(mapping[None], sort=True)
+        del mapping[None]
+        for cog, commands in sorted(mapping.items(), key=lambda x: x[0].qualified_name):
             name = "No Category" if cog is None else cog.qualified_name
             filtered = await self.filter_commands(commands, sort=True)
             if filtered:
-                # \u2002 = en space
-                value = "\u2002".join(f"{prefix}{c.name}" for c in filtered)
+                value = f"{chr(10)}".join(f"{prefix}{c.name}" for c in filtered)
                 if cog and cog.description:
                     value = f"{cog.description}\n{value}"
                 embed.add_field(name=name, value=value)
+
+        embed.add_field(name="No category", value=f"{chr(10)}".join(f"{prefix}{c.name}" for c in no_category_commands))
 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
@@ -45,7 +46,7 @@ class NewHelpCommand(commands.MinimalHelpCommand):
     async def send_cog_help(self, cog: commands.Cog):
         """implements cog help page"""
         embed = discord.Embed(
-            title=f"{cog.qualified_name} Commands", colour=self.COLOUR
+            title=f"{cog.qualified_name} Commands", colour=constants.EMBED_COLOR
         )
         if cog.description:
             embed.description = cog.description
@@ -63,7 +64,7 @@ class NewHelpCommand(commands.MinimalHelpCommand):
 
     async def send_group_help(self, group: commands.Group):
         """implements group help page and command help page"""
-        embed = discord.Embed(title=group.qualified_name, colour=self.COLOUR)
+        embed = discord.Embed(title=group.qualified_name, colour=constants.EMBED_COLOR)
         if group.help:
             embed.description = group.help
 
@@ -76,7 +77,6 @@ class NewHelpCommand(commands.MinimalHelpCommand):
                     inline=False,
                 )
 
-        embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
 
     # Use the same function as group help for command help

@@ -233,7 +233,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         curr_sheet_link, newsheet = await self.sheetcreatetabgeneric(ctx, curr_chan, curr_cat, tab_name)
 
         # Error, already being handled at the generic function
-        if not curr_sheet_link or not newsheet.id:
+        if not curr_sheet_link or newsheet is None:
             return
 
         # This link is customized for the newly made tab
