@@ -1,6 +1,9 @@
+import discord
 import geopy
 import os
 from discord.ext import commands
+
+import constants
 from utils import discord_utils, logging_utils
 from modules.time import time_utils
 from datetime import datetime
@@ -27,7 +30,7 @@ class TimeCog(commands.Cog, name="Time"):
         else:
             user_time = time_utils.parse_date(" ".join(args))
             if user_time is None:
-                embed.add_field(name="Failed!",
+                embed.add_field(name=f"{constants.FAILED}!",
                                 value=f"Is {' '.join(args)} a valid time?",
                                 inline=False)
                 await ctx.send(embed=embed)
@@ -37,6 +40,37 @@ class TimeCog(commands.Cog, name="Time"):
                             value=f"The Unix Time at {' '.join(args)} is `{unix_time}`",
                             inline=False)
 
+        await ctx.send(embed=embed)
+
+    @commands.command(name="countdown")
+    async def countdown(self, ctx, *args):
+        """Uses discord message time formatting to provide a countdown
+
+        Usage: `~countdown September 22, 2021 9:00pm EDT`
+        """
+        logging_utils.log_command("countdown", ctx.channel, ctx.author)
+
+        if len(args) < 1:
+            embed = discord_utils.create_no_argument_embed("time")
+            await ctx.send(embed=embed)
+            return
+
+        user_time = time_utils.parse_date(" ".join(args))
+
+        if user_time is None:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Is {' '.join(args)} a valid time?",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return
+
+        unix_time = int(datetime.timestamp(user_time))
+        embed = discord.Embed(title=f"{' '.join(args)}",
+                              description=f"<t:{unix_time}:f>\n"
+                                          f"`<t:{unix_time}:R>` - <t:{unix_time}:R>\n\n"
+                                          f"[Guide to format](https://discord.com/developers/docs/reference#message-formatting-formats)",
+                              color=constants.EMBED_COLOR)
         await ctx.send(embed=embed)
 
     @commands.command(name="time")
