@@ -163,7 +163,19 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                                       zip_file_size,
                                                       textfile,
                                                       textfile_size)
-                await ctx.send(file=file, embed=embed)
+                # There has been an issue with AIO HTTP message sending fails, in which case discord.py crashes?
+                # So adding this try/catch for runtime to catch this. I don't think it's a deterministic error
+                try:
+                    await ctx.send(file=file, embed=embed)
+                except RuntimeError:
+                    embed = discord_utils.create_embed()
+                    embed.add_field(name="ERROR: Failed to send archive",
+                                    value=f"Sorry! I had trouble sending you the archived file for "
+                                          f"{text_channel.mention}. Please try again later, and let kev know if this "
+                                          f"issue persists",
+                                    inline=False)
+                    await ctx.send(embed=embed)
+
                 if msg:
                     await msg.delete()
                     msg = None
@@ -225,6 +237,17 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                     value=f"Sorry! I don't have access to {text_channel.mention}. You'll need "
                                           f"to give me permission to view the channel if you want "
                                           f"to archive it",
+                                    inline=False)
+                    await ctx.send(embed=embed)
+                    continue
+                # There has been an issue with AIO HTTP message sending fails, in which case discord.py crashes?
+                # So adding this try/catch for runtime to catch this. I don't think it's a deterministic error
+                except RuntimeError:
+                    embed = discord_utils.create_embed()
+                    embed.add_field(name="ERROR: Failed to send archive",
+                                    value=f"Sorry! I had trouble sending you the archived file for "
+                                          f"{text_channel.mention}. Perhaps you can try again with {ctx.prefix}archivechannel"
+                                          f" after I've finished archiving {category.mention}.",
                                     inline=False)
                     await ctx.send(embed=embed)
                     continue
