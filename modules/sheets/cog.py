@@ -295,24 +295,16 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 return
             sheet_url = self.category_tether_tab.cell(tether_cell.row, tether_cell.col + 2).value
 
-        try:
-            sheet = self.get_sheet_from_key_or_link(sheet_url)
-        except gspread.exceptions.APIError:
+        sheet = self.get_sheet_from_key_or_link(sheet_url)
+        if sheet is None:
             embed = discord_utils.create_embed()
-            embed.add_field(name=f"{constants.constants.FAILED}",
-                            value="I can't find that sheet. Did you change the permissions to "
+            embed.add_field(name=f"{constants.FAILED}",
+                            value="I can't find that sheet. Are you sure the link is a valid sheet with permissions set to "
                                     "'Anyone with the link can edit'?",
                             inline=False)
             await ctx.send(embed=embed)
             return
-        # Given str was not a link
-        except gspread.exceptions.NoValidUrlKeyFound:
-            embed = discord_utils.create_embed()
-            embed.add_field(name=f"{constants.constants.FAILED}",
-                            value="I can't find that sheet. Are you sure you entered the URL or Sheet ID correctly?",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return
+
 
         try:
             request = service.files().export_media(fileId=sheet.id, mimeType=sheets_constants.MIMETYPE)
