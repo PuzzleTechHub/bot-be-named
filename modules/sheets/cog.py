@@ -1,3 +1,6 @@
+import configparser
+
+import googleapiclient
 from utils import discord_utils, google_utils, logging_utils
 from modules.sheets import sheets_constants
 import modules.solved
@@ -6,12 +9,18 @@ from discord.ext import commands
 import discord
 import os
 import gspread
+import httplib2
+from googleapiclient import discovery
+import asyncio
+import shutil
 
 
 class SheetsCog(commands.Cog, name="Sheets"):
     """A collection of commands for Google Sheests management"""
     def __init__(self, bot):
         self.bot = bot
+        self.lock = asyncio.Lock()
+        self.gdrive_credentials = google_utils.get_gdrive_credentials()
         self.gspread_client = google_utils.create_gspread_client()
         self.category_tether_tab = self.gspread_client.open_by_key(os.getenv("MASTER_SHEET_KEY")).worksheet(sheets_constants.CATEGORY_TAB)
 
@@ -263,6 +272,82 @@ class SheetsCog(commands.Cog, name="Sheets"):
         msg = await ctx.send(embed=embed)
         await msg.pin()
 
+    @commands.command(name="downloadsheet", aliases=["savesheet"])
+    @commands.has_any_role(*constants.VERIFIED)
+    async def downloadsheet(self, ctx, sheet_url=None):
+        """Download the channel/category's currently tethered sheet. You can supply a URL or it will
+        use the currently tethered sheet.
+        
+        Usage: `~savesheet`"""
+        logging_utils.log_command("downloadsheet", ctx.channel, ctx.author)
+        http = self.gdrive_credentials.authorize(httplib2.Http())
+        service = discovery.build('drive', 'v3', http=http)
+
+        if sheet_url is None:
+            tether_cell, _ = self.findsheettether(str(ctx.channel.id), str(ctx.channel.category.id))
+            if tether_cell is None:
+                embed = discord_utils.create_embed()
+                embed.add_field(name=f"{constants.FAILED}",
+                                value=f"There is no sheet tethered to {ctx.channel.mention} or the " 
+                                      f"**{ctx.channel.category.name}** category. You'll need to supply a sheet link "
+                                      f"for me to download.")
+                await ctx.send(embed=embed)
+                return
+            sheet_url = self.category_tether_tab.cell(tether_cell.row, tether_cell.col + 2).value
+
+        try:
+            sheet = self.get_sheet_from_key_or_link(sheet_url)
+        except gspread.exceptions.APIError:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.constants.FAILED}",
+                            value="I can't find that sheet. Did you change the permissions to "
+                                    "'Anyone with the link can edit'?",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return
+        # Given str was not a link
+        except gspread.exceptions.NoValidUrlKeyFound:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.constants.FAILED}",
+                            value="I can't find that sheet. Are you sure you entered the URL or Sheet ID correctly?",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return
+
+        try:
+            request = service.files().export_media(fileId=sheet.id, mimeType=sheets_constants.MIMETYPE)
+            response = request.execute()
+        except googleapiclient.errors.HttpError:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}",
+                            value=f"Sorry, your sheet is too large and cannot be downloaded.",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return
+
+        download_dir = "saved_sheets"
+        download_path = os.path.join(download_dir, sheet.title + ".xlsx")
+        async with self.lock:
+            if os.path.exists(download_dir):
+                shutil.rmtree(download_dir)
+            os.mkdir(download_dir)
+            with open(download_path, "wb") as sheet_file:
+                sheet_file.write(response)
+                file_size = sheet_file.tell()
+                if file_size > ctx.guild.filesize_limit:
+                    embed = discord_utils.create_embed()
+                    embed.add_field(name=f"{constants.FAILED}",
+                                    value=f"Sorry, your sheet is {(file_size/constants.BYTES_TO_MEGABYTES):.2f}MB big, "
+                                            "but I can only send files of up to "
+                                            "{(ctx.guild.filesize_limit/constants.BYTES_TO_MEGABYTES):.2f}MB.",
+                                    inline=False)
+                    await ctx.send(embed=embed)
+                    return
+
+            await ctx.send(file=discord.File(download_path))
+
+
+
     def addsheettethergeneric(self, sheet_key_or_link, curr_guild, curr_catorchan, curr_catorchan_id) -> gspread.Spreadsheet:
         """Add a sheet to the current channel"""
         # We accept both sheet keys or full links
@@ -287,7 +372,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             self.category_tether_tab.append_row(values)
         return proposed_sheet
 
-    def findsheettether(self, curr_chan_id, curr_cat_id):
+    def findsheettether(self, curr_chan_id: str, curr_cat_id: str):
         """For finding the appropriate sheet tethering for a given category or channel"""
         curr_chan_or_cat_cell = None
         tether_type = None

@@ -9,6 +9,14 @@ def create_gspread_client() -> gspread.Client:
     """
     Create the client to be able to access google drive (sheets)
     """
+    creds = get_gdrive_credentials()
+    return gspread.authorize(creds)
+
+
+def get_gdrive_credentials() -> ServiceAccountCredentials:
+    """
+    Get google drive credentials
+    """
     # Scope of what we can do in google drive
     scopes = ['https://www.googleapis.com/auth/spreadsheets',
               'https://www.googleapis.com/auth/drive']
@@ -21,7 +29,7 @@ def create_gspread_client() -> gspread.Client:
         with open('client_secret.json', 'w') as f:
             json.dump(json_creds, f)
     creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scopes)
-    return gspread.authorize(creds)
+    return creds
 
 
 def get_dataframe_from_gsheet(sheet: gspread.Spreadsheet, columns: list) -> pd.DataFrame:

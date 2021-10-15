@@ -33,6 +33,9 @@ VERIFIEDS = {}
 SUCCESS = "Success"
 FAILED = "Failed"
 
+# File size restriction
+BYTES_TO_MEGABYTES = 1_048_576 # 1024 squared
+
 ###########
 # MODULES #
 ###########
