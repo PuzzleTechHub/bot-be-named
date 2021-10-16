@@ -29,7 +29,7 @@ def get_gdrive_credentials() -> ServiceAccountCredentials:
     # Write the credentials file if we don't have it
     if not os.path.exists('client_secret.json'):
         json_creds = dict()
-        for param in constants.JSON_PARAMS:
+        for param in JSON_PARAMS:
             json_creds[param] = os.getenv(param).replace('\"', '').replace('\\n', '\n')
         with open('client_secret.json', 'w') as f:
             json.dump(json_creds, f)
