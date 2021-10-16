@@ -52,6 +52,9 @@ class ErrorHandler:
             return f"That command is disabled or under maintenance."
         elif isinstance(self.error, errors.CommandInvokeError):
             return f"Error while executing the command."
+        elif isinstance(self.error, errors.CheckFailure):
+            return f"You do not have the required perms to use this command. Please speak with a server " \
+                "admin to get verified."
         elif isinstance(self.error, errors.MissingAnyRole):
             # Get the missing role list.
             # We need to convert the role IDs to strings for the people to understand

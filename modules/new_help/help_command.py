@@ -38,7 +38,8 @@ class NewHelpCommand(commands.MinimalHelpCommand):
                     value = f"{cog.description}\n{value}"
                 embed.add_field(name=name, value=value)
 
-        embed.add_field(name="No category", value=f"{chr(10)}".join(f"{prefix}{c.name}" for c in no_category_commands))
+        # TODO: We don't have any commands with no category anymore
+        #embed.add_field(name="No category", value=f"{chr(10)}".join(f"{prefix}{c.name}" for c in no_category_commands))
 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)

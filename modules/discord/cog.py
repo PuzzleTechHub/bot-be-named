@@ -5,13 +5,7 @@ import constants
 from utils import discord_utils, admin_utils, logging_utils
 
 class DiscordCog(commands.Cog, name="Discord"):
-    """Discord Utility Commands
-
-    Includes:
-        - Pinning message commands
-        - Server/Category Statistics commands
-        - Server role commands
-    """
+    """Discord Utility Commands"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -21,7 +15,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     ####################
 
     @commands.command(name="pin")
-    @commands.has_any_role(*constants.VERIFIED)
+    @admin_utils.is_verified()
     async def pin(self, ctx):
         """Pin a message (Either a reply or the one above ~pin"""
         logging_utils.log_command("pin", ctx.channel, ctx.author)
@@ -40,8 +34,8 @@ class DiscordCog(commands.Cog, name="Discord"):
                             inline=False)
             await ctx.send(embed=embed)
 
+    @admin_utils.is_verified()
     @commands.command(name="pinme")
-    @commands.has_any_role(*constants.VERIFIED)
     async def pinme(self, ctx):
         """Pins the message"""
         logging_utils.log_command("pinme", ctx.channel, ctx.author)
@@ -55,7 +49,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.send(embed=embed)
 
     @commands.command(name="lspin", aliases=["lspins", "listpin", "listpins"])
-    @commands.has_any_role(*constants.VERIFIED)
+    @admin_utils.is_verified()
     async def listpin(self, ctx):
         """Lists all the pinned posts in the current channel"""
         logging_utils.log_command("listpin", ctx.channel, ctx.author)
@@ -110,7 +104,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     
     @commands.command(name="unpin")
-    @commands.has_any_role(*constants.VERIFIED)
+    @admin_utils.is_verified()
     async def unpin(self, ctx, num_to_unpin: int = 1):
         """Unpin <num_to_unpin> messages, or all if num if 0"""
         logging_utils.log_command("unpin", ctx.channel, ctx.author)
@@ -380,6 +374,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     # BOTSAY COMMANDS #
     ###################
 
+    # TODO: What on earth is TRUSTED
     @commands.command(name="botsay")
     @commands.has_any_role(*constants.TRUSTED)
     async def botsay(self, ctx, channel_id_or_name: str, *args):

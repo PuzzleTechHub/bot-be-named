@@ -5,6 +5,11 @@ from oauth2client.service_account import ServiceAccountCredentials
 import constants
 import json
 
+
+JSON_PARAMS = ["type", "project_id", "private_key_id", "private_key", "client_email", "client_id", "auth_uri",
+               "token_uri", "auth_provider_x509_cert_url", "client_x509_cert_url"]
+
+
 def create_gspread_client() -> gspread.Client:
     """
     Create the client to be able to access google drive (sheets)
@@ -48,7 +53,7 @@ def update_sheet_from_df(sheet: gspread.Spreadsheet, df: pd.DataFrame) -> None:
     sheet.update([df.columns.values.tolist()] + df.values.tolist())
 
 
-def get_sheet_link(sheet: gspread.Spreadsheet, tab: gspread.Worksheet = None):
+def get_sheet_link(sheet: gspread.Spreadsheet, tab: gspread.Worksheet = None) -> str:
     """Get the URL for a Google sheet. Optionally add a specific tab"""
     if tab:
         # Ensure the tab belongs to the sheet

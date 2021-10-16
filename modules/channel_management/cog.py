@@ -1,5 +1,5 @@
 from discord.ext import commands
-from utils import discord_utils, logging_utils
+from utils import discord_utils, logging_utils, admin_utils
 import constants
 import discord
 
@@ -11,8 +11,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     def __init__(self, bot):
         self.bot = bot
 
+    @admin_utils.is_verified()
     @commands.command(name="movechannel")
-    @commands.has_any_role(*constants.VERIFIED)
     async def movechannel(self, ctx, *args):
         """Command to move the current channel to category with given name
 
@@ -61,8 +61,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # reply to user
         await ctx.send(embed=embed)
 
+    @admin_utils.is_verified()
     @commands.command(name="renamechannel")
-    @commands.has_any_role(*constants.VERIFIED)
     async def renamechannel(self, ctx, *args):
         """Changes current channel name to whatever is asked
 
@@ -95,10 +95,10 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                         inline=False)
         await ctx.send(embed=embed)
 
+    @admin_utils.is_verified()
     @commands.command(name="createchannel", aliases=['makechannel',
                                                      'makechan',
                                                      'createchan'])
-    @commands.has_any_role(*constants.VERIFIED)
     async def createchannel(self, ctx, name: str):
         """Command to create channel in same category with given name
 
@@ -123,8 +123,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                             value=f"Forbidden! Have you checked if the bot has the required permisisons?")
         await ctx.send(embed=embed)
 
+    @admin_utils.is_verified()
     @commands.command(name="clonechannel")
-    @commands.has_any_role(*constants.VERIFIED)
     async def clonechannel(self, ctx, original: str, new: str):
         """Command to create channel in same category with given name
 

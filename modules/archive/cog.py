@@ -91,16 +91,16 @@ class ArchiveCog(commands.Cog, name="Archive"):
             embed = None
         return file, embed
 
+    @admin_utils.is_verified()
     @commands.command(name="archive")
-    @commands.has_any_role(*constants.VERIFIED)
     async def archive(self, ctx, *args):
         logging_utils.log_command("archive", ctx.channel, ctx.author)
         embed = discord.Embed(title="Error!",
                               description=f"The command `{ctx.prefix}archive` does not exist! Did you mean `{ctx.prefix}archivechannel` instead?")
         await ctx.send(embed=embed)    
 
+    @admin_utils.is_verified()
     @commands.command(name="archivechannel")
-    @commands.has_any_role(*constants.VERIFIED)
     async def archivechannel(self, ctx, *args):
         """Command to download channel's history
 
@@ -171,7 +171,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     embed = discord_utils.create_embed()
                     embed.add_field(name="ERROR: Failed to send archive",
                                     value=f"Sorry! I had trouble sending you the archived file for "
-                                          f"{text_channel.mention}. Please try again later, and let kev know if this "
+                                          f"{channel.mention}. Please try again later, and let kev know if this "
                                           f"issue persists",
                                     inline=False)
                     await ctx.send(embed=embed)
@@ -182,8 +182,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
             # Clean up the archive dir
             archive_utils.reset_archive_dir()
 
-    @commands.command(name="archivecategory")
     @admin_utils.is_owner_or_admin()
+    @commands.command(name="archivecategory")
     async def archivecategory(self, ctx, *args):
         """Command to download the history of every text channel in the category
 
@@ -263,8 +263,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
         archive_utils.reset_archive_dir()
 
     # TODO: This cipher_race is mostly copy/pasted from archivecategory
-    @commands.command(name="archiveserver")
     @admin_utils.is_owner_or_admin()
+    @commands.command(name="archiveserver")
     async def archiveserver(self, ctx):
         """Command to archive every text channel in the server. WARNING: This command will take *very*
         long on any reasonably aged server

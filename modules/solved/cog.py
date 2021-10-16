@@ -51,8 +51,8 @@ class SolvedCog(commands.Cog):
             new_channel_name = p.remove_prefix()
         return new_channel_name
 
+    @admin_utils.is_verified()
     @commands.command(name="reorderchannels", aliases=["chansort","sortchan"])
-    @commands.has_any_role(*constants.VERIFIED)
     async def reorderchannels(self, ctx):
         """Reorder channels within a category, in order of unsolved, solvedish, backsolved, solved
         and alphabetical order within each of those
@@ -78,8 +78,8 @@ class SolvedCog(commands.Cog):
                         value="Channels sorted successfully")
         await ctx.send(embed=embed)
 
+    @admin_utils.is_verified()
     @commands.command(name="solved")
-    @commands.has_any_role(*constants.VERIFIED)
     async def solved(self, ctx: commands.Context):
         """Changes channel name to solved-<channel-name>
 
@@ -100,8 +100,8 @@ class SolvedCog(commands.Cog):
                             inline=False)
         await ctx.send(embed=embed)
 
+    @admin_utils.is_verified()
     @commands.command(name="solvedsorted", aliases=["solveds"])
-    @commands.has_any_role(*constants.VERIFIED)
     async def solvedsorted(self, ctx: commands.Context):
         """Prepends `solved` to the channel name, then sorts the channels
 
@@ -109,8 +109,8 @@ class SolvedCog(commands.Cog):
         await self.solved(ctx)
         await self.reorderchannels(ctx)
 
+    @admin_utils.is_verified()
     @commands.command(name="solvedish")
-    @commands.has_any_role(*constants.VERIFIED)
     async def solvedish(self, ctx: commands.Context):
         """Changes channel name to solvedish-<channel-name>
 
@@ -132,8 +132,8 @@ class SolvedCog(commands.Cog):
         await channel.edit(name=new_channel_name)
         await ctx.send(embed=embed)
 
+    @admin_utils.is_verified()
     @commands.command(name="solvedishsorted", aliases=["solvedishs"])
-    @commands.has_any_role(*constants.VERIFIED)
     async def solvedishsorted(self, ctx: commands.Context):
         """Prepends `solved` to the channel name, and then sorts channels
 
@@ -141,8 +141,8 @@ class SolvedCog(commands.Cog):
         await self.solvedish(ctx)
         await self.reorderchannels(ctx)
 
+    @admin_utils.is_verified()
     @commands.command(name="backsolved")
-    @commands.has_any_role(*constants.VERIFIED)
     async def backsolved(self, ctx: commands.Context):
         """Changes channel name to backsolved-<channel-name>
 
@@ -163,8 +163,8 @@ class SolvedCog(commands.Cog):
                             inline=False)
         await ctx.send(embed=embed)
 
+    @admin_utils.is_verified()
     @commands.command(name="backsolvedsorted", aliases=["backsolveds"])
-    @commands.has_any_role(*constants.VERIFIED)
     async def backsolvedsorted(self, ctx: commands.Context):
         """Prepend `backsolved` to the channel name, then sort the channels
 
@@ -172,8 +172,8 @@ class SolvedCog(commands.Cog):
         await self.backsolved(ctx)
         await self.reorderchannels(ctx)
 
+    @admin_utils.is_verified()
     @commands.command(name="unsolved")
-    @commands.has_any_role(*constants.VERIFIED)
     async def unsolved(self, ctx: commands.context):
         """removes one of the solved prefixes from channel name
 
@@ -196,8 +196,8 @@ class SolvedCog(commands.Cog):
                         inline=False)
         await ctx.send(embed=embed)
 
+    @admin_utils.is_verified()
     @commands.command(name="unsolvedsorted", aliases=["unsolveds"])
-    @commands.has_any_role(*constants.VERIFIED)
     async def unsolvedsorted(self, ctx: commands.context):
         """Remove any solved/backsolved/solvedish prefix, then sort channels
 

@@ -28,6 +28,7 @@ TRUSTED = [ARITHMANCY_BOT_WHISPERER_ROLE_ID, SONI_SERVER_TESTER_ROLE, KEV_SERVER
 
 ROLELIST = ["Verified","Bot Whisperer"]
 VERIFIEDS = {}
+PREFIXES = {}
 
 # Command success/fail
 SUCCESS = "Success"
@@ -54,13 +55,6 @@ TIME = "Time"
 MODULES_DIR = "modules"
 MODULES = [ADMIN, ARCHIVE, CHANNEL_MANAGEMENT, CIPHER_RACE, DISCORD, LOOKUP, MUSIC_RACE, PERFECT_PITCH, SHEETS, SOLVED, TIME]
 
-#################
-# GOOGLE SHEETS #
-#################
-
-JSON_PARAMS = ["type", "project_id", "private_key_id", "private_key", "client_email", "client_id", "auth_uri",
-               "token_uri", "auth_provider_x509_cert_url", "client_x509_cert_url"]
-
-
-
-
+from utils import google_utils, database_utils
+GSPREAD_CLIENT = google_utils.create_gspread_client()
+DATABASE_ENGINE = database_utils.create_database_engine()

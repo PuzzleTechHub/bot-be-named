@@ -1,50 +1,25 @@
+from dotenv.main import load_dotenv
+load_dotenv(override=True)
 import os
 import discord
 from discord.ext import commands
-from utils import admin_utils, discord_utils, google_utils
-from dotenv.main import load_dotenv
-load_dotenv(override=True)
+from utils import admin_utils, google_utils, database_utils
 import constants
-from gspread.exceptions import CellNotFound
-DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
-
-gspread_client = google_utils.create_gspread_client()
-prefix_sheet = gspread_client.open_by_key(os.getenv('MASTER_SHEET_KEY')).worksheet(constants.PREFIX_TAB_NAME)
-
-def get_prefixes():
-    prfx = {}
-    prefix_list = prefix_sheet.get_all_values()[1:]
-    for row in prefix_list:
-        prfx[row[1]] = row[2]
-    return prfx
+from sqlalchemy import text, insert
+from sqlalchemy.orm import Session
 
 
 def get_prefix(client, message):
-    if message.guild is not None:
-        return PREFIXES[str(message.guild.id)]
+    # Check if in new server or DM
+    if message.guild is not None or message.guild.id in constants.PREFIXES:
+        return constants.PREFIXES[message.guild.id]
     else:
         return constants.DEFAULT_BOT_PREFIX
 
 
-VERIFIED_SHEET = gspread_client.open_by_key(os.getenv('MASTER_SHEET_KEY')).worksheet(constants.VERIFIED_TAB_NAME)
-def get_verifieds():
-    vrfd = {}
-    verified_list = VERIFIED_SHEET.get_all_values()[1:]
-    for row in verified_list:
-        if(row[2] in vrfd):
-            vrfd[row[2]].append(int(row[1]))
-        else:
-            vrfd[row[2]] = [int(row[1])]
-    return vrfd
-
-
-def get_verified(client, message, s):
-    return VERIFIEDS[s]
-
 # TODO: Move these to better locations
-PREFIXES = get_prefixes()
-VERIFIEDS = get_verifieds()
-constants.VERIFIEDS = VERIFIEDS
+constants.PREFIXES = admin_utils.get_prefixes()
+constants.VERIFIEDS = admin_utils.get_verifieds()
 
 
 def main():
@@ -62,18 +37,22 @@ def main():
     async def on_ready():
         """When the bot starts up"""
         await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="you solve👀 |~help"))
-        # Keep a google sheet of all the servers the bot is in and what command prefix to use for them.
-        for guild in client.guilds:
-            try:
-                # Check if the guild is in the sheet.
-                cell = prefix_sheet.find(str(guild.id))
-                prefix = prefix_sheet.cell(cell.row, cell.col+1).value
-            except CellNotFound:
-                prefix = constants.DEFAULT_BOT_PREFIX
-                prefix_sheet.append_row([guild.name, str(guild.id), prefix])
-                print(f"Added {constants.DEFAULT_BOT_PREFIX} as prefix in {guild}")
+        # Keep a database of all the servers the bot is in and what command prefix to use for them.
+        with Session(constants.DATABASE_ENGINE) as session:
+            for guild in client.guilds:
+                result = session.query(database_utils.Prefixes).filter_by(server_id=guild.id).first()
+                if result is None:
+                    prefix = constants.DEFAULT_BOT_PREFIX
+                    stmt = insert(database_utils.Prefixes).values(server_id=guild.id,
+                                                                  server_name=guild.name,
+                                                                  prefix=prefix)
+                    session.execute(stmt)
+                    session.commit()
+                else:
+                    prefix = result.prefix
 
-            print(f"{client.user.name} has connected to the following guild: {guild.name} (id: {guild.id}) with prefix {prefix}")
+                print(f"{client.user.name} has connected to the following guild: "
+                    f"{guild.name} (id: {guild.id}) with prefix {prefix}")
 
     # TODO: This function will respond to the user when the bot gets pinged, letting the user know it's prefix
     # TODO: Is there a way we can toggle it on/off?
@@ -93,69 +72,22 @@ def main():
 
         # await client.process_commands(message)
 
-
-    @admin_utils.is_owner_or_admin()
-    @client.command(name="setprefix")
-    async def setprefix(ctx, prefix: str):
-        """Sets the bot prefix for the server. Only available to server admins or bot owners"""
-        print("Received setprefix")
-        find_cell = prefix_sheet.find(str(ctx.message.guild.id))
-        prefix_sheet.update_cell(find_cell.row, find_cell.col+1, prefix)
-        PREFIXES[str(ctx.message.guild.id)] = prefix
-
-        embed = discord_utils.create_embed()
-        embed.add_field(name=constants.SUCCESS,
-                        value=f"Prefix for this server set to {prefix}",
-                        inline=False)
-        await ctx.send(embed=embed)
-
-    @admin_utils.is_owner_or_admin()
-    @client.command(name="addverified")
-    async def addverified(ctx, verifiedname: str, rolename:str):
-        """Add a new verified category for this server. Only available to server admins or bot owners"""
-        print("Received addverified")
-
-        if len(verifiedname) < 1 or len(rolename) < 1:
-            embed = discord_utils.create_no_argument_embed("Role or Role category")
-            await ctx.send(embed=embed)
-            return
-
-        # Get role. Allow people to use the command by pinging the role, or just naming it
-        role_to_assign = None
-        try:
-            # TODO: Fix replace?
-            role_to_assign = ctx.guild.get_role(int(rolename.replace('<@&', '').replace('>', '')))
-        # The input was not an int (i.e. the user gave the name of the role (e.g. ~deleterole rolename))
-        except ValueError:
-            # Search over all roles
-            roles = await ctx.guild.fetch_roles()
-            for role in roles:
-                if role.name.lower() == rolename.lower():
-                    role_to_assign = role
-                    break
-
-        if not role_to_assign:
-            embed = discord_utils.create_embed()
-            embed.add_field(name=f"Error!",
-                value=f"I couldn't find role {rolename}",
-                inline=False)
-            await ctx.send(embed=embed)
-            return
-
-        values = [ctx.message.guild.name, str(role_to_assign.id), verifiedname]
-        VERIFIED_SHEET.append_row(values)
-
-        VERIFIEDS = get_verifieds()
-        constants.VERIFIEDS = VERIFIEDS
-
-        embed = discord_utils.create_embed()
-        embed.add_field(name=constants.SUCCESS,
-                        value=f"Added the role {role_to_assign.mention} for this server set to {verifiedname}",
-                        inline=False)
-        await ctx.send(embed=embed)
-
-    client.run(DISCORD_TOKEN)
+    client.run(os.getenv('DISCORD_TOKEN'))
 
 
 if __name__ == '__main__':
+    # with Session(constants.DATABASE_ENGINE) as session:
+    #     result = session.execute(text("SELECT * FROM verifieds where server_id=820327073213186079"))
+    #     for row in result:
+    #         print(f"Verified role ids: {row['role_id']}")
+    #     rows = session.query(database_utils.Verifieds).all()
+    #     for row in rows:
+    #         print(f"Verified role name: {row.role_name}")
+    #     from sqlalchemy import insert
+    #     stmt = insert(database_utils.Verifieds).values(role_id=843661971323879424, role_name="Potato Farmer", server_id=470251021554286602, server_name="Soni's Server", category="Tester")
+    #     session.execute(stmt)
+    #     session.commit()
+    #     rows = session.query(database_utils.Verifieds).all()
+    #     for row in rows:
+    #         print(f"Verified role name: {row.role_name}")
     main()
