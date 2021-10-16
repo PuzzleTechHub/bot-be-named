@@ -1,4 +1,6 @@
 import pytest
+from dotenv import load_dotenv
+load_dotenv(override=True)
 from modules.cipher_race import cipher_race_utils, cipher_race_constants
 
 

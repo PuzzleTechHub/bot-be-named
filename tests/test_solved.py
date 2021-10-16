@@ -1,4 +1,6 @@
 import pytest
+from dotenv import load_dotenv
+load_dotenv(override=True)
 from modules.solved import solved_constants
 from modules.solved.cog import SolvedCog
 
