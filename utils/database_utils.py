@@ -1,7 +1,7 @@
 import os
 from sqlalchemy import Column, create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql.sqltypes import BIGINT, Integer, String
+from sqlalchemy.sql.sqltypes import BIGINT, Boolean, String
 
 
 def create_database_engine():
@@ -37,3 +37,4 @@ class CustomCommmands(Base):
     server_id_command = Column(String, primary_key=True) # server id + command name
     command_name = Column(String)
     command_return = Column(String)
+    image = Column(Boolean) # Flag for whether or not we need to send an embed 

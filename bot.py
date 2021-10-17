@@ -63,7 +63,7 @@ def main():
                 if custom_command_result is not None:
                     for custom_command in custom_command_result:
                         # Populate custom command dict
-                        constants.CUSTOM_COMMANDS[guild.id][custom_command.command_name] = custom_command.command_return
+                        constants.CUSTOM_COMMANDS[guild.id][custom_command.command_name] = (custom_command.command_return, custom_command.image)
         # Populate default command list
         for command in client.commands:
             constants.DEFAULT_COMMANDS.append(command.qualified_name)
@@ -83,9 +83,15 @@ def main():
             elif message.guild is not None:
                 # TODO: Can I just use constants.CUSTOM_COMMANDS
                 if command_name in constants.CUSTOM_COMMANDS[message.guild.id]:
-                    embed = discord.Embed(description=constants.CUSTOM_COMMANDS[message.guild.id][command_name],
-                                          color=constants.EMBED_COLOR)
-                    await message.channel.send(embed=embed)
+                    command_return = constants.CUSTOM_COMMANDS[message.guild.id][command_name][0]
+                    # Image, so we use normal text.
+                    if constants.CUSTOM_COMMANDS[message.guild.id][command_name][1]:
+                        await message.channel.send(command_return)
+                    # Non-Image, so use embed.
+                    else:
+                        embed = discord.Embed(description=command_return,
+                                              color=constants.EMBED_COLOR)
+                        await message.channel.send(embed=embed)
                     return
 
 

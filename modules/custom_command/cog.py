@@ -12,8 +12,8 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
     def __init__(self, bot):
         self.bot = bot
 
-    @admin_utils.is_verified()
-    @commands.command(name="addcustomcommand", aliases=["addcommand"])
+    @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="addcustomcommand", aliases=["addccommand"])
     async def addcustomcommand(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot
         
@@ -29,7 +29,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value "
-                                    f"`{constants.CUSTOM_COMMANDS[ctx.guild.id][command_name]}`. If you'd like to replace "
+                                    f"`{constants.CUSTOM_COMMANDS[ctx.guild.id][command_name][0]}`. If you'd like to replace "
                                     f"`{ctx.prefix}{command_name}`, please use `{ctx.prefix}editcustomcommand {command_name} "
                                     f"{command_return}`")
             await ctx.send(embed=embed)
@@ -42,24 +42,76 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             if result is None:
                 stmt = insert(database_utils.CustomCommmands).values(server_id=ctx.guild.id, server_name=ctx.guild.name,
                                                                      server_id_command=f"{ctx.guild.id} {command_name}",
-                                                                     command_name=command_name, command_return=command_return)
+                                                                     command_name=command_name, command_return=command_return,
+                                                                     image=False)
                 session.execute(stmt)
                 session.commit()
-
                 
                 embed = discord_utils.create_embed()
                 embed.add_field(name=f"{constants.SUCCESS}",
-                                value=f"Added `{ctx.prefix}{command_name} with value `{command_return}`")
+                                value=f"Added `{ctx.prefix}{command_name}` with value `{command_return}`")
             # Command exists in the DB but not in our constants.
             else:
                 command_return = result.command_return
             # update constants dict
-            constants.CUSTOM_COMMANDS[ctx.guild.id][command_name] = command_return
+            constants.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, False)
                  
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
-    @commands.command(name="lscustomcommands", aliases=["listcustomcommands"])
+    @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="addcustomimage", aliases=["addcimage"])
+    async def addcustomimage(self, ctx, command_name: str, *args):
+        """Add your own custom command to the bot
+        
+        Usage: `~addcimage command_name Link_to_image"""
+        logging_utils.log_command("addcimage", ctx.channel, ctx.author)
+
+        if len(args) <= 0:
+            discord_utils.create_no_argument_embed("Command Return")
+
+        command_return = " ".join(args)
+
+        if command_name in constants.CUSTOM_COMMANDS[ctx.guild.id]:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}",
+                            value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value "
+                                    f"`{constants.CUSTOM_COMMANDS[ctx.guild.id][command_name][0]}`. If you'd like to replace "
+                                    f"`{ctx.prefix}{command_name}`, please use `{ctx.prefix}editcustomcommand {command_name} "
+                                    f"{command_return}`")
+            await ctx.send(embed=embed)
+            return
+
+        with Session(constants.DATABASE_ENGINE) as session:
+            result = session.query(database_utils.CustomCommmands)\
+                            .filter_by(server_id_command=f"{ctx.guild.id} {command_name}")\
+                            .first()
+            if result is None:
+                stmt = insert(database_utils.CustomCommmands).values(server_id=ctx.guild.id, server_name=ctx.guild.name,
+                                                                     server_id_command=f"{ctx.guild.id} {command_name}",
+                                                                     command_name=command_name, command_return=command_return,
+                                                                     image=True)
+                session.execute(stmt)
+                session.commit()
+                
+                embed = discord_utils.create_embed()
+                embed.add_field(name=f"{constants.SUCCESS}",
+                                value=f"Added `{ctx.prefix}{command_name}` with value `{command_return}`")
+            # Command exists in the DB but not in our constants.
+            else:
+                command_return = result.command_return
+            # update constants dict
+            constants.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, True)
+                 
+        await ctx.send(embed=embed)
+
+    @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="lscustomcommands", aliases=["lscustomcommand",
+                                                        "listcustomcommands",
+                                                        "listcustomcommand", 
+                                                        "lsccommands",
+                                                        "lsccommand", 
+                                                        "listccommands",
+                                                        "listccommand"])
     async def lscustomcommands(self, ctx):
         """List custom commands in the server
         
@@ -72,8 +124,8 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                               color=constants.EMBED_COLOR)
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
-    @commands.command(name="editcustomcommand")
+    @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="editcustomcommand", aliases=["editccommand", "editcimage"])
     async def editcustomcommand(self, ctx, command_name: str, *args):
         """Edit an existing custom command, or adds the command if it doesn't exist.
         
@@ -88,28 +140,31 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 result = session.query(database_utils.CustomCommmands)\
                        .filter_by(server_id_command=f"{ctx.guild.id} {command_name}")\
                        .update({"command_return": command_return})
+                session.commit()
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.SUCCESS}",
                             value=f"Edited command `{ctx.prefix}{command_name}` to have return value "
                                   f"`{command_return}`")
+            constants.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, constants.CUSTOM_COMMANDS[ctx.guild.id][command_name][1])
         else:
             # If the command does not exist yet, just add it to DB.
             with Session(constants.DATABASE_ENGINE) as session:
                 stmt = insert(database_utils.CustomCommmands).values(server_id=ctx.guild.id, server_name=ctx.guild.name,
                                                                      server_id_command=f"{ctx.guild.id} {command_name}",
-                                                                     command_name=command_name, command_return=command_return)
+                                                                     command_name=command_name, command_return=command_return,
+                                                                     image=False)
                 session.execute(stmt)
                 session.commit()
+            constants.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, False)
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.SUCCESS}",
                             value=f"Added command `{ctx.prefix}{command_name}` with return value "
                                   f"`{command_return}`")
-        # Update constants dict
-        constants.CUSTOM_COMMANDS[ctx.guild.id][command_name] = command_return
+        
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
-    @commands.command(name="rmcustomcommand", aliases=["removecustomcommand"])
+    @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="rmcustomcommand", aliases=["removecustomcommand", "rmccommand", "removeccommand"])
     async def rmcustomcommand(self, ctx, command_name: str):
         """Remove an existing custom command
         
