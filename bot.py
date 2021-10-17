@@ -63,12 +63,12 @@ def main():
                 if custom_command_result is not None:
                     for custom_command in custom_command_result:
                         # Populate custom command dict
-                        constants.CUSTOM_COMMANDS[guild.id][custom_command.command_name] = (custom_command.command_return, custom_command.image)
+                        constants.CUSTOM_COMMANDS[guild.id][custom_command.command_name.lower()] = (custom_command.command_return, custom_command.image)
         # Populate default command list
         for command in client.commands:
-            constants.DEFAULT_COMMANDS.append(command.qualified_name)
+            constants.DEFAULT_COMMANDS.append(command.qualified_name.lower())
             for alias in command.aliases:
-                constants.DEFAULT_COMMANDS.append(alias)
+                constants.DEFAULT_COMMANDS.append(alias.lower())
                     
 
     @client.event
@@ -77,12 +77,12 @@ def main():
         command_prefix = constants.PREFIXES[message.guild.id]
         if message.clean_content.startswith(command_prefix):
             # If the command is a default one, just run it.
-            command_name = message.clean_content.split()[0][len(command_prefix):]
+            command_name = message.clean_content.split()[0][len(command_prefix):].lower()
             if command_name in constants.DEFAULT_COMMANDS:
                 await client.process_commands(message)
             elif message.guild is not None:
                 # TODO: Can I just use constants.CUSTOM_COMMANDS
-                if command_name in constants.CUSTOM_COMMANDS[message.guild.id]:
+                if command_name in [command.lower() for command in constants.CUSTOM_COMMANDS[message.guild.id].keys()]:
                     command_return = constants.CUSTOM_COMMANDS[message.guild.id][command_name][0]
                     # Image, so we use normal text.
                     if constants.CUSTOM_COMMANDS[message.guild.id][command_name][1]:

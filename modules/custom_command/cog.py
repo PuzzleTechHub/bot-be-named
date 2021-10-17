@@ -13,17 +13,19 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         self.bot = bot
 
     @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="addcustomcommand", aliases=["addccommand"])
-    async def addcustomcommand(self, ctx, command_name: str, *args):
-        """Add your own custom command to the bot
+    @commands.command(name="addembedcommand", aliases=["addcustomcommand", "addccommand"])
+    async def addembedcommand(self, ctx, command_name: str, *args):
+        """Add your own custom command to the bot with an embed reply
         
-        Usage: `~addcustomcommand command_name \"This is my custom command!\""""
-        logging_utils.log_command("addcustomcommand", ctx.channel, ctx.author)
+        Usage: `~addembedcommand command_name \"This is my custom command!\""""
+        logging_utils.log_command("addembedcommand", ctx.channel, ctx.author)
 
         if len(args) <= 0:
             discord_utils.create_no_argument_embed("Command Return")
-
+        
+        command_name = command_name.lower()
         command_return = " ".join(args)
+        
 
         if command_name in constants.CUSTOM_COMMANDS[ctx.guild.id]:
             embed = discord_utils.create_embed()
@@ -59,16 +61,17 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         await ctx.send(embed=embed)
 
     @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="addcustomimage", aliases=["addcimage"])
-    async def addcustomimage(self, ctx, command_name: str, *args):
-        """Add your own custom command to the bot
+    @commands.command(name="addtextcommand", aliases=["addcustomimage", "addcimage"])
+    async def addtextcommand(self, ctx, command_name: str, *args):
+        """Add your own custom command to the bot with a text reply (good for images and pings)
         
-        Usage: `~addcimage command_name Link_to_image"""
-        logging_utils.log_command("addcimage", ctx.channel, ctx.author)
+        Usage: `~addtextcommand command_name Link_to_image"""
+        logging_utils.log_command("addtextcommand", ctx.channel, ctx.author)
 
         if len(args) <= 0:
             discord_utils.create_no_argument_embed("Command Return")
 
+        command_name = command_name.lower()
         command_return = " ".join(args)
 
         if command_name in constants.CUSTOM_COMMANDS[ctx.guild.id]:
@@ -132,6 +135,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Usage: `~editcustomcommand potato My new return value`"""
         logging_utils.log_command("editcustomcommand", ctx.channel, ctx.author)
 
+        command_name = command_name.lower()
         command_return = " ".join(args)
 
         if command_name in constants.CUSTOM_COMMANDS[ctx.guild.id]:
@@ -171,6 +175,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Usage: `~rmcustomcommand potato`"""
         logging_utils.log_command("rmcustomcommand", ctx.channel, ctx.author)
 
+        command_name = command_name.lower()
         if command_name in constants.CUSTOM_COMMANDS[ctx.guild.id]:
             del constants.CUSTOM_COMMANDS[ctx.guild.id][command_name]
             with Session(constants.DATABASE_ENGINE) as session:
