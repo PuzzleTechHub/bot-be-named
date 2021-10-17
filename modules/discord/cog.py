@@ -553,16 +553,16 @@ class DiscordCog(commands.Cog, name="Discord"):
                             await ses.close()
                         except discord.Forbidden:
                             embed.add_field(name=f"{constants.FAILED}",
-                                            value=f"Error adding {b_value} to server. Do I have the correct permissions to manage emotes in this server?")
+                                            value=f"Error adding `:{name}:` to server. Do I have the correct permissions to manage emotes in this server?")
                             await ses.close()
                         # TODO: What error gets thrown if there are too many emotes?
                         except:                     
                             embed.add_field(name=f"{constants.FAILED}",
-                                            value=f"Could not add {b_value} to server. Do you have any emote slots left?")
+                                            value=f"Could not add `:{name}:` to server. Do you have any emote slots left?")
                             await ses.close()
                     except:
                         embed.add_field(name=f"{constants.FAILED}",
-                                        value=f"Could not find emote `{name}`.")
+                                        value=f"Could not find emote `:{name}:`.")
         await ctx.send(embed=embed)
 
 
