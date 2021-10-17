@@ -28,3 +28,12 @@ class Prefixes(Base):
     server_id = Column(BIGINT, primary_key=True)
     server_name = Column(String)
     prefix = Column(String)
+
+
+class CustomCommmands(Base):
+    __tablename__ = 'custom_commands'
+    server_id = Column(BIGINT)
+    server_name = Column(String)
+    server_id_command = Column(String, primary_key=True) # server id + command name
+    command_name = Column(String)
+    command_return = Column(String)

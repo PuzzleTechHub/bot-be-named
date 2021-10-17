@@ -1,8 +1,6 @@
-import os
-import discord
 from discord.ext import commands
 import constants
-from utils import discord_utils, logging_utils, admin_utils, google_utils, database_utils
+from utils import discord_utils, logging_utils, admin_utils, database_utils
 from sqlalchemy.orm import Session
 from sqlalchemy import insert
 
@@ -11,15 +9,13 @@ class AdminCog(commands.Cog, name="Admin"):
     """Downloads a channel's history and sends it as a file to the user"""
     def __init__(self, bot):
         self.bot = bot
-        self.gspread_client = google_utils.create_gspread_client()
-        self.prefix_sheet = self.gspread_client.open_by_key(os.getenv('MASTER_SHEET_KEY')).worksheet(constants.PREFIX_TAB_NAME)
 
     @admin_utils.is_owner_or_admin()
     @commands.command(name="addverified")
     async def addverified(self, ctx, rolename, role_category: str = "Verified"):
-        """Add a new verified category for this server. Only available to server admins or bot owners
+        """Add a new verified category for this server. Only available to server admins or bot owners.
         
-        Usage: `~addverified @Verified Verified"""
+        Usage: `~addverified @Verified Verified`"""
         logging_utils.log_command("addverified", ctx.channel, ctx.author)
 
         if len(rolename) < 1:
@@ -76,7 +72,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @admin_utils.is_owner_or_admin()
     @commands.command(name="lsverifieds", aliases=["listverifieds", "verifieds", "lsverified", "listverified"])
     async def lsverifieds(self, ctx):
-        """List all verified roles within the server
+        """List all verified roles within the server. Only available to server admins or bot owners.
         
         Usage: `~lsverifieds`"""
         logging_utils.log_command("lsverifieds", ctx.channel, ctx.author)
@@ -95,9 +91,9 @@ class AdminCog(commands.Cog, name="Admin"):
     @admin_utils.is_owner_or_admin()
     @commands.command(name="rmverified", aliases=["removeverified"])
     async def rmverified(self, ctx, rolename):
-        """Remove a role from the list of verifieds
+        """Remove a role from the list of verifieds. Only available to server admins or bot owners.
         
-        Usage: `~rmverified @Verified"""
+        Usage: `~rmverified @Verified`"""
         logging_utils.log_command("rmverified", ctx.channel, ctx.author)
 
         # Get role. Allow people to use the command by pinging the role, or just naming it
@@ -142,16 +138,16 @@ class AdminCog(commands.Cog, name="Admin"):
     @admin_utils.is_owner_or_admin()
     @commands.command(name="setprefix")
     async def setprefix(self, ctx, prefix: str):
-        """Sets the bot prefix for the server. Only available to server admins or bot owners"""
+        """Sets the bot prefix for the server. Only available to server admins or bot owners.
+        
+        Usage: `~setprefix !`"""
         logging_utils.log_command("setprefix", ctx.channel, ctx.author)
-        find_cell = self.prefix_sheet.find(str(ctx.message.guild.id))
-        self.prefix_sheet.update_cell(find_cell.row, find_cell.col+1, prefix)
-        constants.PREFIXES[ctx.message.guild.id] = prefix
 
         with Session(constants.DATABASE_ENGINE) as session:
             session.query(database_utils.Prefixes).filter_by(server_id=ctx.guild.id).\
                 update({"prefix": prefix})
             session.commit()
+        constants.PREFIXES[ctx.message.guild.id] = prefix
         embed = discord_utils.create_embed()
         embed.add_field(name=constants.SUCCESS,
                         value=f"Prefix for this server set to {prefix}",
