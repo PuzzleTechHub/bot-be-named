@@ -1,5 +1,8 @@
+import typing
 import discord
 from discord.ext import commands
+import aiohttp
+import io
 
 import constants
 from utils import discord_utils, admin_utils, logging_utils
@@ -524,6 +527,42 @@ class DiscordCog(commands.Cog, name="Discord"):
         embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}!",
                         value=f"Sucessfully removed {', '.join(deleted_emojis)}")
+        await ctx.send(embed=embed)
+
+    @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="steal")
+    async def steal(self, ctx, *emojis : typing.Union[discord.Emoji, discord.PartialEmoji]):
+        """Steals an emote from another server and uploads it to this server with the same name.
+        
+        Usage: `~steal :emote:`"""
+        logging_utils.log_command("steal", ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+        for emoji in emojis:
+            url = str(emoji.url)
+            name = emoji.name
+            async with aiohttp.ClientSession() as ses:
+                async with ses.get(url) as r:
+                    try:
+                        img_or_gif = io.BytesIO(await r.read())
+                        b_value = img_or_gif.getvalue()
+                        try:
+                            emoji = await ctx.guild.create_custom_emoji(image=b_value, name=name)
+                            
+                            embed.add_field(name=f"{constants.SUCCESS}",
+                                            value=f"Added {emoji} with name {emoji.name}")
+                            await ses.close()
+                        except discord.Forbidden:
+                            embed.add_field(name=f"{constants.FAILED}",
+                                            value=f"Error adding {b_value} to server. Do I have the correct permissions to manage emotes in this server?")
+                            await ses.close()
+                        # TODO: What error gets thrown if there are too many emotes?
+                        except:                     
+                            embed.add_field(name=f"{constants.FAILED}",
+                                            value=f"Could not add {b_value} to server. Do you have any emote slots left?")
+                            await ses.close()
+                    except:
+                        embed.add_field(name=f"{constants.FAILED}",
+                                        value=f"Could not find emote `{name}`.")
         await ctx.send(embed=embed)
 
 
