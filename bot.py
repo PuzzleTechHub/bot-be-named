@@ -80,8 +80,9 @@ def main():
             command_name = message.clean_content.split()[0][len(command_prefix):].lower()
             if command_name in constants.DEFAULT_COMMANDS:
                 await client.process_commands(message)
+            # Don't use custom commands for DMs
             elif message.guild is not None:
-                # TODO: Can I just use constants.CUSTOM_COMMANDS
+                # check if custom command is in cache. If it's not, query the DB for it
                 if command_name in [command.lower() for command in constants.CUSTOM_COMMANDS[message.guild.id].keys()]:
                     command_return = constants.CUSTOM_COMMANDS[message.guild.id][command_name][0]
                     # Image, so we use normal text.
@@ -93,6 +94,21 @@ def main():
                                               color=constants.EMBED_COLOR)
                         await message.channel.send(embed=embed)
                     return
+                # If the custom command is not in the cache, query the DB to see if we have a command with that name for this server
+                else:
+                    with Session(constants.DATABASE_ENGINE) as session:
+                        result = session.query(database_utils.CustomCommmands)\
+                                        .filter_by(server_id_command=f"{message.guild.id} {command_name}")\
+                                        .first()
+                        if result is not None:
+                            if result.image:
+                                await message.channel.send(result.command_return)
+                            else:
+                                embed = discord.Embed(description=result.command_return,
+                                              color=constants.EMBED_COLOR)
+                                await message.channel.send(embed=embed)
+                            constants.CUSTOM_COMMANDS[message.guild.id][command_name] = (result.command_return, result.image)
+                
 
 
     client.run(os.getenv('DISCORD_TOKEN'))
