@@ -26,6 +26,9 @@ virtualenv venv -p=3.7
 pip install -r requirements.txt
 ```
 
+The bot uses [Heroku Postgres](https://www.heroku.com/postgres) for storing data. You'll need to install postgres on your 
+computer by going to https://www.postgresql.org/download/ and following the instructions for your operating system.
+
 To run the bot locally, you will need a `.env` file which is used by [python-dotenv](https://github.com/theskumar/python-dotenv) to load `ENV` variables. Copy `.env.template` into `.env` with  
 
 ```bash
