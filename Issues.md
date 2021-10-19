@@ -8,24 +8,16 @@
 - Better README to repro
 - env to constants.py
 - reply to bot message be toggleable by command
-
 - Sorted being instead groupings instead of a full sort
-- ~addemoji being actual add, not just copy
 
 ## Features
 
 - Write tests
 - Category management : ~clonecategory etc
-- Role assign : ~assignrole @rolename @user1 @user2 @user3
-- Simple lookup for all major encodings - ~lookupsheet morse/pigpen etc
-
 - Function to copy all GSheets scripts from template to another sheet
 - MBot commands to consider adding - nutrimatic, solve with emoji,  dice
-
 - On chancrab, make the channel just above highest solved channel
-- command named ~aboutthebot. A simple "bot tutorial" to shortly mention our 3-4 most used commands (~chancrab and ~sheetcrab, along with ~tether.... ~createchannel and ~movechannel... And ~pin ~unpin). Basically the command I'll run at the start of any hunt. "Hey this is what you can do with our bot, haffun now"
 - Help : arrow keys for navigation?
-- Fix addverifieds and removeverifieds to swap all commands to it
 - Help overhaul to just pull docstrings
 - happy emoji on solved
 
@@ -37,8 +29,5 @@
 
 ## QQQ Features
 
-- QQQ: ~housepoints 2021 and ~housecup 2021
-- QQQ - Command where you can go "~newassignment [Link] [Date]"
-- QQQ - And command where you go "~allassignments" to display them all in a single embed
 - discord bot Duelling 
 - discord bot WizCards
