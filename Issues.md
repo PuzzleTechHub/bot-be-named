@@ -1,5 +1,3 @@
-- For pins never say "Pinned" just put a check react instead. Add react + delete message both)
-
 ## Bugfixes
 - On archive server/archivechannel/wherever else the message size is dependant on a certain size of discord character limit... Learn how to split embeds into multople different embeds of <2K side
 - If channel size is over 8MB, don't download more shit.
