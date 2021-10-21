@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 import aiohttp
 import io
+from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 
 import constants
 from utils import discord_utils, admin_utils, logging_utils
@@ -22,6 +23,16 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def pin(self, ctx):
         """Pin a message (Either a reply or the one above ~pin"""
         logging_utils.log_command("pin", ctx.channel, ctx.author)
+
+        pins = await ctx.message.channel.pins()
+        if(len(pins)==50):
+            embed = discord_utils.create_embed()
+            embed.add_field(name="Error!",
+                            value=f"This channel already has max. number of pins (50)!",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return 0
+
         if not ctx.message.reference:
             channel_history = await ctx.message.channel.history(limit=2).flatten()
             msg = channel_history[-1]
@@ -29,7 +40,13 @@ class DiscordCog(commands.Cog, name="Discord"):
             msg = await ctx.fetch_message(ctx.message.reference.message_id)
         try:
             await msg.unpin()
-            await msg.pin()
+            x = await msg.pin()
+            channel_history = await ctx.message.channel.history(limit=5).flatten()
+            for pinmsg in channel_history:
+                if pinmsg.is_system():
+                    await pinmsg.delete()
+                    break
+            await ctx.message.add_reaction(EMOJIS[':white_check_mark:'])
         except discord.HTTPException:
             embed = discord_utils.create_embed()
             embed.add_field(name="Error!",
@@ -42,6 +59,16 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def pinme(self, ctx):
         """Pins the message"""
         logging_utils.log_command("pinme", ctx.channel, ctx.author)
+
+        pins = await ctx.message.channel.pins()
+        if(len(pins)==50):
+            embed = discord_utils.create_embed()
+            embed.add_field(name="Error!",
+                            value=f"This channel already has max. number of pins (50)!",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return 0
+
         try:
             await ctx.message.pin()
         except discord.HTTPException:

@@ -149,6 +149,18 @@ class SheetsCog(commands.Cog, name="Sheets"):
             # reply to user
             await ctx.send(embed=embed)
             return
+
+        tab_name = chan_name.replace("#", "").replace("-", " ")
+
+        curr_sheet_link, newsheet = await self.sheetcreatetabgeneric(ctx, ctx.channel, ctx.channel.category, tab_name)
+
+        # Error, already being handled at the generic function
+        if not curr_sheet_link or not newsheet or not newsheet.id:
+            return
+
+        # This link is customized for the newly made tab
+        final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
+
         # new channel created (or None)
         new_chan = await discord_utils.createchannelgeneric(ctx.guild, ctx.channel.category, chan_name)
         # Error creating channel
@@ -162,17 +174,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         for s in args:
             to_pin.append(str(s))
 
-        tab_name = chan_name.replace("#", "").replace("-", " ")
-
-        curr_sheet_link, newsheet = await self.sheetcreatetabgeneric(ctx, ctx.channel, ctx.channel.category, tab_name)
-
-        # Error, already being handled at the generic function
-        if not curr_sheet_link or not newsheet or not newsheet.id:
-            return
-
-        # This link is customized for the newly made tab
-        final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
-
+        #Trying to pin everything
         try:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"Success!",
