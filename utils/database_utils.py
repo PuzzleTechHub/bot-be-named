@@ -5,7 +5,7 @@ from sqlalchemy.sql.sqltypes import BIGINT, Boolean, String
 
 
 def create_database_engine():
-    return create_engine(os.getenv("POSTGRES_DB_URL"), echo=True, future=True)
+    return create_engine(os.getenv("POSTGRES_DB_URL"), echo=False, future=True)
 
 
 Base = declarative_base()

@@ -26,6 +26,13 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         command_name = command_name.lower()
         command_return = " ".join(args)
         
+        if command_name in constants.DEFAULT_COMMANDS:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}",
+                            value=f"Command {command_name} is a default command. Please use a different name.")
+
+            await ctx.send(embed=embed)
+            return
 
         if command_name in constants.CUSTOM_COMMANDS[ctx.guild.id]:
             embed = discord_utils.create_embed()
@@ -73,6 +80,14 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
 
         command_name = command_name.lower()
         command_return = " ".join(args)
+
+        if command_name in constants.DEFAULT_COMMANDS:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}",
+                            value=f"Command {command_name} is a default command. Please use a different name.")
+
+            await ctx.send(embed=embed)
+            return
 
         if command_name in constants.CUSTOM_COMMANDS[ctx.guild.id]:
             embed = discord_utils.create_embed()

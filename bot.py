@@ -80,8 +80,9 @@ def main():
             command_name = message.clean_content.split()[0][len(command_prefix):].lower()
             if command_name in constants.DEFAULT_COMMANDS:
                 await client.process_commands(message)
-            # Don't use custom commands for DMs
-            elif message.guild is not None:
+            # Don't use custom commands for DMs also I think this fixes a bug which gets an error when someone
+            # uses a command right as the box is starting up.
+            elif message.guild is not None and message.guild.id in constants.CUSTOM_COMMANDS:
                 # check if custom command is in cache. If it's not, query the DB for it
                 if command_name in [command.lower() for command in constants.CUSTOM_COMMANDS[message.guild.id].keys()]:
                     command_return = constants.CUSTOM_COMMANDS[message.guild.id][command_name][0]
@@ -108,7 +109,6 @@ def main():
                                               color=constants.EMBED_COLOR)
                                 await message.channel.send(embed=embed)
                             constants.CUSTOM_COMMANDS[message.guild.id][command_name] = (result.command_return, result.image)
-                
 
 
     client.run(os.getenv('DISCORD_TOKEN'))

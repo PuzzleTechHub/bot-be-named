@@ -57,7 +57,7 @@ def create_code_embed(level: int, codes: pd.DataFrame, prefix: str):
         embed_list[-1].set_image(url=code_proposal[cipher_race_constants.URL].item())
         code_answers.append(code_proposal[cipher_race_constants.ANSWER].item().replace(' ', '').lower())
     embed_list.append(discord_utils.create_embed())
-    embed_list[-1].add_field(name="Answering", value=f"Use {prefix}answer to make a guess on any of the {cipher_race_constants.CODE}s.",
+    embed_list[-1].add_field(name="Answering", value=f"Use {prefix}ar to make a guess on any of the {cipher_race_constants.CODE}s.",
                              inline=False)
     return embed_list, code_answers
 
