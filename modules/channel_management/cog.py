@@ -110,7 +110,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # Category channel limit
         if discord_utils.category_is_full(ctx.channel.category):
             embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Category `{ctx.category.name}` is already full, max limit is 50 channels.")
+                            value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.")
             return None, embed
 
         channel = await discord_utils.createchannelgeneric(ctx.guild, ctx.channel.category, name)
