@@ -93,11 +93,60 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     @admin_utils.is_verified()
     @commands.command(name="archive")
-    async def archive(self, ctx, *args):
+    async def archive(self, ctx):
         logging_utils.log_command("archive", ctx.channel, ctx.author)
-        embed = discord.Embed(title="Error!",
-                              description=f"The command `{ctx.prefix}archive` does not exist! Did you mean `{ctx.prefix}archivechannel` instead?")
-        await ctx.send(embed=embed)    
+
+        # Don't duplicate archive tags.
+        if ctx.channel.name.endswith("-archive"):
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Channel {ctx.channel.mention} is already listed as archived.")
+            await ctx.send(embed=embed)
+            return
+
+        try:
+            # rename channel
+            await ctx.channel.edit(name=f"{ctx.channel.name}-archive")
+        except discord.Forbidden:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Forbidden! Have you checked if the bot has the required permisisons "
+                                  f"to edit channel names?")
+            await ctx.send(embed=embed)
+            return
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                        value=f"Updated name of {ctx.channel.mention}")
+        # reply to user
+        await ctx.send(embed=embed)
+
+    @admin_utils.is_verified()
+    @commands.command(name="unarchive")
+    async def unarchive(self, ctx):
+        logging_utils.log_command("unarchive", ctx.channel, ctx.author)
+
+        embed = discord_utils.create_embed()
+        if ctx.channel.name.endswith("-archive"):
+            try:
+                # rename channel
+                await ctx.channel.edit(name=f"{ctx.channel.name.replace('-archive', '')}")
+            except discord.Forbidden:
+
+                embed.add_field(name=f"{constants.FAILED}!",
+                                value=f"Forbidden! Have you checked if the bot has the required permisisons "
+                                      f"to edit channel names?")
+                await ctx.send(embed=embed)
+                return
+
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.SUCCESS}!",
+                            value=f"Removed `Archive` from {ctx.channel.mention}")
+        else:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"{ctx.channel.mention} is not listed as Archived!")
+        # reply to user
+        await ctx.send(embed=embed)
 
     @admin_utils.is_verified()
     @commands.command(name="archivechannel")
