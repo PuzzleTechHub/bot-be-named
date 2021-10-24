@@ -92,7 +92,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         return file, embed
 
     @admin_utils.is_verified()
-    @commands.command(name="movetoarchive")
+    @commands.command(name="movetoarchive", aliases=["mta"])
     async def movetoarchive(self, ctx):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category. Fails if there is no such
         category, or is the category is full (i.e. 50 Channels)
@@ -102,13 +102,14 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
         # Find category with same name + Archive
         archive_category = discord.utils.get(ctx.guild.channels, name=f"{ctx.channel.category.name} Archive") or \
-                            discord.utils.get(ctx.guild.channels, name=f"{ctx.channel.category.name} archive")
+                            discord.utils.get(ctx.guild.channels, name=f"{ctx.channel.category.name} archive") or \
+                            discord.utils.get(ctx.guild.channels, name=f"Archive: {ctx.channel.category.name}")
 
         if archive_category is None:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"There is no category named `{ctx.channel.category.name} Archive`, so I cannot "
-                                  f"move {ctx.channel.mention}.")
+                            value=f"There is no category named `{ctx.channel.category.name} Archive` or "
+                                  f"`Archive: {ctx.channel.category.name}`, so I cannot move {ctx.channel.mention}.")
             await ctx.send(embed=embed)
             return
 
