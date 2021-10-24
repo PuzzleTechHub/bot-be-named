@@ -92,60 +92,48 @@ class ArchiveCog(commands.Cog, name="Archive"):
         return file, embed
 
     @admin_utils.is_verified()
-    @commands.command(name="archive")
-    async def archive(self, ctx):
-        logging_utils.log_command("archive", ctx.channel, ctx.author)
+    @commands.command(name="movetoarchive")
+    async def movetoarchive(self, ctx):
+        """Finds a category with `<category_name> Archive`, and moves the channel to that category. Fails if there is no such
+        category, or is the category is full (i.e. 50 Channels)
 
-        # Don't duplicate archive tags.
-        if ctx.channel.name.endswith("-archive"):
+        Usage: `~movetoarchive`"""
+        logging_utils.log_command("movetoarchive", ctx.channel, ctx.author)
+
+        # Find category with same name + Archive
+        archive_category = discord.utils.get(ctx.guild.channels, name=f"{ctx.channel.category.name} Archive") or \
+                            discord.utils.get(ctx.guild.channels, name=f"{ctx.channel.category.name} archive")
+
+        if archive_category is None:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Channel {ctx.channel.mention} is already listed as archived.")
+                            value=f"There is no category named `{ctx.channel.category.name} Archive`, so I cannot "
+                                  f"move {ctx.channel.mention}.")
+            await ctx.send(embed=embed)
+            return
+
+        if discord_utils.category_is_full(archive_category):
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"`{archive_category}` is already full, max limit is 50 channels. Consider renaming"
+                                  f" `{archive_category}` and creating a new `{archive_category}`.")
             await ctx.send(embed=embed)
             return
 
         try:
-            # rename channel
-            await ctx.channel.edit(name=f"{ctx.channel.name}-archive")
+            # move channel
+            await ctx.channel.edit(category=archive_category)
         except discord.Forbidden:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Forbidden! Have you checked if the bot has the required permisisons "
-                                  f"to edit channel names?")
+                            value=f"Can you check my permissions? I can't seem to be able to move "
+                                  f"{ctx.channel.mention} to `{archive_category.name}`")
             await ctx.send(embed=embed)
             return
 
         embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}!",
-                        value=f"Updated name of {ctx.channel.mention}")
-        # reply to user
-        await ctx.send(embed=embed)
-
-    @admin_utils.is_verified()
-    @commands.command(name="unarchive")
-    async def unarchive(self, ctx):
-        logging_utils.log_command("unarchive", ctx.channel, ctx.author)
-
-        embed = discord_utils.create_embed()
-        if ctx.channel.name.endswith("-archive"):
-            try:
-                # rename channel
-                await ctx.channel.edit(name=f"{ctx.channel.name.replace('-archive', '')}")
-            except discord.Forbidden:
-
-                embed.add_field(name=f"{constants.FAILED}!",
-                                value=f"Forbidden! Have you checked if the bot has the required permisisons "
-                                      f"to edit channel names?")
-                await ctx.send(embed=embed)
-                return
-
-            embed = discord_utils.create_embed()
-            embed.add_field(name=f"{constants.SUCCESS}!",
-                            value=f"Removed `Archive` from {ctx.channel.mention}")
-        else:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"{ctx.channel.mention} is not listed as Archived!")
-        # reply to user
+                        value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`")
         await ctx.send(embed=embed)
 
     @admin_utils.is_verified()
