@@ -1,7 +1,9 @@
+from discord import embeds
 from discord.ext import commands
 from utils import discord_utils, logging_utils, admin_utils
 import constants
 import discord
+from typing import Union
 
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
@@ -169,6 +171,92 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # reply to user
         await ctx.send(embed=embed)
 
+
+    @admin_utils.is_verified()
+    @commands.command(name="clonecategory", aliases=["copycategory"])
+    async def clonecategory(self, ctx, origCatName: str, targetCatName: str, origRole: Union[discord.Role, str] = None, targetRole: Union[discord.Role, str] = None):
+        """Clones origCatName as targetCatName. OPTIONAL: takes origRole's perms and makes those targetRole's perms in targetCat.
+        Creates targetCat (optional: targetRole) if they don't exist already.
+        
+        Usage: `~clonecategory 'Puzzlehunt Team A' 'Puzzlehunt Team B' @PuzzlehuntTeamA @PuzzlehuntTeamB`"""
+        logging_utils.log_command("clonecategory", ctx.channel, ctx.author)
+        embed = discord.Embed(description="", color=constants.EMBED_COLOR)
+
+        # Input parsing I guess
+        # First, make sure origCat exists
+        origCat = discord.utils.get(ctx.guild.channels, name=origCatName)
+        if origCat is None:
+            embed.add_field(name=f"{constants.FAILED}",
+                            value=f"I cannot find category {origCatName}. Perhaps check your spelling and try again.")
+            await ctx.send(embed=embed)
+            return
+        # Either neither origRole nor targetRole are supplied, or both are. If XOR, that's a fail.
+        if origRole is not None and targetRole is None or origRole is None and targetRole is not None:
+            embed.add_field(name=f"{constants.FAILED}",
+                            value=f"Next time, please supply both `origRole` and `targetRole`, or neither.")
+            await ctx.send(embed=embed)
+            return
+        
+        # Next, make sure that origRole exists (and find if targetRole exists, otherwise create it)
+        # If the user didn't supply roles, ignore this part.
+        if origRole is None:
+            origRole_is_str = isinstance(origRole, str)
+            targetRole_is_str = isinstance(targetRole, str)
+            if origRole_is_str or targetRole_is_str:
+                # Get role
+                guild_roles = await ctx.guild.fetch_roles()
+                for role in guild_roles:
+                    origRole_is_str = isinstance(origRole, str)
+                    targetRole_is_str = isinstance(targetRole, str)
+                    # Once both are actual discord roles, get out of here
+                    if not origRole_is_str and not targetRole_is_str:
+                        break
+                    if origRole_is_str and role.name.lower() == origRole.lower():
+                        origRole = role
+                    if targetRole_is_str and role.name.lower() == targetRole.lower():
+                        targetRole = role
+            # If we have looped over all the roles and still can't find an origRole, then that's an error
+            if origRole_is_str:
+                embed.add_field(name=f"{constants.FAILED}",
+                                value=f"Cannot find role {origRole}, are you sure it exists? Retry this command with @{origRole} " + 
+                                    f"if it does.")
+                await ctx.send(embed=embed)
+                return
+
+            # if targetRole doesn't exist, create it
+            if targetRole_is_str:
+                try:
+                    targetRole = await ctx.guild.create_role(name=targetRole, mentionable=True)
+                    embed.description += f"\nCreated {targetRole.mention}"
+                except discord.Forbidden:
+                    embed.add_field(name=f"{constants.FAILED}",
+                                    value=f"I was unable to create role {targetRole}. Do I have the `manage_roles` permission?")
+                    await ctx.send(embed=embed)
+                    return
+        
+        # if targetCat doesn't exist, create it
+        targetCat = discord.utils.get(ctx.guild.channels, name=targetCatName)
+        try:
+            if targetCat is None:
+                targetCat = await origCat.clone(name=targetCatName)
+                embed.description += f"\nCloned `{origCat}` as `{targetCat}`"
+            if origRole is not None:
+                if origRole in origCat.overwrites:
+                    await targetCat.set_permissions(targetRole, overwrite=origCat.overwrites[origRole])
+                    await targetCat.set_permissions(origRole, overwrite=None)
+                    embed.description += f"\nSynced {targetRole.mention}'s permissions in `{targetCat}` with " + \
+                                        f"{origRole.mention}'s in `{origCat}`"
+                else:
+                    embed.description += f"\n{origRole.mention} does not seem to have permission overwrites in `{origCat}`"
+        except discord.Forbidden:
+            embed.add_field(name=f"{constants.FAILED}",
+                            value=f"I was unable to create category {targetCatName}. Do I have the `manage_channels` permission?")
+            await ctx.send(embed=embed)
+            return
+
+        embed.title = f"{constants.SUCCESS}"
+        await ctx.send(embed=embed)
+        
 
 def setup(bot):
     bot.add_cog(ChannelManagementCog(bot))
