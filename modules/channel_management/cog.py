@@ -171,14 +171,51 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # reply to user
         await ctx.send(embed=embed)
 
+    @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="synccategory", aliases=["synccat","catsync"])
+    async def synccategory(self, ctx):
+        """Changes permissions of all channels in Current Category to be synced to Cat-permissions.
+        So any channel with different role permissions set up is reverted.
+
+        Usage: `~synccat`"""
+        logging_utils.log_command("synccategory", ctx.channel, ctx.author)
+        embed = discord.Embed(description="", color=constants.EMBED_COLOR)
+        category = ctx.channel.category
+        
+        embed2 = discord.Embed(description="", color=constants.EMBED_COLOR)
+        embed2.add_field(name="Sync Started",
+                        value=f"Your syncing of category `{category.name}`"
+                              f" has begun! This may take a while. If I run into "
+                              f"any errors, I'll let you know.",
+                        inline=False)
+        start_msg = await ctx.send(embed=embed2)
+
+        try:
+            for channel in category.channels:
+                await channel.edit(sync_permissions=True)
+        except discord.Forbidden:
+            if start_msg:
+                await start_msg.delete()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Forbidden! Have you checked if the bot has the required permisisons?")
+            # reply to user
+            await ctx.send(embed=embed)
+            return
+
+        if start_msg:
+            await start_msg.delete()
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                        value=f"All channels in category `{category.name}` successfully synced to Category!")
+        await ctx.send(embed=embed)
 
     @admin_utils.is_verified()
     @commands.command(name="clonecategory", aliases=["copycategory"])
     async def clonecategory(self, ctx, origCatName: str, targetCatName: str, origRole: Union[discord.Role, str] = None, targetRole: Union[discord.Role, str] = None):
-        """Clones origCatName as targetCatName. OPTIONAL: takes origRole's perms and makes those targetRole's perms in targetCat.
+        """Clones origCatName as targetCatName. 
+        OPTIONAL: takes origRole's perms and makes those targetRole's perms in targetCat.
         Creates targetCat (optional: targetRole) if they don't exist already.
         
-        Usage: `~clonecategory 'Puzzlehunt Team A' 'Puzzlehunt Team B' @PuzzlehuntTeamA @PuzzlehuntTeamB`"""
+        Usage: `~clonecategory 'Puzzlehunt Team A' 'Puzzlehunt Team B' @RolesForA @RolesForB`"""
         logging_utils.log_command("clonecategory", ctx.channel, ctx.author)
         embed = discord.Embed(description="", color=constants.EMBED_COLOR)
 
