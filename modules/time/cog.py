@@ -22,7 +22,7 @@ class TimeCog(commands.Cog, name="Time"):
         """Return the time given (or current time if no argument) in Unix format (1626206635)
 
         Usage: `~unixtime Tuesday, September 27, 2021 9pm EDT"""
-        logging_utils.log_command("time", ctx.channel, ctx.author)
+        logging_utils.log_command("time", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         if len(args) < 1:
             curr_time = int(datetime.timestamp(datetime.now()))
@@ -48,7 +48,7 @@ class TimeCog(commands.Cog, name="Time"):
 
         Usage: `~countdown September 22, 2021 9:00pm EDT`
         """
-        logging_utils.log_command("countdown", ctx.channel, ctx.author)
+        logging_utils.log_command("countdown", ctx.guild, ctx.channel, ctx.author)
 
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("time")
@@ -78,7 +78,7 @@ class TimeCog(commands.Cog, name="Time"):
         """Return the time in the specified location
 
         Usage: `~time location`"""
-        logging_utils.log_command("time", ctx.channel, ctx.author)
+        logging_utils.log_command("time", ctx.guild, ctx.channel, ctx.author)
         # No location provided
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("location")

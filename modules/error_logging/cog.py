@@ -17,7 +17,7 @@ class ErrorLogCog(commands.Cog):
     @commands.is_owner()
     async def errorlog(self, ctx, num_lines: int = 50):
         """Shows errors in reverse chronological order"""
-        logging_utils.log_command("errorlog", ctx.channel, ctx.author)
+        logging_utils.log_command("errorlog", ctx.guild, ctx.channel, ctx.author)
         if not os.path.exists(error_constants.ERROR_LOGFILE):
             embed = discord_utils.create_embed()
             embed.add_field(name="Error!",

@@ -18,7 +18,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         """Learn everything there is to know about playtune
 
         Usage: `~playtunehelp`"""
-        logging_utils.log_command("playtunehelp", ctx.channel, ctx.author)
+        logging_utils.log_command("playtunehelp", ctx.guild, ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Playtune Help",
@@ -50,7 +50,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         """Learn everything there is to know about customizing playtune
 
         Usage: `~playtunecustom`"""
-        logging_utils.log_command("playtunecustom", ctx.channel, ctx.author)
+        logging_utils.log_command("playtunecustom", ctx.guild, ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Playtune Customizing",
@@ -90,7 +90,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         """Learn everything there is to know about the instruments we offer!
 
         Usage: `~playtuneinstrument`"""
-        logging_utils.log_command("playtuneinstrument", ctx.channel, ctx.author)
+        logging_utils.log_command("playtuneinstrument", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         embed.add_field(name="Instruments and Ranges (Low/High)",
                         value=f"{perfect_pitch_constants.PIANO}: B0/C8\n{perfect_pitch_constants.XYLOPHONE}:F4/C8\n"
@@ -102,7 +102,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         """Learn everything there is to know about changing the note length
 
         Usage: `~playtunelength`"""
-        logging_utils.log_command("playtunelength", ctx.channel, ctx.author)
+        logging_utils.log_command("playtunelength", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         embed.add_field(name="Note Lengths",
                         value="`w`: whole note (4 beats)\n"
@@ -125,7 +125,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         """Learn everything there is to know about the puzzle
 
         Usage: `~playtunesample`"""
-        logging_utils.log_command("playtunesample", ctx.channel, ctx.author)
+        logging_utils.log_command("playtunesample", ctx.guild, ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Sample 1",
@@ -149,7 +149,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         """Play a string of notes together
 
         Usage: `~playtune`"""
-        logging_utils.log_command("playtune", ctx.channel, ctx.author)
+        logging_utils.log_command("playtune", ctx.guild, ctx.channel, ctx.author)
         tune_dir = os.path.join(os.getcwd(), constants.MODULES_DIR, perfect_pitch_constants.PERFECT_PITCH_DIR,
                                 perfect_pitch_constants.MUSIC, perfect_pitch_constants.TUNES, ctx.channel.name)
         # If the channel does not have a directory for them yet, create one
@@ -177,7 +177,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         """Sends the user a random chord. Note: all chords come from the 4th octave (middle C)
 
         Usage: `~chord`"""
-        logging_utils.log_command("chord", ctx.channel, ctx.author)
+        logging_utils.log_command("chord", ctx.guild, ctx.channel, ctx.author)
         chord = random.choice(glob.glob(os.path.join(os.getcwd(), constants.MODULES_DIR, perfect_pitch_constants.PERFECT_PITCH_DIR,
                                                      perfect_pitch_constants.MUSIC, perfect_pitch_constants.PIANO,
                                                      perfect_pitch_constants.CHORDS, "*.mp3")))
@@ -195,7 +195,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
         Usage: `~note Gb4`
         """
-        logging_utils.log_command("note", ctx.channel, ctx.author)
+        logging_utils.log_command("note", ctx.guild, ctx.channel, ctx.author)
         # User-selected parameters for which notes will appear
         octave = None
         flat_or_nat = ''

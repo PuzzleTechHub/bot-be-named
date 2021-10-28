@@ -35,7 +35,7 @@ class MusicRace(commands.Cog, name="Music Race"):
 
     @commands.command(name="door")
     async def door(self, ctx):
-        logging_utils.log_command("door", ctx.channel, ctx.author)
+        logging_utils.log_command("door", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(title="Crossing Tunnels",
                               description=f"Well done! You follow Fred and George through all the secret passageways "
                                           f"and find yourself at the main door! The door opens, revealing the... "
@@ -45,7 +45,7 @@ class MusicRace(commands.Cog, name="Music Race"):
 
     @commands.command(name="hint")
     async def hint(self, ctx):
-        logging_utils.log_command("hint", ctx.channel, ctx.author)
+        logging_utils.log_command("hint", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(title="This is not a hint",
                               description="*Hints will always be given at Hogwarts to those who ask for it.*",
                               color=constants.EMBED_COLOR)
@@ -55,7 +55,7 @@ class MusicRace(commands.Cog, name="Music Race"):
     @commands.command(name="noise")
     async def noise(self, ctx):
         """Give the users everything they need to know about the puzzle"""
-        logging_utils.log_command("noise", ctx.channel, ctx.author)
+        logging_utils.log_command("noise", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         task_role = ctx.guild.get_role(constants.ARITHMANCY_TASK_ROLE_ID)
         if task_role:
@@ -75,7 +75,7 @@ class MusicRace(commands.Cog, name="Music Race"):
     @commands.command(name="notesaw", aliases=["musicpuzzleinfo"])
     async def musicpuzzleinfo(self, ctx):
         """Give the users everything they need to know about the puzzle"""
-        logging_utils.log_command("notesaw", ctx.channel, ctx.author)
+        logging_utils.log_command("notesaw", ctx.guild, ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Welcome to Notesaw!",
@@ -91,7 +91,7 @@ class MusicRace(commands.Cog, name="Music Race"):
     @commands.command(name="guesstune")
     async def guesstune(self, ctx, *args):
         """Take a user's guess and give them a response based on what letters they provided"""
-        logging_utils.log_command("guesstune", ctx.channel, ctx.author)
+        logging_utils.log_command("guesstune", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if len(args) < 1:

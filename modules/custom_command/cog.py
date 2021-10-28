@@ -18,7 +18,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         """Add your own custom command to the bot with an embed reply
         
         Usage: `~addembedcommand command_name \"This is my custom command!\""""
-        logging_utils.log_command("addembedcommand", ctx.channel, ctx.author)
+        logging_utils.log_command("addembedcommand", ctx.guild, ctx.channel, ctx.author)
 
         if len(args) <= 0:
             discord_utils.create_no_argument_embed("Command Return")
@@ -73,7 +73,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         """Add your own custom command to the bot with a text reply (good for images and pings)
         
         Usage: `~addtextcommand command_name Link_to_image"""
-        logging_utils.log_command("addtextcommand", ctx.channel, ctx.author)
+        logging_utils.log_command("addtextcommand", ctx.guild, ctx.channel, ctx.author)
 
         if len(args) <= 0:
             discord_utils.create_no_argument_embed("Command Return")
@@ -134,7 +134,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         """List custom commands in the server
         
         Usage: `~lscustomcommands`"""
-        logging_utils.log_command("lscustomcommands", ctx.channel, ctx.author)
+        logging_utils.log_command("lscustomcommands", ctx.guild, ctx.channel, ctx.author)
 
         custom_commands = "\n".join(constants.CUSTOM_COMMANDS[ctx.guild.id].keys())
         embed = discord.Embed(title=f"Custom Commands for {ctx.guild.name}",
@@ -148,7 +148,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         """Edit an existing custom command, or adds the command if it doesn't exist.
         
         Usage: `~editcustomcommand potato My new return value`"""
-        logging_utils.log_command("editcustomcommand", ctx.channel, ctx.author)
+        logging_utils.log_command("editcustomcommand", ctx.guild, ctx.channel, ctx.author)
 
         command_name = command_name.lower()
         command_return = " ".join(args)
@@ -188,7 +188,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         """Remove an existing custom command
         
         Usage: `~rmcustomcommand potato`"""
-        logging_utils.log_command("rmcustomcommand", ctx.channel, ctx.author)
+        logging_utils.log_command("rmcustomcommand", ctx.guild, ctx.channel, ctx.author)
 
         command_name = command_name.lower()
         if command_name in constants.CUSTOM_COMMANDS[ctx.guild.id]:
@@ -213,7 +213,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         """Reloads the custom command cache. This is useful when we're editing commands or playing with the DB
         
         Usage: `~reloadcommandcache`"""
-        logging_utils.log_command("reloadcommandcache", ctx.channel, ctx.author)
+        logging_utils.log_command("reloadcommandcache", ctx.guild, ctx.channel, ctx.author)
 
         constants.CUSTOM_COMMANDS = {}
         with Session(constants.DATABASE_ENGINE) as session:

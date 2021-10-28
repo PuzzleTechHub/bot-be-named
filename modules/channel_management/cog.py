@@ -18,7 +18,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         """Command to move the current channel to category with given name
 
         Usage: `~movechannel category name`"""
-        logging_utils.log_command("movechannel", ctx.channel, ctx.author)
+        logging_utils.log_command("movechannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         # check for category name arguments
         if len(args) <= 0:
@@ -70,7 +70,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         Usage: `~renamechannel newname`"""
         # log command in console
-        logging_utils.log_command("renamechannel", ctx.channel, ctx.author)
+        logging_utils.log_command("renamechannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         if len(args) <= 0:
             embed = discord_utils.create_no_argument_embed("Channel name")
@@ -107,7 +107,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         Usage: `~createchannel new-channel-name`"""
         # log command in console
-        logging_utils.log_command("createchannel", ctx.channel, ctx.author)
+        logging_utils.log_command("createchannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         # Category channel limit
@@ -135,7 +135,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         Usage: `~clonechannel #channel-to-clone new-channel-name`"""
         # log command in console
-        logging_utils.log_command("clonechannel", ctx.channel, ctx.author)
+        logging_utils.log_command("clonechannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         # get guild and category
@@ -181,7 +181,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         So any channel with different role permissions set up is reverted.
 
         Usage: `~synccat`"""
-        logging_utils.log_command("synccategory", ctx.channel, ctx.author)
+        logging_utils.log_command("synccategory", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(description="", color=constants.EMBED_COLOR)
         category = ctx.channel.category
         
@@ -220,7 +220,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Creates targetCat (optional: targetRole) if they don't exist already.
         
         Usage: `~clonecategory 'Puzzlehunt Team A' 'Puzzlehunt Team B' @RolesForA @RolesForB`"""
-        logging_utils.log_command("clonecategory", ctx.channel, ctx.author)
+        logging_utils.log_command("clonecategory", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(description="", color=constants.EMBED_COLOR)
 
         # Input parsing I guess

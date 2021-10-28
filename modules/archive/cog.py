@@ -98,7 +98,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         category, or is the category is full (i.e. 50 Channels)
 
         Usage: `~movetoarchive`"""
-        logging_utils.log_command("movetoarchive", ctx.channel, ctx.author)
+        logging_utils.log_command("movetoarchive", ctx.guild, ctx.channel, ctx.author)
 
         # Find category with same name + Archive
         archive_category = discord.utils.get(ctx.guild.channels, name=f"{ctx.channel.category.name} Archive") or \
@@ -144,7 +144,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
         Usage: `~archivechannel #channel`"""
         # TODO: Need error handling for asking a channel we don't have access to or invalid channel name
-        logging_utils.log_command("archivechannel", ctx.channel, ctx.author)
+        logging_utils.log_command("archivechannel", ctx.guild, ctx.channel, ctx.author)
         # Check if the user supplied a channel
         if len(args) < 1:
             # No arguments provided
@@ -226,7 +226,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         """Command to download the history of every text channel in the category
 
         Usage: `~archivecategory category name`"""
-        logging_utils.log_command("archivecategory", ctx.channel, ctx.author)
+        logging_utils.log_command("archivecategory", ctx.guild, ctx.channel, ctx.author)
         # Check if the user supplied a channel
         if len(args) < 1:
             # No arguments provided
@@ -308,7 +308,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         long on any reasonably aged server
 
         Usage: `~archiveserver`"""
-        logging_utils.log_command("archiveserver", ctx.channel, ctx.author)
+        logging_utils.log_command("archiveserver", ctx.guild, ctx.channel, ctx.author)
         # If we don't have the lock, let the user know it may take a while.
         msg = None
         if self.lock.locked():

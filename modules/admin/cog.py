@@ -16,7 +16,7 @@ class AdminCog(commands.Cog, name="Admin"):
         """Add a new verified category for this server. Only available to server admins or bot owners.
         
         Usage: `~addverified @Verified Verified`"""
-        logging_utils.log_command("addverified", ctx.channel, ctx.author)
+        logging_utils.log_command("addverified", ctx.guild, ctx.channel, ctx.author)
 
         if len(rolename) < 1:
             embed = discord_utils.create_no_argument_embed("Role or Role category")
@@ -75,7 +75,7 @@ class AdminCog(commands.Cog, name="Admin"):
         """List all verified roles within the server. Only available to server admins or bot owners.
         
         Usage: `~lsverifieds`"""
-        logging_utils.log_command("lsverifieds", ctx.channel, ctx.author)
+        logging_utils.log_command("lsverifieds", ctx.guild, ctx.channel, ctx.author)
 
         if ctx.guild.id in constants.VERIFIEDS:
             embed = discord_utils.create_embed()
@@ -94,7 +94,7 @@ class AdminCog(commands.Cog, name="Admin"):
         """Remove a role from the list of verifieds. Only available to server admins or bot owners.
         
         Usage: `~rmverified @Verified`"""
-        logging_utils.log_command("rmverified", ctx.channel, ctx.author)
+        logging_utils.log_command("rmverified", ctx.guild, ctx.channel, ctx.author)
 
         # Get role. Allow people to use the command by pinging the role, or just naming it
         role_to_remove = None
@@ -141,7 +141,7 @@ class AdminCog(commands.Cog, name="Admin"):
         """Sets the bot prefix for the server. Only available to server admins or bot owners.
         
         Usage: `~setprefix !`"""
-        logging_utils.log_command("setprefix", ctx.channel, ctx.author)
+        logging_utils.log_command("setprefix", ctx.guild, ctx.channel, ctx.author)
 
         with Session(constants.DATABASE_ENGINE) as session:
             session.query(database_utils.Prefixes).filter_by(server_id=ctx.guild.id).\

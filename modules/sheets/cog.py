@@ -34,7 +34,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Usage : `~tether SheetLink`
         """
-        logging_utils.log_command("addsheettether", ctx.channel, ctx.author)
+        logging_utils.log_command("addsheettether", ctx.guild, ctx.channel, ctx.author)
 
         # Get category information
         curr_cat = ctx.message.channel.category.name
@@ -76,7 +76,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Usage : `~chantether SheetLink`
         """
-        logging_utils.log_command("addchannelsheettether", ctx.channel, ctx.author)
+        logging_utils.log_command("addchannelsheettether", ctx.guild, ctx.channel, ctx.author)
 
         # Get channel information
         curr_chan = ctx.message.channel
@@ -111,7 +111,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Usage : `~removetether`
         """
-        logging_utils.log_command("removesheettether", ctx.channel, ctx.author)
+        logging_utils.log_command("removesheettether", ctx.guild, ctx.channel, ctx.author)
         # Get category and channel information
         curr_cat = ctx.message.channel.category.name
         curr_cat_id = str(ctx.message.channel.category_id)
@@ -162,7 +162,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Usage : `~sheetcrab PuzzleName` or `~sheetcrab PuzzleName linktopuzzle`
         """
 
-        logging_utils.log_command("channelsheetcreatetab", ctx.channel, ctx.author)
+        logging_utils.log_command("channelsheetcreatetab", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         # Cannot make a new channel if the category is full
         if discord_utils.category_is_full(ctx.channel.category):
@@ -229,7 +229,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @commands.command(name="displaysheettether", aliases=["showsheettether", "showtether", "displaytether"])
     async def displaysheettether(self, ctx):
         """Find the sheet the category is current tethered too"""
-        logging_utils.log_command("displaysheettether", ctx.channel, ctx.author)
+        logging_utils.log_command("displaysheettether", ctx.guild, ctx.channel, ctx.author)
         # Get category information
         curr_cat = str(ctx.message.channel.category)
         curr_cat_id = str(ctx.message.channel.category_id)
@@ -275,7 +275,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Usage : `~sheettab TabName`
         """
-        logging_utils.log_command("sheetcreatetab", ctx.channel, ctx.author)
+        logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Tab Name")
             await ctx.send(embed=embed)
@@ -308,7 +308,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         use the currently tethered sheet.
         
         Usage: `~savesheet`"""
-        logging_utils.log_command("downloadsheet", ctx.channel, ctx.author)
+        logging_utils.log_command("downloadsheet", ctx.guild, ctx.channel, ctx.author)
         http = self.gdrive_credentials.authorize(httplib2.Http())
         service = discovery.build('drive', 'v3', http=http)
 

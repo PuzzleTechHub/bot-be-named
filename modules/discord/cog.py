@@ -22,7 +22,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @admin_utils.is_verified()
     async def pin(self, ctx):
         """Pin a message (Either a reply or the one above ~pin"""
-        logging_utils.log_command("pin", ctx.channel, ctx.author)
+        logging_utils.log_command("pin", ctx.guild, ctx.channel, ctx.author)
 
         pins = await ctx.message.channel.pins()
         if(len(pins)==50):
@@ -58,7 +58,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="pinme")
     async def pinme(self, ctx):
         """Pins the message"""
-        logging_utils.log_command("pinme", ctx.channel, ctx.author)
+        logging_utils.log_command("pinme", ctx.guild, ctx.channel, ctx.author)
 
         pins = await ctx.message.channel.pins()
         if(len(pins)==50):
@@ -82,7 +82,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @admin_utils.is_verified()
     async def listpin(self, ctx):
         """Lists all the pinned posts in the current channel"""
-        logging_utils.log_command("listpin", ctx.channel, ctx.author)
+        logging_utils.log_command("listpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         pins = await ctx.message.channel.pins()
 
@@ -112,7 +112,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="changebotnick")
     async def changebotnick(self, ctx, newnick: str = None):
         """Change the nick of the bot in this server"""
-        logging_utils.log_command("changebotnick", ctx.channel, ctx.author)
+        logging_utils.log_command("changebotnick", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         currnick = ctx.message.guild.me.nick
@@ -137,7 +137,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @admin_utils.is_verified()
     async def unpin(self, ctx, num_to_unpin: int = 1):
         """Unpin <num_to_unpin> messages, or all if num if 0"""
-        logging_utils.log_command("unpin", ctx.channel, ctx.author)
+        logging_utils.log_command("unpin", ctx.guild, ctx.channel, ctx.author)
         if num_to_unpin < 1 or not isinstance(num_to_unpin, int):
             embed = discord_utils.create_no_argument_embed("number of messages to unpin")
             await ctx.send(embed=embed)
@@ -196,7 +196,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="stats")
     async def stats(self, ctx):
         """Get server stats"""
-        logging_utils.log_command("stats", ctx.channel, ctx.author)
+        logging_utils.log_command("stats", ctx.guild, ctx.channel, ctx.author)
         guild = ctx.guild
         embed = discord_utils.create_embed()
         embed.add_field(name="Members",
@@ -217,7 +217,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="catstats")
     async def catstats(self, ctx):
         """Get category stats"""
-        logging_utils.log_command("catstats", ctx.channel, ctx.author)
+        logging_utils.log_command("catstats", ctx.guild, ctx.channel, ctx.author)
         cat = ctx.message.channel.category
         embed = discord_utils.create_embed()
         embed.add_field(name="Category Name",
@@ -232,7 +232,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="listcategories", aliases=["lscategories", "listcats", "lscats", "listcat", "lscat"])
     async def listcategories(self, ctx):
         """List categories in a server"""
-        logging_utils.log_command("listcategories", ctx.channel, ctx.author)
+        logging_utils.log_command("listcategories", ctx.guild, ctx.channel, ctx.author)
         categories = [cat.name for cat in ctx.guild.categories]
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Categories in {ctx.guild.name}",
@@ -247,7 +247,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="assignrole", aliases=["giverole","rolegive","roleassign"])
     async def assignrole(self, ctx, rolename: str, *args):
         """Assign a role to a list of users"""
-        logging_utils.log_command("assignrole", ctx.channel, ctx.author)
+        logging_utils.log_command("assignrole", ctx.guild, ctx.channel, ctx.author)
         # User didn't include any people to get the role
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Users to give the role")
@@ -333,7 +333,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             - color: (Optional[hex]) the hex code to be the role's color
             - mentionable: (Optional[str]) whether to allow users to mention the role
         """
-        logging_utils.log_command("createrole", ctx.channel, ctx.author)
+        logging_utils.log_command("createrole", ctx.guild, ctx.channel, ctx.author)
 
         # Convert color from hex str into int
         if color:
@@ -368,7 +368,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="deleterole", aliases=["removerole", "rmrole"])
     async def deleterole(self, ctx, rolename: str):
         """Remove the role with `rolename`"""
-        logging_utils.log_command("deleterole", ctx.channel, ctx.author)
+        logging_utils.log_command("deleterole", ctx.guild, ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
         role_to_delete = None
@@ -410,7 +410,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="listroles", aliases=["lsroles", "listrole", "lsrole"])
     async def listroles(self, ctx):
         """List all roles in the server"""
-        logging_utils.log_command("listroles", ctx.channel, ctx.author)
+        logging_utils.log_command("listroles", ctx.guild, ctx.channel, ctx.author)
         roles = await ctx.guild.fetch_roles()
         embed = discord.Embed(title=f"Roles in {ctx.guild.name}",
                               description=f"{', '.join([role.mention for role in roles])}",
@@ -427,7 +427,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.has_any_role(*constants.TRUSTED)
     async def botsay(self, ctx, channel_id_or_name: str, *args):
         """Say something in another channel"""
-        logging_utils.log_command("botsay", ctx.channel, ctx.author)
+        logging_utils.log_command("botsay", ctx.guild, ctx.channel, ctx.author)
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Channel or Message")
             await ctx.send(embed=embed)
@@ -463,7 +463,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.has_any_role(*constants.TRUSTED)
     async def botsayembed(self, ctx, channel_id_or_name: str, *args):
         """Say something in another channel"""
-        logging_utils.log_command("botsayembed", ctx.channel, ctx.author)
+        logging_utils.log_command("botsayembed", ctx.guild, ctx.channel, ctx.author)
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Channel or Message")
             await ctx.send(embed=embed)
@@ -510,7 +510,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="listemoji", aliases=["lsemoji"])
     async def listemoji(self, ctx):
         """List all emojis in a server"""
-        logging_utils.log_command("listemoji", ctx.channel, ctx.author)
+        logging_utils.log_command("listemoji", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(title=f"Emoji in {ctx.guild.name}",
                               description=f"{chr(10).join([f'{emoji.name} {emoji.id}' for emoji in ctx.guild.emojis])}")
         await ctx.send(embed=embed)
@@ -519,7 +519,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="addemoji")
     async def addemoji(self, ctx, *args):
         """Add an emoji. Note: the user must supply the emoji (for duplication in the server)"""
-        logging_utils.log_command("addemoji", ctx.channel, ctx.author)
+        logging_utils.log_command("addemoji", ctx.guild, ctx.channel, ctx.author)
         found_emojis = []
         print(args)
         for arg in args:
@@ -552,7 +552,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def deleteemoji(self, ctx, *args):
         """Remove emojis from the server. Must use the emojis in the command
         e.g. ~deleteemoji :sadcowboy: :thistbh:"""
-        logging_utils.log_command("deleteemoji", ctx.channel, ctx.author)
+        logging_utils.log_command("deleteemoji", ctx.guild, ctx.channel, ctx.author)
         deleted_emojis = []
         # Each arg must be an emoji
         for arg in args:
@@ -580,7 +580,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         """Steals an emote from another server and uploads it to this server with the same name.
         
         Usage: `~steal :emote:`"""
-        logging_utils.log_command("steal", ctx.channel, ctx.author)
+        logging_utils.log_command("steal", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         for emoji in emojis:
             url = str(emoji.url)
