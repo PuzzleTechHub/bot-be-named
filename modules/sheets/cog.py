@@ -3,7 +3,6 @@ import configparser
 import googleapiclient
 from utils import discord_utils, google_utils, logging_utils, admin_utils
 from modules.sheets import sheets_constants
-import modules.solved
 import constants
 from discord.ext import commands
 import discord
@@ -27,7 +26,14 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @admin_utils.is_verified()
     @commands.command(name="addsheettether", aliases=["editsheettether", "tether", "edittether", "addtether"])
     async def addsheettether(self, ctx, sheet_key_or_link: str = None):
-        """Add a sheet to the current channel's category"""
+        """Tethers a sheet to the current category. 
+
+        For any Google sheets commands, a tether to either category or channel (See `~chantether`) is necessary.
+
+        See also `~sheettab`.
+
+        Usage : `~tether SheetLink`
+        """
         logging_utils.log_command("addsheettether", ctx.channel, ctx.author)
 
         # Get category information
@@ -62,7 +68,14 @@ class SheetsCog(commands.Cog, name="Sheets"):
                                "addchanneltether",
                                "chantether"])
     async def addchannelsheettether(self, ctx, sheet_key_or_link: str):
-        """Add a sheet to the current channel"""
+        """Tethers a sheet to the current channel
+
+        For any Google sheets commands, a tether to either category (See `~tether`) or channel is necessary.
+
+        See also `~sheettab`.
+
+        Usage : `~chantether SheetLink`
+        """
         logging_utils.log_command("addchannelsheettether", ctx.channel, ctx.author)
 
         # Get channel information
@@ -92,7 +105,12 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @admin_utils.is_verified()
     @commands.command(name="removesheettether", aliases=["deletetether", "removetether"])
     async def removesheettether(self, ctx):
-        """Remove the sheet-category tethering"""
+        """Remove the Category or Channel tethering to the sheet.
+
+        If a channel tether and a category tether both exist, the channel tether will always be removed first. See also `~addtether` and `~sheettab`.
+
+        Usage : `~removetether`
+        """
         logging_utils.log_command("removesheettether", ctx.channel, ctx.author)
         # Get category and channel information
         curr_cat = ctx.message.channel.category.name
@@ -130,16 +148,20 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
+
     @admin_utils.is_verified()
     @commands.command(name="channelsheetcreatetab",
                       aliases=["channelsheetcrab",
                                "cheetcrab",
                                "chancrab"])
     async def channelsheetcreatetab(self, ctx, chan_name: str, *args):
+        """Create new channel, then a New tab on the sheet that is currently tethered to this category, then pins links to the channel, if any.
+
+        This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet
+
+        Usage : `~sheetcrab PuzzleName` or `~sheetcrab PuzzleName linktopuzzle`
         """
-        Create a new channel,
-        then a New tab on the sheet that is currently tethered to this category,
-        then pins things"""
+
         logging_utils.log_command("channelsheetcreatetab", ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         # Cannot make a new channel if the category is full
@@ -247,7 +269,12 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @admin_utils.is_verified()
     @commands.command(name="sheetcreatetab", aliases=["sheettab", "sheetcrab"])
     async def sheetcreatetab(self, ctx, *args):
-        """Create a New tab on the sheet that is currently tethered to this category"""
+        """Create a New tab on the sheet that is currently tethered to this category
+
+        This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet
+
+        Usage : `~sheettab TabName`
+        """
         logging_utils.log_command("sheetcreatetab", ctx.channel, ctx.author)
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Tab Name")
@@ -307,7 +334,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-
         try:
             request = service.files().export_media(fileId=sheet.id, mimeType=sheets_constants.MIMETYPE)
             response = request.execute()
@@ -341,11 +367,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(file=discord.File(download_path))
 
 
-
     def addsheettethergeneric(self, sheet_key_or_link, curr_guild, curr_catorchan, curr_catorchan_id) -> gspread.Spreadsheet:
         """Add a sheet to the current channel"""
         # We accept both sheet keys or full links
         proposed_sheet = self.get_sheet_from_key_or_link(sheet_key_or_link)
+        
         # If we can't open the sheet, send an error and return
         if not proposed_sheet:
             return None
@@ -475,6 +501,101 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return curr_sheet_link, None
 
+        return curr_sheet_link, newsheet
+
+    ## WIP code. DO NOT USE
+    async def sheetliongeneric(self, ctx, curr_chan, curr_cat, tab_name):
+        """
+        Part of the Lion series of improvements to sheetcrab/chancrab. 
+        This function will work with Overview and create shit
+        """
+        curr_sheet_link = None
+        newsheet = None
+
+        #Find the tethered sheet for the channel/category from the DB
+        curr_chan_or_cat_cell, tether_type = self.findsheettether(str(curr_chan.id), str(curr_cat.id))
+
+        #Error if no such sheet exists
+        if curr_chan_or_cat_cell:
+            curr_sheet_link = self.category_tether_tab.cell(curr_chan_or_cat_cell.row, curr_chan_or_cat_cell.col + 2).value
+        else:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"Error",
+                            value=f"The category **{curr_cat.name}** nor the channel **{curr_chan.name}** are not "
+                                  f"tethered to any Google sheet.",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+
+        # Make sure the template tab exists on the sheet.
+        try:
+            curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+            template_id = curr_sheet.worksheet("Template").id
+        # Error when we can't open the curr sheet link
+        except gspread.exceptions.APIError:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"Error",
+                            value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
+                                  f"Did the permissions change?",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+        # Error when the sheet has no template tab
+        except gspread.exceptions.WorksheetNotFound:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"Error",
+                            value=f"The [sheet]({curr_sheet_link}) has no tab named 'Template'. "
+                                  f"Did you forget to add one?",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+
+        # Make sure the Overview tab exists on the sheet.
+        try:
+            curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+            template_id = curr_sheet.worksheet("Overview").id
+        # Error when the sheet has no Overview tab
+        except gspread.exceptions.WorksheetNotFound:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"Error",
+                            value=f"The [sheet]({curr_sheet_link}) has no tab named 'Template'. "
+                                  f"Did you forget to add one?",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+
+        # Make sure tab_name does not exist
+        try:
+            curr_sheet.worksheet(tab_name)
+            # If there is a tab with the given name, that's an error!
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"Error",
+                            value=f"The [Google sheet at link]({curr_sheet_link}) already has a tab named "
+                                  f"**{tab_name}**. Cannot create a tab with same name.",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+        except gspread.exceptions.WorksheetNotFound:
+            # If the tab isn't found, that's good! We will create one.
+            pass
+
+        # Try to duplicate the template tab and rename it to the given name
+        try:
+            # Index of 4 is hardcoded for Team Arithmancy server
+            newsheet = curr_sheet.duplicate_sheet(source_sheet_id=template_id,
+                                                  new_sheet_name=tab_name,
+                                                  insert_sheet_index=4)
+        except gspread.exceptions.APIError:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"Error",
+                            value=f"Could not duplicate 'Template' tab in the "
+                                  f"[Google sheet at link]({curr_sheet_link}). "
+                                  f"Is the permission set up with 'Anyone with link can edit'?",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return curr_sheet_link, None
+
+        #TODO - Overview work.
         return curr_sheet_link, newsheet
 
 def setup(bot):

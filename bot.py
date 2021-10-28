@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 def get_prefix(client, message):
     # Check if in new server or DM
-    if message.guild is not None or message.guild.id in constants.PREFIXES:
+    if message.guild is not None and message.guild.id in constants.PREFIXES:
         return constants.PREFIXES[message.guild.id]
     else:
         return constants.DEFAULT_BOT_PREFIX
@@ -74,7 +74,13 @@ def main():
     @client.event
     async def on_message(message: discord.Message): 
         # If the message doesn't start with the command prefix, no use querying the db.
-        command_prefix = constants.PREFIXES[message.guild.id]
+        
+        command_prefix = ""
+        if(message.guild is None):
+            command_prefix = constants.DEFAULT_BOT_PREFIX
+        else:
+            command_prefix = constants.PREFIXES[message.guild.id]
+
         if message.clean_content.startswith(command_prefix):
             # If the command is a default one, just run it.
             command_name = message.clean_content.split()[0][len(command_prefix):].lower()
@@ -109,7 +115,6 @@ def main():
                                               color=constants.EMBED_COLOR)
                                 await message.channel.send(embed=embed)
                             constants.CUSTOM_COMMANDS[message.guild.id][command_name] = (result.command_return, result.image)
-
 
     client.run(os.getenv('DISCORD_TOKEN'))
 

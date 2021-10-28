@@ -5,7 +5,6 @@ import constants
 import discord
 from typing import Union
 
-
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
 class ChannelManagementCog(commands.Cog, name="Channel Management"):
@@ -173,6 +172,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         embed.add_field(name=f"{constants.SUCCESS}!", value=f"Created channel {new_channel.mention} in {category}!")
         # reply to user
         await ctx.send(embed=embed)
+
 
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="synccategory", aliases=["synccat","catsync"])

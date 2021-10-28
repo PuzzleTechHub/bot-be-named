@@ -6,6 +6,8 @@ import constants
 
 def is_owner_or_admin():
     async def predicate(ctx):
+        if ctx.message.guild is None:
+            return False
         is_owner = await ctx.bot.is_owner(ctx.author)
         return is_owner or ctx.message.author.guild_permissions.administrator
 
@@ -14,6 +16,8 @@ def is_owner_or_admin():
 
 def is_verified():
     async def predicate(ctx):
+        if ctx.message.guild is None:
+            return False
         if ctx.guild.id in constants.VERIFIEDS:
             for role_id in [role.id for role in ctx.author.roles]:
                 if role_id in constants.VERIFIEDS[ctx.guild.id]:

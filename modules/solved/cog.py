@@ -6,7 +6,6 @@ from modules.solved.prefix import Prefix
 from modules.solved import solved_constants
 from utils import discord_utils, logging_utils, admin_utils
 
-
 # TODO: We added solvedsorted, solvedishsorted, etc., which are complete copy+extensions of solved
 #       The goal will be to pick solved *or* solvedsorted and delete the other
 
@@ -53,42 +52,6 @@ class SolvedCog(commands.Cog):
             new_channel_name = p.remove_prefix()
         return new_channel_name
 
-    @admin_utils.is_verified()
-    @commands.command(name="reorderchannels", aliases=["chansort","sortchan","catsort","sortcat"])
-    async def reorderchannels(self, ctx):
-        """Reorder channels within a category, in order of unsolved, solvedish, backsolved, solved
-        and alphabetical order within each of those
-
-        Usage: `~reorderchannels`"""
-        logging_utils.log_command("reorderchannels", ctx.channel, ctx.author)
-        category = ctx.channel.category
-        text_channels = category.text_channels
-
-        embed2 = discord.Embed(description="", color=constants.EMBED_COLOR)
-        embed2.add_field(name="Sort Started",
-                        value=f"Your sort of category `{category.name}`"
-                              f" has begun! This may take a while. If I run into "
-                              f"any errors, I'll let you know.",
-                        inline=False)
-        start_msg = await ctx.send(embed=embed2)
-
-        channel_order = discord_utils.sort_channels_util(text_channels)
-        for position, channel in enumerate(channel_order):
-            try:
-                await channel.edit(position=position)
-            except discord.Forbidden:
-                embed = discord_utils.create_embed()
-                embed.add_field(name=f"{constants.FAILED}!",
-                                value="I do not have permission to reorder the channels.")
-                await ctx.send(embed=embed)
-                return
-
-        if start_msg:
-            await start_msg.delete()
-        embed = discord_utils.create_embed()
-        embed.add_field(name=f"{constants.SUCCESS}!",
-                        value="Channels sorted successfully")
-        await ctx.send(embed=embed)
 
     @admin_utils.is_verified()
     @commands.command(name="solved")

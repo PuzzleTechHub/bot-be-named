@@ -40,20 +40,7 @@ BYTES_TO_MEGABYTES = 1_048_576 # 1024 squared
 ###########
 # MODULES #
 ###########
-ADMIN = "Admin"
-ARCHIVE = "Archive"
-CHANNEL_MANAGEMENT = "Channel Management"
-CIPHER_RACE = "Cipher Race"
-DISCORD = "Discord"
-LOOKUP = "Lookup"
-MUSIC_RACE = "Music Race"
-PERFECT_PITCH = "Perfect Pitch"
-SHEETS = "Sheets"
-SOLVED = "Solved"
-TIME = "Time"
-
 MODULES_DIR = "modules"
-MODULES = [ADMIN, ARCHIVE, CHANNEL_MANAGEMENT, CIPHER_RACE, DISCORD, LOOKUP, MUSIC_RACE, PERFECT_PITCH, SHEETS, SOLVED, TIME]
 
 from utils import google_utils, database_utils
 GSPREAD_CLIENT = google_utils.create_gspread_client()
