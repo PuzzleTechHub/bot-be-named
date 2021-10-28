@@ -9,9 +9,11 @@ from utils import discord_utils, logging_utils, admin_utils
 
 # TODO: We added solvedsorted, solvedishsorted, etc., which are complete copy+extensions of solved
 #       The goal will be to pick solved *or* solvedsorted and delete the other
+
 # TODO: It's awkward but right now the solved constants have a hyphen at the end
 # Which is why we have [:-1] for all the prefixes. We don't want to have that prefix
 # Sent to the users, but we do need it for prepending to the channel.
+
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
 class SolvedCog(commands.Cog):
@@ -52,7 +54,7 @@ class SolvedCog(commands.Cog):
         return new_channel_name
 
     @admin_utils.is_verified()
-    @commands.command(name="reorderchannels", aliases=["chansort","sortchan"])
+    @commands.command(name="reorderchannels", aliases=["chansort","sortchan","catsort","sortcat"])
     async def reorderchannels(self, ctx):
         """Reorder channels within a category, in order of unsolved, solvedish, backsolved, solved
         and alphabetical order within each of those
@@ -62,7 +64,15 @@ class SolvedCog(commands.Cog):
         category = ctx.channel.category
         text_channels = category.text_channels
 
-        channel_order = self.sort_channels(text_channels)
+        embed2 = discord.Embed(description="", color=constants.EMBED_COLOR)
+        embed2.add_field(name="Sort Started",
+                        value=f"Your sort of category `{category.name}`"
+                              f" has begun! This may take a while. If I run into "
+                              f"any errors, I'll let you know.",
+                        inline=False)
+        start_msg = await ctx.send(embed=embed2)
+
+        channel_order = discord_utils.sort_channels_util(text_channels)
         for position, channel in enumerate(channel_order):
             try:
                 await channel.edit(position=position)
@@ -73,6 +83,8 @@ class SolvedCog(commands.Cog):
                 await ctx.send(embed=embed)
                 return
 
+        if start_msg:
+            await start_msg.delete()
         embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}!",
                         value="Channels sorted successfully")
@@ -204,23 +216,6 @@ class SolvedCog(commands.Cog):
         Usage: `~unsolvedsorted`"""
         await self.unsolved(ctx)
         await self.reorderchannels(ctx)
-
-    # TODO: move to some utils file somewhere. This function can be very useful and generalized to fit more needs
-    def sort_channels(self, channel_list: list, prefixes: list = [solved_constants.SOLVEDISH_PREFIX,
-                                                                  solved_constants.BACKSOLVED_PREFIX,
-                                                                  solved_constants.SOLVED_PREFIX]) -> list:
-        """Sort channels according to some prefixes"""
-        channel_list_sorted = sorted(channel_list, key=lambda x: x.name)
-
-        channel_list_prefixes = []
-        for prefix in prefixes:
-            channel_list_prefixes += list(filter(lambda x: x.name.startswith(prefix), channel_list_sorted))
-
-        unsolved = channel_list_sorted
-        unsolved = list(filter(lambda x: x not in channel_list_prefixes, unsolved))
-
-        return unsolved + channel_list_prefixes
-
 
 def setup(bot):
     bot.add_cog(SolvedCog(bot))

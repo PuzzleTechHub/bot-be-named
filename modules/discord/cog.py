@@ -145,28 +145,46 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         embed = discord_utils.create_embed()
         pins = await ctx.message.channel.pins()
+        messages_to_unpin = []
         strmsg = ""
-        if num_to_unpin < len(pins):
-            pins = pins[:num_to_unpin]
+
+        reply = False
+        #If unpin is in direct reply to another message, unpin only that message
+        if ctx.message.reference:
+            reply = True
+            orig_msg = ctx.message.reference.resolved
+            #TODO - if orig_msg is DeletedReferencedMessage
+            if not orig_msg.pinned:
+                embed.add_field(name="Error!",
+                                value=f"The linked message [Msg]({orig_msg.jump_url}) has not been pinned, there's nothing to unpin.",
+                                inline=False)
+                await ctx.send(embed=embed)
+                return
+            messages_to_unpin.append(orig_msg)
+        #Else unpin the last X messages
         else:
-            num_to_unpin = len(pins)
+            if num_to_unpin < len(pins):
+                messages_to_unpin = pins[:num_to_unpin]
+            #If too many messages to unpin, just unpin all
+            else:
+                messages_to_unpin = pins
+
         i=1
-        for pin in pins:
+        for pin in messages_to_unpin:
             try:
                 await pin.unpin()
                 strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
                 i=i+1
             except discord.HTTPException:
                 embed.add_field(name="Error!",
-                                value="I do not have permissions to unpin that message "
-                                      "(or some other error, but probably perms)",
+                                value=f"I do not have permissions to unpin that message "
+                                      f"(or some other error, but probably perms)",
                                 inline=False)
                 await ctx.send(embed=embed)
                 return
 
-
         embed.add_field(name="Success!",
-                        value=f"Unpinned the most recent {num_to_unpin} " + ("messages" if num_to_unpin != 1 else "message") + 
+                        value=f"Unpinned " + ("the most recent " if not reply else "") + f"{num_to_unpin} " + ("messages" if num_to_unpin != 1 else "message") + 
                             f"\n{strmsg[:-3]}",
                         inline=False)
         await ctx.send(embed=embed)

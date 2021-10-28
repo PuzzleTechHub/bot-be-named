@@ -63,6 +63,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # reply to user
         await ctx.send(embed=embed)
 
+
     @admin_utils.is_verified()
     @commands.command(name="renamechannel")
     async def renamechannel(self, ctx, *args):
@@ -97,6 +98,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                         inline=False)
         await ctx.send(embed=embed)
 
+
     @admin_utils.is_verified()
     @commands.command(name="createchannel", aliases=['makechannel',
                                                      'makechan',
@@ -125,6 +127,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Forbidden! Have you checked if the bot has the required permisisons?")
         await ctx.send(embed=embed)
+
 
     @admin_utils.is_verified()
     @commands.command(name="clonechannel")
@@ -208,8 +211,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                         value=f"All channels in category `{category.name}` successfully synced to Category!")
         await ctx.send(embed=embed)
 
+
     @admin_utils.is_verified()
-    @commands.command(name="clonecategory", aliases=["copycategory"])
+    @commands.command(name="clonecategory", aliases=["copycategory","clonecat","copycat"])
     async def clonecategory(self, ctx, origCatName: str, targetCatName: str, origRole: Union[discord.Role, str] = None, targetRole: Union[discord.Role, str] = None):
         """Clones origCatName as targetCatName. 
         OPTIONAL: takes origRole's perms and makes those targetRole's perms in targetCat.
@@ -236,40 +240,42 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         
         # Next, make sure that origRole exists (and find if targetRole exists, otherwise create it)
         # If the user didn't supply roles, ignore this part.
-        if origRole is None:
-            origRole_is_str = isinstance(origRole, str)
-            targetRole_is_str = isinstance(targetRole, str)
-            if origRole_is_str or targetRole_is_str:
-                # Get role
-                guild_roles = await ctx.guild.fetch_roles()
-                for role in guild_roles:
-                    origRole_is_str = isinstance(origRole, str)
-                    targetRole_is_str = isinstance(targetRole, str)
-                    # Once both are actual discord roles, get out of here
-                    if not origRole_is_str and not targetRole_is_str:
-                        break
-                    if origRole_is_str and role.name.lower() == origRole.lower():
-                        origRole = role
-                    if targetRole_is_str and role.name.lower() == targetRole.lower():
-                        targetRole = role
-            # If we have looped over all the roles and still can't find an origRole, then that's an error
-            if origRole_is_str:
+        origRole_is_str = isinstance(origRole, str)
+        targetRole_is_str = isinstance(targetRole, str)
+
+        if origRole_is_str or targetRole_is_str:
+            # Get role
+            guild_roles = await ctx.guild.fetch_roles()
+            for role in guild_roles:
+                # Once both are actual discord roles, get out of here
+                if not origRole_is_str and not targetRole_is_str:
+                    break
+                if origRole_is_str and role.name.lower() == origRole.lower():
+                    origRole = role
+                if targetRole_is_str and role.name.lower() == targetRole.lower():
+                    targetRole = role
+
+        origRole_is_str = isinstance(origRole, str)
+        targetRole_is_str = isinstance(targetRole, str)
+
+        # If we have looped over all the roles and still can't find an origRole, then that's an error
+        if origRole_is_str:
+            embed.add_field(name=f"{constants.FAILED}",
+                            value=f"Cannot find role {origRole}, are you sure it exists? Retry this command with @{origRole} " + 
+                                f"if it does.")
+            await ctx.send(embed=embed)
+            return
+
+        # if targetRole doesn't exist, create it
+        if targetRole_is_str:
+            try:
+                targetRole = await ctx.guild.create_role(name=targetRole, mentionable=True)
+                embed.description += f"\nCreated {targetRole.mention}"
+            except discord.Forbidden:
                 embed.add_field(name=f"{constants.FAILED}",
-                                value=f"Cannot find role {origRole}, are you sure it exists? Retry this command with @{origRole} " + 
-                                    f"if it does.")
+                                value=f"I was unable to create role {targetRole}. Do I have the `manage_roles` permission?")
                 await ctx.send(embed=embed)
                 return
-
-            # if targetRole doesn't exist, create it
-            if targetRole_is_str:
-                try:
-                    targetRole = await ctx.guild.create_role(name=targetRole, mentionable=True)
-                    embed.description += f"\nCreated {targetRole.mention}"
-                except discord.Forbidden:
-                    embed.add_field(name=f"{constants.FAILED}",
-                                    value=f"I was unable to create role {targetRole}. Do I have the `manage_roles` permission?")
-                    await ctx.send(embed=embed)
-                    return
         
         # if targetCat doesn't exist, create it
         targetCat = discord.utils.get(ctx.guild.channels, name=targetCatName)
@@ -277,6 +283,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             if targetCat is None:
                 targetCat = await origCat.clone(name=targetCatName)
                 embed.description += f"\nCloned `{origCat}` as `{targetCat}`"
+                await targetCat.edit(position=origCat.position+1)
             if origRole is not None:
                 if origRole in origCat.overwrites:
                     await targetCat.set_permissions(targetRole, overwrite=origCat.overwrites[origRole])
