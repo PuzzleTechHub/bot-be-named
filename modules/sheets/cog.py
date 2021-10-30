@@ -157,7 +157,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     async def channelsheetcreatetab(self, ctx, chan_name: str, *args):
         """Create new channel, then a New tab on the sheet that is currently tethered to this category, then pins links to the channel, if any.
 
-        This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet
+        This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet. Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
         Usage : `~sheetcrab PuzzleName` or `~sheetcrab PuzzleName linktopuzzle`
         """
@@ -271,7 +271,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     async def sheetcreatetab(self, ctx, *args):
         """Create a New tab on the sheet that is currently tethered to this category
 
-        This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet
+        This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet. Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
         Usage : `~sheettab TabName`
         """
