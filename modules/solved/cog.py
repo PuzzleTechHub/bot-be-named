@@ -6,8 +6,6 @@ from modules.solved.prefix import Prefix
 from modules.solved import solved_constants
 from utils import discord_utils, logging_utils, admin_utils
 
-# TODO: We added solvedsorted, solvedishsorted, etc., which are complete copy+extensions of solved
-#       The goal will be to pick solved *or* solvedsorted and delete the other
 
 # TODO: It's awkward but right now the solved constants have a hyphen at the end
 # Which is why we have [:-1] for all the prefixes. We don't want to have that prefix
@@ -52,7 +50,6 @@ class SolvedCog(commands.Cog):
             new_channel_name = p.remove_prefix()
         return new_channel_name
 
-
     @admin_utils.is_verified()
     @commands.command(name="solved")
     async def solved(self, ctx: commands.Context):
@@ -61,28 +58,25 @@ class SolvedCog(commands.Cog):
         Usage: `~solved`"""
         # log command in console
         logging_utils.log_command("solved", ctx.guild, ctx.channel, ctx.author)
-        channel = ctx.message.channel
+
         embed = discord_utils.create_embed()
-        new_channel_name = self.add_prefix(channel, solved_constants.SOLVED_PREFIX)
+        new_channel_name = self.add_prefix(ctx.channel, solved_constants.SOLVED_PREFIX)
         if new_channel_name:
-            await channel.edit(name=new_channel_name)
+            try:
+                await ctx.channel.edit(name=new_channel_name)
+            except discord.Forbidden:
+                embed.add_field(name=f"{constants.FAILED}!",
+                                value=f"Unable to prepend `solved` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?")
+                await ctx.send(embed=embed)
+                return
             embed.add_field(name=f"{constants.SUCCESS}!",
-                            value=f"Marking {channel.mention} as {solved_constants.SOLVED_PREFIX[:-1]}!",
+                            value=f"Marking {ctx.channel.mention} as {solved_constants.SOLVED_PREFIX[:-1]}!",
                             inline=False)
         else:
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Channel already marked as {solved_constants.SOLVED_PREFIX[:-1]}!",
                             inline=False)
         await ctx.send(embed=embed)
-
-    @admin_utils.is_verified()
-    @commands.command(name="solvedsorted", aliases=["solveds"])
-    async def solvedsorted(self, ctx: commands.Context):
-        """Prepends `solved` to the channel name, then sorts the channels
-
-        Usage: `~solvedsorted`"""
-        await self.solved(ctx)
-        await self.reorderchannels(ctx)
 
     @admin_utils.is_verified()
     @commands.command(name="solvedish")
@@ -108,15 +102,6 @@ class SolvedCog(commands.Cog):
         await ctx.send(embed=embed)
 
     @admin_utils.is_verified()
-    @commands.command(name="solvedishsorted", aliases=["solvedishs"])
-    async def solvedishsorted(self, ctx: commands.Context):
-        """Prepends `solved` to the channel name, and then sorts channels
-
-        Usage: `~solvedishsorted`"""
-        await self.solvedish(ctx)
-        await self.reorderchannels(ctx)
-
-    @admin_utils.is_verified()
     @commands.command(name="backsolved")
     async def backsolved(self, ctx: commands.Context):
         """Changes channel name to backsolved-<channel-name>
@@ -137,15 +122,6 @@ class SolvedCog(commands.Cog):
                             value=f"Channel already marked as {solved_constants.BACKSOLVED_PREFIX[:-1]}!",
                             inline=False)
         await ctx.send(embed=embed)
-
-    @admin_utils.is_verified()
-    @commands.command(name="backsolvedsorted", aliases=["backsolveds"])
-    async def backsolvedsorted(self, ctx: commands.Context):
-        """Prepend `backsolved` to the channel name, then sort the channels
-
-        Usage: `~backsolvedsorted`"""
-        await self.backsolved(ctx)
-        await self.reorderchannels(ctx)
 
     @admin_utils.is_verified()
     @commands.command(name="unsolved")
@@ -171,14 +147,6 @@ class SolvedCog(commands.Cog):
                         inline=False)
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
-    @commands.command(name="unsolvedsorted", aliases=["unsolveds"])
-    async def unsolvedsorted(self, ctx: commands.context):
-        """Remove any solved/backsolved/solvedish prefix, then sort channels
-
-        Usage: `~unsolvedsorted`"""
-        await self.unsolved(ctx)
-        await self.reorderchannels(ctx)
 
 def setup(bot):
     bot.add_cog(SolvedCog(bot))

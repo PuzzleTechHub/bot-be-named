@@ -5,6 +5,7 @@ import constants
 import discord
 from typing import Union
 
+
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
 class ChannelManagementCog(commands.Cog, name="Channel Management"):
@@ -62,7 +63,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # reply to user
         await ctx.send(embed=embed)
 
-
     @admin_utils.is_verified()
     @commands.command(name="renamechannel")
     async def renamechannel(self, ctx, *args):
@@ -97,7 +97,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                         inline=False)
         await ctx.send(embed=embed)
 
-
     @admin_utils.is_verified()
     @commands.command(name="createchannel", aliases=['makechannel',
                                                      'makechan',
@@ -126,7 +125,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Forbidden! Have you checked if the bot has the required permisisons?")
         await ctx.send(embed=embed)
-
 
     @admin_utils.is_verified()
     @commands.command(name="clonechannel")
@@ -173,7 +171,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # reply to user
         await ctx.send(embed=embed)
 
-
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="synccategory", aliases=["synccat","catsync"])
     async def synccategory(self, ctx):
@@ -182,16 +179,16 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         Usage: `~synccat`"""
         logging_utils.log_command("synccategory", ctx.guild, ctx.channel, ctx.author)
-        embed = discord.Embed(description="", color=constants.EMBED_COLOR)
+        
         category = ctx.channel.category
         
-        embed2 = discord.Embed(description="", color=constants.EMBED_COLOR)
-        embed2.add_field(name="Sync Started",
+        start_embed = discord_utils.create_embed()
+        start_embed.add_field(name="Sync Started",
                         value=f"Your syncing of category `{category.name}`"
                               f" has begun! This may take a while. If I run into "
                               f"any errors, I'll let you know.",
                         inline=False)
-        start_msg = await ctx.send(embed=embed2)
+        start_msg = await ctx.send(embed=start_embed)
 
         try:
             for channel in category.channels:
@@ -199,6 +196,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         except discord.Forbidden:
             if start_msg:
                 await start_msg.delete()
+            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Forbidden! Have you checked if the bot has the required permisisons?")
             # reply to user
@@ -207,10 +205,10 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         if start_msg:
             await start_msg.delete()
+        embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}!",
                         value=f"All channels in category `{category.name}` successfully synced to Category!")
         await ctx.send(embed=embed)
-
 
     @admin_utils.is_verified()
     @commands.command(name="clonecategory", aliases=["copycategory","clonecat","copycat"])
@@ -300,7 +298,43 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         embed.title = f"{constants.SUCCESS}"
         await ctx.send(embed=embed)
+
+    @admin_utils.is_verified()
+    @commands.command(name="categorysort", aliases=["sortcat", "catsort", "sortcategory", "reorderchannels"])
+    async def categorysort(self, ctx):
+        """Sort all channels in a category. Specifically for puzzle hunts, `solved-`, `backsolved-`, and `solvedish-` 
+        prefixes will be put behind channels without a prefix.
+
+        Usage: `~categorysort`"""
+        logging_utils.log_command("categorysort", ctx.guild, ctx.channel, ctx.author)
+
+        channel_list = discord_utils.sort_channels_util(ctx.channel.category.text_channels)
+
+        start_embed = discord_utils.create_embed()
+        start_embed.add_field(name=f"Sort Started",
+                              value=f"Your sort of category `{ctx.channel.category}` has begun! "
+                                    f"This may take a while. If I run into any errors, I'll let you know.")
+        start_embed_msg = await ctx.send(embed=embed)
+
+        for idx, channel in enumerate(channel_list):
+            try:
+                await channel.edit(position=idx)
+            except discord.Forbidden:
+                if start_embed_msg:
+                    await start_embed_msg.delete()
+                embed = discord_utils.create_embed()
+                embed.add_field(name=f"{constants.FAILED}!",
+                                value=f"Unable to sort {channel.mention}. Do I have the correct `manage_channel` positions?")
+                await ctx.send(embed=embed)
+                return
         
+        if start_embed_msg:
+            await start_embed_msg.delete()
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                        value=f"Sorted the channels in `{ctx.channel.category}!")
+        await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(ChannelManagementCog(bot))

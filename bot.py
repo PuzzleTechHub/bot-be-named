@@ -74,12 +74,10 @@ def main():
     @client.event
     async def on_message(message: discord.Message): 
         # If the message doesn't start with the command prefix, no use querying the db.
-        
-        command_prefix = ""
-        if(message.guild is None):
-            command_prefix = constants.DEFAULT_BOT_PREFIX
+        if message.guild is not None:
+            command_prefix = constants.PREFIXES[message.guild.id]  
         else:
-            command_prefix = constants.PREFIXES[message.guild.id]
+            command_prefix = constants.DEFAULT_BOT_PREFIX
 
         if message.clean_content.startswith(command_prefix):
             # If the command is a default one, just run it.

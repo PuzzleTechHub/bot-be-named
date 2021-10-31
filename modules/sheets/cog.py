@@ -148,7 +148,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-
     @admin_utils.is_verified()
     @commands.command(name="channelsheetcreatetab",
                       aliases=["channelsheetcrab",
@@ -217,13 +216,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
                          value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
                          inline=False)
         await ctx.send(embed=embed)
-
-    @admin_utils.is_verified()
-    @commands.command(name="chancrabsorted", aliases=["chancrabs"])
-    async def channelsheetcreatetabsorted(self, ctx: commands.context):
-        await self.channelsheetcreatetab(ctx)
-        #TODO : Move modules.solved.reorderchannels (or maybe sort_channels) to discord_utils then call here
-        #await self.reorderchannels(ctx)
 
     @admin_utils.is_verified()
     @commands.command(name="displaysheettether", aliases=["showsheettether", "showtether", "displaytether"])
@@ -365,7 +357,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     return
 
             await ctx.send(file=discord.File(download_path))
-
 
     def addsheettethergeneric(self, sheet_key_or_link, curr_guild, curr_catorchan, curr_catorchan_id) -> gspread.Spreadsheet:
         """Add a sheet to the current channel"""
@@ -597,6 +588,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         #TODO - Overview work.
         return curr_sheet_link, newsheet
+
 
 def setup(bot):
     bot.add_cog(SheetsCog(bot))

@@ -8,11 +8,36 @@ from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 import constants
 from utils import discord_utils, admin_utils, logging_utils
 
+
 class DiscordCog(commands.Cog, name="Discord"):
     """Discord Utility Commands"""
 
     def __init__(self, bot):
         self.bot = bot
+
+    @admin_utils.is_owner_or_admin()
+    @commands.command(name="changebotnick")
+    async def changebotnick(self, ctx, newnick: str = None):
+        """Change the nick of the bot in this server"""
+        logging_utils.log_command("changebotnick", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        currnick = ctx.message.guild.me.nick
+
+        try:
+            await ctx.message.guild.me.edit(nick=newnick)
+        except discord.errors.Forbidden:
+            embed = discord_utils.create_embed()
+            embed.add_field(name="ERROR: No access",
+                            value=f"Sorry! I don't have access to change my own nickname.",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return 0
+        
+        embed.add_field(name="Success!",
+                        value=f"Nick successfully changed from `{currnick}` to `{newnick}`",
+                        inline=False)
+        await ctx.send(embed=embed)
 
     ####################
     # PINNING COMMANDS #
@@ -106,32 +131,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         embeds = discord_utils.split_embed(embed)
         for embed in embeds:
             await ctx.send(embed=embed)
-
-
-    @admin_utils.is_owner_or_admin()
-    @commands.command(name="changebotnick")
-    async def changebotnick(self, ctx, newnick: str = None):
-        """Change the nick of the bot in this server"""
-        logging_utils.log_command("changebotnick", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        currnick = ctx.message.guild.me.nick
-
-        try:
-            await ctx.message.guild.me.edit(nick=newnick)
-        except discord.errors.Forbidden:
-            embed = discord_utils.create_embed()
-            embed.add_field(name="ERROR: No access",
-                            value=f"Sorry! I don't have access to change my own nickname.",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return 0
-        
-        embed.add_field(name="Success!",
-                        value=f"Nick successfully changed from `{currnick}` to `{newnick}`",
-                        inline=False)
-        await ctx.send(embed=embed)
-
     
     @commands.command(name="unpin")
     @admin_utils.is_verified()
@@ -184,8 +183,8 @@ class DiscordCog(commands.Cog, name="Discord"):
                 return
 
         embed.add_field(name="Success!",
-                        value=f"Unpinned " + ("the most recent " if not reply else "") + f"{num_to_unpin} " + ("messages" if num_to_unpin != 1 else "message") + 
-                            f"\n{strmsg[:-3]}",
+                        value=f"Unpinned {'the most recent' if not reply else ''} {num_to_unpin} {'messages' if num_to_unpin != 1 else 'message'}\n" + 
+                            f"{strmsg[:-3]}",
                         inline=False)
         await ctx.send(embed=embed)
 
@@ -417,7 +416,6 @@ class DiscordCog(commands.Cog, name="Discord"):
                               color = constants.EMBED_COLOR)
         await ctx.send(embed=embed)
 
-
     ###################
     # BOTSAY COMMANDS #
     ###################
@@ -499,7 +497,6 @@ class DiscordCog(commands.Cog, name="Discord"):
                              inline=False)
         await ctx.send(embed=sent_embed)
 
-
     ##################
     # EMOJI COMMANDS #
     ##################
@@ -549,26 +546,29 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     @admin_utils.is_owner_or_admin()
     @commands.command(name="deleteemoji", aliases=["removeemoji"])
-    async def deleteemoji(self, ctx, *args):
+    async def deleteemoji(self, ctx, *emojis: typing.Union[discord.Emoji, discord.PartialEmoji, str]):
         """Remove emojis from the server. Must use the emojis in the command
         e.g. ~deleteemoji :sadcowboy: :thistbh:"""
         logging_utils.log_command("deleteemoji", ctx.guild, ctx.channel, ctx.author)
         deleted_emojis = []
         # Each arg must be an emoji
-        for arg in args:
+        for emoji in emojis:
             # TODO: What's the best way to do this?
-            emoji_id = int(arg.split(':')[-1].replace('>', ''))
-            for emoji in ctx.guild.emojis:
-                if emoji.id == emoji_id:
-                    try:
-                        await emoji.delete()
-                        deleted_emojis.append(f":{emoji.name}:")
-                    except discord.Forbidden:
-                        embed = discord_utils.create_embed()
-                        embed.add_field(name=f"{constants.FAILED}!",
-                                        value=f"I do not have permission to delete emojis in {ctx.guild.name}.")
-                        await ctx.send(embed=embed)
-                        return
+            if isinstance(emoji, str):
+                emoji_id = int(emoji.split(':')[-1].replace('>', ''))
+                for guild_emoji in ctx.guild.emojis:
+                    if guild_emoji.id == emoji_id:
+                        emoji = guild_emoji
+
+            try:
+                await emoji.delete()
+                deleted_emojis.append(f":{emoji.name}:")
+            except discord.Forbidden:
+                embed = discord_utils.create_embed()
+                embed.add_field(name=f"{constants.FAILED}!",
+                                value=f"I do not have permission to delete emojis in {ctx.guild.name}.")
+                await ctx.send(embed=embed)
+                return
         embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}!",
                         value=f"Sucessfully removed {', '.join(deleted_emojis)}")
@@ -579,7 +579,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def steal(self, ctx, *emojis : typing.Union[discord.Emoji, discord.PartialEmoji]):
         """Steals an emote from another server and uploads it to this server with the same name.
         
-        Usage: `~steal :emote:`"""
+        Usage: `~steal :emote1: :emote2:`"""
         logging_utils.log_command("steal", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         for emoji in emojis:
