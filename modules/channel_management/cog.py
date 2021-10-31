@@ -314,9 +314,12 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         start_embed.add_field(name=f"Sort Started",
                               value=f"Your sort of category `{ctx.channel.category}` has begun! "
                                     f"This may take a while. If I run into any errors, I'll let you know.")
-        start_embed_msg = await ctx.send(embed=embed)
+        start_embed_msg = await ctx.send(embed=start_embed)
 
         for idx, channel in enumerate(channel_list):
+            # Skip channels already in correct place.
+            if channel.position == idx:
+                continue
             try:
                 await channel.edit(position=idx)
             except discord.Forbidden:

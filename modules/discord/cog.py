@@ -15,30 +15,6 @@ class DiscordCog(commands.Cog, name="Discord"):
     def __init__(self, bot):
         self.bot = bot
 
-    @admin_utils.is_owner_or_admin()
-    @commands.command(name="changebotnick")
-    async def changebotnick(self, ctx, newnick: str = None):
-        """Change the nick of the bot in this server"""
-        logging_utils.log_command("changebotnick", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        currnick = ctx.message.guild.me.nick
-
-        try:
-            await ctx.message.guild.me.edit(nick=newnick)
-        except discord.errors.Forbidden:
-            embed = discord_utils.create_embed()
-            embed.add_field(name="ERROR: No access",
-                            value=f"Sorry! I don't have access to change my own nickname.",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return 0
-        
-        embed.add_field(name="Success!",
-                        value=f"Nick successfully changed from `{currnick}` to `{newnick}`",
-                        inline=False)
-        await ctx.send(embed=embed)
-
     ####################
     # PINNING COMMANDS #
     ####################
@@ -510,68 +486,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         logging_utils.log_command("listemoji", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(title=f"Emoji in {ctx.guild.name}",
                               description=f"{chr(10).join([f'{emoji.name} {emoji.id}' for emoji in ctx.guild.emojis])}")
-        await ctx.send(embed=embed)
-
-    @commands.has_permissions(manage_emojis=True)
-    @commands.command(name="addemoji")
-    async def addemoji(self, ctx, *args):
-        """Add an emoji. Note: the user must supply the emoji (for duplication in the server)"""
-        logging_utils.log_command("addemoji", ctx.guild, ctx.channel, ctx.author)
-        found_emojis = []
-        print(args)
-        for arg in args:
-            emoji_id = int(arg.split(':')[-1].replace('>', ''))
-            print(emoji_id)
-            found_emojis.append(self.bot.get_emoji(emoji_id))
-
-        print(found_emojis)
-        
-        for emoji in found_emojis:
-            print(emoji)
-            print(emoji.name)
-            print(emoji.id)
-            try:
-                emoji_img = await emoji.url.read()
-                await ctx.guild.create_custom_emoji(name=emoji.name, image=emoji_img)
-            except discord.Forbidden:
-                embed = discord_utils.create_embed()
-                embed.add_field(name=f"{constants.FAILED}!",
-                                value=f"I do not have permission to add emoji in {ctx.guild.name}.")
-                await ctx.send(embed=embed)
-                return
-        embed = discord.Embed(title="Added new emoji!",
-                              description=f"\n{f''.join([emoji.name for emoji in found_emojis])}"
-                              )
-        await ctx.send(embed=embed)
-
-    @admin_utils.is_owner_or_admin()
-    @commands.command(name="deleteemoji", aliases=["removeemoji"])
-    async def deleteemoji(self, ctx, *emojis: typing.Union[discord.Emoji, discord.PartialEmoji, str]):
-        """Remove emojis from the server. Must use the emojis in the command
-        e.g. ~deleteemoji :sadcowboy: :thistbh:"""
-        logging_utils.log_command("deleteemoji", ctx.guild, ctx.channel, ctx.author)
-        deleted_emojis = []
-        # Each arg must be an emoji
-        for emoji in emojis:
-            # TODO: What's the best way to do this?
-            if isinstance(emoji, str):
-                emoji_id = int(emoji.split(':')[-1].replace('>', ''))
-                for guild_emoji in ctx.guild.emojis:
-                    if guild_emoji.id == emoji_id:
-                        emoji = guild_emoji
-
-            try:
-                await emoji.delete()
-                deleted_emojis.append(f":{emoji.name}:")
-            except discord.Forbidden:
-                embed = discord_utils.create_embed()
-                embed.add_field(name=f"{constants.FAILED}!",
-                                value=f"I do not have permission to delete emojis in {ctx.guild.name}.")
-                await ctx.send(embed=embed)
-                return
-        embed = discord_utils.create_embed()
-        embed.add_field(name=f"{constants.SUCCESS}!",
-                        value=f"Sucessfully removed {', '.join(deleted_emojis)}")
         await ctx.send(embed=embed)
 
     @commands.has_any_role(*constants.TRUSTED)
