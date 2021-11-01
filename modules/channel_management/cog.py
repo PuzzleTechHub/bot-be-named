@@ -217,6 +217,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         OPTIONAL: takes origRole's perms and makes those targetRole's perms in targetCat.
         Creates targetCat (optional: targetRole) if they don't exist already.
         
+        Usage: `~clonecategory 'Puzzlehunt Team A' 'Puzzlehunt Team B'`
+
         Usage: `~clonecategory 'Puzzlehunt Team A' 'Puzzlehunt Team B' @RolesForA @RolesForB`"""
         logging_utils.log_command("clonecategory", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(description="", color=constants.EMBED_COLOR)
@@ -327,7 +329,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                     await start_embed_msg.delete()
                 embed = discord_utils.create_embed()
                 embed.add_field(name=f"{constants.FAILED}!",
-                                value=f"Unable to sort {channel.mention}. Do I have the correct `manage_channel` positions?")
+                                value=f"Unable to sort `{channel.mention}`. Do I have the correct `manage_channel` positions?")
                 await ctx.send(embed=embed)
                 return
         
@@ -335,7 +337,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             await start_embed_msg.delete()
         embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}!",
-                        value=f"Sorted the channels in `{ctx.channel.category}!")
+                        value=f"Sorted the channels in `{ctx.channel.category}`!")
         await ctx.send(embed=embed)
 
 

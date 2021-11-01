@@ -3,7 +3,7 @@ from discord.ext import commands
 import constants
 
 
-class NewHelpCommand(commands.MinimalHelpCommand):
+class HelpCommand(commands.MinimalHelpCommand):
     """Custom help command override using embeds"""
 
     def get_ending_note(self):

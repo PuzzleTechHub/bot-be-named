@@ -57,7 +57,7 @@ and the bot will run on the supplied discord token's account.
 - [Help](./modules/help) (Deprecated) for getting info about all the modules  
 - [Lookup](./modules/lookup) for Searching the internet via google and wikipedia
 - [Music Race](./modules/music_race/) Help! Our tunes have been sawed apart and put back incorrectly!
-- [New Help](./modules/new_help) is an updated help command which automatically pulls docstrings for `~help`
+- [Help](./modules/help) is an updated help command which automatically pulls docstrings for `~help`
 - [Perfect Pitch](./modules/perfect_pitch) Become a composer and write tunes in mp4
 - [Sheets](./modules/sheets) for working with Google Sheets during puzzlehunts
 - [Solved](./modules/solved) for marking Discord Channels as solved, backsolved, solvedish etc.
@@ -67,7 +67,7 @@ and the bot will run on the supplied discord token's account.
 ## Acknowledgements
 
 Big thanks to [Jonah Lawrence](https://github.com/DenverCoder1) and his [Professor Vector](https://github.com/DenverCoder1/professor-vector-discord-bot)
-repo for much inspiration and code, specifically on the [Channel Management](./modules/channel_management), [Error Logging](./modules/error_logging), [New Help](./modules/new_help), and [Solved](./modules/solved) modules. 
+repo for much inspiration and code, specifically on the [Channel Management](./modules/channel_management), [Error Logging](./modules/error_logging), [Help](./modules/help), and [Solved](./modules/solved) modules. 
 
 ## Contributing/Issues
 

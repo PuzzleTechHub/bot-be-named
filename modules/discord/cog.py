@@ -22,7 +22,8 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="pin")
     @admin_utils.is_verified()
     async def pin(self, ctx):
-        """Pin a message (Either a reply or the one above ~pin"""
+        """Pin a message (Either reply to the message, or it auto pins the message above)
+        Usage: `~pin`"""
         logging_utils.log_command("pin", ctx.guild, ctx.channel, ctx.author)
 
         pins = await ctx.message.channel.pins()
@@ -58,7 +59,10 @@ class DiscordCog(commands.Cog, name="Discord"):
     @admin_utils.is_verified()
     @commands.command(name="pinme")
     async def pinme(self, ctx):
-        """Pins the message"""
+        """Pins the message that called it.
+
+        Usage : `~pinme MESSAGE`
+        """
         logging_utils.log_command("pinme", ctx.guild, ctx.channel, ctx.author)
 
         pins = await ctx.message.channel.pins()
@@ -82,7 +86,9 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="lspin", aliases=["lspins", "listpin", "listpins"])
     @admin_utils.is_verified()
     async def listpin(self, ctx):
-        """Lists all the pinned posts in the current channel"""
+        """Lists all the pinned posts in the current channel
+
+        Usage: `~listpins~`"""
         logging_utils.log_command("listpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         pins = await ctx.message.channel.pins()
