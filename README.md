@@ -62,7 +62,7 @@ and the bot will run on the supplied discord token's account.
 - [Sheets](./modules/sheets) for working with Google Sheets during puzzlehunts
 - [Solved](./modules/solved) for marking Discord Channels as solved, backsolved, solvedish etc.
 - [Time](./modules/time) for finding the time anywhere in the world
-
+- [Misc](./modules/misc) for misc. random (fun) commands
 
 ## Acknowledgements
 

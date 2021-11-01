@@ -26,7 +26,7 @@ class TimeCog(commands.Cog, name="Time"):
         embed = discord_utils.create_embed()
         if len(args) < 1:
             curr_time = int(datetime.timestamp(datetime.now()))
-            embed.add_field(name="Success!", value=f"Current time is `{curr_time}`", inline=False)
+            embed.add_field(name="{constants.SUCCESS}!", value=f"Current time is `{curr_time}`", inline=False)
         else:
             user_time = time_utils.parse_date(" ".join(args))
             if user_time is None:
@@ -36,7 +36,7 @@ class TimeCog(commands.Cog, name="Time"):
                 await ctx.send(embed=embed)
                 return
             unix_time = int(datetime.timestamp(user_time))
-            embed.add_field(name="Success!",
+            embed.add_field(name="{constants.SUCCESS}!",
                             value=f"The Unix Time at {' '.join(args)} is `{unix_time}`",
                             inline=False)
 
