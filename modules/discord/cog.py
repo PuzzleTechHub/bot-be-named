@@ -6,7 +6,7 @@ import io
 from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 
 import constants
-from utils import discord_utils, admin_utils, logging_utils
+from utils import discord_utils, logging_utils, command_predicates
 
 
 class DiscordCog(commands.Cog, name="Discord"):
@@ -19,8 +19,8 @@ class DiscordCog(commands.Cog, name="Discord"):
     # PINNING COMMANDS #
     ####################
 
+    @command_predicates.is_verified()
     @commands.command(name="pin")
-    @admin_utils.is_verified()
     async def pin(self, ctx):
         """Pin a message (Either reply to the message, or it auto pins the message above)
         Usage: `~pin`"""
@@ -56,7 +56,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                             inline=False)
             await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="pinme")
     async def pinme(self, ctx):
         """Pins the message that called it.
@@ -83,8 +83,8 @@ class DiscordCog(commands.Cog, name="Discord"):
                             inline=False)
             await ctx.send(embed=embed)
 
+    @command_predicates.is_verified()
     @commands.command(name="lspin", aliases=["lspins", "listpin", "listpins"])
-    @admin_utils.is_verified()
     async def listpin(self, ctx):
         """Lists all the pinned posts in the current channel
 
@@ -114,8 +114,8 @@ class DiscordCog(commands.Cog, name="Discord"):
         for embed in embeds:
             await ctx.send(embed=embed)
     
+    @command_predicates.is_verified()
     @commands.command(name="unpin")
-    @admin_utils.is_verified()
     async def unpin(self, ctx, num_to_unpin: int = 1):
         """Unpin <num_to_unpin> messages, or all if num if 0"""
         logging_utils.log_command("unpin", ctx.guild, ctx.channel, ctx.author)
@@ -209,7 +209,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                         value=f"{len(cat.voice_channels)}")
         await ctx.send(embed=embed)
 
-    @admin_utils.is_owner_or_admin()
+    @command_predicates.is_owner_or_admin()
     @commands.command(name="listcategories", aliases=["lscategories", "listcats", "lscats", "listcat", "lscat"])
     async def listcategories(self, ctx):
         """List categories in a server"""
@@ -224,7 +224,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     # ROLE COMMANDS #
     #################
 
-    @admin_utils.is_owner_or_admin()
+    @command_predicates.is_owner_or_admin()
     @commands.command(name="assignrole", aliases=["giverole","rolegive","roleassign"])
     async def assignrole(self, ctx, rolename: str, *args):
         """Assign a role to a list of users"""
@@ -304,7 +304,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                             inline=False)
         await ctx.send(embed=embed)
 
-    @admin_utils.is_owner_or_admin()
+    @command_predicates.is_owner_or_admin()
     @commands.command(name="createrole", aliases=["addrole"])
     async def createrole(self, ctx, rolename: str, color: str = None, mentionable: bool = True):
         """Create a role in the server
@@ -345,7 +345,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                         inline=False)
         await ctx.send(embed=embed)
 
-    @admin_utils.is_owner_or_admin()
+    @command_predicates.is_owner_or_admin()
     @commands.command(name="deleterole", aliases=["removerole", "rmrole"])
     async def deleterole(self, ctx, rolename: str):
         """Remove the role with `rolename`"""
@@ -402,9 +402,8 @@ class DiscordCog(commands.Cog, name="Discord"):
     # BOTSAY COMMANDS #
     ###################
 
-    # TODO: What on earth is TRUSTED
-    @commands.command(name="botsay")
     @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="botsay")
     async def botsay(self, ctx, channel_id_or_name: str, *args):
         """Say something in another channel"""
         logging_utils.log_command("botsay", ctx.guild, ctx.channel, ctx.author)
@@ -439,8 +438,8 @@ class DiscordCog(commands.Cog, name="Discord"):
         # reply to user
         await ctx.send(embed=embed)
 
-    @commands.command(name="botsayembed")
     @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="botsayembed")
     async def botsayembed(self, ctx, channel_id_or_name: str, *args):
         """Say something in another channel"""
         logging_utils.log_command("botsayembed", ctx.guild, ctx.channel, ctx.author)
@@ -485,7 +484,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     # TODO: this command is meant for DEVELOPER purpose. That's why we print out the ID (which is useless to normal user)
     # For GENERAL purpose (which doesn't make much sense), we would add semicolons before/after emoji name and remove id
-    @admin_utils.is_owner_or_admin()
+    @command_predicates.is_owner_or_admin()
     @commands.command(name="listemoji", aliases=["lsemoji"])
     async def listemoji(self, ctx):
         """List all emojis in a server"""

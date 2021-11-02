@@ -4,7 +4,7 @@ import constants
 from discord.ext import commands
 from modules.solved.prefix import Prefix
 from modules.solved import solved_constants
-from utils import discord_utils, logging_utils, admin_utils
+from utils import discord_utils, logging_utils, command_predicates
 
 # TODO: It's awkward but right now the solved constants have a hyphen at the end
 # Which is why we have [:-1] for all the prefixes. We don't want to have that prefix
@@ -49,7 +49,7 @@ class SolvedCog(commands.Cog):
             new_channel_name = p.remove_prefix()
         return new_channel_name
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="solved")
     async def solved(self, ctx: commands.Context):
         """Changes channel name to solved-<channel-name>
@@ -77,7 +77,7 @@ class SolvedCog(commands.Cog):
                             inline=False)
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="solvedish")
     async def solvedish(self, ctx: commands.Context):
         """Changes channel name to solvedish-<channel-name>
@@ -100,7 +100,7 @@ class SolvedCog(commands.Cog):
         await channel.edit(name=new_channel_name)
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="backsolved")
     async def backsolved(self, ctx: commands.Context):
         """Changes channel name to backsolved-<channel-name>
@@ -122,7 +122,7 @@ class SolvedCog(commands.Cog):
                             inline=False)
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="unsolved")
     async def unsolved(self, ctx: commands.context):
         """removes one of the solved prefixes from channel name

@@ -1,6 +1,6 @@
 from discord import embeds
 from discord.ext import commands
-from utils import discord_utils, logging_utils, admin_utils
+from utils import discord_utils, logging_utils, command_predicates
 import constants
 import discord
 from typing import Union
@@ -13,7 +13,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     def __init__(self, bot):
         self.bot = bot
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="movechannel")
     async def movechannel(self, ctx, *args):
         """Command to move the current channel to category with given name
@@ -63,7 +63,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # reply to user
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="renamechannel")
     async def renamechannel(self, ctx, *args):
         """Changes current channel name to whatever is asked
@@ -97,7 +97,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                         inline=False)
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="createchannel", aliases=['makechannel',
                                                      'makechan',
                                                      'createchan'])
@@ -126,7 +126,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                             value=f"Forbidden! Have you checked if the bot has the required permisisons?")
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="clonechannel")
     async def clonechannel(self, ctx, original: str, new: str):
         """Command to create channel in same category with given name
@@ -210,7 +210,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                         value=f"All channels in category `{category.name}` successfully synced to Category!")
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="clonecategory", aliases=["copycategory","clonecat","copycat"])
     async def clonecategory(self, ctx, origCatName: str, targetCatName: str, origRole: Union[discord.Role, str] = None, targetRole: Union[discord.Role, str] = None):
         """Clones origCatName as targetCatName. 
@@ -301,7 +301,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         embed.title = f"{constants.SUCCESS}"
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="categorysort", aliases=["sortcat", "catsort", "sortcategory", "reorderchannels"])
     async def categorysort(self, ctx):
         """Sort all channels in a category. Specifically for puzzle hunts, `solved-`, `backsolved-`, and `solvedish-` 

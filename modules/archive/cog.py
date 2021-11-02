@@ -2,9 +2,8 @@ import discord
 from discord.ext import commands
 import constants
 import os
-import shutil
 import zipfile
-from utils import discord_utils, logging_utils, admin_utils
+from utils import discord_utils, logging_utils, command_predicates
 from modules.archive import archive_constants, archive_utils
 import asyncio
 
@@ -91,7 +90,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
             embed = None
         return file, embed
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="movetoarchive", aliases=["mta"])
     async def movetoarchive(self, ctx):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category. Fails if there is no such
@@ -137,7 +136,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`")
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="archivechannel")
     async def archivechannel(self, ctx, *args):
         """Command to download channel's history
@@ -220,7 +219,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
             # Clean up the archive dir
             archive_utils.reset_archive_dir()
 
-    @admin_utils.is_owner_or_admin()
+    @command_predicates.is_owner_or_admin()
     @commands.command(name="archivecategory")
     async def archivecategory(self, ctx, *args):
         """Command to download the history of every text channel in the category
@@ -301,7 +300,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         archive_utils.reset_archive_dir()
 
     # TODO: This cipher_race is mostly copy/pasted from archivecategory
-    @admin_utils.is_owner_or_admin()
+    @command_predicates.is_owner_or_admin()
     @commands.command(name="archiveserver")
     async def archiveserver(self, ctx):
         """Command to archive every text channel in the server. WARNING: This command will take *very*
