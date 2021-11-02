@@ -1,6 +1,5 @@
 # Admin
 
-Commands for admins to use. The code is actually in [bot.py](../../bot.py)
+Commands for admins to use. These commands help configure the bot to your server, or are commands too powerful for mortals to handle.
 
-- `~setprefix` changes the prefix for the server. e.g. `~setprefix !`
- Then all commands will start with `!` instead of `~`
+Use `~help Admin` on the bot to know the commands in this module.

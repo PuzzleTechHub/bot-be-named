@@ -15,3 +15,5 @@ to splice notes together. You can use notes with flats or sharps, in different o
 The full documentation on `~playtune` is coming shortly. For now, please check out
 `~playtunehelp`, `~playtunecustom`, `~playtuneinstrument`, and `~playtunelength` for 
 any info you may need. Also, to see a sample of real songs, use `~playtunesample`.
+
+Use `~help Perfect Pitch` on the bot to know the commands in this module.

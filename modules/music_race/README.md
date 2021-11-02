@@ -2,8 +2,11 @@
 
 ## We give you tunes, you identify them!
 
-The Music Race module was used for a community puzzle in [r/Arithmancy](https://reddit.com/r/Arithmancy). It will be
-subject to change immediately following the conclusion of the puzzle.
+The Music Race module was used for a community puzzle in [r/Arithmancy](https://reddit.com/r/Arithmancy). The commands now may not be the same as the bot during the puzzle.
+
+## Used for a Puzzle in /r/Arithmancy in June, 2021
+
+Note - This README may be severely outdated.
 
 Anyways, the name of the game is simple. We give you tunes, and you identify them. Actually, you *command* us to give
 you tunes, and then you identify them. Use `~notesaw` to get info on the puzzle, and `~guesstune` to get some tune
@@ -57,3 +60,5 @@ Anytime the clip sounds like a song opener, dig one letter deeper `~guesstune AA
   been exhausted.
 - The Movie Go-Er: Send the longest words possible (20 characters) and listen to as much as possible. Eventually you 
 will hear clips from each movie, and should be able to identify each one.
+
+Use `~help Music Race` on the bot to know the commands in this module.

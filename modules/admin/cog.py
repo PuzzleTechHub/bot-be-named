@@ -17,9 +17,14 @@ class AdminCog(commands.Cog, name="Admin"):
     @command_predicates.is_owner_or_admin()
     @commands.command(name="addverified")
     async def addverified(self, ctx, role_or_rolename: Union[discord.Role, str], role_category: str = "Verified"):
-        """Add a new verified category for this server. Only available to server admins or bot owners.
+        """Add a new verified category for a given role on this server. Only available to server admins or bot owners.
+
+        A lot of bot commands can only be used by Verified, so this command is necessary before people can use them.
         
-        Usage: `~addverified @Verified Verified`"""
+        Usage: `~addverified @Verified Verified`
+        Usage: `~addverified @everyone Verified`
+        """
+
         logging_utils.log_command("addverified", ctx.guild, ctx.channel, ctx.author)
 
         if not role_or_rolename:
@@ -94,7 +99,7 @@ class AdminCog(commands.Cog, name="Admin"):
     async def lsverifieds(self, ctx):
         """List all verified roles within the server. Only available to server admins or bot owners.
         
-        Usage: `~lsverifieds`"""
+        Usage: `~listverifieds`"""
         logging_utils.log_command("lsverifieds", ctx.guild, ctx.channel, ctx.author)
 
         if ctx.guild.id in database_utils.VERIFIEDS and len(database_utils.VERIFIEDS[ctx.guild.id]) > 0:

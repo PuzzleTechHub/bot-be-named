@@ -9,7 +9,7 @@ from utils import discord_utils, logging_utils
 
 
 class MiscCog(commands.Cog, name="Misc"):
-    """Get time and timezone of any location"""
+    """A collection of Misc useful/fun commands"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -61,6 +61,53 @@ class MiscCog(commands.Cog, name="Misc"):
             return
 
         await ctx.send(emoji.url)
+
+
+    @commands.command(name="about", aliases=["aboutthebot","github"])
+    async def about(self, ctx):
+        """A quick primer about BBN and what it does
+
+        Usage : `~about`
+        """
+        logging_utils.log_command("about", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+        emoji = None
+        owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
+
+        embed.add_field(name=f"About Me!",
+                        value=f"Hello!\n"
+                        f"Bot Be Named is a discord bot that we use while solving Puzzle Hunts.\n"
+                        f"The bot has a few channel management functions, some puzzle-hunt utility functions, "
+                        f"as well as Google-Sheets interactivity.\n"
+                        f"You can make channels as well as tabs on your Sheet, and other similar QoL upgrades to your puzzlehunting setup.\n\n"
+                        f"[Bot Github link](https://github.com/kevslinger/bot-be-named/)\n\n"
+                        f"To learn more about the bot or useful functions, use `{constants.DEFAULT_BOT_PREFIX}startup`\n"
+                        f"Any problems? Let {owner.mention} know.",
+                        inline=False)
+        await ctx.send(embed=embed)
+
+
+    @commands.command(name="startup")
+    async def startup(self, ctx):
+        """A quick primer about helpful BBN functions
+
+        Usage : `~startup`
+        """
+        logging_utils.log_command("startup", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+        emoji = None
+        owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
+
+        embed.add_field(name=f"Helpful commands!",
+                        value=f"Some of the useful bot commands are -\n"
+                        f"- `{constants.DEFAULT_BOT_PREFIX}help` for a list of commands\n"
+                        f"- `{constants.DEFAULT_BOT_PREFIX}help commandname` for a description of a command (and its limitations). **When in doubt, use this command**.\n"
+                        f"- `{constants.DEFAULT_BOT_PREFIX}addverifieds` for setting up roles in Verifieds and Trusted categories on your server\n"
+                        f"- `{constants.DEFAULT_BOT_PREFIX}chancrab` and `{constants.DEFAULT_BOT_PREFIX}sheetcrab` for making Google Sheet tabs for your current hunt\n"
+                        f"- `{constants.DEFAULT_BOT_PREFIX}solved` etc for marking puzzle channels as solved etc\n"
+                        f"- `{constants.DEFAULT_BOT_PREFIX}addcustomcommand` etc for making a customised command with reply.\n",
+                        inline=False)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

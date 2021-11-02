@@ -1,8 +1,6 @@
-# SHEET MANAGEMENT
-
-## Easy Google Sheets Functionality
+# SHEET MANAGEMENT Commands
 
 Does Google Sheets annoy you? Don't worry, it annoys us, too! With this module, though,
 you'll be able to save many clicks
 
-### In Development
+Use `~help Sheets` on the bot to know the commands in this module.

@@ -15,7 +15,7 @@ import shutil
 
 
 class SheetsCog(commands.Cog, name="Sheets"):
-    """A collection of commands for Google Sheests management"""
+    """A collection of commands for Google Sheets management"""
     def __init__(self, bot):
         self.bot = bot
         self.lock = asyncio.Lock()
