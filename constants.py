@@ -3,13 +3,8 @@
 ###############
 DEFAULT_BOT_PREFIX = "~"
 EMBED_COLOR = 0xd4e4ff
-BOT_NAME = "The Bot Who Must Not Be Named"
-PREFIX_JSON_FILE = "command_prefixes.json"
 
 # Roles
-# TODO: Use role ID instead of string?
-BOT_WHISPERER = "bot-whisperer"
-VERIFIED_PUZZLER = "Verified Puzzler"
 ARITHMANCY_BOT_WHISPERER_ROLE_ID = 817232692117504072
 ARITHMANCY_TASK_ROLE_ID = 817232692117504072
 ARITHMANCY_VERIFIED_ROLE_ID = 737471501841727529
@@ -25,8 +20,6 @@ MAV_BOT_PAL_ROLE_ID = 900513443881300038
 TRUSTED = [ARITHMANCY_BOT_WHISPERER_ROLE_ID, SONI_SERVER_TESTER_ROLE, KEV_SERVER_TESTER_ROLE,
            TA_VET_ID, TA_MOD_ID, SONI_SERVER_VERIFIED_ROLE, MAV_BOT_PAL_ROLE_ID]
 
-VERIFIEDS = {}
-PREFIXES = {}
 DEFAULT_COMMANDS = []
 CUSTOM_COMMANDS = {}
 
@@ -41,7 +34,3 @@ BYTES_TO_MEGABYTES = 1_048_576 # 1024 squared
 # MODULES #
 ###########
 MODULES_DIR = "modules"
-
-from utils import google_utils, database_utils
-GSPREAD_CLIENT = google_utils.create_gspread_client()
-DATABASE_ENGINE = database_utils.create_database_engine()

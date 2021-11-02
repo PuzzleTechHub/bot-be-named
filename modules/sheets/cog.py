@@ -1,7 +1,7 @@
 import configparser
 
 import googleapiclient
-from utils import discord_utils, google_utils, logging_utils, admin_utils
+from utils import discord_utils, google_utils, logging_utils, command_predicates
 from modules.sheets import sheets_constants
 import constants
 from discord.ext import commands
@@ -23,7 +23,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         self.gspread_client = google_utils.create_gspread_client()
         self.category_tether_tab = self.gspread_client.open_by_key(os.getenv("MASTER_SHEET_KEY")).worksheet(sheets_constants.CATEGORY_TAB)
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="addsheettether", aliases=["editsheettether", "tether", "edittether", "addtether"])
     async def addsheettether(self, ctx, sheet_key_or_link: str = None):
         """Tethers a sheet to the current category. 
@@ -60,7 +60,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="addchannelsheettether",
                       aliases=["editchannelsheettether",
                                "channeltether",
@@ -102,7 +102,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="removesheettether", aliases=["deletetether", "removetether"])
     async def removesheettether(self, ctx):
         """Remove the Category or Channel tethering to the sheet.
@@ -148,7 +148,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="channelsheetcreatetab",
                       aliases=["channelsheetcrab",
                                "cheetcrab",
@@ -217,7 +217,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                          inline=False)
         await ctx.send(embed=embed)
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="displaysheettether", aliases=["showsheettether", "showtether", "displaytether"])
     async def displaysheettether(self, ctx):
         """Find the sheet the category is current tethered too"""
@@ -258,7 +258,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="sheetcreatetab", aliases=["sheettab", "sheetcrab"])
     async def sheetcreatetab(self, ctx, *args):
         """Create a New tab on the sheet that is currently tethered to this category
@@ -293,7 +293,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         msg = await ctx.send(embed=embed)
         await msg.pin()
 
-    @admin_utils.is_verified()
+    @command_predicates.is_verified()
     @commands.command(name="downloadsheet", aliases=["savesheet"])
     async def downloadsheet(self, ctx, sheet_url=None):
         """Download the channel/category's currently tethered sheet. You can supply a URL or it will

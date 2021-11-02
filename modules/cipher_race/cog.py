@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 import os
-from utils import google_utils, discord_utils, admin_utils, logging_utils
+from utils import google_utils, discord_utils, logging_utils, command_predicates
 from modules.cipher_race import cipher_race_constants, cipher_race_utils
 import constants
 from aio_timers import Timer
@@ -224,7 +224,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         await ctx.send(embed=embed)
         Timer(cipher_race_constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
 
-    @admin_utils.is_owner_or_admin()
+    @command_predicates.is_owner_or_admin()
     @commands.command(name='reload')
     async def reload(self, ctx):
         """
@@ -252,7 +252,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
                         inline=False)
         await ctx.send(embed=embed)
 
-    @admin_utils.is_owner_or_admin()
+    @command_predicates.is_owner_or_admin()
     @commands.command(name='reset')
     async def reset(self, ctx):
         """

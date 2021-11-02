@@ -2,7 +2,6 @@ import gspread
 import os
 import pandas as pd
 from oauth2client.service_account import ServiceAccountCredentials
-import constants
 import json
 
 
@@ -64,3 +63,6 @@ def get_sheet_link(sheet: gspread.Spreadsheet, tab: gspread.Worksheet = None) ->
         return sheet.url + '#gid=' + str(tab.id)
     else:
         return sheet.url
+
+
+GSPREAD_CLIENT = create_gspread_client()

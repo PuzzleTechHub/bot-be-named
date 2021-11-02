@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord.ext.commands.core import command
 from sqlalchemy.orm import Session
 from sqlalchemy import insert
-from utils import discord_utils, admin_utils, logging_utils, database_utils
+from utils import discord_utils, logging_utils, database_utils, command_predicates
 import constants
 
 
@@ -34,17 +34,17 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             await ctx.send(embed=embed)
             return
 
-        if command_name in constants.CUSTOM_COMMANDS[ctx.guild.id]:
+        if command_name in database_utils.CUSTOM_COMMANDS[ctx.guild.id]:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value "
-                                    f"`{constants.CUSTOM_COMMANDS[ctx.guild.id][command_name][0]}`. If you'd like to replace "
+                                    f"`{database_utils.CUSTOM_COMMANDS[ctx.guild.id][command_name][0]}`. If you'd like to replace "
                                     f"`{ctx.prefix}{command_name}`, please use `{ctx.prefix}editcustomcommand {command_name} "
                                     f"{command_return}`")
             await ctx.send(embed=embed)
             return
 
-        with Session(constants.DATABASE_ENGINE) as session:
+        with Session(database_utils.DATABASE_ENGINE) as session:
             result = session.query(database_utils.CustomCommmands)\
                             .filter_by(server_id_command=f"{ctx.guild.id} {command_name}")\
                             .first()
@@ -63,7 +63,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             else:
                 command_return = result.command_return
             # update constants dict
-            constants.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, False)
+            database_utils.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, False)
                  
         await ctx.send(embed=embed)
 
@@ -89,17 +89,17 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             await ctx.send(embed=embed)
             return
 
-        if command_name in constants.CUSTOM_COMMANDS[ctx.guild.id]:
+        if command_name in database_utils.CUSTOM_COMMANDS[ctx.guild.id]:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value "
-                                    f"`{constants.CUSTOM_COMMANDS[ctx.guild.id][command_name][0]}`. If you'd like to replace "
+                                    f"`{database_utils.CUSTOM_COMMANDS[ctx.guild.id][command_name][0]}`. If you'd like to replace "
                                     f"`{ctx.prefix}{command_name}`, please use `{ctx.prefix}editcustomcommand {command_name} "
                                     f"{command_return}`")
             await ctx.send(embed=embed)
             return
 
-        with Session(constants.DATABASE_ENGINE) as session:
+        with Session(database_utils.DATABASE_ENGINE) as session:
             result = session.query(database_utils.CustomCommmands)\
                             .filter_by(server_id_command=f"{ctx.guild.id} {command_name}")\
                             .first()
@@ -118,7 +118,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             else:
                 command_return = result.command_return
             # update constants dict
-            constants.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, True)
+            database_utils.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, True)
                  
         await ctx.send(embed=embed)
 
@@ -135,11 +135,16 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         
         Usage: `~lscustomcommands`"""
         logging_utils.log_command("lscustomcommands", ctx.guild, ctx.channel, ctx.author)
-
-        custom_commands = "\n".join(constants.CUSTOM_COMMANDS[ctx.guild.id].keys())
-        embed = discord.Embed(title=f"Custom Commands for {ctx.guild.name}",
-                              description=custom_commands,
-                              color=constants.EMBED_COLOR)
+        if ctx.guild.id in database_utils.CUSTOM_COMMANDS and len(database_utils.CUSTOM_COMMANDS[ctx.guild.id]) > 0:
+            custom_commands = "\n".join(database_utils.CUSTOM_COMMANDS[ctx.guild.id].keys())
+            embed = discord.Embed(title=f"Custom Commands for {ctx.guild.name}",
+                                description=custom_commands,
+                                color=constants.EMBED_COLOR)
+        else:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"No custom commands in `{ctx.guild}`, why not use "
+                                  f"`{ctx.prefix}addcustomcommand` to create one?")
         await ctx.send(embed=embed)
 
     @commands.has_any_role(*constants.TRUSTED)
@@ -153,9 +158,9 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         command_name = command_name.lower()
         command_return = " ".join(args)
 
-        if command_name in constants.CUSTOM_COMMANDS[ctx.guild.id]:
+        if command_name in database_utils.CUSTOM_COMMANDS[ctx.guild.id]:
             # Update command in DB
-            with Session(constants.DATABASE_ENGINE) as session:
+            with Session(database_utils.DATABASE_ENGINE) as session:
                 result = session.query(database_utils.CustomCommmands)\
                        .filter_by(server_id_command=f"{ctx.guild.id} {command_name}")\
                        .update({"command_return": command_return})
@@ -164,17 +169,17 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             embed.add_field(name=f"{constants.SUCCESS}",
                             value=f"Edited command `{ctx.prefix}{command_name}` to have return value "
                                   f"`{command_return}`")
-            constants.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, constants.CUSTOM_COMMANDS[ctx.guild.id][command_name][1])
+            database_utils.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, database_utils.CUSTOM_COMMANDS[ctx.guild.id][command_name][1])
         else:
             # If the command does not exist yet, just add it to DB.
-            with Session(constants.DATABASE_ENGINE) as session:
+            with Session(database_utils.DATABASE_ENGINE) as session:
                 stmt = insert(database_utils.CustomCommmands).values(server_id=ctx.guild.id, server_name=ctx.guild.name,
                                                                      server_id_command=f"{ctx.guild.id} {command_name}",
                                                                      command_name=command_name, command_return=command_return,
                                                                      image=False)
                 session.execute(stmt)
                 session.commit()
-            constants.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, False)
+            database_utils.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, False)
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.SUCCESS}",
                             value=f"Added command `{ctx.prefix}{command_name}` with return value "
@@ -191,9 +196,9 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         logging_utils.log_command("rmcustomcommand", ctx.guild, ctx.channel, ctx.author)
 
         command_name = command_name.lower()
-        if command_name in constants.CUSTOM_COMMANDS[ctx.guild.id]:
-            del constants.CUSTOM_COMMANDS[ctx.guild.id][command_name]
-            with Session(constants.DATABASE_ENGINE) as session:
+        if command_name in database_utils.CUSTOM_COMMANDS[ctx.guild.id]:
+            del database_utils.CUSTOM_COMMANDS[ctx.guild.id][command_name]
+            with Session(database_utils.DATABASE_ENGINE) as session:
                 session.query(database_utils.CustomCommmands)\
                        .filter_by(server_id_command=f"{ctx.guild.id} {command_name}")\
                        .delete()
@@ -207,7 +212,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                             value=f"Command `{ctx.prefix}{command_name}` does not exist in {ctx.guild.name}")
         await ctx.send(embed=embed)
 
-    @admin_utils.is_owner_or_admin()
+    @command_predicates.is_owner_or_admin()
     @commands.command(name="reloadcommandcache", aliases=["reloadccache", "ccachereload"])
     async def reloadcommandcache(self, ctx):
         """Reloads the custom command cache. This is useful when we're editing commands or playing with the DB
@@ -215,17 +220,17 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Usage: `~reloadcommandcache`"""
         logging_utils.log_command("reloadcommandcache", ctx.guild, ctx.channel, ctx.author)
 
-        constants.CUSTOM_COMMANDS = {}
-        with Session(constants.DATABASE_ENGINE) as session:
+        database_utils.CUSTOM_COMMANDS = {}
+        with Session(database_utils.DATABASE_ENGINE) as session:
             for guild in self.bot.guilds:
-                constants.CUSTOM_COMMANDS[guild.id] = {}
+                database_utils.CUSTOM_COMMANDS[guild.id] = {}
                 custom_command_result = session.query(database_utils.CustomCommmands)\
                                     .filter_by(server_id=guild.id)\
                                     .all()
                 if custom_command_result is not None:
                     for custom_command in custom_command_result:
                         # Populate custom command dict
-                        constants.CUSTOM_COMMANDS[guild.id][custom_command.command_name.lower()] = (custom_command.command_return, custom_command.image)
+                        database_utils.CUSTOM_COMMANDS[guild.id][custom_command.command_name.lower()] = (custom_command.command_return, custom_command.image)
         embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}",
                         value="Successfully reloaded command cache.")
