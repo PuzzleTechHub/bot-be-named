@@ -182,6 +182,54 @@ class AdminCog(commands.Cog, name="Admin"):
                         inline=False)
         await ctx.send(embed=embed)
 
+    @command_predicates.is_owner_or_admin()
+    @commands.command(name="reloaddatabasecache", aliases=["reloaddbcache", "dbcachereload"])
+    async def reloaddatabasecache(self, ctx):
+        """Reloads the custom command cache. This is useful when we're editing commands or playing with the DB
+        
+        Usage: `~reloaddatabasecache`"""
+        logging_utils.log_command("reloaddatabasecache", ctx.guild, ctx.channel, ctx.author)
+
+        embed = discord_utils.create_embed()
+        # Reset custom commands, verifieds, and prefixes for that server
+        database_utils.CUSTOM_COMMANDS[ctx.guild.id] = {}
+        database_utils.VERIFIEDS[ctx.guild.id] = []
+
+        with Session(database_utils.DATABASE_ENGINE) as session:
+            custom_command_result = session.query(database_utils.CustomCommmands)\
+                                .filter_by(server_id=ctx.guild.id)\
+                                .all()
+            if custom_command_result is not None:
+                for custom_command in custom_command_result:
+                    # Populate custom command dict
+                    database_utils.CUSTOM_COMMANDS[ctx.guild.id][custom_command.command_name.lower()] = (custom_command.command_return, custom_command.image)
+            embed.add_field(name=f"{constants.SUCCESS}",
+                            value="Successfully reloaded command cache.",
+                            inline=False)
+            
+            verified_result = session.query(database_utils.Verifieds)\
+                                      .filter_by(server_id=ctx.guild.id)\
+                                      .all()
+            if verified_result is not None:
+                for verified in verified_result:
+                    database_utils.VERIFIEDS[ctx.guild.id].append(verified.role_id)
+            embed.add_field(name=f"{constants.SUCCESS}!",
+                            value="Successfully reloaded verifieds cache.",
+                            inline=False)
+            
+            prefix_result = session.query(database_utils.Prefixes)\
+                                   .filter_by(server_id=ctx.guild.id)\
+                                   .first()
+            if prefix_result is not None:
+                database_utils.PREFIXES[ctx.guild.id] = prefix_result.prefix
+            else:
+                database_utils.PREFIXES[ctx.guild.id] = constants.DEFAULT_BOT_PREFIX
+            embed.add_field(name=f"{constants.SUCCESS}!",
+                            value="Successfully reloaded prefixes cache.",
+                            inline=False)
+            
+        
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))
