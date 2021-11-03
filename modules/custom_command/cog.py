@@ -212,30 +212,6 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                             value=f"Command `{ctx.prefix}{command_name}` does not exist in {ctx.guild.name}")
         await ctx.send(embed=embed)
 
-    @command_predicates.is_owner_or_admin()
-    @commands.command(name="reloadcommandcache", aliases=["reloadccache", "ccachereload"])
-    async def reloadcommandcache(self, ctx):
-        """Reloads the custom command cache. This is useful when we're editing commands or playing with the DB
-        
-        Usage: `~reloadcommandcache`"""
-        logging_utils.log_command("reloadcommandcache", ctx.guild, ctx.channel, ctx.author)
-
-        database_utils.CUSTOM_COMMANDS = {}
-        with Session(database_utils.DATABASE_ENGINE) as session:
-            for guild in self.bot.guilds:
-                database_utils.CUSTOM_COMMANDS[guild.id] = {}
-                custom_command_result = session.query(database_utils.CustomCommmands)\
-                                    .filter_by(server_id=guild.id)\
-                                    .all()
-                if custom_command_result is not None:
-                    for custom_command in custom_command_result:
-                        # Populate custom command dict
-                        database_utils.CUSTOM_COMMANDS[guild.id][custom_command.command_name.lower()] = (custom_command.command_return, custom_command.image)
-        embed = discord_utils.create_embed()
-        embed.add_field(name=f"{constants.SUCCESS}",
-                        value="Successfully reloaded command cache.")
-        await ctx.send(embed=embed)
-
 
 def setup(bot):
     bot.add_cog(CustomCommandCog(bot))
