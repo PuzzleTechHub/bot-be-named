@@ -45,6 +45,11 @@ def main():
                     session.commit()
             print(f"{client.user.name} has connected to the following guild: "
                   f"{guild.name} (id: {guild.id} with prefix {database_utils.PREFIXES[guild.id]}")
+            # Make sure there are at least empty entries for VERIFIEDS, and CUSTOM_COMMANDS for every guild we're in
+            if guild.id not in database_utils.VERIFIEDS:
+                database_utils.VERIFIEDS[guild.id] = []
+            if guild.id not in database_utils.CUSTOM_COMMANDS:
+                database_utils.CUSTOM_COMMANDS[guild.id] = {}
         # Populate default command list
         for command in client.commands:
             constants.DEFAULT_COMMANDS.append(command.qualified_name.lower())
