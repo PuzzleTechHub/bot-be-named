@@ -15,7 +15,7 @@ import shutil
 
 
 class SheetsCog(commands.Cog, name="Sheets"):
-    """A collection of commands for Google Sheets management"""
+    """Google Sheets management commands"""
     def __init__(self, bot):
         self.bot = bot
         self.lock = asyncio.Lock()
@@ -32,6 +32,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         See also `~sheettab`.
 
+        Category : Verified Roles only.
         Usage : `~tether SheetLink`
         """
         logging_utils.log_command("addsheettether", ctx.guild, ctx.channel, ctx.author)
@@ -74,6 +75,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         See also `~sheettab`.
 
+        Category : Verified Roles only.
         Usage : `~chantether SheetLink`
         """
         logging_utils.log_command("addchannelsheettether", ctx.guild, ctx.channel, ctx.author)
@@ -109,6 +111,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         If a channel tether and a category tether both exist, the channel tether will always be removed first. See also `~addtether` and `~sheettab`.
 
+        Category : Verified Roles only.
         Usage : `~removetether`
         """
         logging_utils.log_command("removesheettether", ctx.guild, ctx.channel, ctx.author)
@@ -158,6 +161,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet. Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
+        Category : Verified Roles only.
         Usage : `~sheetcrab PuzzleName` or `~sheetcrab PuzzleName linktopuzzle`
         """
 
@@ -220,7 +224,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @command_predicates.is_verified()
     @commands.command(name="displaysheettether", aliases=["showsheettether", "showtether", "displaytether"])
     async def displaysheettether(self, ctx):
-        """Find the sheet the category is current tethered too"""
+        """Find the sheet the category is current tethered too
+
+        Category : Verified Roles only.
+        Usage : `~showtether`
+        """
         logging_utils.log_command("displaysheettether", ctx.guild, ctx.channel, ctx.author)
         # Get category information
         curr_cat = str(ctx.message.channel.category)
@@ -265,6 +273,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet. Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
+        Category : Verified Roles only.
         Usage : `~sheettab TabName`
         """
         logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
@@ -299,7 +308,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """Download the channel/category's currently tethered sheet. You can supply a URL or it will
         use the currently tethered sheet.
         
-        Usage: `~savesheet`"""
+        Category : Verified Roles only.
+        Usage: `~savesheet`
+        """
         logging_utils.log_command("downloadsheet", ctx.guild, ctx.channel, ctx.author)
         http = self.gdrive_credentials.authorize(httplib2.Http())
         service = discovery.build('drive', 'v3', http=http)

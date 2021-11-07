@@ -19,9 +19,10 @@ class TimeCog(commands.Cog, name="Time"):
 
     @commands.command(name="unixtime")
     async def unixtime(self, ctx, *args):
-        """Return the time given (or current time if no argument) in Unix format (1626206635)
+        """Return the time given in Unix format (1626206635). If no argument given, gives current time if no argument.
 
-        Usage: `~unixtime Tuesday, September 27, 2021 9pm EDT"""
+        Usage: `~unixtime Tuesday, September 27, 2021 9pm EDT`
+        """
         logging_utils.log_command("time", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         if len(args) < 1:
@@ -77,7 +78,8 @@ class TimeCog(commands.Cog, name="Time"):
     async def time(self, ctx, *args):
         """Return the time in the specified location
 
-        Usage: `~time location`"""
+        Usage: `~time Mumbai`
+        """
         logging_utils.log_command("time", ctx.guild, ctx.channel, ctx.author)
         # No location provided
         if len(args) < 1:

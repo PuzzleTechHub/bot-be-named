@@ -18,7 +18,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def movechannel(self, ctx, *args):
         """Command to move the current channel to category with given name
 
-        Usage: `~movechannel category name`"""
+        Category : Verified Roles only.
+        Usage: `~movechannel "Category name"`
+        """
         logging_utils.log_command("movechannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         # check for category name arguments
@@ -68,7 +70,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def renamechannel(self, ctx, *args):
         """Changes current channel name to whatever is asked
 
-        Usage: `~renamechannel newname`"""
+        Category : Verified Roles only.
+        Usage: `~renamechannel newname`
+        """
         # log command in console
         logging_utils.log_command("renamechannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -104,7 +108,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def createchannel(self, ctx, name: str):
         """Command to create channel in same category with given name
 
-        Usage: `~createchannel new-channel-name`"""
+        Category : Verified Roles only.
+        Usage: `~createchannel new-channel-name`
+        """
         # log command in console
         logging_utils.log_command("createchannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -131,7 +137,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def clonechannel(self, ctx, original: str, new: str):
         """Command to create channel in same category with given name
 
-        Usage: `~clonechannel #channel-to-clone new-channel-name`"""
+        Category : Verified Roles only.
+        Usage: `~clonechannel #channel-to-clone new-channel-name`
+        """
         # log command in console
         logging_utils.log_command("clonechannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -177,7 +185,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         """Changes permissions of all channels in Current Category to be synced to Cat-permissions.
         So any channel with different role permissions set up is reverted.
 
-        Usage: `~synccat`"""
+        Category : Trusted Roles only.
+        Usage: `~synccat`
+        """
         logging_utils.log_command("synccategory", ctx.guild, ctx.channel, ctx.author)
         
         category = ctx.channel.category
@@ -213,13 +223,14 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     @command_predicates.is_verified()
     @commands.command(name="clonecategory", aliases=["copycategory","clonecat","copycat"])
     async def clonecategory(self, ctx, origCatName: str, targetCatName: str, origRole: Union[discord.Role, str] = None, targetRole: Union[discord.Role, str] = None):
-        """Clones origCatName as targetCatName. 
+        """Clones one category as another. 
         OPTIONAL: takes origRole's perms and makes those targetRole's perms in targetCat.
-        Creates targetCat (optional: targetRole) if they don't exist already.
+        Creates targetCat (and targetRole, if specified) if they don't exist already.
         
-        Usage: `~clonecategory 'Puzzlehunt Team A' 'Puzzlehunt Team B'`
-
-        Usage: `~clonecategory 'Puzzlehunt Team A' 'Puzzlehunt Team B' @RolesForA @RolesForB`"""
+        Category : Verified Roles only.
+        Usage: `~clonecategory 'Category A' 'Category B'` (clones Cat A as Cat B)
+        Usage: `~clonecategory 'Category A' 'Category B' @RoleC @RoleD` (clones Cat A as Cat B. Clones RoleC permission on Cat A, and replicates it with RoleD and Cat B)
+        """
         logging_utils.log_command("clonecategory", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(description="", color=constants.EMBED_COLOR)
 
@@ -307,7 +318,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         """Sort all channels in a category. Specifically for puzzle hunts, `solved-`, `backsolved-`, and `solvedish-` 
         prefixes will be put behind channels without a prefix.
 
-        Usage: `~categorysort`"""
+        Category : Verified Roles only.
+        Usage: `~categorysort`
+        """
         logging_utils.log_command("categorysort", ctx.guild, ctx.channel, ctx.author)
 
         channel_list = discord_utils.sort_channels_util(ctx.channel.category.text_channels)

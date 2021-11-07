@@ -11,7 +11,7 @@ import asyncio
 # TODO: This cipher_race's gonna need some refactoring. We should be able to save a lot of space, since most of the commands
 # Use a lot of the same cipher_race. Also, archiving is super slow.
 class ArchiveCog(commands.Cog, name="Archive"):
-    """Downloads a channel's history and sends it as a file to the user"""
+    """Downloads a channel's history and sends it as a file"""
     def __init__(self, bot):
         self.bot = bot
         self.compression = zipfile.ZIP_DEFLATED
@@ -93,10 +93,12 @@ class ArchiveCog(commands.Cog, name="Archive"):
     @command_predicates.is_verified()
     @commands.command(name="movetoarchive", aliases=["mta"])
     async def movetoarchive(self, ctx):
-        """Finds a category with `<category_name> Archive`, and moves the channel to that category. Fails if there is no such
-        category, or is the category is full (i.e. 50 Channels)
+        """Finds a category with `<category_name> Archive`, and moves the channel to that category. 
+        Fails if there is no such category, or is the category is full (i.e. 50 Channels).
 
-        Usage: `~movetoarchive`"""
+        Category : Verified Roles only.
+        Usage: `~movetoarchive`
+        """
         logging_utils.log_command("movetoarchive", ctx.guild, ctx.channel, ctx.author)
 
         # Find category with same name + Archive
@@ -141,7 +143,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
     async def archivechannel(self, ctx, *args):
         """Command to download channel's history
 
-        Usage: `~archivechannel #channel`"""
+        Category : Verified Roles only.
+        Usage: `~archivechannel #channel`
+        """
         # TODO: Need error handling for asking a channel we don't have access to or invalid channel name
         logging_utils.log_command("archivechannel", ctx.guild, ctx.channel, ctx.author)
         # Check if the user supplied a channel
@@ -224,7 +228,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
     async def archivecategory(self, ctx, *args):
         """Command to download the history of every text channel in the category
 
-        Usage: `~archivecategory category name`"""
+        Category : Admin or Bot Owner Roles only.
+        Usage: `~archivecategory category name`
+        """
         logging_utils.log_command("archivecategory", ctx.guild, ctx.channel, ctx.author)
         # Check if the user supplied a channel
         if len(args) < 1:
@@ -299,14 +305,16 @@ class ArchiveCog(commands.Cog, name="Archive"):
         # Clean up the archive dir
         archive_utils.reset_archive_dir()
 
-    # TODO: This cipher_race is mostly copy/pasted from archivecategory
+    # TODO: This is mostly copy/pasted from archivecategory
     @command_predicates.is_owner_or_admin()
     @commands.command(name="archiveserver")
     async def archiveserver(self, ctx):
         """Command to archive every text channel in the server. WARNING: This command will take *very*
         long on any reasonably aged server
 
-        Usage: `~archiveserver`"""
+        Category : Admin or Bot Owner Roles only.
+        Usage: `~archiveserver`
+        """
         logging_utils.log_command("archiveserver", ctx.guild, ctx.channel, ctx.author)
         # If we don't have the lock, let the user know it may take a while.
         msg = None

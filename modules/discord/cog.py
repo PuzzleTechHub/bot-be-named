@@ -23,7 +23,11 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="pin")
     async def pin(self, ctx):
         """Pin a message (Either reply to the message, or it auto pins the message above)
-        Usage: `~pin`"""
+
+        Category : Verified Roles only.
+        Usage: `~pin` (as reply to message)
+        Usage: `~pin` (to just pin the last message)
+        """
         logging_utils.log_command("pin", ctx.guild, ctx.channel, ctx.author)
 
         pins = await ctx.message.channel.pins()
@@ -61,7 +65,8 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def pinme(self, ctx):
         """Pins the message that called it.
 
-        Usage : `~pinme MESSAGE`
+        Category : Verified Roles only.
+        Usage : `~pinme Message`
         """
         logging_utils.log_command("pinme", ctx.guild, ctx.channel, ctx.author)
 
@@ -88,6 +93,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def listpin(self, ctx):
         """Lists all the pinned posts in the current channel
 
+        Category : Verified Roles only.
         Usage: `~listpins~`"""
         logging_utils.log_command("listpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -117,7 +123,12 @@ class DiscordCog(commands.Cog, name="Discord"):
     @command_predicates.is_verified()
     @commands.command(name="unpin")
     async def unpin(self, ctx, num_to_unpin: int = 1):
-        """Unpin <num_to_unpin> messages, or all if num if 0"""
+        """Unpins a specific message from a channel, or a given number of pins
+
+        Category : Verified Roles only.
+        Usage: `~unpin 2` (unpins latest 2 pins)
+        Usage: (as a reply to pinned message) `~unpin`
+        """
         logging_utils.log_command("unpin", ctx.guild, ctx.channel, ctx.author)
         if num_to_unpin < 1 or not isinstance(num_to_unpin, int):
             embed = discord_utils.create_no_argument_embed("number of messages to unpin")
@@ -176,7 +187,10 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     @commands.command(name="stats")
     async def stats(self, ctx):
-        """Get server stats"""
+        """Get server stats
+
+        Usage: `~stats`
+        """
         logging_utils.log_command("stats", ctx.guild, ctx.channel, ctx.author)
         guild = ctx.guild
         embed = discord_utils.create_embed()
@@ -197,7 +211,10 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     @commands.command(name="catstats")
     async def catstats(self, ctx):
-        """Get category stats"""
+        """Get category stats
+
+        Usage: `~catstats`
+        """
         logging_utils.log_command("catstats", ctx.guild, ctx.channel, ctx.author)
         cat = ctx.message.channel.category
         embed = discord_utils.create_embed()
@@ -212,7 +229,11 @@ class DiscordCog(commands.Cog, name="Discord"):
     @command_predicates.is_owner_or_admin()
     @commands.command(name="listcategories", aliases=["lscategories", "listcats", "lscats", "listcat", "lscat"])
     async def listcategories(self, ctx):
-        """List categories in a server"""
+        """List all the categories in a server
+
+        Category : Admin and Bot Owner only.        
+        Usage: `~listcat`
+        """
         logging_utils.log_command("listcategories", ctx.guild, ctx.channel, ctx.author)
         categories = [cat.name for cat in ctx.guild.categories]
         embed = discord_utils.create_embed()
@@ -224,10 +245,16 @@ class DiscordCog(commands.Cog, name="Discord"):
     # ROLE COMMANDS #
     #################
 
-    @command_predicates.is_owner_or_admin()
+    @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="assignrole", aliases=["giverole","rolegive","roleassign"])
     async def assignrole(self, ctx, rolename: str, *args):
-        """Assign a role to a list of users"""
+        """Assign a role to a list of users. If the role does not already exist, then creates the role.
+        The role can be mentioned or named. The users must be mentioned.
+
+        Category : Trusted Roles only.        
+        Usage: `~assignrole @RoleName @User1 @User2`
+        Usage: `~assignrole "NewRoleName" @User1`
+        """
         logging_utils.log_command("assignrole", ctx.guild, ctx.channel, ctx.author)
         # User didn't include any people to get the role
         if len(args) < 1:
@@ -304,15 +331,14 @@ class DiscordCog(commands.Cog, name="Discord"):
                             inline=False)
         await ctx.send(embed=embed)
 
-    @command_predicates.is_owner_or_admin()
-    @commands.command(name="createrole", aliases=["addrole"])
+    @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="createrole", aliases=["makerole"])
     async def createrole(self, ctx, rolename: str, color: str = None, mentionable: bool = True):
-        """Create a role in the server
+        """Create a role in the server. 
 
-        Arguments:
-            - rolename: (str) the name for the role
-            - color: (Optional[hex]) the hex code to be the role's color
-            - mentionable: (Optional[str]) whether to allow users to mention the role
+        Category : Trusted Roles only.        
+        Usage: `~makerole RoleName`
+        Usage: `~makerole RoleName d0d0ff True` (colour of role, if the role is mentionable)
         """
         logging_utils.log_command("createrole", ctx.guild, ctx.channel, ctx.author)
 
@@ -348,7 +374,12 @@ class DiscordCog(commands.Cog, name="Discord"):
     @command_predicates.is_owner_or_admin()
     @commands.command(name="deleterole", aliases=["removerole", "rmrole"])
     async def deleterole(self, ctx, rolename: str):
-        """Remove the role with `rolename`"""
+        """Remove a role from the server
+
+        Category : Admin or Bot Owner only.
+        Usage: `~removerole "RoleName"`
+        Usage: `~removerole @RoleMention`
+        """
         logging_utils.log_command("deleterole", ctx.guild, ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
@@ -390,7 +421,10 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     @commands.command(name="listroles", aliases=["lsroles", "listrole", "lsrole"])
     async def listroles(self, ctx):
-        """List all roles in the server"""
+        """List all roles in the server
+
+        Usage:`~listroles`
+        """
         logging_utils.log_command("listroles", ctx.guild, ctx.channel, ctx.author)
         roles = await ctx.guild.fetch_roles()
         embed = discord.Embed(title=f"Roles in {ctx.guild.name}",
@@ -405,7 +439,12 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="botsay")
     async def botsay(self, ctx, channel_id_or_name: str, *args):
-        """Say something in another channel"""
+        """Say something in another channel
+
+        Category : Trusted roles only.
+        Usage: `~botsay channelname "Message"`
+        Usage: `~botsay #channelmention "Longer Message"`
+        """
         logging_utils.log_command("botsay", ctx.guild, ctx.channel, ctx.author)
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Channel or Message")
@@ -441,7 +480,12 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="botsayembed")
     async def botsayembed(self, ctx, channel_id_or_name: str, *args):
-        """Say something in another channel"""
+        """Say something in another channel, but as an embed
+
+        Category : Trusted roles only.
+        Usage: `~botsayembed channelname "Message"`
+        Usage: `~botsayembed #channelmention "Longer Message"`
+        """
         logging_utils.log_command("botsayembed", ctx.guild, ctx.channel, ctx.author)
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Channel or Message")
@@ -482,23 +526,27 @@ class DiscordCog(commands.Cog, name="Discord"):
     # EMOJI COMMANDS #
     ##################
 
-    # TODO: this command is meant for DEVELOPER purpose. That's why we print out the ID (which is useless to normal user)
-    # For GENERAL purpose (which doesn't make much sense), we would add semicolons before/after emoji name and remove id
-    @command_predicates.is_owner_or_admin()
-    @commands.command(name="listemoji", aliases=["lsemoji"])
+    @command_predicates.is_verified()
+    @commands.command(name="listemoji", aliases=["lsemoji","listemojis","lsemojis"])
     async def listemoji(self, ctx):
-        """List all emojis in a server"""
+        """List all emojis in a server
+
+        Category : Verified Roles only.
+        Usage: `~listemojis`
+        """
         logging_utils.log_command("listemoji", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(title=f"Emoji in {ctx.guild.name}",
-                              description=f"{chr(10).join([f'{emoji.name} {emoji.id}' for emoji in ctx.guild.emojis])}")
+                              description=f"{chr(10).join([f'{emoji} {emoji.name} {emoji.id}' for emoji in ctx.guild.emojis])}")
         await ctx.send(embed=embed)
 
-    @commands.has_any_role(*constants.TRUSTED)
+    @command_predicates.is_verified()
     @commands.command(name="steal")
     async def steal(self, ctx, *emojis : typing.Union[discord.Emoji, discord.PartialEmoji]):
         """Steals an emote from another server and uploads it to this server with the same name.
         
-        Usage: `~steal :emote1: :emote2:`"""
+        Category : Verified Roles only.
+        Usage: `~steal :emote1: :emote2:`
+        """
         logging_utils.log_command("steal", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         for emoji in emojis:

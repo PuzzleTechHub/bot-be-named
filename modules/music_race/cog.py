@@ -23,58 +23,29 @@ def get_partition_mapping():
 
 
 class MusicRace(commands.Cog, name="Music Race"):
-    """"Puzzle for Arithmancy June 2020! Identify each of the movies based on their theme songs!"""
+    """Puzzle for Arithmancy June 2020! Identify each of the movies based on their theme songs!"""
     def __init__(self, bot):
         self.bot = bot
         self.partition_map = get_partition_mapping()
 
-    #########################################
-    ## RANDOM UTIL COMMANDS FOR JUNE PUZZLE #
-    ## TODO: DELETE                         #
-    #########################################
-
-    @commands.command(name="door")
-    async def door(self, ctx):
-        logging_utils.log_command("door", ctx.guild, ctx.channel, ctx.author)
-        embed = discord.Embed(title="Crossing Tunnels",
-                              description=f"Well done! You follow Fred and George through all the secret passageways "
-                                          f"and find yourself at the main door! The door opens, revealing the... "
-                                          f"`SORTINGCEREMONY` still in progress! "
-                                          f"Nobody seems to have noticed your absence at all!")
-        await ctx.send(embed=embed)
-
     @commands.command(name="hint")
     async def hint(self, ctx):
+        """Hint
+
+        Usage: `~hint`
+        """
         logging_utils.log_command("hint", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(title="This is not a hint",
                               description="*Hints will always be given at Hogwarts to those who ask for it.*",
                               color=constants.EMBED_COLOR)
         await ctx.send(embed=embed)
 
-
-    @commands.command(name="noise")
-    async def noise(self, ctx):
-        """Give the users everything they need to know about the puzzle"""
-        logging_utils.log_command("noise", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-        task_role = ctx.guild.get_role(constants.ARITHMANCY_TASK_ROLE_ID)
-        if task_role:
-            task_role_mention = task_role.mention
-        else:
-            task_role_mention = "`@task`"
-        embed.add_field(name=f"Success",
-                        value=f"Well done! Now, for your final step, just **BE NOISY**!"
-                            f"\nPlay any tune you like using `{ctx.prefix}playtune`, and tag "
-                            f"{task_role_mention} to submit it!"
-                            f"\nTo learn how the playtune command works, just use `{ctx.prefix}playtunehelp`"
-                            f"\n\nPost Solve Note - Once you submit *any* correct tune, you get the following answer phrase - "
-                            f"\n||`WEDDINGOFWILLIAMWEASLEYANDFLEURDELACOUR`||"
-                            )
-        await ctx.send(embed=embed)
-
     @commands.command(name="notesaw", aliases=["musicpuzzleinfo"])
     async def musicpuzzleinfo(self, ctx):
-        """Give the users everything they need to know about the puzzle"""
+        """Give the users everything they need to know about the puzzle
+
+        Usage: `~notesaw`
+        """
         logging_utils.log_command("notesaw", ctx.guild, ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
@@ -90,7 +61,10 @@ class MusicRace(commands.Cog, name="Music Race"):
 
     @commands.command(name="guesstune")
     async def guesstune(self, ctx, *args):
-        """Take a user's guess and give them a response based on what letters they provided"""
+        """Take a user's guess and give them a response based on what letters they provided
+
+        Usage: `~guesstune (WORD)`
+        """
         logging_utils.log_command("guesstune", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 

@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 
 def get_prefix(client, message):
+    """Gets prefix for the bot"""
     # Check if in new server or DM
     if message.guild is not None and message.guild.id in database_utils.PREFIXES:
         return database_utils.PREFIXES[message.guild.id]

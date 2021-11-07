@@ -17,7 +17,9 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
     async def addembedcommand(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with an embed reply
         
-        Usage: `~addembedcommand command_name \"This is my custom command!\""""
+        Category: Trusted Roles only.
+        Usage: `~addccommand command_name "This is my custom command!"`
+        """
         logging_utils.log_command("addembedcommand", ctx.guild, ctx.channel, ctx.author)
 
         if len(args) <= 0:
@@ -70,9 +72,12 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="addtextcommand", aliases=["addcustomimage", "addcimage"])
     async def addtextcommand(self, ctx, command_name: str, *args):
-        """Add your own custom command to the bot with a text reply (good for images and pings)
-        
-        Usage: `~addtextcommand command_name Link_to_image"""
+        """Add your own custom command to the bot with a text reply. It is not in embed, so is ideal for images and role pings.
+
+        Category: Trusted Roles only.        
+        Usage: `~addcimage command_name Link_to_image`
+        Usage: `~addcimage command_name Link_to_hyperlink`
+        """
         logging_utils.log_command("addtextcommand", ctx.guild, ctx.channel, ctx.author)
 
         if len(args) <= 0:
@@ -122,7 +127,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                  
         await ctx.send(embed=embed)
 
-    @commands.has_any_role(*constants.TRUSTED)
+    @command_predicates.is_verified()
     @commands.command(name="lscustomcommands", aliases=["lscustomcommand",
                                                         "listcustomcommands",
                                                         "listcustomcommand", 
@@ -132,8 +137,10 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                                                         "listccommand"])
     async def lscustomcommands(self, ctx):
         """List custom commands in the server
-        
-        Usage: `~lscustomcommands`"""
+
+        Category: Verified Roles only.        
+        Usage: `~listccommands`
+        """
         logging_utils.log_command("lscustomcommands", ctx.guild, ctx.channel, ctx.author)
         if ctx.guild.id in database_utils.CUSTOM_COMMANDS and len(database_utils.CUSTOM_COMMANDS[ctx.guild.id]) > 0:
             custom_commands = "\n".join(database_utils.CUSTOM_COMMANDS[ctx.guild.id].keys())
@@ -150,9 +157,12 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="editcustomcommand", aliases=["editccommand", "editcimage"])
     async def editcustomcommand(self, ctx, command_name: str, *args):
-        """Edit an existing custom command, or adds the command if it doesn't exist.
-        
-        Usage: `~editcustomcommand potato My new return value`"""
+        """Edit an existing custom command. If the command doesn't already exist, adds the command.
+        See also: `~addccommand`
+
+        Category: Trusted Roles only.
+        Usage: `~editcustomcommand potato "My new return value"`
+        """
         logging_utils.log_command("editcustomcommand", ctx.guild, ctx.channel, ctx.author)
 
         command_name = command_name.lower()
@@ -192,7 +202,9 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
     async def rmcustomcommand(self, ctx, command_name: str):
         """Remove an existing custom command
         
-        Usage: `~rmcustomcommand potato`"""
+        Category: Trusted Roles only.
+        Usage: `~rmcustomcommand potato`
+        """
         logging_utils.log_command("rmcustomcommand", ctx.guild, ctx.channel, ctx.author)
 
         command_name = command_name.lower()

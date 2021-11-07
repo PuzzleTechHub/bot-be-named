@@ -10,7 +10,7 @@ from typing import Union
 
 
 class AdminCog(commands.Cog, name="Admin"):
-    """Downloads a channel's history and sends it as a file to the user"""
+    """Commands for bot management by admins and bot owners"""
     def __init__(self, bot):
         self.bot = bot
 
@@ -21,6 +21,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         A lot of bot commands can only be used by Verified, so this command is necessary before people can use them.
         
+        Category : Admin or Bot Owner Roles only.
         Usage: `~addverified @Verified Verified`
         Usage: `~addverified @everyone Verified`
         """
@@ -97,9 +98,11 @@ class AdminCog(commands.Cog, name="Admin"):
     @command_predicates.is_owner_or_admin()
     @commands.command(name="lsverifieds", aliases=["listverifieds", "verifieds", "lsverified", "listverified"])
     async def lsverifieds(self, ctx):
-        """List all verified roles within the server. Only available to server admins or bot owners.
+        """List all roles in Verified Category within the server. 
         
-        Usage: `~listverifieds`"""
+        Category : Admin or Bot Owner Roles only.
+        Usage: `~listverifieds`
+        """
         logging_utils.log_command("lsverifieds", ctx.guild, ctx.channel, ctx.author)
 
         if ctx.guild.id in database_utils.VERIFIEDS and len(database_utils.VERIFIEDS[ctx.guild.id]) > 0:
@@ -118,6 +121,7 @@ class AdminCog(commands.Cog, name="Admin"):
     async def rmverified(self, ctx, role_or_rolename: Union[discord.Role, str]):
         """Remove a role from the list of verifieds. Only available to server admins or bot owners.
         
+        Category : Admin or Bot Owner Roles only.
         Usage: `~rmverified @Verified`"""
         logging_utils.log_command("rmverified", ctx.guild, ctx.channel, ctx.author)
 
@@ -166,9 +170,11 @@ class AdminCog(commands.Cog, name="Admin"):
     @command_predicates.is_owner_or_admin()
     @commands.command(name="setprefix")
     async def setprefix(self, ctx, prefix: str):
-        """Sets the bot prefix for the server. Only available to server admins or bot owners.
+        """Sets the bot prefix for the server. 
         
-        Usage: `~setprefix !`"""
+        Category : Admin or Bot Owner Roles only.
+        Usage: `~setprefix !`
+        """
         logging_utils.log_command("setprefix", ctx.guild, ctx.channel, ctx.author)
 
         with Session(database_utils.DATABASE_ENGINE) as session:
@@ -185,8 +191,9 @@ class AdminCog(commands.Cog, name="Admin"):
     @command_predicates.is_owner_or_admin()
     @commands.command(name="reloaddatabasecache", aliases=["reloaddbcache", "dbcachereload"])
     async def reloaddatabasecache(self, ctx):
-        """Reloads the custom command cache. This is useful when we're editing commands or playing with the DB
+        """Reloads the custom command cache. This is useful when we're editing commands or playing with the Database.
         
+        Category : Admin or Bot Owner Roles only.
         Usage: `~reloaddatabasecache`"""
         logging_utils.log_command("reloaddatabasecache", ctx.guild, ctx.channel, ctx.author)
 

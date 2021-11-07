@@ -5,7 +5,7 @@ from modules.lookup import lookup_constants, lookup_utils
 
 
 class LookupCog(commands.Cog, name="Lookup"):
-    """Performs a Google Search (for ciphers etc)"""
+    """Performs a Google Search"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -14,7 +14,8 @@ class LookupCog(commands.Cog, name="Lookup"):
     async def search(self, ctx, *args):
         """
         Command to search the interwebs! (google)
-        Usage: ~search <target_site> <[query...]>
+
+        Usage: `~search <target_site> <[query...]>`
         """
         logging_utils.log_command("search", ctx.guild, ctx.channel, ctx.author)
         if len(args) < 2:
@@ -64,6 +65,11 @@ class LookupCog(commands.Cog, name="Lookup"):
 
     @commands.command(name="google")
     async def google(self, ctx, *args):
+        """
+        Command to search google!
+
+        Usage: `~google <[query...]>`
+        """        
         logging_utils.log_command("google", ctx.guild, ctx.channel, ctx.author)
         results = lookup_utils.search_query(' '.join(args))
 
@@ -74,6 +80,11 @@ class LookupCog(commands.Cog, name="Lookup"):
 
     @commands.command(name="wikipedia", aliases=["wiki"])
     async def wikipedia(self, ctx, *args):
+        """
+        Command to search Wikipedia!
+
+        Usage: `~wikipedia <[query...]>`
+        """        
         logging_utils.log_command("wikipedia", ctx.guild, ctx.channel, ctx.author)
         results = lookup_utils.search_query(' '.join(args), target_site=lookup_constants.WIKI)
 

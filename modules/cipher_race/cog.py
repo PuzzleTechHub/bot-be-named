@@ -24,6 +24,7 @@ load_dotenv()
 
 
 class CipherRaceCog(commands.Cog, name="Cipher Race"):
+    """Puzzle for Arithmancy March 2020! Identify and learn common ciphers under time control"""
     def __init__(self, bot):
         # Bot and cipher_race initializations
         self.bot = bot
@@ -57,11 +58,17 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         """When discord is connected"""
         self.reload_sheet.start()
             
-    @commands.command(name='startrace')
+    @commands.command(name='startcipherrace')
     async def startrace(self, ctx, sheet: str = cipher_race_constants.HP):
         """
-        Start your race! You will have 60 seconds per level to solve the codes
-        Usage: ~startrace <optional sheet> where sheet is {hp, challenge, common}
+        Start your cipher race! Gives you 60s per level to solve all codes.
+        Level 1 is 1 code, and each level is 1 more code to solve. 
+        Ciphers: morse, semaphore, braille, pigpen.
+        Wordlist: hp, challenge, common
+
+        Usage: `~startcipherrace` (Starts a cipher race with HP wordlist)
+        Usage: `~startcipherrace challenge` (Starts a cipher race with challenge wordlist)
+        Usage: `~startcipherrace common` (Starts a cipher race with common English wordlist)
         """
         channel = ctx.channel.id
         if channel in self.current_races:
@@ -73,13 +80,13 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
             await ctx.send(embed=embed)
             return
         # Housekeeping
-        logging_utils.log_command("startrace", ctx.guild, ctx.channel, ctx.author)
+        logging_utils.log_command("startcipherrace", ctx.guild, ctx.channel, ctx.author)
         # Create entry in current_races
         self.current_races[channel] = dict()
         self.current_races[channel][cipher_race_constants.LEVEL] = 1
-        # ~startrace challenge gives you 1000 random english word sheet
-        # ~startrace hp gives you the harry potter sheet
-        # ~startrace common gives you 1000 very common english words
+        # ~startcipherrace challenge gives you 1000 random english word sheet
+        # ~startcipherrace hp gives you the harry potter sheet
+        # ~startcipherrace common gives you 1000 very common english words
         if sheet not in self.sheet_map:
             sheet = cipher_race_constants.HP
 
@@ -91,41 +98,17 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         # In a short time, send the codes
         time = Timer(cipher_race_constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
 
-    @commands.command(name='endrace')
-    async def endrace(self, ctx):
-        """
-        DONT USE PLS
-        Ends the race
-        Usage: ~endrace
-        """
-        logging_utils.log_command("endrace", ctx.guild, ctx.channel, ctx.author)
-        channel = ctx.channel.id
-        if channel not in self.current_races:
-            embed = discord_utils.create_embed()
-            embed.add_field(name="No race!",
-                            value="This channel doesn't have a race going on. You can't end something that hasn't started!",
-                            inline=False)
-            embed.add_field(name="Start Race",
-                            value=f"To start a race, use {ctx.prefix}startrace",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return
-        self.current_races.pop(channel)
-        embed = discord_utils.create_embed()
-        embed.add_field(name="Race Stopped",
-                        value=f"To start a new race, use {ctx.prefix}startrace",
-                        inline=False)
-        embed.add_field(name="Experimental",
-                        value="ehm, this command is still in development. It actually probably didn't do anything, sorry!",
-                        inline=False)
-        await ctx.send(embed=embed)
-
     @commands.command(name='practice', aliases=['pigpenpls'])
     async def practice(self, ctx, code: str = None, sheet: str = cipher_race_constants.HP):
         """
-        Gives a cipher of a specific type. Defaults to random
-        Usage: ~practice (optional: <cipher_name> <sheet>)
-        If you want to supply sheet, must supply cipher_name
+        Gives a cipher of a specific type. Defaults to random cipher and HP wordlist.
+        Ciphers: morse, semaphore, braille, pigpen.
+        Wordlist: hp, challenge, common
+        See also: `~startcipherrace`
+
+        Usage: `~practice` (Shows a random cipher from HP wordlist)
+        Usage: `~practice morse` (Shows a Morse cipher from HP wordlist)
+        Usage: `~practice braille Common` (Shows a Braille cipher from Common wordlist. Both must be specified to use non-HP wordlist)
         """
         logging_utils.log_command("practice", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -176,8 +159,10 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
     @commands.command(name='answerrace', aliases=['ar'])
     async def answer(self, ctx, *args):
         """
-        Check your  answer
-        Usage: ~answer <your answer>
+        Check your answer for cipher race
+        See also: `~startcipherrace`
+
+        Usage: `~answerrace <your answer>`
         """
         channel = ctx.channel.id
         logging_utils.log_command("answerrace", ctx.guild, ctx.channel, ctx.author)
@@ -225,11 +210,14 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         Timer(cipher_race_constants.BREAK_TIME, self.start_new_level, callback_args=(ctx, channel, embeds), callback_async=True)
 
     @command_predicates.is_owner_or_admin()
-    @commands.command(name='reload')
+    @commands.command(name='reloadciphersheet')
     async def reload(self, ctx):
         """
-        Reload the Google Sheet so we can update our codes instantly.
-        Usage: ~reload
+        Reload the cipherrace Google Sheets so we can update our cipherrace codes instantly.
+        See also: `~startcipherrace`
+
+        Category: Admin or Bot Owner only.
+        Usage: `~reloadciphersheet`
         """
         self.sheet_map = {
             cipher_race_constants.HP: google_utils.get_dataframe_from_gsheet(
@@ -253,13 +241,14 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_owner_or_admin()
-    @commands.command(name='reset')
+    @commands.command(name='resetcipherrace')
     async def reset(self, ctx):
         """
-        Admin Command.
-        Reset the bot as if it has just loaded up
-        Usage: ~reset
-        Note: Does not reload google sheet. Use ~reload for that
+        Reset the cipherrace module as if bot has just loaded up
+        Does not reload cipher race google sheet. Use `~reloadciphersheet` for that
+        See also: `~startcipherrace`
+
+        Usage: `~resetcipherrace`
         """
         self.current_races = {}
         embed = discord_utils.create_embed()
@@ -315,7 +304,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         embed.add_field(name="Time's up!",
                         value=f"Sorry! Your time is up. You still had {len(self.current_races[channel][cipher_race_constants.ANSWERS])} "
                               f"{cipher_race_constants.CODE} left to solve for level {level}. "
-                              f"If you'd like to re-attempt the race, use the {ctx.prefix}startrace command!",
+                              f"If you'd like to re-attempt the race, use the {ctx.prefix}startcipherrace command!",
                         inline=False)
         embed.add_field(name="Answers",
                         value=f"The answers to the remaining codes were:\n"

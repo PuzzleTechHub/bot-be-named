@@ -101,12 +101,13 @@ class MiscCog(commands.Cog, name="Misc"):
         embed.add_field(name=f"Helpful commands!",
                         value=f"Some of the useful bot commands are -\n"
                         f"- `{constants.DEFAULT_BOT_PREFIX}help` for a list of commands\n"
-                        f"- `{constants.DEFAULT_BOT_PREFIX}help commandname` for a description of a command (and its limitations). **When in doubt, use this command**.\n"
-                        f"- `{constants.DEFAULT_BOT_PREFIX}addverifieds` for setting up roles in Verifieds and Trusted categories on your server\n"
+                        f"- `{constants.DEFAULT_BOT_PREFIX}help commandname` for a description of a command (and its limitations). \n **When in doubt, use this command**.\n"
                         f"- `{constants.DEFAULT_BOT_PREFIX}chancrab` and `{constants.DEFAULT_BOT_PREFIX}sheetcrab` for making Google Sheet tabs for your current hunt\n"
                         f"- `{constants.DEFAULT_BOT_PREFIX}solved` etc for marking puzzle channels as solved etc\n"
-                        f"- `{constants.DEFAULT_BOT_PREFIX}addcustomcommand` etc for making a customised command with reply.\n",
-                        inline=False)
+                        f"- `{constants.DEFAULT_BOT_PREFIX}addcustomcommand` etc for making a customised command with reply.\n\n"
+                        f"Note that some commands are only restricted to certain roles. The current categories for those are - Verified/Trusted/Admin. These need configured accordingly."
+                        f"- `{constants.DEFAULT_BOT_PREFIX}addverifieds` for setting up roles in Verifieds and Trusted categories on your server\n"
+                        ,inline=False)
         await ctx.send(embed=embed)
 
 

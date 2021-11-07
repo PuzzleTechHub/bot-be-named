@@ -54,7 +54,9 @@ class SolvedCog(commands.Cog):
     async def solved(self, ctx: commands.Context):
         """Changes channel name to solved-<channel-name>
 
-        Usage: `~solved`"""
+        Category : Verified Roles only.
+        Usage: `~solved`
+        """
         # log command in console
         logging_utils.log_command("solved", ctx.guild, ctx.channel, ctx.author)
 
@@ -82,7 +84,9 @@ class SolvedCog(commands.Cog):
     async def solvedish(self, ctx: commands.Context):
         """Changes channel name to solvedish-<channel-name>
 
-        Usage: `~solvedish`"""
+        Category : Verified Roles only.
+        Usage: `~solvedish`
+        """
         # log command in console
         logging_utils.log_command("solvedish", ctx.guild, ctx.channel, ctx.author)
         channel = ctx.message.channel
@@ -105,7 +109,9 @@ class SolvedCog(commands.Cog):
     async def backsolved(self, ctx: commands.Context):
         """Changes channel name to backsolved-<channel-name>
 
-        Usage: `~backsolved`"""
+        Category : Verified Roles only.
+        Usage: `~backsolved`
+        """
         # log command in console
         logging_utils.log_command("backsolved", ctx.guild, ctx.channel, ctx.author)
         channel = ctx.message.channel
@@ -127,7 +133,9 @@ class SolvedCog(commands.Cog):
     async def unsolved(self, ctx: commands.context):
         """removes one of the solved prefixes from channel name
 
-        Usage: `~unsolved`"""
+        Category : Verified Roles only.
+        Usage: `~unsolved`
+        """
         # log command in console
         logging_utils.log_command("unsolved", ctx.guild, ctx.channel, ctx.author)
         channel = ctx.message.channel

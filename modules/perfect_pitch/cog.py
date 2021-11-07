@@ -17,7 +17,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     async def playtunehelp(self, ctx):
         """Learn everything there is to know about playtune
 
-        Usage: `~playtunehelp`"""
+        Usage: `~playtunehelp`
+        """
         logging_utils.log_command("playtunehelp", ctx.guild, ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
@@ -49,7 +50,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     async def playtunecustom(self, ctx):
         """Learn everything there is to know about customizing playtune
 
-        Usage: `~playtunecustom`"""
+        Usage: `~playtunecustom`
+        """
         logging_utils.log_command("playtunecustom", ctx.guild, ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
@@ -89,7 +91,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     async def playtuneinstrument(self, ctx):
         """Learn everything there is to know about the instruments we offer!
 
-        Usage: `~playtuneinstrument`"""
+        Usage: `~playtuneinstrument`
+        """
         logging_utils.log_command("playtuneinstrument", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         embed.add_field(name="Instruments and Ranges (Low/High)",
@@ -101,7 +104,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     async def playtunelength(self, ctx):
         """Learn everything there is to know about changing the note length
 
-        Usage: `~playtunelength`"""
+        Usage: `~playtunelength`
+        """
         logging_utils.log_command("playtunelength", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         embed.add_field(name="Note Lengths",
@@ -122,9 +126,11 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
     @commands.command(name="playtunesample", aliases=["ptsample"])
     async def playtunesample(self, ctx):
-        """Learn everything there is to know about the puzzle
+        """See a sample tune command in action. 
+        See also: `~playtune` 
 
-        Usage: `~playtunesample`"""
+        Usage: `~playtunesample`
+        """
         logging_utils.log_command("playtunesample", ctx.guild, ctx.channel, ctx.author)
 
         embed = discord_utils.create_embed()
@@ -146,9 +152,12 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
     @commands.command(name="playtune")
     async def playtune(self, ctx, *args):
-        """Play a string of notes together
+        """Play a string of notes together.
+        See also: `~playtunesample`
 
-        Usage: `~playtune`"""
+        Usage: `~playtune (NOTES)`
+        Usage: `~playtune meter=1 octave=5 C D E F`(for example)
+        """
         logging_utils.log_command("playtune", ctx.guild, ctx.channel, ctx.author)
         tune_dir = os.path.join(os.getcwd(), constants.MODULES_DIR, perfect_pitch_constants.PERFECT_PITCH_DIR,
                                 perfect_pitch_constants.MUSIC, perfect_pitch_constants.TUNES, ctx.channel.name)
@@ -176,7 +185,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     async def chord(self, ctx):
         """Sends the user a random chord. Note: all chords come from the 4th octave (middle C)
 
-        Usage: `~chord`"""
+        Usage: `~chord`
+        """
         logging_utils.log_command("chord", ctx.guild, ctx.channel, ctx.author)
         chord = random.choice(glob.glob(os.path.join(os.getcwd(), constants.MODULES_DIR, perfect_pitch_constants.PERFECT_PITCH_DIR,
                                                      perfect_pitch_constants.MUSIC, perfect_pitch_constants.PIANO,
@@ -188,6 +198,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     @commands.command(name="note")
     async def note(self, ctx, *args):
         """Send the user a random note for them to identify.
+
         Arguments:
             - Octave (int): The specific octave you want a random note from
             - Flat_or_Nat (str): Whether you want the note to be flat/sharp or natural
