@@ -62,7 +62,6 @@ class MiscCog(commands.Cog, name="Misc"):
 
         await ctx.send(emoji.url)
 
-
     @commands.command(name="about", aliases=["aboutthebot","github"])
     async def about(self, ctx):
         """A quick primer about BBN and what it does
@@ -85,7 +84,6 @@ class MiscCog(commands.Cog, name="Misc"):
                         f"Any problems? Let {owner.mention} know.",
                         inline=False)
         await ctx.send(embed=embed)
-
 
     @commands.command(name="startup")
     async def startup(self, ctx):
@@ -110,6 +108,17 @@ class MiscCog(commands.Cog, name="Misc"):
                         ,inline=False)
         await ctx.send(embed=embed)
 
+    @commands.command(name="issue", aliases=["issues"])
+    async def issue(self, ctx, IssueNum:int):
+        """Gives link to BBN issues from github, then deletes the command that called it.
+
+        Usage : `~issue 10`
+        """
+        logging_utils.log_command("issue", ctx.guild, ctx.channel, ctx.author)
+        await ctx.message.delete()
+        embed = discord_utils.create_embed()
+        msg = f"https://github.com/kevslinger/bot-be-named/issues/{IssueNum}"
+        await ctx.send(msg)
 
 def setup(bot):
     bot.add_cog(MiscCog(bot))
