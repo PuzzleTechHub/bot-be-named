@@ -154,6 +154,53 @@ class SolvedCog(commands.Cog):
                         inline=False)
         await ctx.send(embed=embed)
 
+    @command_predicates.is_verified()
+    @commands.command(name="movetoarchive", aliases=["mta"])
+    async def movetoarchive(self, ctx):
+        """Finds a category with `<category_name> Archive`, and moves the channel to that category. 
+        Fails if there is no such category, or is the category is full (i.e. 50 Channels).
+
+        Category : Verified Roles only.
+        Usage: `~movetoarchive`
+        """
+        logging_utils.log_command("movetoarchive", ctx.guild, ctx.channel, ctx.author)
+
+        # Find category with same name + Archive
+        archive_category = discord.utils.get(ctx.guild.channels, name=f"{ctx.channel.category.name} Archive") or \
+                            discord.utils.get(ctx.guild.channels, name=f"{ctx.channel.category.name} archive") or \
+                            discord.utils.get(ctx.guild.channels, name=f"Archive: {ctx.channel.category.name}")
+
+        if archive_category is None:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"There is no category named `{ctx.channel.category.name} Archive` or "
+                                  f"`Archive: {ctx.channel.category.name}`, so I cannot move {ctx.channel.mention}.")
+            await ctx.send(embed=embed)
+            return
+
+        if discord_utils.category_is_full(archive_category):
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"`{archive_category}` is already full, max limit is 50 channels. Consider renaming"
+                                  f" `{archive_category}` and creating a new `{archive_category}`.")
+            await ctx.send(embed=embed)
+            return
+
+        try:
+            # move channel
+            await ctx.channel.edit(category=archive_category)
+        except discord.Forbidden:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Can you check my permissions? I can't seem to be able to move "
+                                  f"{ctx.channel.mention} to `{archive_category.name}`")
+            await ctx.send(embed=embed)
+            return
+
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                        value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`")
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(SolvedCog(bot))

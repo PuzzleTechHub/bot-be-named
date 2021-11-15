@@ -9,11 +9,13 @@ from typing import Union
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
 class ChannelManagementCog(commands.Cog, name="Channel Management"):
-    """Set of channel management commands."""
+    """Set of channel and category management commands."""
     def __init__(self, bot):
         self.bot = bot
 
-    ### CHANNEL MANAGEMENT ###
+    ####################
+    # CHANNEL COMMANDS #
+    ####################
 
     @command_predicates.is_verified()
     @commands.command(name="movechannel")
@@ -169,6 +171,10 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         embed.add_field(name=f"{constants.SUCCESS}!", value=f"Created channel {new_channel.mention} in {category}!")
         # reply to user
         await ctx.send(embed=embed)
+
+    #####################
+    # CATEGORY COMMANDS #
+    #####################
 
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="synccategory", aliases=["synccat","catsync"])
@@ -357,6 +363,38 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             return
 
         embed.title = f"{constants.SUCCESS}"
+        await ctx.send(embed=embed)
+
+    @commands.command(name="catstats")
+    async def catstats(self, ctx):
+        """Get category stats
+
+        Usage: `~catstats`
+        """
+        logging_utils.log_command("catstats", ctx.guild, ctx.channel, ctx.author)
+        cat = ctx.message.channel.category
+        embed = discord_utils.create_embed()
+        embed.add_field(name="Category Name",
+                        value=f"{cat.name}")
+        embed.add_field(name="Text Channels",
+                        value=f"{len(cat.text_channels)}")
+        embed.add_field(name="Voice Channels",
+                        value=f"{len(cat.voice_channels)}")
+        await ctx.send(embed=embed)
+
+    @command_predicates.is_owner_or_admin()
+    @commands.command(name="listcategories", aliases=["lscategories", "listcats", "lscats", "listcat", "lscat"])
+    async def listcategories(self, ctx):
+        """List all the categories in a server
+
+        Category : Admin and Bot Owner only.        
+        Usage: `~listcat`
+        """
+        logging_utils.log_command("listcategories", ctx.guild, ctx.channel, ctx.author)
+        categories = [cat.name for cat in ctx.guild.categories]
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"Categories in {ctx.guild.name}",
+                        value=f"{chr(10).join(categories)}")
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()

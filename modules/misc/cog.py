@@ -120,5 +120,85 @@ class MiscCog(commands.Cog, name="Misc"):
         msg = f"https://github.com/kevslinger/bot-be-named/issues/{IssueNum}"
         await ctx.send(msg)
 
+    ###################
+    # BOTSAY COMMANDS #
+    ###################
+
+    @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="botsay")
+    async def botsay(self, ctx, channel_id_or_name: str, message_to_say:str):
+        """Say something in another channel
+
+        Category : Trusted roles only.
+        Usage: `~botsay channelname "Message"`
+        Usage: `~botsay #channelmention "Longer Message"`
+        """
+        logging_utils.log_command("botsay", ctx.guild, ctx.channel, ctx.author)
+
+        embed = discord_utils.create_embed()
+        guild = ctx.message.guild
+
+        try:
+            channel = discord_utils.find_channel(self.bot, guild.channels, channel_id_or_name)
+        except ValueError:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Error! The channel `{channel_id_or_name}` was not found")
+            await ctx.send(embed=embed)
+            return
+
+        try:
+            await channel.send(message_to_say)   
+        except discord.Forbidden:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
+                                  f"the bot has the required permisisons?")
+            await ctx.send(embed=embed)
+            return
+
+        embed.add_field(name=f"Success!",
+                        value=f"Message sent to {channel.mention}: {message_to_say}!")
+        # reply to user
+        await ctx.send(embed=embed)
+
+    @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="botsayembed")
+    async def botsayembed(self, ctx, channel_id_or_name: str, message_to_say:str):
+        """Say something in another channel, but as an embed
+
+        Category : Trusted roles only.
+        Usage: `~botsayembed channelname "Message"`
+        Usage: `~botsayembed #channelmention "Longer Message"`
+        """
+        logging_utils.log_command("botsayembed", ctx.guild, ctx.channel, ctx.author)
+
+        guild = ctx.message.guild
+
+        try:
+            channel = discord_utils.find_channel(self.bot, guild.channels, channel_id_or_name)
+        except ValueError:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Error! The channel `{channel_id_or_name}` was not found")
+            await ctx.send(embed=embed)
+            return
+
+        try:
+            sent_embed = discord.Embed(description=message_to_say,
+                                  color=constants.EMBED_COLOR)
+            await channel.send(embed=sent_embed)
+        except discord.Forbidden:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
+                                  f"the bot has the required permisisons?")
+            await ctx.send(embed=embed)
+            return
+
+        # reply to user
+        sent_embed.add_field(name=f"{constants.SUCCESS}!",
+                             value=f"Embed sent to {channel.mention}",
+                             inline=False)
+        await ctx.send(embed=sent_embed)
+
 def setup(bot):
     bot.add_cog(MiscCog(bot))
