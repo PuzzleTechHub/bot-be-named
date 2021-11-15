@@ -152,17 +152,15 @@ class SheetsCog(commands.Cog, name="Sheets"):
             return
 
     @command_predicates.is_verified()
-    @commands.command(name="channelsheetcreatetab",
-                      aliases=["channelsheetcrab",
-                               "cheetcrab",
-                               "chancrab"])
-    async def channelsheetcreatetab(self, ctx, chan_name: str, *args):
+    @commands.command(name="channelsheetcreatetab",aliases=["channelsheetcrab","cheetcrab","chancrab"])
+    async def channelsheetcreatetab(self, ctx, chan_name: str, text_to_pin: str=""):
         """Create new channel, then a New tab on the sheet that is currently tethered to this category, then pins links to the channel, if any.
 
         This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet. Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
         Category : Verified Roles only.
-        Usage : `~sheetcrab PuzzleName` or `~sheetcrab PuzzleName linktopuzzle`
+        Usage : `~sheetcrab PuzzleName`
+        Usage : `~sheetcrab PuzzleName linktopuzzle`
         """
 
         logging_utils.log_command("channelsheetcreatetab", ctx.guild, ctx.channel, ctx.author)
@@ -195,11 +193,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-        to_pin = []
-        for s in args:
-            to_pin.append(str(s))
-
-        #Trying to pin everything
+        #Trying to pin the message
         try:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"Success!",
@@ -208,10 +202,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
             msg = await new_chan.send(embed=embed)
             await msg.pin()
 
-            for s in to_pin:
-                embed = discord.Embed(description=s)
-                msg = await new_chan.send(embed=embed)
-                await msg.pin()
+            embed = discord.Embed(description=text_to_pin)
+            msg = await new_chan.send(embed=embed)
+            await msg.pin()
         except Exception:
             return
 
@@ -268,7 +261,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     @command_predicates.is_verified()
     @commands.command(name="sheetcreatetab", aliases=["sheettab", "sheetcrab"])
-    async def sheetcreatetab(self, ctx, *args):
+    async def sheetcreatetab(self, ctx, tab_name:str):
         """Create a New tab on the sheet that is currently tethered to this category
 
         This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet. Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
@@ -277,12 +270,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Usage : `~sheettab TabName`
         """
         logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
-        if len(args) < 1:
-            embed = discord_utils.create_no_argument_embed("Tab Name")
-            await ctx.send(embed=embed)
-            return
-
-        tab_name = " ".join(args)
 
         curr_chan = ctx.message.channel
         curr_cat = ctx.message.channel.category

@@ -60,7 +60,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         await ctx.send(embed=embed)
 
     @commands.command(name="guesstune")
-    async def guesstune(self, ctx, *args):
+    async def guesstune(self, ctx, word_guessed:str):
         """Take a user's guess and give them a response based on what letters they provided
 
         Usage: `~guesstune (WORD)`
@@ -68,13 +68,8 @@ class MusicRace(commands.Cog, name="Music Race"):
         logging_utils.log_command("guesstune", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        if len(args) < 1:
-            embed = discord_utils.create_no_argument_embed("word")
-            await ctx.send(embed=embed)
-            return
-
         # Replace any non-letters
-        word = re.sub("[^A-Z]+", "", "".join(args).upper())
+        word = re.sub("[^A-Z]+", "", word_guessed.upper())
 
         if len(word) < 1 or len(word) > 20:
             embed.add_field(name=f"Error!",

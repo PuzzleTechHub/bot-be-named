@@ -17,46 +17,15 @@ class TimeCog(commands.Cog, name="Time"):
 
         self.geopy_client = geopy.geocoders.GeoNames(os.getenv("GEOPY_USERNAME"))
 
-    @commands.command(name="unixtime")
-    async def unixtime(self, ctx, *args):
-        """Return the time given in Unix format (1626206635). If no argument given, gives current time if no argument.
-
-        Usage: `~unixtime Tuesday, September 27, 2021 9pm EDT`
-        """
-        logging_utils.log_command("time", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-        if len(args) < 1:
-            curr_time = int(datetime.timestamp(datetime.now()))
-            embed.add_field(name="{constants.SUCCESS}!", value=f"Current time is `{curr_time}`", inline=False)
-        else:
-            user_time = time_utils.parse_date(" ".join(args))
-            if user_time is None:
-                embed.add_field(name=f"{constants.FAILED}!",
-                                value=f"Is {' '.join(args)} a valid time?",
-                                inline=False)
-                await ctx.send(embed=embed)
-                return
-            unix_time = int(datetime.timestamp(user_time))
-            embed.add_field(name="{constants.SUCCESS}!",
-                            value=f"The Unix Time at {' '.join(args)} is `{unix_time}`",
-                            inline=False)
-
-        await ctx.send(embed=embed)
-
     @commands.command(name="countdown")
-    async def countdown(self, ctx, *args):
+    async def countdown(self, ctx, time_to_countdown_to:str):
         """Uses discord message time formatting to provide a countdown
 
         Usage: `~countdown September 22, 2021 9:00pm EDT`
         """
         logging_utils.log_command("countdown", ctx.guild, ctx.channel, ctx.author)
 
-        if len(args) < 1:
-            embed = discord_utils.create_no_argument_embed("time")
-            await ctx.send(embed=embed)
-            return
-
-        user_time = time_utils.parse_date(" ".join(args))
+        user_time = time_utils.parse_date(time_to_countdown_to)
 
         if user_time is None:
             embed = discord_utils.create_embed()
@@ -75,19 +44,12 @@ class TimeCog(commands.Cog, name="Time"):
         await ctx.send(embed=embed)
 
     @commands.command(name="time")
-    async def time(self, ctx, *args):
+    async def time(self, ctx, location:str):
         """Return the time in the specified location
 
         Usage: `~time Mumbai`
         """
         logging_utils.log_command("time", ctx.guild, ctx.channel, ctx.author)
-        # No location provided
-        if len(args) < 1:
-            embed = discord_utils.create_no_argument_embed("location")
-            await ctx.send(embed=embed)
-            return
-        # Allow long input (e.g. St. Louis, Missouri, USA)
-        location = " ".join(args)
 
         timezone_dict = self.get_tz(location)
         # Unable to find the location in the geonames database

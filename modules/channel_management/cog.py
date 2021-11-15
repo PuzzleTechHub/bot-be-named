@@ -13,9 +13,11 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     def __init__(self, bot):
         self.bot = bot
 
+    ### CHANNEL MANAGEMENT ###
+
     @command_predicates.is_verified()
     @commands.command(name="movechannel")
-    async def movechannel(self, ctx, *args):
+    async def movechannel(self, ctx, category_name:str):
         """Command to move the current channel to category with given name
 
         Category : Verified Roles only.
@@ -23,14 +25,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         """
         logging_utils.log_command("movechannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
-        # check for category name arguments
-        if len(args) <= 0:
-            embed = discord_utils.create_no_argument_embed("Category")
-            await ctx.send(embed=embed)
-            return
 
-        # join arguments to form channel name
-        category_name = " ".join(args)
         # get current channel
         channel = ctx.channel
         # get new category
@@ -66,8 +61,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="renamechannel")
-    async def renamechannel(self, ctx, *args):
+    @commands.command(name="renamechannel", aliases=['renamechan'])
+    async def renamechannel(self, ctx, new_channel_name:Union[discord.TextChannel, str]):
         """Changes current channel name to whatever is asked
 
         Category : Verified Roles only.
@@ -76,15 +71,13 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # log command in console
         logging_utils.log_command("renamechannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
-        if len(args) <= 0:
-            embed = discord_utils.create_no_argument_embed("Channel name")
-            # reply to user
-            await ctx.send(embed=embed)
-            return
 
+        #If user managed to tag a channel name instead of typing
+        if(not (isinstance(new_channel_name, str))):
+            new_channel_name=new_channel_name.name
+        
         channel = ctx.message.channel
         old_channel_name = channel.name
-        new_channel_name = " ".join(args)
 
         try:
             # rename channel
@@ -102,9 +95,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="createchannel", aliases=['makechannel',
-                                                     'makechan',
-                                                     'createchan'])
+    @commands.command(name="createchannel", aliases=['makechannel','makechan','createchan'])
     async def createchannel(self, ctx, name: str):
         """Command to create channel in same category with given name
 

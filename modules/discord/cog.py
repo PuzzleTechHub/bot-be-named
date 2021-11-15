@@ -438,7 +438,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="botsay")
-    async def botsay(self, ctx, channel_id_or_name: str, *args):
+    async def botsay(self, ctx, channel_id_or_name: str, message_to_say:str):
         """Say something in another channel
 
         Category : Trusted roles only.
@@ -446,13 +446,8 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~botsay #channelmention "Longer Message"`
         """
         logging_utils.log_command("botsay", ctx.guild, ctx.channel, ctx.author)
-        if len(args) < 1:
-            embed = discord_utils.create_no_argument_embed("Channel or Message")
-            await ctx.send(embed=embed)
-            return
 
         embed = discord_utils.create_embed()
-        message = " ".join(args)
         guild = ctx.message.guild
 
         try:
@@ -464,7 +459,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             return
 
         try:
-            await channel.send(message)   
+            await channel.send(message_to_say)   
         except discord.Forbidden:
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
@@ -473,13 +468,13 @@ class DiscordCog(commands.Cog, name="Discord"):
             return
 
         embed.add_field(name=f"Success!",
-                        value=f"Message sent to {channel.mention}: {message}!")
+                        value=f"Message sent to {channel.mention}: {message_to_say}!")
         # reply to user
         await ctx.send(embed=embed)
 
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="botsayembed")
-    async def botsayembed(self, ctx, channel_id_or_name: str, *args):
+    async def botsayembed(self, ctx, channel_id_or_name: str, message_to_say:str):
         """Say something in another channel, but as an embed
 
         Category : Trusted roles only.
@@ -487,12 +482,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~botsayembed #channelmention "Longer Message"`
         """
         logging_utils.log_command("botsayembed", ctx.guild, ctx.channel, ctx.author)
-        if len(args) < 1:
-            embed = discord_utils.create_no_argument_embed("Channel or Message")
-            await ctx.send(embed=embed)
-            return
 
-        message = " ".join(args)
         guild = ctx.message.guild
 
         try:
@@ -505,7 +495,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             return
 
         try:
-            sent_embed = discord.Embed(description=message,
+            sent_embed = discord.Embed(description=message_to_say,
                                   color=constants.EMBED_COLOR)
             await channel.send(embed=sent_embed)
         except discord.Forbidden:

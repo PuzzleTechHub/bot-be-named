@@ -11,17 +11,19 @@ class LookupCog(commands.Cog, name="Lookup"):
         self.bot = bot
 
     @commands.command(name="search")
-    async def search(self, ctx, *args):
+    async def search(self, ctx, target_site:str, *args):
         """
         Command to search the interwebs! (google)
 
         Usage: `~search <target_site> <[query...]>`
         """
         logging_utils.log_command("search", ctx.guild, ctx.channel, ctx.author)
-        if len(args) < 2:
+
+        if len(args) < 1:
             await ctx.send(embed=discord_utils.create_no_argument_embed("Target Site and Query"))
             return
-        target_site = args[0].lower()
+
+        target_site = target_site.lower()
         if target_site in lookup_constants.REGISTERED_SITES:
             target_site = lookup_constants.REGISTERED_SITES[target_site]
         # If we do a google search, we want to return the 10 top results
@@ -31,12 +33,12 @@ class LookupCog(commands.Cog, name="Lookup"):
         else:
             is_google_search = False
 
-        original_query = ' '.join(args[1:])
+        original_query = ' '.join(args[0:])
         # Don't add google to the query but add any other target site for easier access/SEO
         if not is_google_search:
-            query = original_query + ' ' + target_site
+            query_with_site = original_query + ' ' + target_site
         else:
-            query = original_query
+            query_with_site = original_query
         # Dude this loop is going to be horrible wtf
         # If google:
         #   Store all results as a list and print them out line by line in an embed
@@ -45,7 +47,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         #   If we can't find it, return the google query I think
         embed = discord_utils.create_embed()
         results = []
-        for result in googlesearch.search(query, num=lookup_constants.QUERY_NUM,
+        for result in googlesearch.search(query_with_site, num=lookup_constants.QUERY_NUM,
                                           stop=lookup_constants.QUERY_NUM,
                                           pause=lookup_constants.PAUSE_TIME):
             if target_site in result:
