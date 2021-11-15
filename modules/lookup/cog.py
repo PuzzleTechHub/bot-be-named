@@ -11,7 +11,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         self.bot = bot
 
     @commands.command(name="search")
-    async def search(self, ctx, target_site:str, *args):
+    async def search(self, ctx, target_site: str, *args):
         """
         Command to search the interwebs! (google)
 
@@ -20,7 +20,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         logging_utils.log_command("search", ctx.guild, ctx.channel, ctx.author)
 
         if len(args) < 1:
-            await ctx.send(embed=discord_utils.create_no_argument_embed("Target Site and Query"))
+            await ctx.send(embed=discord_utils.create_no_argument_embed("Query"))
             return
 
         target_site = target_site.lower()
@@ -33,7 +33,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         else:
             is_google_search = False
 
-        original_query = ' '.join(args[0:])
+        original_query = ' '.join(args)
         # Don't add google to the query but add any other target site for easier access/SEO
         if not is_google_search:
             query_with_site = original_query + ' ' + target_site

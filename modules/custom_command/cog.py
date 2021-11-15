@@ -14,7 +14,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
 
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="addembedcommand", aliases=["addcustomcommand", "addccommand"])
-    async def addembedcommand(self, ctx, command_name: str, command_return:str):
+    async def addembedcommand(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with an embed reply
         
         Category: Trusted Roles only.
@@ -22,7 +22,13 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         """
         logging_utils.log_command("addembedcommand", ctx.guild, ctx.channel, ctx.author)
 
+        if len(args) <= 0:
+            embed = discord_utils.create_no_argument_embed("Command Return")
+            await ctx.send(embed=embed)
+            return
+
         command_name = command_name.lower()
+        command_return = " ".join(args)
         
         if command_name in constants.DEFAULT_COMMANDS:
             embed = discord_utils.create_embed()
@@ -67,7 +73,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
 
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="addtextcommand", aliases=["addcustomimage", "addcimage"])
-    async def addtextcommand(self, ctx, command_name: str, command_return:str):
+    async def addtextcommand(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with a text reply. It is not in embed, so is ideal for images and role pings.
 
         Category: Trusted Roles only.        
@@ -76,7 +82,13 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         """
         logging_utils.log_command("addtextcommand", ctx.guild, ctx.channel, ctx.author)
 
+        if len(args) <= 0:
+            embed = discord_utils.create_no_argument_embed("Command Return")
+            await ctx.send(embed=embed)
+            return
+
         command_name = command_name.lower()
+        command_return = " ".join(args)
 
         if command_name in constants.DEFAULT_COMMANDS:
             embed = discord_utils.create_embed()
@@ -148,7 +160,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
 
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="editcustomcommand", aliases=["editccommand", "editcimage"])
-    async def editcustomcommand(self, ctx, command_name: str, command_return: str):
+    async def editcustomcommand(self, ctx, command_name: str, *args):
         """Edit an existing custom command. If the command doesn't already exist, adds the command.
         See also: `~addccommand`
 
@@ -157,7 +169,13 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         """
         logging_utils.log_command("editcustomcommand", ctx.guild, ctx.channel, ctx.author)
 
+        if len(args) <= 0:
+            embed = discord_utils.create_no_argument_embed("Command Return")
+            await ctx.send(embed=embed)
+            return
+
         command_name = command_name.lower()
+        command_return = " ".join(args)
 
         if command_name in database_utils.CUSTOM_COMMANDS[ctx.guild.id]:
             # Update command in DB

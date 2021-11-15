@@ -178,13 +178,19 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     @command_predicates.is_owner_or_admin()
     @commands.command(name="archivecategory", aliases = ['archivecat'])
-    async def archivecategory(self, ctx, category_name:str):
+    async def archivecategory(self, ctx, *args):
         """Command to download the history of every text channel in the category
 
         Category : Admin or Bot Owner Roles only.
         Usage: `~archivecategory category name`
         """
         logging_utils.log_command("archivecategory", ctx.guild, ctx.channel, ctx.author)
+
+        # Check if the user supplied a category
+        if len(args) < 1:
+            # No arguments provided
+            await ctx.send(embed=discord_utils.create_no_argument_embed('category'))
+            return
 
         # If we don't have the lock, let the user know it may take a while.
         msg = None
@@ -196,11 +202,11 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 await msg.delete()
                 msg = None
             try:
-                category = discord_utils.find_channel(self.bot, ctx.guild.channels, category_name)
+                category = discord_utils.find_channel(self.bot, ctx.guild.channels, ' '.join(args))
             except ValueError:
                 embed = discord_utils.create_embed()
                 embed.add_field(name="ERROR: Cannot find category",
-                                value=f"Sorry, I cannot find a category with name {category_name}",
+                                value=f"Sorry, I cannot find a category with name {' '.join(args)}",
                                 inline=False)
                 await ctx.send(embed=embed)
                 return

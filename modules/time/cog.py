@@ -18,14 +18,20 @@ class TimeCog(commands.Cog, name="Time"):
         self.geopy_client = geopy.geocoders.GeoNames(os.getenv("GEOPY_USERNAME"))
 
     @commands.command(name="countdown")
-    async def countdown(self, ctx, time_to_countdown_to:str):
+    async def countdown(self, ctx, *args):
         """Uses discord message time formatting to provide a countdown
 
         Usage: `~countdown September 22, 2021 9:00pm EDT`
         """
         logging_utils.log_command("countdown", ctx.guild, ctx.channel, ctx.author)
 
-        user_time = time_utils.parse_date(time_to_countdown_to)
+        if len(args) < 1:
+            embed = discord_utils.create_no_argument_embed("time")
+            await ctx.send(embed=embed)
+            return
+
+        user_time = time_utils.parse_date(" ".join(args))
+
 
         if user_time is None:
             embed = discord_utils.create_embed()
@@ -44,12 +50,19 @@ class TimeCog(commands.Cog, name="Time"):
         await ctx.send(embed=embed)
 
     @commands.command(name="time")
-    async def time(self, ctx, location:str):
+    async def time(self, ctx, *args):
         """Return the time in the specified location
-
+        
         Usage: `~time Mumbai`
         """
         logging_utils.log_command("time", ctx.guild, ctx.channel, ctx.author)
+        # No location provided
+        if len(args) < 1:
+            embed = discord_utils.create_no_argument_embed("location")
+            await ctx.send(embed=embed)
+            return
+        # Allow long input (e.g. St. Louis, Missouri, USA)
+        location = " ".join(args)
 
         timezone_dict = self.get_tz(location)
         # Unable to find the location in the geonames database

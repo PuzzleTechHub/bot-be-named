@@ -219,7 +219,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
     @command_predicates.is_verified()
     @commands.command(name="movecategory", aliases=["movecat"])
-    async def movecategory(self, ctx, Cat1Name: str, Cat2Name: str = ""):
+    async def movecategory(self, ctx, cat_a_name: str, cat_b_name: str = ""):
         """Moves a category to below another category.
 
         Category : Verified Roles only.
@@ -227,48 +227,48 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Usage: `~movecat 'Category B'` (Moves the current category to just below Category B)
         """
         logging_utils.log_command("movecategory", ctx.guild, ctx.channel, ctx.author)
-        embed = discord.Embed(description="", color=constants.EMBED_COLOR)
+        embed = discord_utils.create_embed()
 
-        Cat1 = discord.utils.get(ctx.guild.channels, name=Cat1Name)
-        if Cat1 is None:
+        cat_a = discord.utils.get(ctx.guild.channels, name=cat_a_name)
+        if cat_a is None:
             embed.add_field(name=f"{constants.FAILED}",
-                            value=f"I cannot find category {Cat1Name}. Perhaps check your spelling and try again.")
+                            value=f"I cannot find category {cat_a_name}. Perhaps check your spelling and try again.")
             await ctx.send(embed=embed)
             return
 
-        if(Cat2Name==""):
-            CurrCat = ctx.channel.category
-            if CurrCat is None:
+        if(cat_b_name==""):
+            curr_cat = ctx.channel.category
+            if curr_cat is None:
                 embed.add_field(name=f"{constants.FAILED}",
                                 value=f"The current channel {ctx.channel} does not exist in a category I can move. Check `~help movecat`.")
                 await ctx.send(embed=embed)
                 return
             try:
-                await CurrCat.edit(position=Cat1.position+1)
+                await curr_cat.edit(position=cat_a.position+1)
                 embed.title = f"{constants.SUCCESS}"
-                embed.description += f"\nMoved `{CurrCat}` to just below `{Cat1}` in the server"
+                embed.description += f"\nMoved `{curr_cat}` to just below `{cat_a}` in the server"
             except discord.Forbidden:
                 embed.add_field(name=f"{constants.FAILED}",
-                                value=f"I was unable to move category `{CurrCat}`. Do I have the `manage_channels` permission?")
+                                value=f"I was unable to move category `{curr_cat}`. Do I have the `manage_channels` permission?")
                 await ctx.send(embed=embed)
                 return
             await ctx.send(embed=embed)
             return
 
-        Cat2 = discord.utils.get(ctx.guild.channels, name=Cat2Name)
-        if Cat2 is None:
+        cat_b = discord.utils.get(ctx.guild.channels, name=cat_b_name)
+        if cat_b is None:
             embed.add_field(name=f"{constants.FAILED}",
-                            value=f"I cannot find category `{Cat2Name}`. Perhaps check your spelling and try again.")
+                            value=f"I cannot find category `{cat_b_name}`. Perhaps check your spelling and try again.")
             await ctx.send(embed=embed)
             return
               
         try:
-            await Cat1.edit(position=Cat2.position+1)
+            await cat_a.edit(position=cat_b.position+1)
             embed.title = f"{constants.SUCCESS}"
-            embed.description += f"\nMoved `{Cat1}` to just below `{Cat2}` in the server"
+            embed.description += f"\nMoved `{cat_a}` to just below `{cat_b}` in the server"
         except discord.Forbidden:
             embed.add_field(name=f"{constants.FAILED}",
-                            value=f"I was unable to move category `{Cat1}`. Do I have the `manage_channels` permission?")
+                            value=f"I was unable to move category `{cat_a}`. Do I have the `manage_channels` permission?")
             await ctx.send(embed=embed)
             return
         await ctx.send(embed=embed)

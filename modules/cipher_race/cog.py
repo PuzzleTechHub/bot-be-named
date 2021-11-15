@@ -157,7 +157,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
 
     # Command to check the user's answer. They will be replied to telling them whether or not their answer is correct
     @commands.command(name='answerrace', aliases=['ar'])
-    async def answer(self, ctx, user_answer:str):
+    async def answer(self, ctx, *args):
         """
         Check your answer for cipher race
         See also: `~startcipherrace`
@@ -181,6 +181,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         print(f"All current answers: {self.current_races[channel][cipher_race_constants.ANSWERS]}")
         
         # Remove the command and whitespace from the answer.
+        user_answer = "".join(args)
         result = cipher_race_utils.get_answer_result(user_answer, self.current_races[channel][cipher_race_constants.ANSWERS])
         
         if result == cipher_race_constants.CORRECT:
