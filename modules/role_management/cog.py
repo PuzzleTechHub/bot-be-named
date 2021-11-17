@@ -55,6 +55,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         if not role_to_assign:
             try:
                 role_to_assign = await ctx.guild.create_role(name=rolename)
+                await role_to_assign.edit(mentionable=True)
                 embed.add_field(name=f"Created role {rolename}",
                                 value=f"Could not find role {rolename}, so I created it.",
                                 inline=False)
@@ -146,7 +147,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_owner_or_admin()
-    @commands.command(name="deleterole", aliases=["removerole", "rmrole"])
+    @commands.command(name="deleterole")
     async def deleterole(self, ctx, rolename: str):
         """Remove a role from the server
 

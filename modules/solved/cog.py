@@ -189,6 +189,7 @@ class SolvedCog(commands.Cog):
         try:
             # move channel
             await ctx.channel.edit(category=archive_category)
+            await ctx.channel.edit(position=1)
         except discord.Forbidden:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
