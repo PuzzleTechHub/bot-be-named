@@ -8,7 +8,6 @@ from utils import discord_utils, logging_utils, database_utils, command_predicat
 import constants
 from typing import Union
 
-
 class AdminCog(commands.Cog, name="Admin"):
     """Commands for bot management by admins and bot owners"""
     def __init__(self, bot):
@@ -28,11 +27,6 @@ class AdminCog(commands.Cog, name="Admin"):
 
         logging_utils.log_command("addverified", ctx.guild, ctx.channel, ctx.author)
 
-        if not role_or_rolename:
-            embed = discord_utils.create_no_argument_embed("role")
-            await ctx.send(embed=embed)
-            return
-
         if role_category not in database_utils.VERIFIED_CATEGORIES:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
@@ -43,17 +37,12 @@ class AdminCog(commands.Cog, name="Admin"):
 
         # Get role. Allow people to use the command by pinging the role, or just naming it
         if isinstance(role_or_rolename, str):
-            rolename = role_or_rolename
-            try:
-                role = ctx.guild.get_role(int(rolename.replace('<@&', '').replace('>', '')))
-            # The input was not an int (i.e. the user gave the name of the role (e.g. ~addverified rolename))
-            except ValueError:
-                # Search over all roles and see if we get a match.
-                roles = await ctx.guild.fetch_roles()
-                for role in roles:
-                    if role.name.lower() == rolename.lower():
-                        role_to_assign = role
-                        break
+            # Search over all roles and see if we get a match.
+            roles = await ctx.guild.fetch_roles()
+            for role in roles:
+                if role.name.lower() == role_or_rolename.lower():
+                    role_to_assign = role
+                    break
         else:
             role_to_assign = role_or_rolename
 
@@ -125,21 +114,17 @@ class AdminCog(commands.Cog, name="Admin"):
         Usage: `~rmverified @Verified`"""
         logging_utils.log_command("rmverified", ctx.guild, ctx.channel, ctx.author)
 
+        role_to_remove = None
         # Get role. Allow people to use the command by pinging the role, or just naming it
         if isinstance(role_or_rolename, discord.Role):
             role_to_remove = role_or_rolename
         else:
-            rolename = role_or_rolename
-            try:
-                role_to_remove = ctx.guild.get_role(int(rolename.replace('<@&', '').replace('>', '')))
-            # The input was not an int (i.e. the user gave the name of the role (e.g. ~rmverified rolename))
-            except ValueError:
-                # Search over all roles and see if we get a match.
-                roles = await ctx.guild.fetch_roles()
-                for role in roles:
-                    if role.name.lower() == rolename.lower():
-                        role_to_remove = role
-                        break
+            # Search over all roles and see if we get a match.
+            roles = await ctx.guild.fetch_roles()
+            for role in roles:
+                if role.name.lower() == role_or_rolename.lower():
+                    role_to_remove = role
+                    break
             if not role_to_remove:
                 embed = discord_utils.create_embed()
                 embed.add_field(name=f"{constants.FAILED}",

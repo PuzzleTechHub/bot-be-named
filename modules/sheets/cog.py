@@ -153,7 +153,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     @command_predicates.is_verified()
     @commands.command(name="channelsheetcreatetab",aliases=["channelsheetcrab","cheetcrab","chancrab"])
-    async def channelsheetcreatetab(self, ctx, chan_name: str, text_to_pin: str=""):
+    async def channelsheetcreatetab(self, ctx, chan_name: str, *args):
         """Create new channel, then a New tab on the sheet that is currently tethered to this category, then pins links to the channel, if any.
 
         This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet. Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
@@ -173,6 +173,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
+        text_to_pin = " ".join(args)
         tab_name = chan_name.replace("#", "").replace("-", " ")
 
         curr_sheet_link, newsheet = await self.sheetcreatetabgeneric(ctx, ctx.channel, ctx.channel.category, tab_name)
@@ -202,17 +203,20 @@ class SheetsCog(commands.Cog, name="Sheets"):
             msg = await new_chan.send(embed=embed)
             await msg.pin()
 
-            embed = discord.Embed(description=text_to_pin)
-            msg = await new_chan.send(embed=embed)
-            await msg.pin()
-        except Exception:
+            if(text_to_pin):
+                embed.description+=text_to_pin
+                msg = await new_chan.send(embed=embed)
+                await msg.pin()
+        except discord.errors.Forbidden:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Could not pin message! Have you checked if the bot has the required permisisons?")
+            await ctx.send(embed=embed)
             return
-
-        embed = discord_utils.create_embed()
-        embed.add_field(name=f"Success!",
+        embed2 = discord_utils.create_embed()
+        embed2.add_field(name=f"Success!",
                          value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
                          inline=False)
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed2)
 
     @command_predicates.is_verified()
     @commands.command(name="displaysheettether", aliases=["showsheettether", "showtether", "displaytether"])

@@ -8,8 +8,7 @@ def create_embed() -> discord.Embed:
     Create an empty discord embed with color.
     :return: (discord.Embed)
     """
-    return discord.Embed(color=constants.EMBED_COLOR)
-
+    return discord.Embed(color=constants.EMBED_COLOR,description="")
 
 def create_no_argument_embed(arg_name: str ='argument') -> discord.Embed:
     """
@@ -20,7 +19,6 @@ def create_no_argument_embed(arg_name: str ='argument') -> discord.Embed:
     embed.add_field(name=f'{constants.FAILED}!', value=f"You need to supply a {arg_name}!")
     return embed
 
-
 def populate_embed(names: list, values: list, inline: bool = False) -> discord.Embed:
     """Populate an embed with a list of names and values"""
     embed = discord.Embed(color=constants.EMBED_COLOR)
@@ -30,7 +28,6 @@ def populate_embed(names: list, values: list, inline: bool = False) -> discord.E
                         inline=inline)
     return embed
 
-
 def find_channel(bot, channels, channel_name):
     channel = discord.utils.get(channels, name=channel_name)
 
@@ -39,11 +36,9 @@ def find_channel(bot, channels, channel_name):
         channel = bot.get_channel(channel_id)
     return channel
 
-
 def category_is_full(category: discord.CategoryChannel) -> bool:
     """Determines whether a category is full (has 50 channels)"""
     return len(category.channels) >= 50
-
 
 async def createchannelgeneric(guild, category, name) -> discord.TextChannel:
     """Command to create channel in same category with given name
@@ -61,7 +56,6 @@ async def createchannelgeneric(guild, category, name) -> discord.TextChannel:
         return None
 
     return channel
-
 
 # TODO: I'm going to need to rewriter this at some point...
 def split_embed(embed: discord.Embed) -> List[discord.Embed]:

@@ -227,7 +227,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Usage: `~movecat 'Category B'` (Moves the current category to just below Category B)
         """
         logging_utils.log_command("movecategory", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
+        embed = discord.Embed(description="", color=constants.EMBED_COLOR)
 
         cat_a = discord.utils.get(ctx.guild.channels, name=cat_a_name)
         if cat_a is None:

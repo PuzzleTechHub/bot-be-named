@@ -300,7 +300,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         
         print(f"{channel}'s time is up, unlucky.")
         # Create an embed to send to the team. 
-        embed = discord.Embed(color=constants.EMBED_COLOR)
+        embed = discord_utils.create_embed()
         embed.add_field(name="Time's up!",
                         value=f"Sorry! Your time is up. You still had {len(self.current_races[channel][cipher_race_constants.ANSWERS])} "
                               f"{cipher_race_constants.CODE} left to solve for level {level}. "
