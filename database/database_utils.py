@@ -5,7 +5,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.sqltypes import BIGINT, Boolean, String
 
 
-
 Base = declarative_base()
 
 
