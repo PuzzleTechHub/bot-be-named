@@ -30,35 +30,18 @@ class DiscordCog(commands.Cog, name="Discord"):
         """
         logging_utils.log_command("pin", ctx.guild, ctx.channel, ctx.author)
 
-        pins = await ctx.message.channel.pins()
-        if(len(pins)==50):
-            embed = discord_utils.create_embed()
-            embed.add_field(name="Error!",
-                            value=f"This channel already has max. number of pins (50)!",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return 0
-
         if not ctx.message.reference:
             channel_history = await ctx.message.channel.history(limit=2).flatten()
-            msg = channel_history[-1]
+            message = channel_history[-1]
         else:
-            msg = await ctx.fetch_message(ctx.message.reference.message_id)
-        try:
-            await msg.unpin()
-            x = await msg.pin()
-            channel_history = await ctx.message.channel.history(limit=5).flatten()
-            for pinmsg in channel_history:
-                if pinmsg.is_system():
-                    await pinmsg.delete()
-                    break
+            message = await ctx.fetch_message(ctx.message.reference.message_id)
+
+        embed_or_none = await discord_utils.pin_message(message)
+        # Error pinning, send error message to user
+        if embed_or_none is not None:
+            await ctx.send(embed=embed_or_none)
+        else:
             await ctx.message.add_reaction(EMOJIS[':white_check_mark:'])
-        except discord.HTTPException:
-            embed = discord_utils.create_embed()
-            embed.add_field(name="Error!",
-                            value=f"Cannot pin system messages (e.g. **{self.bot.user.name}** pinned **a message** to this channel.)",
-                            inline=False)
-            await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
     @commands.command(name="pinme")
@@ -70,23 +53,12 @@ class DiscordCog(commands.Cog, name="Discord"):
         """
         logging_utils.log_command("pinme", ctx.guild, ctx.channel, ctx.author)
 
-        pins = await ctx.message.channel.pins()
-        if(len(pins)==50):
-            embed = discord_utils.create_embed()
-            embed.add_field(name="Error!",
-                            value=f"This channel already has max. number of pins (50)!",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return 0
-
-        try:
-            await ctx.message.pin()
-        except discord.HTTPException:
-            embed = discord_utils.create_embed()
-            embed.add_field(name="Error!",
-                            value=f"Issue pinning message. Perhaps I don't have permissions to pin?",
-                            inline=False)
-            await ctx.send(embed=embed)
+        embed_or_none = await discord_utils.pin_message(ctx.message)
+        # Error pinning, send error message to user
+        if embed_or_none is not None:
+            await ctx.send(embed=embed_or_none)
+        else:
+            await ctx.message.add_reaction(EMOJIS[':white_check_mark:'])
 
     @command_predicates.is_verified()
     @commands.command(name="lspin", aliases=["lspins", "listpin", "listpins"])
@@ -98,19 +70,12 @@ class DiscordCog(commands.Cog, name="Discord"):
         logging_utils.log_command("listpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         pins = await ctx.message.channel.pins()
-
-        if len(pins) == 0:
-            embed.add_field(name="Success!",
-                            value="There are 0 pinned posts on this channel.",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return 1
         
         strmsg = ""
-        i=1
+        i = 1
         for pin in pins:
             strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
-            i=i+1
+            i += 1
         
         embed.add_field(name="Success!",
                         value=f"There are {len(pins)} pinned posts on this channel." 
@@ -141,7 +106,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         strmsg = ""
 
         reply = False
-        #If unpin is in direct reply to another message, unpin only that message
+        # If unpin is in direct reply to another message, unpin only that message
         if ctx.message.reference:
             reply = True
             orig_msg = ctx.message.reference.resolved
@@ -153,30 +118,29 @@ class DiscordCog(commands.Cog, name="Discord"):
                 await ctx.send(embed=embed)
                 return
             messages_to_unpin.append(orig_msg)
-        #Else unpin the last X messages
+        # Else unpin the last X messages
         else:
             if num_to_unpin < len(pins):
                 messages_to_unpin = pins[:num_to_unpin]
-            #If too many messages to unpin, just unpin all
+            # If too many messages to unpin, just unpin all
             else:
                 messages_to_unpin = pins
 
-        i=1
+        i = 1
         for pin in messages_to_unpin:
             try:
                 await pin.unpin()
                 strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
                 i=i+1
-            except discord.HTTPException:
+            except discord.Forbidden:
                 embed.add_field(name="Error!",
-                                value=f"I do not have permissions to unpin that message "
-                                      f"(or some other error, but probably perms)",
+                                value=f"I do not have permissions to unpin that message. Please check my perms and try again?",
                                 inline=False)
                 await ctx.send(embed=embed)
                 return
 
         embed.add_field(name="Success!",
-                        value=f"Unpinned {'the most recent' if not reply else ''} {num_to_unpin} {'messages' if num_to_unpin != 1 else 'message'}\n" + 
+                        value=f"Unpinned {'the most recent' if not reply else ''} {i - 1} {'messages' if i - 1 != 1 else 'message'}\n" + 
                             f"{strmsg[:-3]}",
                         inline=False)
         await ctx.send(embed=embed)
@@ -207,6 +171,23 @@ class DiscordCog(commands.Cog, name="Discord"):
         embed.add_field(name="Voice Channels",
                         value=f"{len(guild.voice_channels)}")
 
+        await ctx.send(embed=embed)
+
+    @commands.command(name="catstats")
+    async def catstats(self, ctx):
+        """Get category stats
+
+        Usage: `~catstats`
+        """
+        logging_utils.log_command("catstats", ctx.guild, ctx.channel, ctx.author)
+        cat = ctx.message.channel.category
+        embed = discord_utils.create_embed()
+        embed.add_field(name="Category Name",
+                        value=f"{cat.name}")
+        embed.add_field(name="Text Channels",
+                        value=f"{len(cat.text_channels)}")
+        embed.add_field(name="Voice Channels",
+                        value=f"{len(cat.voice_channels)}")
         await ctx.send(embed=embed)
 
     ##################

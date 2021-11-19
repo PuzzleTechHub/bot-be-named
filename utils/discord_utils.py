@@ -1,46 +1,22 @@
 import discord
+from discord.ext import commands
+from discord.ext.commands.errors import ChannelNotFound
+from typing import List, Tuple
 import constants
 from modules.solved import solved_constants
-from typing import List
 
-def create_embed() -> discord.Embed:
-    """
-    Create an empty discord embed with color.
-    :return: (discord.Embed)
-    """
-    return discord.Embed(color=constants.EMBED_COLOR,description="")
 
-def create_no_argument_embed(arg_name: str ='argument') -> discord.Embed:
-    """
-    Create an embed which alerts the user they need to supply an argument
-    :param arg_name: (str) The type of argument needed (e.g. channel)
-    """
-    embed = create_embed()
-    embed.add_field(name=f'{constants.FAILED}!', value=f"You need to supply a {arg_name}!")
-    return embed
-
-def populate_embed(names: list, values: list, inline: bool = False) -> discord.Embed:
-    """Populate an embed with a list of names and values"""
-    embed = discord.Embed(color=constants.EMBED_COLOR)
-    for idx in range(len(names)):
-        embed.add_field(name=names[idx],
-                        value=values[idx],
-                        inline=inline)
-    return embed
-
-def find_channel(bot, channels, channel_name):
-    channel = discord.utils.get(channels, name=channel_name)
-
-    if channel is None:
-        channel_id = int(channel_name.replace('>', '').replace('<#', ''))
-        channel = bot.get_channel(channel_id)
-    return channel
 
 def category_is_full(category: discord.CategoryChannel) -> bool:
-    """Determines whether a category is full (has 50 channels)"""
+    """Determines whether a category is full (has 50 channels)
+    Arguments:
+        - category (discord.CategoryChannel)
+    Returns:
+        - bool"""
     return len(category.channels) >= 50
 
-async def createchannelgeneric(guild, category, name) -> discord.TextChannel:
+
+async def createchannelgeneric(guild: discord.Guild, category: discord.CategoryChannel, name: str) -> discord.TextChannel:
     """Command to create channel in same category with given name
     Arguments:
         - guild (discord.Guild): the guild the channel is being created in
@@ -57,7 +33,123 @@ async def createchannelgeneric(guild, category, name) -> discord.TextChannel:
 
     return channel
 
-# TODO: I'm going to need to rewriter this at some point...
+
+def create_embed() -> discord.Embed:
+    """
+    Create an empty discord embed with color.
+    :return: (discord.Embed)
+    """
+    return discord.Embed(description="", 
+                         color=constants.EMBED_COLOR)
+
+
+def create_no_argument_embed(arg_name: str ='argument') -> discord.Embed:
+    """
+    Create an embed which alerts the user they need to supply an argument
+    :param arg_name: (str) The type of argument needed (e.g. channel)
+    """
+    embed = create_embed()
+    embed.add_field(name=f'{constants.FAILED}!', value=f"You need to supply a {arg_name}!")
+    return embed
+
+
+async def find_category(ctx: commands.Context, category_name: str) -> discord.CategoryChannel:
+    """Uses discord.py's CategoryChannelConverter to convert the name to a discord CategoryChannel
+    Arguments:
+        - ctx (discord.ext.commands.Context): The command's context
+        - category_name (str): The name of the category
+    Returns:
+        - category (discord.CategoryChannel): the category or None if not found"""
+    try:
+        category = await commands.CategoryChannelConverter().convert(ctx, category_name)
+    except ChannelNotFound:
+        # Discord category finding is case specific, but the GUI displays all caps
+        # Try to search with uppercase, first word capitalized, each word capitalized, and lowercase
+        try:
+            # Uppercase
+            category = await commands.CategoryChannelConverter().convert(ctx, category_name.upper())
+        except ChannelNotFound:
+            try:
+                # Capitalize each word
+                category = await commands.CategoryChannelConverter().convert(ctx, category_name.title())
+            except ChannelNotFound:
+                try:
+                    # Capitalize first word
+                    category = await commands.CategoryChannelConverter().convert(ctx, category_name.capitalize())
+                except ChannelNotFound:
+                    try:
+                        # Lowercase
+                        category = await commands.CategoryChannelConverter().convert(ctx, category_name.lower())
+                    except ChannelNotFound:
+                        category = None
+    return category
+
+
+# TODO: I REALLY don't like making embeds outside of commands, but I guess this is for the best...
+async def pin_message(message: discord.Message) -> discord.Embed:
+    """Pin a message. Catches Forbidden, HTTPSError (too many pins in channel)
+    Arguments:
+        - message (discord.Message): The message to pin
+    Return:
+        - embed (discord.Embed): We create an embed if any issue occurs in pinning.
+    """
+    # Channels can't have more than 50 pinned messages
+    pins = await message.channel.pins()
+    if len(pins) >= 50:
+        embed = create_embed()
+        embed.add_field(name=f"{constants.FAILED} to pin!",
+                        value="This channel already has max. number of pins (50)!")
+        return embed
+
+    try:
+        await message.pin()
+        async for pinmsg in message.channel.history(limit=5):
+            if pinmsg.is_system():
+                await pinmsg.delete()
+                break
+    except discord.HTTPException:
+        embed = create_embed()
+        embed.add_field(name=f"{constants.FAILED} to pin!",
+                        value=f"Cannot pin system messages (e.g. **Bot-Be-Named** pinned **a message** to this channel.)")
+        return embed
+    except discord.Forbidden:
+        embed = create_embed()
+        embed.add_field(name=f"{constants.FAILED} to pin!",
+                        value=f"I don't have permissions to pin a message in {message.channel.mention}. Please check "
+                               "my permissions and try again.")
+        return embed
+    
+    return None
+
+
+def populate_embed(names: list, values: list, inline: bool = False) -> discord.Embed:
+    """Populate an embed with a list of names and values"""
+    assert len(names) == len(values), "Tried to populate an embed with uneven numbers of names and values"
+    embed = discord.Embed(color=constants.EMBED_COLOR)
+    for idx in range(len(names)):
+        embed.add_field(name=names[idx],
+                        value=values[idx],
+                        inline=inline)
+    return embed
+
+
+def sort_channels_util(channel_list: list, prefixes: list = [solved_constants.SOLVEDISH_PREFIX,
+                                                              solved_constants.BACKSOLVED_PREFIX,
+                                                              solved_constants.SOLVED_PREFIX]) -> list:
+    """Sort channels according to some prefixes"""
+    channel_list_sorted = sorted(channel_list, key=lambda x: x.name)
+
+    channel_list_prefixes = []
+    for prefix in prefixes:
+        channel_list_prefixes += list(filter(lambda x: x.name.startswith(prefix), channel_list_sorted))
+
+    unsolved = channel_list_sorted
+    unsolved = list(filter(lambda x: x not in channel_list_prefixes, unsolved))
+
+    return unsolved + channel_list_prefixes
+
+
+# TODO: I'm going to need to rewrite this at some point...
 def split_embed(embed: discord.Embed) -> List[discord.Embed]:
     """Splits embeds that are too long (discord character limit)
     Arguments:
@@ -146,19 +238,3 @@ def split_embed(embed: discord.Embed) -> List[discord.Embed]:
                                      value=field_description,
                                      inline=field.inline)
     return embed_list
-
-def sort_channels_util(channel_list: list, prefixes: list = [solved_constants.SOLVEDISH_PREFIX,
-                                                              solved_constants.BACKSOLVED_PREFIX,
-                                                              solved_constants.SOLVED_PREFIX]) -> list:
-    """Sort channels according to some prefixes"""
-    channel_list_sorted = sorted(channel_list, key=lambda x: x.name)
-
-    channel_list_prefixes = []
-    for prefix in prefixes:
-        channel_list_prefixes += list(filter(lambda x: x.name.startswith(prefix), channel_list_sorted))
-
-    unsolved = channel_list_sorted
-    unsolved = list(filter(lambda x: x not in channel_list_prefixes, unsolved))
-
-    return unsolved + channel_list_prefixes
-

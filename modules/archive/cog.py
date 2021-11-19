@@ -1,11 +1,13 @@
 import discord
 from discord.ext import commands
+from discord.ext.commands.errors import ChannelNotFound
 import constants
 import os
 import zipfile
 from utils import discord_utils, logging_utils, command_predicates
 from modules.archive import archive_constants, archive_utils
 import asyncio
+from typing import List, Tuple
 
 
 # TODO: This cipher_race's gonna need some refactoring. We should be able to save a lot of space, since most of the commands
@@ -22,7 +24,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
     # TODO: While we're going through messages, it would be nice to see if we've already hit the 8MB limit somehow?
     # That would speed up the archiving of categories and servers by a lot. I guess it would be hard since we aren't
     # Compressing in real-time. We could try, though.
-    async def archive_one_channel(self, channel):
+    async def archive_one_channel(self, channel: discord.TextChannel) -> Tuple[discord.File, int, discord.File, int]:
         """Download a channel's history"""
         # Write the chat log. Replace attachments with their filename (for easy reference)
         text_log_path = os.path.join(archive_constants.ARCHIVE, channel.name + '_' + archive_constants.TEXT_LOG_PATH)
@@ -120,11 +122,12 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     msg = None
                 archive_utils.reset_archive_dir()
                 try:
-                    channel = discord_utils.find_channel(self.bot, ctx.guild.channels, channelname)
-                except ValueError:
+                    # Convert channel from string to discord.TextChannel
+                    channel = await commands.TextChannelConverter().convert(ctx, channelname)
+                except ChannelNotFound:
                     embed = discord_utils.create_embed()
                     embed.add_field(name="ERROR: Cannot find channel",
-                                    value=f"Sorry, I cannot find a channel with name {channelname}",
+                                    value=f"Sorry, I cannot find a channel with name {channelname}. Try mentioning the channel (e.g. `#{channelname}`)",
                                     inline=False)
                     await ctx.send(embed=embed)
                     return
@@ -201,12 +204,12 @@ class ArchiveCog(commands.Cog, name="Archive"):
             if msg:
                 await msg.delete()
                 msg = None
-            try:
-                category = discord_utils.find_channel(self.bot, ctx.guild.channels, ' '.join(args))
-            except ValueError:
+            category = await discord_utils.find_category(ctx, " ".join(args))
+            if category is None:
                 embed = discord_utils.create_embed()
                 embed.add_field(name="ERROR: Cannot find category",
-                                value=f"Sorry, I cannot find a category with name {' '.join(args)}",
+                                value=f"Sorry, I cannot find a category with name {' '.join(args)}. "
+                                      f"Please make sure the spelling and capitalization are correct!",
                                 inline=False)
                 await ctx.send(embed=embed)
                 return

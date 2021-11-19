@@ -164,9 +164,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """
 
         logging_utils.log_command("channelsheetcreatetab", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
         # Cannot make a new channel if the category is full
         if discord_utils.category_is_full(ctx.channel.category):
+            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.")
             # reply to user
@@ -189,34 +189,39 @@ class SheetsCog(commands.Cog, name="Sheets"):
         new_chan = await discord_utils.createchannelgeneric(ctx.guild, ctx.channel.category, chan_name)
         # Error creating channel
         if not new_chan:
+            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Forbidden! Have you checked if the bot has the required permisisons?")
             await ctx.send(embed=embed)
             return
 
-        #Trying to pin the message
-        try:
-            embed = discord_utils.create_embed()
-            embed.add_field(name=f"Success!",
-                            value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
-                            inline=False)
-            msg = await new_chan.send(embed=embed)
-            await msg.pin()
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                        value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
+                        inline=False)
+        msg = await new_chan.send(embed=embed)
+        # Try to pin the message in new channel
+        embed_or_none = await discord_utils.pin_message(msg)
+        # Error pinning message
+        if embed_or_none is not None: 
+            await new_chan.send(embed=embed_or_none)
 
-            if(text_to_pin):
-                embed.description+=text_to_pin
-                msg = await new_chan.send(embed=embed)
-                await msg.pin()
-        except discord.errors.Forbidden:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Could not pin message! Have you checked if the bot has the required permisisons?")
-            await ctx.send(embed=embed)
-            return
-        embed2 = discord_utils.create_embed()
-        embed2.add_field(name=f"Success!",
+        if text_to_pin:
+            embed = discord.Embed(description=text_to_pin,
+                                  color=constants.EMBED_COLOR)
+            msg = await new_chan.send(embed=embed)
+            # Pin message in the new channel
+            embed_or_none = await discord_utils.pin_message(msg)
+            # Error pinning message
+            if embed_or_none is not None:
+                await ctx.send(embed=embed_or_none)
+
+        embed = discord_utils.create_embed()
+        # TODO: technically there's a world where the posts *weren't* pinned, although it's unclear how much that matters in this message.
+        embed.add_field(name=f"{constants.SUCCESS}!",
                          value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
                          inline=False)
-        await ctx.send(embed=embed2)
+        await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
     @commands.command(name="displaysheettether", aliases=["showsheettether", "showtether", "displaytether"])
@@ -291,7 +296,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
                          value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
                          inline=False)
         msg = await ctx.send(embed=embed)
-        await msg.pin()
+        # Pin message to the new channel
+        embed_or_none = await discord_utils.pin_message(msg)
+        # TODO: Do we even care about printing out the error message if the pin failed?
+        if embed_or_none is not None:
+            await ctx.send(embed=embed_or_none)
 
     @command_predicates.is_verified()
     @commands.command(name="downloadsheet", aliases=["savesheet"])
