@@ -141,7 +141,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         category = ctx.channel.category
 
         if isinstance(original, discord.TextChannel):
-           old_channel = original
+            old_channel = original
         else: 
             old_channel = await commands.TextChannelConverter().convert(ctx, original)
 

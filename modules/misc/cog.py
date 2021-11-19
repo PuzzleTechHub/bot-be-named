@@ -112,13 +112,14 @@ class MiscCog(commands.Cog, name="Misc"):
     async def issue(self, ctx, *args):
         """Gives link to BBN issues from github, then deletes the command that called it.
 
-        Usage : `~issue 10`
+        Usage : `~issue 10` (Links issue 10)
+        Usage : `~issue Priority: Low` (Links issues with label 'Priority: Low')
+        Usage : `~issues` (Links all issues)
         """
         logging_utils.log_command("issue", ctx.guild, ctx.channel, ctx.author)
         
         if len(args) < 1:
-            embed = discord_utils.create_no_argument_embed("Issue Number or Label")
-            await ctx.send(embed=embed)
+            await ctx.send(await ctx.send(f"{repo_link}issues/"))
             return
         
         # Delete user's message

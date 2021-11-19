@@ -21,7 +21,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
     #################
 
     @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="assignrole", aliases=["giverole","rolegive","roleassign","makerole","createrole"])
+    @commands.command(name="assignrole", aliases=["makerole","createrole"])
     async def assignrole(self, ctx, rolename: Union[discord.Role,str], *args):
         """Assign a role to a list of users. If the role does not already exist, then creates the role.
         The role can be mentioned or named. The users must be mentioned. 
@@ -86,18 +86,18 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                 users_with_role_list.append(user)
             except discord.Forbidden:
                 embed.add_field(name="Error Assigning Role!",
-                                value=f"I could not assign `{role_to_assign.mention}` to `{user}`. Either this role is "
+                                value=f"I could not assign {role_to_assign.mention} to `{user}`. Either this role is "
                                       f"too high up on the roles list for them, or I do not have permissions to give "
                                       f"them this role. Please ensure I have the `manage_roles` permission.",
                                 inline=False)
         if len(users_with_role_list) < 1:
             embed.insert_field_at(0,
                                   name="Complete!",
-                                  value=f"Did not assign role `{role_to_assign.mention}` to anyone.",
+                                  value=f"Did not assign role {role_to_assign.mention} to anyone.",
                                   inline=False)
         else:
             embed.add_field(name="Success!",
-                            value=f"Added the `{role_to_assign.mention}` role to {', '.join([user.mention for user in users_with_role_list])}",
+                            value=f"Added the {role_to_assign.mention} role to {', '.join([user.mention for user in users_with_role_list])}",
                             inline=False)
         await ctx.send(embed=embed)
 

@@ -177,7 +177,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def catstats(self, ctx):
         """Get category stats
 
-        Usage: `~catstats`
+        Usage: `~catstats` (current category)
         """
         logging_utils.log_command("catstats", ctx.guild, ctx.channel, ctx.author)
         cat = ctx.message.channel.category

@@ -6,7 +6,6 @@ import constants
 from modules.solved import solved_constants
 
 
-
 def category_is_full(category: discord.CategoryChannel) -> bool:
     """Determines whether a category is full (has 50 channels)
     Arguments:
@@ -41,7 +40,6 @@ def create_embed() -> discord.Embed:
     """
     return discord.Embed(description="", 
                          color=constants.EMBED_COLOR)
-
 
 def create_no_argument_embed(arg_name: str ='argument') -> discord.Embed:
     """
