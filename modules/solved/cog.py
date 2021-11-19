@@ -165,10 +165,10 @@ class SolvedCog(commands.Cog):
         """
         logging_utils.log_command("movetoarchive", ctx.guild, ctx.channel, ctx.author)
 
-        # Find category with same name + Archive
-        archive_category = discord.utils.get(ctx.guild.channels, name=f"{ctx.channel.category.name} Archive") or \
-                            discord.utils.get(ctx.guild.channels, name=f"{ctx.channel.category.name} archive") or \
-                            discord.utils.get(ctx.guild.channels, name=f"Archive: {ctx.channel.category.name}")
+        # Find category with same name + Archive (or select combinations)
+        archive_category = await discord_utils.find_category(ctx, f"{ctx.channel.category.name} Archive") or \
+                           await discord_utils.find_category(ctx, f"Archive: {ctx.channel.category.name}") or \
+                           await discord_utils.find_category(ctx, f"{ctx.channel.category.name} archive")
 
         if archive_category is None:
             embed = discord_utils.create_embed()

@@ -98,27 +98,44 @@ class MiscCog(commands.Cog, name="Misc"):
 
         embed.add_field(name=f"Helpful commands!",
                         value=f"Some of the useful bot commands are -\n"
-                        f"- `{constants.DEFAULT_BOT_PREFIX}help` for a list of commands\n"
-                        f"- `{constants.DEFAULT_BOT_PREFIX}help commandname` for a description of a command (and its limitations). \n **When in doubt, use this command**.\n"
-                        f"- `{constants.DEFAULT_BOT_PREFIX}chancrab` and `{constants.DEFAULT_BOT_PREFIX}sheetcrab` for making Google Sheet tabs for your current hunt\n"
-                        f"- `{constants.DEFAULT_BOT_PREFIX}solved` etc for marking puzzle channels as solved etc\n"
-                        f"- `{constants.DEFAULT_BOT_PREFIX}addcustomcommand` etc for making a customised command with reply.\n\n"
-                        f"Note that some commands are only restricted to certain roles. The current categories for those are - Verified/Trusted/Admin. These need configured accordingly."
-                        f"- `{constants.DEFAULT_BOT_PREFIX}addverifieds` for setting up roles in Verifieds and Trusted categories on your server\n"
-                        ,inline=False)
+                        f"- `{ctx.prefix}help` for a list of commands\n"
+                        f"- `{ctx.prefix}help commandname` for a description of a command (and its limitations). \n **When in doubt, use this command**.\n"
+                        f"- `{ctx.prefix}chancrab` and `{ctx.prefix}sheetcrab` for making Google Sheet tabs for your current hunt\n"
+                        f"- `{ctx.prefix}solved` etc for marking puzzle channels as solved etc\n"
+                        f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply.\n\n"
+                        f"Note that some commands are only restricted to certain roles. The current categories for those are - Verified/Trusted/Admin. These need to be configured accordingly.\n"
+                        f"- `{ctx.prefix}addverifieds` for setting up roles in Verifieds and Trusted categories on your server\n",
+                        inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(name="issue", aliases=["issues"])
-    async def issue(self, ctx, IssueNum:int):
+    async def issue(self, ctx, *args):
         """Gives link to BBN issues from github, then deletes the command that called it.
 
         Usage : `~issue 10`
         """
         logging_utils.log_command("issue", ctx.guild, ctx.channel, ctx.author)
+        
+        if len(args) < 1:
+            embed = discord_utils.create_no_argument_embed("Issue Number or Label")
+            await ctx.send(embed=embed)
+            return
+        
+        # Delete user's message
         await ctx.message.delete()
-        embed = discord_utils.create_embed()
-        msg = f"https://github.com/kevslinger/bot-be-named/issues/{IssueNum}"
-        await ctx.send(msg)
+
+        repo_link = "https://github.com/kevslinger/bot-be-named/"
+        kwargs = " ".join(args)
+        try:
+            # If kwargs is an int, get the issue number
+            issue_number = int(kwargs)
+            # No need for an embed
+            await ctx.send(f"{repo_link}issues/{issue_number}")
+        except ValueError:
+            # kwargs is a string
+            # TODO: Assume they are referencing a label
+            # Keep spaces together in the link by joining with %20
+            await ctx.send(f"{repo_link}labels/{'%20'.join(kwargs.split())}")
 
     ###################
     # BOTSAY COMMANDS #
@@ -130,8 +147,8 @@ class MiscCog(commands.Cog, name="Misc"):
         """Say something in another channel
 
         Category : Trusted roles only.
-        Usage: `~botsay channelname "Message"`
-        Usage: `~botsay #channelmention "Longer Message"`
+        Usage: `~botsay channelname Message`
+        Usage: `~botsay #channelmention Longer Message`
         """
         logging_utils.log_command("botsay", ctx.guild, ctx.channel, ctx.author)
 
@@ -145,7 +162,7 @@ class MiscCog(commands.Cog, name="Misc"):
         guild = ctx.message.guild
 
         try:
-            channel = discord_utils.find_channel(self.bot, guild.channels, channel_id_or_name)
+            channel = await commands.TextChannelConverter().convert(ctx, channel_id_or_name)
         except ValueError:
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Error! The channel `{channel_id_or_name}` was not found")
@@ -172,8 +189,8 @@ class MiscCog(commands.Cog, name="Misc"):
         """Say something in another channel, but as an embed
 
         Category : Trusted roles only.
-        Usage: `~botsayembed channelname "Message"`
-        Usage: `~botsayembed #channelmention "Longer Message"`
+        Usage: `~botsayembed channelname Message`
+        Usage: `~botsayembed #channelmention Longer Message`
         """
         logging_utils.log_command("botsayembed", ctx.guild, ctx.channel, ctx.author)
 
@@ -186,7 +203,7 @@ class MiscCog(commands.Cog, name="Misc"):
         message = " ".join(args)
 
         try:
-            channel = discord_utils.find_channel(self.bot, guild.channels, channel_id_or_name)
+            channel = await commands.TextChannelConverter().convert(ctx, channel_id_or_name)
         except ValueError:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
@@ -211,6 +228,7 @@ class MiscCog(commands.Cog, name="Misc"):
                              value=f"Embed sent to {channel.mention}",
                              inline=False)
         await ctx.send(embed=sent_embed)
+
 
 def setup(bot):
     bot.add_cog(MiscCog(bot))

@@ -19,7 +19,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
     @command_predicates.is_verified()
     @commands.command(name="movechannel")
-    async def movechannel(self, ctx, category_name:str):
+    async def movechannel(self, ctx, category_name: str):
         """Command to move the current channel to category with given name
 
         Category : Verified Roles only.
@@ -31,7 +31,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # get current channel
         channel = ctx.channel
         # get new category
-        new_category = discord.utils.get(ctx.guild.channels, name=category_name)
+        new_category = await discord_utils.find_category(ctx, category_name)
 
         if new_category is None:
             embed.add_field(name=f"{constants.FAILED}!",
@@ -63,8 +63,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="renamechannel", aliases=['renamechan'])
-    async def renamechannel(self, ctx, new_channel_name:Union[discord.TextChannel, str]):
+    @commands.command(name="renamechannel", aliases=["renamechan"])
+    async def renamechannel(self, ctx, new_channel_name: Union[discord.TextChannel, str]):
         """Changes current channel name to whatever is asked
 
         Category : Verified Roles only.
@@ -75,15 +75,14 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         embed = discord_utils.create_embed()
 
         #If user managed to tag a channel name instead of typing
-        if(not (isinstance(new_channel_name, str))):
-            new_channel_name=new_channel_name.name
-        
-        channel = ctx.message.channel
-        old_channel_name = channel.name
+        if not isinstance(new_channel_name, str):
+            new_channel_name = new_channel_name.name
+         
+        old_channel_name = ctx.channel.name
 
         try:
             # rename channel
-            await channel.edit(name=new_channel_name)
+            await ctx.channel.edit(name=new_channel_name)
         except discord.Forbidden:
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Forbidden! Have you checked if the bot has the required permisisons?")
@@ -92,12 +91,12 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             return
 
         embed.add_field(name=f"{constants.SUCCESS}!",
-                        value=f"Renamed `{old_channel_name}` to `{new_channel_name}`: {channel.mention}!",
+                        value=f"Renamed `{old_channel_name}` to `{new_channel_name}`: {ctx.channel.mention}!",
                         inline=False)
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="createchannel", aliases=['makechannel','makechan','createchan'])
+    @commands.command(name="createchannel", aliases=["makechannel", "makechan", "createchan"])
     async def createchannel(self, ctx, name: str):
         """Command to create channel in same category with given name
 
@@ -127,7 +126,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
     @command_predicates.is_verified()
     @commands.command(name="clonechannel")
-    async def clonechannel(self, ctx, original: str, new: str):
+    async def clonechannel(self, ctx, original: Union[discord.TextChannel, str], new: str):
         """Command to create channel in same category with given name
 
         Category : Verified Roles only.
@@ -141,9 +140,12 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         guild = ctx.message.guild
         category = ctx.channel.category
 
-        try:
-            old_channel = discord_utils.find_channel(self.bot, guild.channels, original)
-        except ValueError:
+        if isinstance(original, discord.TextChannel):
+           old_channel = original
+        else: 
+            old_channel = await commands.TextChannelConverter().convert(ctx, original)
+
+        if old_channel is None:
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Channel `{original}` was not found.")
             # reply to user
@@ -157,7 +159,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             await ctx.send(embed=embed)
             return
 
-        # TODO: use genericcreatechannel from discord_utils?
         try:
             # create channel
             new_channel = await guild.create_text_channel(new, category=category, overwrites=old_channel.overwrites)
@@ -229,7 +230,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         logging_utils.log_command("movecategory", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(description="", color=constants.EMBED_COLOR)
 
-        cat_a = discord.utils.get(ctx.guild.channels, name=cat_a_name)
+        cat_a = await discord_utils.find_category(ctx, cat_a_name)
         if cat_a is None:
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"I cannot find category {cat_a_name}. Perhaps check your spelling and try again.")
@@ -255,7 +256,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             await ctx.send(embed=embed)
             return
 
-        cat_b = discord.utils.get(ctx.guild.channels, name=cat_b_name)
+        cat_b = await discord_utils.find_category(ctx, cat_b_name)
         if cat_b is None:
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"I cannot find category `{cat_b_name}`. Perhaps check your spelling and try again.")
@@ -289,7 +290,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         # Input parsing I guess
         # First, make sure origCat exists
-        origCat = discord.utils.get(ctx.guild.channels, name=origCatName)
+        origCat = await discord_utils.find_category(ctx, origCatName)
         if origCat is None:
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"I cannot find category {origCatName}. Perhaps check your spelling and try again.")
@@ -342,7 +343,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 return
         
         # if targetCat doesn't exist, create it
-        targetCat = discord.utils.get(ctx.guild.channels, name=targetCatName)
+        targetCat = await discord_utils.find_category(ctx, targetCatName)
         try:
             if targetCat is None:
                 targetCat = await origCat.clone(name=targetCatName)
@@ -363,23 +364,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             return
 
         embed.title = f"{constants.SUCCESS}"
-        await ctx.send(embed=embed)
-
-    @commands.command(name="catstats")
-    async def catstats(self, ctx):
-        """Get category stats
-
-        Usage: `~catstats`
-        """
-        logging_utils.log_command("catstats", ctx.guild, ctx.channel, ctx.author)
-        cat = ctx.message.channel.category
-        embed = discord_utils.create_embed()
-        embed.add_field(name="Category Name",
-                        value=f"{cat.name}")
-        embed.add_field(name="Text Channels",
-                        value=f"{len(cat.text_channels)}")
-        embed.add_field(name="Voice Channels",
-                        value=f"{len(cat.voice_channels)}")
         await ctx.send(embed=embed)
 
     @command_predicates.is_owner_or_admin()
