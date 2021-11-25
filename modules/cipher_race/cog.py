@@ -252,7 +252,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         """
         self.current_races = {}
         embed = discord_utils.create_embed()
-        embed.add_field(name="Success",
+        embed.add_field(name=f"{constants.SUCCESS}",
                         value="Bot has been reset, and all races have been forcibly ended. I feel brand new!",
                         inline=False)
         await ctx.send(embed=embed)

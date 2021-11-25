@@ -118,15 +118,16 @@ class MiscCog(commands.Cog, name="Misc"):
         """
         logging_utils.log_command("issue", ctx.guild, ctx.channel, ctx.author)
         
-        if len(args) < 1:
-            await ctx.send(await ctx.send(f"{repo_link}issues/"))
-            return
-        
+        repo_link = "https://github.com/kevslinger/bot-be-named/"
+        kwargs = " ".join(args)
+
         # Delete user's message
         await ctx.message.delete()
 
-        repo_link = "https://github.com/kevslinger/bot-be-named/"
-        kwargs = " ".join(args)
+        if len(args) < 1:
+            await ctx.send(f"{repo_link}issues/")
+            return
+
         try:
             # If kwargs is an int, get the issue number
             issue_number = int(kwargs)
@@ -134,7 +135,7 @@ class MiscCog(commands.Cog, name="Misc"):
             await ctx.send(f"{repo_link}issues/{issue_number}")
         except ValueError:
             # kwargs is a string
-            # TODO: Assume they are referencing a label
+            # Assume they are referencing a label
             # Keep spaces together in the link by joining with %20
             await ctx.send(f"{repo_link}labels/{'%20'.join(kwargs.split())}")
 
@@ -179,7 +180,7 @@ class MiscCog(commands.Cog, name="Misc"):
             await ctx.send(embed=embed)
             return
 
-        embed.add_field(name=f"Success!",
+        embed.add_field(name=f"{constants.SUCCESS}!",
                         value=f"Message sent to {channel.mention}: {message}!")
         # reply to user
         await ctx.send(embed=embed)

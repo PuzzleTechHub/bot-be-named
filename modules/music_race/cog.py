@@ -77,7 +77,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         word = re.sub("[^A-Z]+", "", "".join(args).upper())
 
         if len(word) < 1 or len(word) > 20:
-            embed.add_field(name=f"Error!",
+            embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Word provided `{word}` is not between 1-20 letters")
             await ctx.send(embed=embed)
             return

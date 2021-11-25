@@ -77,7 +77,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
             i += 1
         
-        embed.add_field(name="Success!",
+        embed.add_field(name=f"{constants.SUCCESS}!",
                         value=f"There are {len(pins)} pinned posts on this channel." 
                             f"\n{strmsg[:-3]}",
                         inline=False)
@@ -112,7 +112,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             orig_msg = ctx.message.reference.resolved
             #TODO - if orig_msg is DeletedReferencedMessage
             if not orig_msg.pinned:
-                embed.add_field(name="Error!",
+                embed.add_field(name="{constants.FAILED}!",
                                 value=f"The linked message [Msg]({orig_msg.jump_url}) has not been pinned, there's nothing to unpin.",
                                 inline=False)
                 await ctx.send(embed=embed)
@@ -133,13 +133,13 @@ class DiscordCog(commands.Cog, name="Discord"):
                 strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
                 i=i+1
             except discord.Forbidden:
-                embed.add_field(name="Error!",
+                embed.add_field(name="{constants.FAILED}!",
                                 value=f"I do not have permissions to unpin that message. Please check my perms and try again?",
                                 inline=False)
                 await ctx.send(embed=embed)
                 return
 
-        embed.add_field(name="Success!",
+        embed.add_field(name=f"{constants.SUCCESS}!",
                         value=f"Unpinned {'the most recent' if not reply else ''} {i - 1} {'messages' if i - 1 != 1 else 'message'}\n" + 
                             f"{strmsg[:-3]}",
                         inline=False)

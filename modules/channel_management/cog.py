@@ -177,6 +177,34 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     # CATEGORY COMMANDS #
     #####################
 
+    @command_predicates.is_verified()
+    @commands.command(name="renamecategory", aliases=["renamecat"])
+    async def renamecategory(self, ctx, new_category_name: str):
+        """Changes current category name to whatever is asked
+
+        Category : Verified Roles only.
+        Usage: `~renamecat newname`
+        """
+        # log command in console
+        logging_utils.log_command("renamecategory", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        old_category_name = ctx.channel.category.name
+
+        try:
+            # rename category
+            await ctx.channel.category.edit(name=new_category_name)
+        except discord.Forbidden:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Forbidden! Have you checked if the bot has the required permisisons?")
+            # reply to user
+            await ctx.send(embed=embed)
+            return
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                        value=f"Renamed `{old_category_name}` to `{new_category_name}`!",
+                        inline=False)
+        await ctx.send(embed=embed)
+
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="synccategory", aliases=["synccat","catsync"])
     async def synccategory(self, ctx):
@@ -279,8 +307,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def clonecategory(self, ctx, origCatName: str, targetCatName: str, origRole: Union[discord.Role, str] = None, targetRole: Union[discord.Role, str] = None):
         """Clones one category as another. 
         OPTIONAL: takes origRole's perms and makes those targetRole's perms in targetCat.
-        Creates targetCat (and targetRole, if specified) if they don't exist already.
-        
+        Creates targetCat if it doesn't exist already.
+        Create targetRole if it doesn't exist already (with same server permissions). See `~clonerole`.
+
         Category : Verified Roles only.
         Usage: `~clonecategory 'Category A' 'Category B'` (clones Cat A as Cat B)
         Usage: `~clonecategory 'Category A' 'Category B' @RoleC @RoleD` (clones Cat A as Cat B. Clones RoleC permission on Cat A, and replicates it with RoleD and Cat B)
@@ -317,8 +346,10 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                     break
                 if origRole_is_str and role.name.lower() == origRole.lower():
                     origRole = role
+                    origRole_is_str = isinstance(origRole, str)
                 if targetRole_is_str and role.name.lower() == targetRole.lower():
                     targetRole = role
+                    targetRole_is_str = isinstance(targetRole, str)
 
         origRole_is_str = isinstance(origRole, str)
         targetRole_is_str = isinstance(targetRole, str)
@@ -334,8 +365,12 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # if targetRole doesn't exist, create it
         if targetRole_is_str:
             try:
-                targetRole = await ctx.guild.create_role(name=targetRole, mentionable=True)
-                embed.description += f"\nCreated {targetRole.mention}"
+                targetRole = await ctx.guild.create_role(name=targetRole, 
+                                              permissions=origRole.permissions, 
+                                              colour=origRole.colour, 
+                                              hoist=origRole.hoist, 
+                                              mentionable=origRole.mentionable)
+                embed.description += f"\nCreated {targetRole.mention} with the same server permissions as {origRole.mention}"
             except discord.Forbidden:
                 embed.add_field(name=f"{constants.FAILED}",
                                 value=f"I was unable to create role {targetRole}. Do I have the `manage_roles` permission?")
