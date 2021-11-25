@@ -22,17 +22,27 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="assignrole", aliases=["makerole","createrole"])
-    async def assignrole(self, ctx, rolename: Union[discord.Role,str], *args):
+    async def assignrole(self, ctx, rolename: Union[discord.Role,discord.Member,str], *args:Union[discord.Member,str]):
         """Assign a role to a list of users. If the role does not already exist, then creates the role.
-        The role can be mentioned or named. The users must be mentioned. 
+        The role can be mentioned or named. The users can be named (nick or username) but mentioning is cleaner. 
         The role created is always mentionable by all users.
 
+        Note that if the role is not already created, it cannot share name with a user. Use `~clonerole` or manually to create the role first.
+
         Category : Trusted Roles only.        
-        Usage: `~assignrole @RoleName @User1 @User2`
+        Usage: `~assignrole @RoleName @User1 "User2"`
         Usage: `~assignrole "NewRoleName" @User1`
         Usage: `~assignrole "NewRolename"` (if no users given, just creates the role)
         """
         logging_utils.log_command("assignrole", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        if(isinstance(rolename,discord.Member)):
+                embed.add_field(name=f"{constants.FAILED}",
+                    value=f"Role name given is same as {rolename.mention}. Did you forget to specify a rolename?",
+                    inline=False)
+                await ctx.send(embed=embed)
+                return
 
         role_to_assign = None
         if(isinstance(rolename, str)):
@@ -44,7 +54,6 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         else:
             role_to_assign=rolename
 
-        embed = discord_utils.create_embed()
         # Cannot find the role, so we'll make one
         if not role_to_assign:
             try:
@@ -63,18 +72,9 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
         users_with_role_list = []
         for unclean_username in args:
-            # Get the user
-            try:
-                # TODO: Fix replace?
-                user = ctx.guild.get_member(int(unclean_username.replace('<@', '').replace('>', '').replace('!', '')))
-                # User not found
-                if not user:
-                    embed.add_field(name="Error Finding User!",
-                                    value=f"Could not find user `{unclean_username}`. Did you ping them? I won't accept raw usernames",
-                                    inline=False)
-                    continue
-            # User id not provided or bad argument
-            except ValueError:
+            if(isinstance(unclean_username,discord.Member)):
+                user = unclean_username
+            else:
                 embed.add_field(name="Error Finding User!",
                                 value=f"Could not find user `{unclean_username}`. Did you ping them? I won't accept raw usernames",
                                 inline=False)
@@ -183,9 +183,9 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
     @commands.has_any_role(*constants.TRUSTED)
     @commands.command(name="unassignrole", aliases=["removerole"])
-    async def unassignrole(self, ctx, rolename: Union[discord.Role,str], *args):
+    async def unassignrole(self, ctx, rolename: Union[discord.Role,str], *args:Union[discord.Member,str]):
         """Unassigns a role from a list of users.
-        The role can be mentioned or named. The users must be mentioned. 
+        The role can be mentioned or named. The users can be named (nick or username) but mentioning is cleaner. 
 
         Category : Trusted Roles only.        
         Usage: `~unassignrole @RoleName @User1 @User2`
@@ -220,22 +220,14 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
         users_with_role_list = []
         for unclean_username in args:
-            # Get the user
-            try:
-                # TODO: Fix replace?
-                user = ctx.guild.get_member(int(unclean_username.replace('<@', '').replace('>', '').replace('!', '')))
-                # User not found
-                if not user:
-                    embed.add_field(name="Error Finding User!",
-                                    value=f"Could not find user `{unclean_username}`. Did you ping them? I won't accept raw usernames",
-                                    inline=False)
-                    continue
-            # User id not provided or bad argument
-            except ValueError:
+            if(isinstance(unclean_username,discord.Member)):
+                user = unclean_username
+            else:
                 embed.add_field(name="Error Finding User!",
                                 value=f"Could not find user `{unclean_username}`. Did you ping them? I won't accept raw usernames",
                                 inline=False)
                 continue
+
             # Unassign the role
             try:
                 if role_to_unassign not in user.roles:

@@ -19,7 +19,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
     @command_predicates.is_verified()
     @commands.command(name="movechannel")
-    async def movechannel(self, ctx, category_name: str):
+    async def movechannel(self, ctx, category_name: str, *args:Union[discord.TextChannel, str]):
         """Command to move the current channel to category with given name
 
         Category : Verified Roles only.

@@ -7,11 +7,9 @@ import zipfile
 from utils import discord_utils, logging_utils, command_predicates
 from modules.archive import archive_constants, archive_utils
 import asyncio
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
-
-# TODO: This cipher_race's gonna need some refactoring. We should be able to save a lot of space, since most of the commands
-# Use a lot of the same cipher_race. Also, archiving is super slow.
+# TODO: archiving is super slow.
 class ArchiveCog(commands.Cog, name="Archive"):
     """Downloads a channel's history and sends it as a file"""
     def __init__(self, bot):
@@ -94,7 +92,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     @command_predicates.is_verified()
     @commands.command(name="archivechannel", aliases = ['archivechan'])
-    async def archivechannel(self, ctx, *args):
+    async def archivechannel(self, ctx, *args:Union[discord.TextChannel,str]):
         """Command to download channel's history
 
         Category : Verified Roles only.
@@ -121,24 +119,27 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     await msg.delete()
                     msg = None
                 archive_utils.reset_archive_dir()
-                try:
-                    # Convert channel from string to discord.TextChannel
-                    channel = await commands.TextChannelConverter().convert(ctx, channelname)
-                except ChannelNotFound:
-                    embed = discord_utils.create_embed()
-                    embed.add_field(name="ERROR: Cannot find channel",
-                                    value=f"Sorry, I cannot find a channel with name {channelname}. Try mentioning the channel (e.g. `#{channelname}`)",
-                                    inline=False)
-                    await ctx.send(embed=embed)
-                    return
-                if not channel.type.name == 'text':
-                    embed = discord_utils.create_embed()
-                    embed.add_field(name="ERROR: Cannot archive non-text channels",
-                                    value=f"Sorry! I can only archive text channels, but "
-                                          f"{channel} is a {channel.type} channel.",
-                                    inline=False)
-                    await ctx.send(embed=embed)
-                    return
+                if(isinstance(channelname,discord.TextChannel)):
+                    channel = channelname
+                else:
+                    try:
+                        # Convert channel from string to discord.TextChannel
+                        channel = await commands.TextChannelConverter().convert(ctx, channelname)
+                    except ChannelNotFound:
+                        embed = discord_utils.create_embed()
+                        embed.add_field(name="ERROR: Cannot find channel",
+                                        value=f"Sorry, I cannot find a channel with name {channelname}. Try mentioning the channel (e.g. `#{channelname}`)",
+                                        inline=False)
+                        await ctx.send(embed=embed)
+                        return
+                    if not channel.type.name == 'text':
+                        embed = discord_utils.create_embed()
+                        embed.add_field(name="ERROR: Cannot archive non-text channels",
+                                        value=f"Sorry! I can only archive text channels, but "
+                                              f"{channel} is a {channel.type} channel.",
+                                        inline=False)
+                        await ctx.send(embed=embed)
+                        return
                 # If we've gotten to this point, we know we have a channel so we should probably let the user know.
                 start_embed = await self.get_start_embed(channel)
                 msg = await ctx.send(embed=start_embed)
@@ -181,7 +182,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     @command_predicates.is_owner_or_admin()
     @commands.command(name="archivecategory", aliases = ['archivecat'])
-    async def archivecategory(self, ctx, *args):
+    async def archivecategory(self, ctx, *args:str):
         """Command to download the history of every text channel in the category
 
         Category : Admin or Bot Owner Roles only.
