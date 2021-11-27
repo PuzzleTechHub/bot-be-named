@@ -24,13 +24,13 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
     @commands.command(name="assignrole", aliases=["makerole","createrole"])
     async def assignrole(self, ctx, rolename: Union[discord.Role,discord.Member,str], *args:Union[discord.Member,str]):
         """Assign a role to a list of users. If the role does not already exist, then creates the role.
-        The role can be mentioned or named. The users can be named (nick or username) but mentioning is cleaner. 
+        To not ping them, you may name the role or the users (nick or username) instead. Mentioning either is also guaranteed to work.
         The role created is always mentionable by all users.
 
         Note that if the role is not already created, it cannot share name with a user. Use `~clonerole` or manually to create the role first.
 
         Category : Trusted Roles only.        
-        Usage: `~assignrole @RoleName @User1 "User2"`
+        Usage: `~assignrole @RoleName "User3" "User2"`
         Usage: `~assignrole "NewRoleName" @User1`
         Usage: `~assignrole "NewRolename"` (if no users given, just creates the role)
         """
@@ -97,6 +97,79 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         else:
             embed.add_field(name=f"{constants.SUCCESS}!",
                             value=f"Added the {role_to_assign.mention} role to {', '.join([user.mention for user in users_with_role_list])}",
+                            inline=False)
+        await ctx.send(embed=embed)
+
+    @commands.has_any_role(*constants.TRUSTED)
+    @commands.command(name="unassignrole", aliases=["removerole"])
+    async def unassignrole(self, ctx, rolename: Union[discord.Role,str], *args:Union[discord.Member,str]):
+        """Unassigns a role from a list of users.
+        To not ping them, you may name the role or the users (nick or username) instead. Mentioning either is also guaranteed to work.
+
+        Category : Trusted Roles only.        
+        Usage: `~unassignrole @RoleName @User1 @User2`
+        Usage: `~assignrole "RoleName" @User1`
+        """
+        logging_utils.log_command("unassignrole", ctx.guild, ctx.channel, ctx.author)
+
+        role_to_unassign = None
+        if(isinstance(rolename, str)):
+            roles = await ctx.guild.fetch_roles()
+            for role in roles:
+                if role.name.lower() == rolename.lower():
+                    role_to_unassign = role
+                    break
+        else:
+            role_to_unassign=rolename
+
+        embed = discord_utils.create_embed()
+        if not role_to_unassign:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return
+
+        if(len(args)<1):
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"No users provided! You must give at least one user to unassign.",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return
+
+        users_with_role_list = []
+        for unclean_username in args:
+            if(isinstance(unclean_username,discord.Member)):
+                user = unclean_username
+            else:
+                embed.add_field(name="Error Finding User!",
+                                value=f"Could not find user `{unclean_username}`. Did you ping them? I won't accept raw usernames",
+                                inline=False)
+                continue
+
+            # Unassign the role
+            try:
+                if role_to_unassign not in user.roles:
+                    embed.add_field(name="Error Unassigning Role!",
+                                value=f"{user} does not have {role_to_unassign.mention} role to unassign.",
+                                inline=False)
+                else:
+                    await user.remove_roles(role_to_unassign)
+                    users_with_role_list.append(user)
+            except discord.Forbidden:
+                embed.add_field(name="Error Unassigning Role!",
+                                value=f"I could not unsassign {role_to_unassign.mention} from `{user}`. Either this role is "
+                                      f"too high up on the roles list for them, or I do not have permissions to give "
+                                      f"them this role. Please ensure I have the `manage_roles` permission.",
+                                inline=False)
+        if len(users_with_role_list) < 1:
+            embed.insert_field_at(0,
+                                  name="Complete!",
+                                  value=f"Did not unassign role {role_to_unassign.mention} from anyone.",
+                                  inline=False)
+        else:
+            embed.add_field(name=f"{constants.SUCCESS}!",
+                            value=f"Removed the {role_to_unassign.mention} role from {', '.join([user.mention for user in users_with_role_list])}",
                             inline=False)
         await ctx.send(embed=embed)
 
@@ -181,79 +254,6 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                 return
         await ctx.send(embed=embed)
 
-    @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="unassignrole", aliases=["removerole"])
-    async def unassignrole(self, ctx, rolename: Union[discord.Role,str], *args:Union[discord.Member,str]):
-        """Unassigns a role from a list of users.
-        The role can be mentioned or named. The users can be named (nick or username) but mentioning is cleaner. 
-
-        Category : Trusted Roles only.        
-        Usage: `~unassignrole @RoleName @User1 @User2`
-        Usage: `~assignrole "RoleName" @User1`
-        """
-        logging_utils.log_command("unassignrole", ctx.guild, ctx.channel, ctx.author)
-
-        role_to_unassign = None
-        if(isinstance(rolename, str)):
-            roles = await ctx.guild.fetch_roles()
-            for role in roles:
-                if role.name.lower() == rolename.lower():
-                    role_to_unassign = role
-                    break
-        else:
-            role_to_unassign=rolename
-
-        embed = discord_utils.create_embed()
-        if not role_to_unassign:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return
-
-        if(len(args)<1):
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"No users provided! You must give at least one user to unassign.",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return
-
-        users_with_role_list = []
-        for unclean_username in args:
-            if(isinstance(unclean_username,discord.Member)):
-                user = unclean_username
-            else:
-                embed.add_field(name="Error Finding User!",
-                                value=f"Could not find user `{unclean_username}`. Did you ping them? I won't accept raw usernames",
-                                inline=False)
-                continue
-
-            # Unassign the role
-            try:
-                if role_to_unassign not in user.roles:
-                    embed.add_field(name="Error Unassigning Role!",
-                                value=f"{user} does not have {role_to_unassign.mention} role to unassign.",
-                                inline=False)
-                else:
-                    await user.remove_roles(role_to_unassign)
-                    users_with_role_list.append(user)
-            except discord.Forbidden:
-                embed.add_field(name="Error Unassigning Role!",
-                                value=f"I could not unsassign {role_to_unassign.mention} from `{user}`. Either this role is "
-                                      f"too high up on the roles list for them, or I do not have permissions to give "
-                                      f"them this role. Please ensure I have the `manage_roles` permission.",
-                                inline=False)
-        if len(users_with_role_list) < 1:
-            embed.insert_field_at(0,
-                                  name="Complete!",
-                                  value=f"Did not unassign role {role_to_unassign.mention} from anyone.",
-                                  inline=False)
-        else:
-            embed.add_field(name=f"{constants.SUCCESS}!",
-                            value=f"Removed the {role_to_unassign.mention} role from {', '.join([user.mention for user in users_with_role_list])}",
-                            inline=False)
-        await ctx.send(embed=embed)
-
     @command_predicates.is_owner_or_admin()
     @commands.command(name="deleterole")
     async def deleterole(self, ctx, rolename: Union[discord.Role, str]):
@@ -307,6 +307,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         """
         logging_utils.log_command("listroles", ctx.guild, ctx.channel, ctx.author)
         roles = await ctx.guild.fetch_roles()
+        roles.sort(key=lambda x:x.position, reverse=True)
         embed = discord.Embed(title=f"Roles in {ctx.guild.name}",
                               description=f"{', '.join([role.mention for role in roles])}",
                               color = constants.EMBED_COLOR)

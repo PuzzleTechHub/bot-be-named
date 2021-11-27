@@ -18,7 +18,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     ####################
 
     @command_predicates.is_verified()
-    @commands.command(name="movechannel")
+    @commands.command(name="movechannel", aliases=["movechan"])
     async def movechannel(self, ctx, category_name: str, *args:Union[discord.TextChannel, str]):
         """Command to move the current channel to category with given name
 
@@ -306,13 +306,13 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     @commands.command(name="clonecategory", aliases=["copycategory","clonecat","copycat"])
     async def clonecategory(self, ctx, origCatName: str, targetCatName: str, origRole: Union[discord.Role, str] = None, targetRole: Union[discord.Role, str] = None):
         """Clones one category as another. 
-        OPTIONAL: takes origRole's perms and makes those targetRole's perms in targetCat.
+        If roles are given, takes OrigRole's perms in OrigCat and clones them for Targetrole in TargetCat.
         Creates targetCat if it doesn't exist already.
-        Create targetRole if it doesn't exist already (with same server permissions). See `~clonerole`.
+        Create targetRole if it doesn't exist already (with same server permissions). See `~clonerole` for example.
 
         Category : Verified Roles only.
-        Usage: `~clonecategory 'Category A' 'Category B'` (clones Cat A as Cat B)
-        Usage: `~clonecategory 'Category A' 'Category B' @RoleC @RoleD` (clones Cat A as Cat B. Clones RoleC permission on Cat A, and replicates it with RoleD and Cat B)
+        Usage: `~clonecategory 'Category A' 'Category B'` (Clones Cat A as Cat B)
+        Usage: `~clonecategory 'Category A' 'Category B' @RoleC @RoleD` (Clones Cat A as Cat B. Takes RoleC permission on Cat A, and replicates it with RoleD and Cat B)
         """
         logging_utils.log_command("clonecategory", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(description="", color=constants.EMBED_COLOR)
@@ -410,7 +410,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Usage: `~listcat`
         """
         logging_utils.log_command("listcategories", ctx.guild, ctx.channel, ctx.author)
-        categories = [cat.name for cat in ctx.guild.categories]
+        categories = [f"{cat.name}         : {len(cat.channels)}" for cat in ctx.guild.categories]
         embed = discord_utils.create_embed()
         embed.add_field(name=f"Categories in {ctx.guild.name}",
                         value=f"{chr(10).join(categories)}")

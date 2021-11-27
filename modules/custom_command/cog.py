@@ -132,13 +132,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="lscustomcommands", aliases=["lscustomcommand",
-                                                        "listcustomcommands",
-                                                        "listcustomcommand", 
-                                                        "lsccommands",
-                                                        "lsccommand", 
-                                                        "listccommands",
-                                                        "listccommand"])
+    @commands.command(name="lscustomcommands", aliases=["lsccommands","listcustomcommands", "listccommands"])
     async def lscustomcommands(self, ctx):
         """List custom commands in the server
 
@@ -147,7 +141,8 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         """
         logging_utils.log_command("lscustomcommands", ctx.guild, ctx.channel, ctx.author)
         if ctx.guild.id in database_utils.CUSTOM_COMMANDS and len(database_utils.CUSTOM_COMMANDS[ctx.guild.id]) > 0:
-            custom_commands = "\n".join(database_utils.CUSTOM_COMMANDS[ctx.guild.id].keys())
+            cclist = database_utils.CUSTOM_COMMANDS[ctx.guild.id].keys()
+            custom_commands = "\n".join(sorted(cclist))
             embed = discord.Embed(title=f"Custom Commands for {ctx.guild.name}",
                                 description=custom_commands,
                                 color=constants.EMBED_COLOR)
