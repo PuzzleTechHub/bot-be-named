@@ -173,6 +173,86 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # reply to user
         await ctx.send(embed=embed)
 
+    @command_predicates.is_verified()
+    @commands.command(name="shiftchannel", aliases=["shiftchan"])
+    async def shiftchannel(self, ctx, chan_a_name: Union[discord.TextChannel, str], chan_b_name: Union[discord.TextChannel, str] = ""):
+        """Shifts a channel to below another channel in the same category.
+
+        Does not work for Voice Channels, just Text Channels.
+        Channels may be mentioned or named, but better to mention (in case of multiple channels with same name).
+
+        Note : Use "0" or "top" instead to say "Top of the category". But if a channel in the server is named #top or #0 then the respective argument wont work
+        Category : Verified Roles only.
+        Usage: `~shiftchan '#chana' '#chanb'` (Shifts Chan A to just below Chan B)
+        Usage: `~shiftchan 'chanb'` (Shifts the current channel to just below Chan B)
+        Usage: `~shiftchan 'chana' top` (Shifts ChanA to top of category)
+        Usage: `~shiftchan 0` (Shifts the current channel to top of category)
+        """
+        logging_utils.log_command("shiftchannel", ctx.guild, ctx.channel, ctx.author)
+        embed = discord.Embed(description="", color=constants.EMBED_COLOR)
+
+        pos_to_shift_to = -1
+        chan_to_shift = None
+
+        if(chan_b_name=="" and chan_a_name in ["top","0"]):
+            #Shift CurrChan to top
+            chan_to_shift = ctx.channel
+            pos_to_shift_to = 0
+        elif (chan_b_name in ["top","0"]):
+            #Shift Chan A to top
+            chan_to_shift = chan_a_name
+            pos_to_shift_to = 0
+        else:
+            if (chan_b_name==""):
+                #Shift CurrChan to ChanA
+                chan_to_shift = ctx.channel
+                chan_shifting_to = chan_a_name
+            else:
+                #Shift ChanA to ChanB
+                chan_to_shift = chan_a_name
+                chan_shifting_to = chan_b_name
+
+        if(not isinstance(chan_to_shift,discord.TextChannel)):
+                embed.add_field(name=f"{constants.FAILED}",
+                                value=f"I cannot find channel `{chan_to_shift}`. Perhaps check your spelling and try again.")
+                await ctx.send(embed=embed)
+                return
+
+        #Not top, so position needs to be given
+        if(pos_to_shift_to == -1):
+            if(not isinstance(chan_shifting_to,discord.TextChannel)):
+                embed.add_field(name=f"{constants.FAILED}",
+                                value=f"I cannot find channel `{chan_shifting_to}`. Perhaps check your spelling and try again.")
+                await ctx.send(embed=embed)
+                return
+            if(chan_shifting_to.category != chan_to_shift.category):
+                #Different categories for channel to shift to
+                embed.add_field(name=f"{constants.FAILED}",
+                                value=f"The channel to be shifted {chan_to_shift.mention} is in category `{chan_to_shift.category}` but it's trying to shift to channel {chan_shifting_to.mention}, which is in category `{chan_shifting_to.category}`"
+                                      f"\nUse `~movechan` to move the channel across categories first.")
+                await ctx.send(embed=embed)
+                return
+            #No errors
+            pos_to_shift_to = chan_shifting_to.position + 1
+
+        #Move channels
+        try:
+            await chan_to_shift.edit(position = pos_to_shift_to)
+        except discord.Forbidden:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Forbidden! Have you checked if the bot has the required permisisons?")
+            await ctx.send(embed=embed)
+            return
+
+        if(pos_to_shift_to == 0):
+            embed.add_field(name=f"{constants.SUCCESS}!",
+                            value=f"Succesfully moved channel {chan_to_shift.mention} to top of category {chan_to_shift.category}")
+        else:
+            embed.add_field(name=f"{constants.SUCCESS}!",
+                            value=f"Succesfully moved channel {chan_to_shift.mention} to just below {chan_shifting_to.mention}")
+        await ctx.send(embed=embed)
+
+
     #####################
     # CATEGORY COMMANDS #
     #####################
@@ -247,59 +327,79 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="movecategory", aliases=["movecat"])
-    async def movecategory(self, ctx, cat_a_name: str, cat_b_name: str = ""):
-        """Moves a category to below another category.
+    @commands.command(name="shiftcategory", aliases=["shiftcat","movecategory","movecat"])
+    async def shiftcategory(self, ctx, cat_a_name: str, cat_b_name: str = ""):
+        """Shifts a category to below another category.
+
+        Note : Use "0" or "top" instead to say "Top of the server". But if a category in the server is named "top" or "0" then the respective argument wont work
 
         Category : Verified Roles only.
-        Usage: `~movecat 'Category A' 'Category B'` (Moves Cat A to just below Cat B)
-        Usage: `~movecat 'Category B'` (Moves the current category to just below Category B)
+        Usage: `~shiftcat 'Category A' 'Category B'` (Shifts Cat A to just below Cat B)
+        Usage: `~shiftcat 'Category B'` (Shifts the current category to just below Category B)
+        Usage: `~shiftcat 'Category A' '0'` (Shifts Cat A to the top)
+        Usage: `~shiftcat 'top'` (Shifts the current category to the top)
         """
-        logging_utils.log_command("movecategory", ctx.guild, ctx.channel, ctx.author)
+        logging_utils.log_command("shiftcategory", ctx.guild, ctx.channel, ctx.author)
         embed = discord.Embed(description="", color=constants.EMBED_COLOR)
 
-        cat_a = await discord_utils.find_category(ctx, cat_a_name)
-        if cat_a is None:
+        pos_to_shift_to = -1
+        cat_to_shift_name = None
+
+        if(cat_b_name=="" and cat_a_name in ["top","0"]):
+            #Shift Currcat to top
+            cat_to_shift_name = ctx.channel.category
+            pos_to_shift_to = 0
+        elif (cat_b_name in ["top","0"]):
+            #Shift cat A to top
+            cat_to_shift_name = cat_a_name
+            pos_to_shift_to = 0
+        else:
+            if (cat_b_name==""):
+                #Shift Currcat to catA
+                cat_to_shift_name = ctx.channel.category
+                cat_shifting_to_name = cat_a_name
+            else:
+                #Shift catA to catB
+                cat_to_shift_name = cat_a_name
+                cat_shifting_to_name = cat_b_name
+
+        if(cat_to_shift_name is None):
             embed.add_field(name=f"{constants.FAILED}",
-                            value=f"I cannot find category {cat_a_name}. Perhaps check your spelling and try again.")
+                            value=f"The current channel {ctx.channel.mention} does not exist in a category I can move. Check `~help shiftcat`.")
             await ctx.send(embed=embed)
             return
 
-        if(cat_b_name==""):
-            curr_cat = ctx.channel.category
-            if curr_cat is None:
-                embed.add_field(name=f"{constants.FAILED}",
-                                value=f"The current channel {ctx.channel} does not exist in a category I can move. Check `~help movecat`.")
-                await ctx.send(embed=embed)
-                return
-            try:
-                await curr_cat.edit(position=cat_a.position+1)
-                embed.title = f"{constants.SUCCESS}"
-                embed.description += f"\nMoved `{curr_cat}` to just below `{cat_a}` in the server"
-            except discord.Forbidden:
-                embed.add_field(name=f"{constants.FAILED}",
-                                value=f"I was unable to move category `{curr_cat}`. Do I have the `manage_channels` permission?")
-                await ctx.send(embed=embed)
-                return
+        cat_to_shift = await discord_utils.find_category(ctx, cat_to_shift_name)
+        if cat_to_shift is None:
+            embed.add_field(name=f"{constants.FAILED}",
+                            value=f"I cannot find category `{cat_to_shift_name}`. Perhaps check your spelling and try again.")
             await ctx.send(embed=embed)
             return
 
-        cat_b = await discord_utils.find_category(ctx, cat_b_name)
-        if cat_b is None:
-            embed.add_field(name=f"{constants.FAILED}",
-                            value=f"I cannot find category `{cat_b_name}`. Perhaps check your spelling and try again.")
-            await ctx.send(embed=embed)
-            return
-              
+        #Not top, so position needs to be given
+        if(pos_to_shift_to == -1):
+            cat_shifting_to = await discord_utils.find_category(ctx, cat_shifting_to_name)
+            if cat_shifting_to is None:
+                embed.add_field(name=f"{constants.FAILED}",
+                                value=f"I cannot find category `{cat_shifting_to_name}`. Perhaps check your spelling and try again.")
+                await ctx.send(embed=embed)
+                return
+            pos_to_shift_to = cat_shifting_to.position + 1
+
         try:
-            await cat_a.edit(position=cat_b.position+1)
-            embed.title = f"{constants.SUCCESS}"
-            embed.description += f"\nMoved `{cat_a}` to just below `{cat_b}` in the server"
+            await cat_to_shift.edit(position=pos_to_shift_to)
         except discord.Forbidden:
             embed.add_field(name=f"{constants.FAILED}",
-                            value=f"I was unable to move category `{cat_a}`. Do I have the `manage_channels` permission?")
+                            value=f"I was unable to shift category `{cat_to_shift}`. Do I have the `manage_channels` permission?")
             await ctx.send(embed=embed)
             return
+
+        if(pos_to_shift_to == 0):
+            embed.add_field(name=f"{constants.SUCCESS}!",
+                            value=f"Succesfully moved Category `{cat_to_shift}` to top of the server.")
+        else:
+            embed.add_field(name=f"{constants.SUCCESS}!",
+                            value=f"Succesfully moved Category `{cat_to_shift}` to just below Category `{cat_shifting_to}`")
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()

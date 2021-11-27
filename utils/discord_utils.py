@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands.errors import ChannelNotFound
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import constants
 from modules.solved import solved_constants
 
@@ -51,13 +51,15 @@ def create_no_argument_embed(arg_name: str ='argument') -> discord.Embed:
     return embed
 
 
-async def find_category(ctx: commands.Context, category_name: str) -> discord.CategoryChannel:
+async def find_category(ctx: commands.Context, category_name: Union[discord.CategoryChannel, str]) -> discord.CategoryChannel:
     """Uses discord.py's CategoryChannelConverter to convert the name to a discord CategoryChannel
     Arguments:
         - ctx (discord.ext.commands.Context): The command's context
         - category_name (str): The name of the category
     Returns:
         - category (discord.CategoryChannel): the category or None if not found"""
+    if(isinstance(category_name,discord.CategoryChannel)) or category_name is None:
+        return category_name
     try:
         category = await commands.CategoryChannelConverter().convert(ctx, category_name)
     except ChannelNotFound:

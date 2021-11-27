@@ -156,8 +156,9 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~stats`
         """
         logging_utils.log_command("stats", ctx.guild, ctx.channel, ctx.author)
-        guild = ctx.guild
         embed = discord_utils.create_embed()
+        
+        guild = ctx.guild
         embed.add_field(name="Members",
                         value=f"{guild.member_count}")
         embed.add_field(name="Roles",
@@ -174,14 +175,25 @@ class DiscordCog(commands.Cog, name="Discord"):
         await ctx.send(embed=embed)
 
     @commands.command(name="catstats")
-    async def catstats(self, ctx):
+    async def catstats(self, ctx, cat_name: str = ""):
         """Get category stats
 
         Usage: `~catstats` (current category)
         """
         logging_utils.log_command("catstats", ctx.guild, ctx.channel, ctx.author)
-        cat = ctx.message.channel.category
         embed = discord_utils.create_embed()
+        
+        if(cat_name==""):
+            cat = ctx.message.channel.category
+        else:
+            cat = await discord_utils.find_category(ctx, cat_name)
+
+        if cat is None:
+            embed.add_field(name=f"{constants.FAILED}",
+                            value=f"I cannot find category `{cat_name}`. Perhaps check your spelling and try again.")
+            await ctx.send(embed=embed)
+            return
+
         embed.add_field(name="Category Name",
                         value=f"{cat.name}")
         embed.add_field(name="Text Channels",
