@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import constants
+from utils import discord_utils
 
 
 class HelpCommand(commands.MinimalHelpCommand):
@@ -19,7 +20,8 @@ class HelpCommand(commands.MinimalHelpCommand):
     async def send_bot_help(self, mapping: dict):
         """implements bot command help page"""
         prefix = self.clean_prefix
-        embed = discord.Embed(title="Bot Commands", colour=constants.EMBED_COLOR)
+        embed = discord_utils.create_embed()
+        embed.title = "Bot Commands"
         embed.set_author(
             name=self.context.bot.user.name, icon_url=self.context.bot.user.avatar_url
         )
@@ -46,9 +48,11 @@ class HelpCommand(commands.MinimalHelpCommand):
 
     async def send_cog_help(self, cog: commands.Cog):
         """implements cog help page"""
-        embed = discord.Embed(
-            title=f"{cog.qualified_name} Commands", colour=constants.EMBED_COLOR
-        )
+        embed = discord_utils.create_embed()
+        embed.title = f"{cog.qualified_name} Commands"
+        #embed = discord.Embed(
+        #    title=f"{cog.qualified_name} Commands", colour=constants.EMBED_COLOR
+        #)
         if cog.description:
             embed.description = cog.description
 
@@ -65,7 +69,8 @@ class HelpCommand(commands.MinimalHelpCommand):
 
     async def send_group_help(self, group: commands.Group):
         """implements group help page and command help page"""
-        embed = discord.Embed(title=group.qualified_name, colour=constants.EMBED_COLOR)
+        embed = discord_utils.create_embed()
+        embed.title= group.qualified_name
         if group.help:
             embed.description = group.help
 

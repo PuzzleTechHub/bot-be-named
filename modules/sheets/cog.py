@@ -205,8 +205,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await new_chan.send(embed=embed_or_none)
 
         if text_to_pin:
-            embed = discord.Embed(description=text_to_pin,
-                                  color=constants.EMBED_COLOR)
+            embed = discord_utils.create_embed()
+            embed.description = text_to_pin
             msg = await new_chan.send(embed=embed)
             # Pin message in the new channel
             embed_or_none = await discord_utils.pin_message(msg)

@@ -217,8 +217,8 @@ class MiscCog(commands.Cog, name="Misc"):
             return
 
         try:
-            sent_embed = discord.Embed(description=message,
-                                  color=constants.EMBED_COLOR)
+            sent_embed = discord_utils.create_embed()
+            sent_embed.description = message
             await channel.send(embed=sent_embed)
         except discord.Forbidden:
             embed.add_field(name=f"{constants.FAILED}!",
