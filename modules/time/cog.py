@@ -24,17 +24,15 @@ class TimeCog(commands.Cog, name="Time"):
         Usage: `~countdown September 22, 2021 9:00pm EDT`
         """
         logging_utils.log_command("countdown", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         if len(args) < 1:
-            embed = discord_utils.create_no_argument_embed("time")
             await ctx.send(embed=embed)
             return
 
         user_time = time_utils.parse_date(" ".join(args))
 
-
         if user_time is None:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Is {' '.join(args)} a valid time?",
                             inline=False)
@@ -42,11 +40,10 @@ class TimeCog(commands.Cog, name="Time"):
             return
 
         unix_time = int(datetime.timestamp(user_time))
-        embed = discord.Embed(title=f"{' '.join(args)}",
-                              description=f"<t:{unix_time}:f>\n"
-                                          f"`<t:{unix_time}:R>` - <t:{unix_time}:R>\n\n"
-                                          f"[Guide to format](https://discord.com/developers/docs/reference#message-formatting-formats)",
-                              color=constants.EMBED_COLOR)
+        embed.add_field(name=f"{' '.join(args)}", 
+                        value=f"<t:{unix_time}:f>\n"
+                              f"`<t:{unix_time}:R>` - <t:{unix_time}:R>\n\n"
+                              f"[Guide to format](https://discord.com/developers/docs/reference#message-formatting-formats)")
         await ctx.send(embed=embed)
 
     @commands.command(name="time")
@@ -56,6 +53,8 @@ class TimeCog(commands.Cog, name="Time"):
         Usage: `~time Mumbai`
         """
         logging_utils.log_command("time", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         # No location provided
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("location")
@@ -67,7 +66,6 @@ class TimeCog(commands.Cog, name="Time"):
         timezone_dict = self.get_tz(location)
         # Unable to find the location in the geonames database
         if timezone_dict is None:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}", value=f"Cannot find {location}!", inline=False)
             await ctx.send(embed=embed)
             return

@@ -189,7 +189,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Usage: `~shiftchan 0` (Shifts the current channel to top of category)
         """
         logging_utils.log_command("shiftchannel", ctx.guild, ctx.channel, ctx.author)
-        embed = discord.Embed(description="", color=constants.EMBED_COLOR)
+        embed = discord_utils.create_embed()
 
         pos_to_shift_to = -1
         chan_to_shift = None
@@ -295,6 +295,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Usage: `~synccat`
         """
         logging_utils.log_command("synccategory", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
         
         category = ctx.channel.category
         
@@ -312,7 +313,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         except discord.Forbidden:
             if start_msg:
                 await start_msg.delete()
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Forbidden! Have you checked if the bot has the required permisisons?")
             # reply to user
@@ -321,7 +321,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         if start_msg:
             await start_msg.delete()
-        embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}!",
                         value=f"All channels in category `{category.name}` successfully synced to Category!")
         await ctx.send(embed=embed)
@@ -340,7 +339,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Usage: `~shiftcat 'top'` (Shifts the current category to the top)
         """
         logging_utils.log_command("shiftcategory", ctx.guild, ctx.channel, ctx.author)
-        embed = discord.Embed(description="", color=constants.EMBED_COLOR)
+        embed = discord_utils.create_embed()
 
         pos_to_shift_to = -1
         cat_to_shift_name = None
@@ -415,7 +414,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Usage: `~clonecategory 'Category A' 'Category B' @RoleC @RoleD` (Clones Cat A as Cat B. Takes RoleC permission on Cat A, and replicates it with RoleD and Cat B)
         """
         logging_utils.log_command("clonecategory", ctx.guild, ctx.channel, ctx.author)
-        embed = discord.Embed(description="", color=constants.EMBED_COLOR)
+        embed = discord_utils.create_embed()
 
         # Input parsing I guess
         # First, make sure origCat exists
@@ -510,8 +509,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Usage: `~listcat`
         """
         logging_utils.log_command("listcategories", ctx.guild, ctx.channel, ctx.author)
-        categories = [f"{cat.name}         : {len(cat.channels)}" for cat in ctx.guild.categories]
         embed = discord_utils.create_embed()
+
+        categories = [f"{cat.name}         : {len(cat.channels)}" for cat in ctx.guild.categories]
         embed.add_field(name=f"Categories in {ctx.guild.name}",
                         value=f"{chr(10).join(categories)}")
         await ctx.send(embed=embed)
@@ -526,6 +526,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Usage: `~categorysort`
         """
         logging_utils.log_command("categorysort", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         channel_list = discord_utils.sort_channels_util(ctx.channel.category.text_channels)
 
@@ -544,7 +545,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             except discord.Forbidden:
                 if start_embed_msg:
                     await start_embed_msg.delete()
-                embed = discord_utils.create_embed()
                 embed.add_field(name=f"{constants.FAILED}!",
                                 value=f"Unable to sort `{channel.mention}`. Do I have the correct `manage_channel` positions?")
                 await ctx.send(embed=embed)
@@ -552,7 +552,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         
         if start_embed_msg:
             await start_embed_msg.delete()
-        embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}!",
                         value=f"Sorted the channels in `{ctx.channel.category}`!")
         await ctx.send(embed=embed)

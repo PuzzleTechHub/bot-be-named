@@ -65,6 +65,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
     def get_file_and_embed(self, channel, filesize_limit, zip_file, zip_file_size, textfile, textfile_size):
         """Check if zipfile and textfile can be sent or not, create embed with message"""
         embed = discord_utils.create_embed()
+
         if zip_file_size > filesize_limit:
             if textfile_size > filesize_limit:
                 embed.add_field(name="ERROR: History Too Big",
@@ -101,6 +102,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
         """
         # TODO: Need error handling for asking a channel we don't have access to or invalid channel name
         logging_utils.log_command("archivechannel", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         # Check if the user supplied a channel
         if len(args) < 1:
             # No arguments provided
@@ -126,14 +129,12 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         # Convert channel from string to discord.TextChannel
                         channel = await commands.TextChannelConverter().convert(ctx, channelname)
                     except ChannelNotFound:
-                        embed = discord_utils.create_embed()
                         embed.add_field(name="ERROR: Cannot find channel",
                                         value=f"Sorry, I cannot find a channel with name {channelname}. Try mentioning the channel (e.g. `#{channelname}`)",
                                         inline=False)
                         await ctx.send(embed=embed)
                         return
                     if not channel.type.name == 'text':
-                        embed = discord_utils.create_embed()
                         embed.add_field(name="ERROR: Cannot archive non-text channels",
                                         value=f"Sorry! I can only archive text channels, but "
                                               f"{channel} is a {channel.type} channel.",
@@ -147,7 +148,6 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     # zipfile, textfile
                     zip_file, zip_file_size, textfile, textfile_size = await self.archive_one_channel(channel)
                 except discord.errors.Forbidden:
-                    embed = discord_utils.create_embed()
                     embed.add_field(name="ERROR: No access",
                                     value=f"Sorry! I don't have access to {channel}. You'll need "
                                            f"to give me permission to view the channel if you want "
@@ -166,7 +166,6 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 try:
                     await ctx.send(file=file, embed=embed)
                 except RuntimeError:
-                    embed = discord_utils.create_embed()
                     embed.add_field(name="ERROR: Failed to send archive",
                                     value=f"Sorry! I had trouble sending you the archived file for "
                                           f"{channel.mention}. Please try again later, and let kev know if this "
@@ -189,6 +188,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         Usage: `~archivecategory category name`
         """
         logging_utils.log_command("archivecategory", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         # Check if the user supplied a category
         if len(args) < 1:
@@ -207,7 +207,6 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 msg = None
             category = await discord_utils.find_category(ctx, " ".join(args))
             if category is None:
-                embed = discord_utils.create_embed()
                 embed.add_field(name="ERROR: Cannot find category",
                                 value=f"Sorry, I cannot find a category with name {' '.join(args)}. "
                                       f"Please make sure the spelling and capitalization are correct!",
@@ -234,7 +233,6 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                                           textfile_size)
                     await ctx.send(file=file, embed=embed)
                 except discord.errors.Forbidden:
-                    embed = discord_utils.create_embed()
                     embed.add_field(name="ERROR: No access",
                                     value=f"Sorry! I don't have access to {text_channel.mention}. You'll need "
                                           f"to give me permission to view the channel if you want "
@@ -275,6 +273,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
         Usage: `~archiveserver`
         """
         logging_utils.log_command("archiveserver", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         # If we don't have the lock, let the user know it may take a while.
         msg = None
         if self.lock.locked():
@@ -304,7 +304,6 @@ class ArchiveCog(commands.Cog, name="Archive"):
                                                           textfile_size)
                     await ctx.send(file=file, embed=embed)
                 except discord.errors.Forbidden:
-                    embed = discord_utils.create_embed()
                     embed.add_field(name="ERROR: No access",
                                     value=f"Sorry! I don't have access to {text_channel.mention}. You'll need "
                                           f"to give me permission to view the channel if you want "

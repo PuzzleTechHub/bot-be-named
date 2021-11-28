@@ -111,6 +111,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         Usage: `~assignrole "RoleName" @User1`
         """
         logging_utils.log_command("unassignrole", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         role_to_unassign = None
         if(isinstance(rolename, str)):
@@ -122,7 +123,6 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         else:
             role_to_unassign=rolename
 
-        embed = discord_utils.create_embed()
         if not role_to_unassign:
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
@@ -264,8 +264,8 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         Usage: `~deleterole @RoleMention`
         """
         logging_utils.log_command("deleterole", ctx.guild, ctx.channel, ctx.author)
-
         embed = discord_utils.create_embed()
+
         role_to_delete = None
         if isinstance(rolename, discord.Role):
             role_to_delete = rolename
@@ -306,11 +306,12 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         Usage:`~listroles`
         """
         logging_utils.log_command("listroles", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         roles = await ctx.guild.fetch_roles()
         roles.sort(key=lambda x:x.position, reverse=True)
-        embed = discord.Embed(title=f"Roles in {ctx.guild.name}",
-                              description=f"{', '.join([role.mention for role in roles])}",
-                              color = constants.EMBED_COLOR)
+        embed.add_field(name=f"Roles in {ctx.guild.name}",
+                        value=f"{', '.join([role.mention for role in roles])}")
         await ctx.send(embed=embed)
 
 def setup(bot):

@@ -95,12 +95,13 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: (as a reply to pinned message) `~unpin`
         """
         logging_utils.log_command("unpin", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         if num_to_unpin < 1 or not isinstance(num_to_unpin, int):
             embed = discord_utils.create_no_argument_embed("number of messages to unpin")
             await ctx.send(embed=embed)
             return
 
-        embed = discord_utils.create_embed()
         pins = await ctx.message.channel.pins()
         messages_to_unpin = []
         strmsg = ""
@@ -215,8 +216,9 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~listemojis`
         """
         logging_utils.log_command("listemoji", ctx.guild, ctx.channel, ctx.author)
-        embed = discord.Embed(title=f"Emoji in {ctx.guild.name}",
-                              description=f"{chr(10).join([f'{emoji} {emoji.name} {emoji.id}' for emoji in ctx.guild.emojis])}")
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"Emoji in {ctx.guild.name}",
+                        value=f"{chr(10).join([f'{emoji} {emoji.name} {emoji.id}' for emoji in ctx.guild.emojis])}")
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
@@ -229,6 +231,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         """
         logging_utils.log_command("steal", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
+
         for emoji in emojis:
             url = str(emoji.url)
             name = emoji.name

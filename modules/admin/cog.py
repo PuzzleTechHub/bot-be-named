@@ -26,6 +26,7 @@ class AdminCog(commands.Cog, name="Admin"):
         """
 
         logging_utils.log_command("addverified", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         if role_category not in database_utils.VERIFIED_CATEGORIES:
             embed = discord_utils.create_embed()
@@ -78,7 +79,6 @@ class AdminCog(commands.Cog, name="Admin"):
         else:
             database_utils.VERIFIEDS[ctx.guild.id] = [role_to_assign.id]
 
-        embed = discord_utils.create_embed()
         embed.add_field(name=constants.SUCCESS,
                         value=f"Added the role {role_to_assign.mention} for this server set to {role_category}",
                         inline=False)
@@ -93,16 +93,14 @@ class AdminCog(commands.Cog, name="Admin"):
         Usage: `~listverifieds`
         """
         logging_utils.log_command("lsverifieds", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         if ctx.guild.id in database_utils.VERIFIEDS and len(database_utils.VERIFIEDS[ctx.guild.id]) > 0:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"Verifieds for {ctx.guild.name}",
                             value=f"{' '.join([ctx.guild.get_role(verified).mention for verified in database_utils.VERIFIEDS[ctx.guild.id]])}")
         else:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"No verified roles for {ctx.guild.name}",
                             value="Set up verified roles with `{ctx.prefix}addverified`")
-            
         await ctx.send(embed=embed)
 
     @command_predicates.is_owner_or_admin()
@@ -113,6 +111,7 @@ class AdminCog(commands.Cog, name="Admin"):
         Category : Admin or Bot Owner Roles only.
         Usage: `~rmverified @Verified`"""
         logging_utils.log_command("rmverified", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         role_to_remove = None
         # Get role. Allow people to use the command by pinging the role, or just naming it
@@ -126,7 +125,6 @@ class AdminCog(commands.Cog, name="Admin"):
                     role_to_remove = role
                     break
             if not role_to_remove:
-                embed = discord_utils.create_embed()
                 embed.add_field(name=f"{constants.FAILED}",
                                 value=f"Sorry, I can't find role {rolename}.")
                 await ctx.send(embed=embed)
@@ -135,7 +133,6 @@ class AdminCog(commands.Cog, name="Admin"):
         with Session(database_utils.DATABASE_ENGINE) as session:
             result = session.query(database_utils.Verifieds).filter_by(server_id=ctx.guild.id, role_id=role_to_remove.id).all()
             if result is None:
-                embed = discord_utils.create_embed()
                 embed.add_field(name=f"{constants.FAILED}",
                                 value=f"Role {role_to_remove.mention} is not verified in {ctx.guild.name}")
                 await ctx.send(embed=embed)
@@ -147,7 +144,6 @@ class AdminCog(commands.Cog, name="Admin"):
         
         database_utils.VERIFIEDS[ctx.guild.id].pop(database_utils.VERIFIEDS[ctx.guild.id].index(role_to_remove.id))
 
-        embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}",
                         value=f"Removed {role_to_remove.mention} from Verifieds in {ctx.guild.name}")
         await ctx.send(embed=embed)
@@ -161,13 +157,13 @@ class AdminCog(commands.Cog, name="Admin"):
         Usage: `~setprefix !`
         """
         logging_utils.log_command("setprefix", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         with Session(database_utils.DATABASE_ENGINE) as session:
             session.query(database_utils.Prefixes).filter_by(server_id=ctx.guild.id).\
                 update({"prefix": prefix})
             session.commit()
         database_utils.PREFIXES[ctx.message.guild.id] = prefix
-        embed = discord_utils.create_embed()
         embed.add_field(name=constants.SUCCESS,
                         value=f"Prefix for this server set to {prefix}",
                         inline=False)
@@ -181,8 +177,8 @@ class AdminCog(commands.Cog, name="Admin"):
         Category : Admin or Bot Owner Roles only.
         Usage: `~reloaddatabasecache`"""
         logging_utils.log_command("reloaddatabasecache", ctx.guild, ctx.channel, ctx.author)
-
         embed = discord_utils.create_embed()
+
         # Reset custom commands, verifieds, and prefixes for that server
         database_utils.CUSTOM_COMMANDS[ctx.guild.id] = {}
         database_utils.VERIFIEDS[ctx.guild.id] = []

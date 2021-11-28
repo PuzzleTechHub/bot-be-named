@@ -26,6 +26,7 @@ class MiscCog(commands.Cog, name="Misc"):
         """
         logging_utils.log_command("emoji", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
+
         emoji = None
 
         try:
@@ -70,6 +71,7 @@ class MiscCog(commands.Cog, name="Misc"):
         """
         logging_utils.log_command("about", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
+
         emoji = None
         owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
 
@@ -93,6 +95,7 @@ class MiscCog(commands.Cog, name="Misc"):
         """
         logging_utils.log_command("startup", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
+
         emoji = None
         owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
 
@@ -153,13 +156,13 @@ class MiscCog(commands.Cog, name="Misc"):
         Usage: `~botsay #channelmention Longer Message`
         """
         logging_utils.log_command("botsay", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Message")
             await ctx.send(embed=embed)
             return
 
-        embed = discord_utils.create_embed()
         message = " ".join(args)
         guild = ctx.message.guild
 
@@ -195,6 +198,7 @@ class MiscCog(commands.Cog, name="Misc"):
         Usage: `~botsayembed #channelmention Longer Message`
         """
         logging_utils.log_command("botsayembed", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Message")
@@ -207,7 +211,6 @@ class MiscCog(commands.Cog, name="Misc"):
         try:
             channel = await commands.TextChannelConverter().convert(ctx, channel_id_or_name)
         except ValueError:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Error! The channel `{channel_id_or_name}` was not found")
             await ctx.send(embed=embed)
@@ -218,7 +221,6 @@ class MiscCog(commands.Cog, name="Misc"):
                                   color=constants.EMBED_COLOR)
             await channel.send(embed=sent_embed)
         except discord.Forbidden:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
                                   f"the bot has the required permisisons?")

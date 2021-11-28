@@ -59,8 +59,8 @@ class SolvedCog(commands.Cog):
         """
         # log command in console
         logging_utils.log_command("solved", ctx.guild, ctx.channel, ctx.author)
-
         embed = discord_utils.create_embed()
+
         new_channel_name = self.add_prefix(ctx.channel, solved_constants.SOLVED_PREFIX)
         if new_channel_name:
             try:
@@ -89,8 +89,9 @@ class SolvedCog(commands.Cog):
         """
         # log command in console
         logging_utils.log_command("solvedish", ctx.guild, ctx.channel, ctx.author)
-        channel = ctx.message.channel
         embed = discord_utils.create_embed()
+
+        channel = ctx.message.channel
         new_channel_name = self.add_prefix(ctx.message.channel, solved_constants.SOLVEDISH_PREFIX)
         if new_channel_name:
             await channel.edit(name=new_channel_name)
@@ -114,8 +115,9 @@ class SolvedCog(commands.Cog):
         """
         # log command in console
         logging_utils.log_command("backsolved", ctx.guild, ctx.channel, ctx.author)
-        channel = ctx.message.channel
         embed = discord_utils.create_embed()
+
+        channel = ctx.message.channel
         new_channel_name = self.add_prefix(channel, solved_constants.BACKSOLVED_PREFIX)
         if new_channel_name:
             await channel.edit(name=new_channel_name)
@@ -138,8 +140,9 @@ class SolvedCog(commands.Cog):
         """
         # log command in console
         logging_utils.log_command("unsolved", ctx.guild, ctx.channel, ctx.author)
-        channel = ctx.message.channel
         embed = discord_utils.create_embed()
+
+        channel = ctx.message.channel
         for prefix in solved_constants.PREFIXES:
             new_channel_name = self.remove_prefix(ctx.message.channel, prefix)
             if new_channel_name:
@@ -164,6 +167,7 @@ class SolvedCog(commands.Cog):
         Usage: `~movetoarchive`
         """
         logging_utils.log_command("movetoarchive", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         # Find category with same name + Archive (or select combinations)
         archive_category = await discord_utils.find_category(ctx, f"{ctx.channel.category.name} Archive") or \
@@ -171,7 +175,6 @@ class SolvedCog(commands.Cog):
                            await discord_utils.find_category(ctx, f"{ctx.channel.category.name} archive")
 
         if archive_category is None:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"There is no category named `{ctx.channel.category.name} Archive` or "
                                   f"`Archive: {ctx.channel.category.name}`, so I cannot move {ctx.channel.mention}.")
@@ -179,7 +182,6 @@ class SolvedCog(commands.Cog):
             return
 
         if discord_utils.category_is_full(archive_category):
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"`{archive_category}` is already full, max limit is 50 channels. Consider renaming"
                                   f" `{archive_category}` and creating a new `{archive_category}`.")
@@ -191,14 +193,12 @@ class SolvedCog(commands.Cog):
             await ctx.channel.edit(category=archive_category)
             await ctx.channel.edit(position=1)
         except discord.Forbidden:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Can you check my permissions? I can't seem to be able to move "
                                   f"{ctx.channel.mention} to `{archive_category.name}`")
             await ctx.send(embed=embed)
             return
 
-        embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}!",
                         value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`")
         await ctx.send(embed=embed)

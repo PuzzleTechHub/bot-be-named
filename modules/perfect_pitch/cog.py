@@ -20,8 +20,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         Usage: `~playtunehelp`
         """
         logging_utils.log_command("playtunehelp", ctx.guild, ctx.channel, ctx.author)
-
         embed = discord_utils.create_embed()
+
         embed.add_field(name=f"Playtune Help",
                         value=f"Welcome to Playtune, the bot command to play musical notes of your choice!"
                               f"\n\nJust use `{ctx.prefix}playtune` followed by the notes you want to play. "
@@ -53,8 +53,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         Usage: `~playtunecustom`
         """
         logging_utils.log_command("playtunecustom", ctx.guild, ctx.channel, ctx.author)
-
         embed = discord_utils.create_embed()
+
         embed.add_field(name=f"Playtune Customizing",
                         value=f"Here are some of the ways you can customise playtune to get exactly what you want!"
                               f"\nFor a description of playtune itself, use `{ctx.prefix}playtunehelp`!",
@@ -95,6 +95,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         """
         logging_utils.log_command("playtuneinstrument", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
+
         embed.add_field(name="Instruments and Ranges (Low/High)",
                         value=f"{perfect_pitch_constants.PIANO}: B0/C8\n{perfect_pitch_constants.XYLOPHONE}:F4/C8\n"
                               f"{perfect_pitch_constants.MARIMBA}: C2/C7")
@@ -108,6 +109,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         """
         logging_utils.log_command("playtunelength", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
+
         embed.add_field(name="Note Lengths",
                         value="`w`: whole note (4 beats)\n"
                               "`hd`: dotted half note (3 beats)\n"
@@ -132,8 +134,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         Usage: `~playtunesample`
         """
         logging_utils.log_command("playtunesample", ctx.guild, ctx.channel, ctx.author)
-
         embed = discord_utils.create_embed()
+
         embed.add_field(name=f"Sample 1",
                         value=f"`{ctx.prefix}playtune m=1 o=4 Ce Ce Cs Cs Ce Cs Cs Ee Cs Cs Ce Ee Ee Es Es Ee Es "
                         "Es Ge Es Es E De Ds Ds De Ds Ds Ds Ds De Re De De Ds Ds Ds De Ds D Ds Ged Ahd As Bed Ehd "
@@ -159,6 +161,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         Usage: `~playtune meter=1 octave=5 C D E F`(for example)
         """
         logging_utils.log_command("playtune", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         tune_dir = os.path.join(os.getcwd(), constants.MODULES_DIR, perfect_pitch_constants.PERFECT_PITCH_DIR,
                                 perfect_pitch_constants.MUSIC, perfect_pitch_constants.TUNES, ctx.channel.name)
         # If the channel does not have a directory for them yet, create one
@@ -174,7 +178,6 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         try:
             await ctx.send(file=discord.File(output_path, filename="tune.mp3"))
         except FileNotFoundError:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"Sorry, we had a problem creating your tune! Check out `{ctx.prefix}playtunehelp` "
                                   f"to see how to use the command, or try: "
@@ -207,6 +210,8 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         Usage: `~note Gb4`
         """
         logging_utils.log_command("note", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         # User-selected parameters for which notes will appear
         octave = None
         flat_or_nat = ''
@@ -234,7 +239,6 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
                 flat_or_nat = arg
 
         if octave is not None and (octave < 0 or octave > 7):
-            embed = discord_utils.create_embed()
             embed.add_field(name="Failed!",
                             value="Make sure your octave value is between 0 and 7!")
             await ctx.send(embed=embed)

@@ -36,6 +36,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Usage : `~tether SheetLink`
         """
         logging_utils.log_command("addsheettether", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         # Get category information
         curr_cat = ctx.message.channel.category.name
@@ -45,7 +46,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         proposed_sheet = self.addsheettethergeneric(sheet_key_or_link, curr_guild, curr_cat, curr_cat_id)
 
         if proposed_sheet:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.SUCCESS}!",
                             value=f"The category **{curr_cat}** is now tethered to the "
                                   f"[Google sheet at link]({proposed_sheet.url})",
@@ -53,7 +53,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
         # If we can't open the sheet, send an error and return
         else:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Sorry, we can't find a sheet there. "
                                   f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
@@ -78,6 +77,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Usage : `~chantether SheetLink`
         """
         logging_utils.log_command("addchannelsheettether", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         # Get channel information
         curr_chan = ctx.message.channel
@@ -87,7 +87,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         proposed_sheet = self.addsheettethergeneric(sheet_key_or_link, curr_guild, str(curr_chan), curr_chan_id)
 
         if proposed_sheet:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.SUCCESS}",
                             value=f"The channel {curr_chan.mention} is now tethered to the "
                                   f"[Google sheet at link]({proposed_sheet.url})",
@@ -95,7 +94,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
         # If we can't open the sheet, send an error and return
         else:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Sorry, we can't find a sheet there. "
                                   f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
@@ -115,6 +113,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Usage : `~removetether`
         """
         logging_utils.log_command("removesheettether", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         # Get category and channel information
         curr_cat = ctx.message.channel.category.name
         curr_cat_id = str(ctx.message.channel.category_id)
@@ -127,7 +127,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         if curr_chan_or_cat_cell:
             curr_sheet_link = self.category_tether_tab.cell(curr_chan_or_cat_cell.row, curr_chan_or_cat_cell.col + 2).value
             self.category_tether_tab.delete_row(curr_chan_or_cat_cell.row)
-            embed = discord_utils.create_embed()
             if tether_type == sheets_constants.CHANNEL:
                 embed.add_field(name=f"{constants.SUCCESS}",
                                 value=f"{ctx.channel.mention}'s tether to [sheet]({curr_sheet_link}) has been removed!",
@@ -143,7 +142,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
                                 inline=False)
             await ctx.send(embed=embed)
         else:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"The category **{curr_cat}** or the channel {curr_chan.mention} "
                                   f"are not tethered to any Google sheet.",
@@ -162,11 +160,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Usage : `~sheetcrab PuzzleName`
         Usage : `~sheetcrab PuzzleName linktopuzzle`
         """
-
         logging_utils.log_command("channelsheetcreatetab", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         # Cannot make a new channel if the category is full
         if discord_utils.category_is_full(ctx.channel.category):
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.")
             # reply to user
@@ -232,6 +230,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Usage : `~showtether`
         """
         logging_utils.log_command("displaysheettether", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         # Get category information
         curr_cat = str(ctx.message.channel.category)
         curr_cat_id = str(ctx.message.channel.category_id)
@@ -242,7 +242,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         if curr_chan_cell:
             curr_sheet_link = self.category_tether_tab.cell(curr_chan_cell.row, curr_chan_cell.col + 2).value
-            embed = discord_utils.create_embed()
             if tether_type == sheets_constants.CHANNEL:
                 embed.add_field(name=f"Result",
                                 value=f"The channel {curr_chan.mention} is currently tethered to the "
@@ -260,7 +259,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
                                 inline=False)
             await ctx.send(embed=embed)
         else:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"Neither the category **{curr_cat}** nor the channel {curr_chan.mention} "
                                   f"are tethered to any Google sheet.",
@@ -279,6 +277,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Usage : `~sheettab TabName`
         """
         logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         curr_chan = ctx.message.channel
         curr_cat = ctx.message.channel.category
@@ -291,7 +290,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         # This link is customized for the newly made tab
         final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
 
-        embed = discord_utils.create_embed()
         embed.add_field(name=f"{constants.SUCCESS}!",
                          value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
                          inline=False)
@@ -312,13 +310,14 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Usage: `~savesheet`
         """
         logging_utils.log_command("downloadsheet", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         http = self.gdrive_credentials.authorize(httplib2.Http())
         service = discovery.build('drive', 'v3', http=http)
 
         if sheet_url is None:
             tether_cell, _ = self.findsheettether(str(ctx.channel.id), str(ctx.channel.category.id))
             if tether_cell is None:
-                embed = discord_utils.create_embed()
                 embed.add_field(name=f"{constants.FAILED}",
                                 value=f"There is no sheet tethered to {ctx.channel.mention} or the " 
                                       f"**{ctx.channel.category.name}** category. You'll need to supply a sheet link "
@@ -329,7 +328,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         sheet = self.get_sheet_from_key_or_link(sheet_url)
         if sheet is None:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value="I can't find that sheet. Are you sure the link is a valid sheet with permissions set to "
                                     "'Anyone with the link can edit'?",
@@ -341,7 +339,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
             request = service.files().export_media(fileId=sheet.id, mimeType=sheets_constants.MIMETYPE)
             response = request.execute()
         except googleapiclient.errors.HttpError:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"Sorry, your sheet is too large and cannot be downloaded.",
                             inline=False)
@@ -434,6 +431,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     async def sheetcreatetabgeneric(self, ctx, curr_chan, curr_cat, tab_name):
         """Actually creates the sheet and handles errors"""
+        embed = discord_utils.create_embed()
         curr_sheet_link = None
         newsheet = None
 
