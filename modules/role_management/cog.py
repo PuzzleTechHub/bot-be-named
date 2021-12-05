@@ -80,15 +80,20 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                                 inline=False)
                 continue
             # Assign the role
-            try:
-                await user.add_roles(role_to_assign)
-                users_with_role_list.append(user)
-            except discord.Forbidden:
+            if role_to_assign in user.roles:
                 embed.add_field(name="Error Assigning Role!",
-                                value=f"I could not assign {role_to_assign.mention} to `{user}`. Either this role is "
-                                      f"too high up on the roles list for them, or I do not have permissions to give "
-                                      f"them this role. Please ensure I have the `manage_roles` permission.",
-                                inline=False)
+                            value=f"{user.mention} already has {role_to_assign.mention} role. No need to assign.",
+                            inline=False)
+            else:
+                try:
+                    await user.add_roles(role_to_assign)
+                    users_with_role_list.append(user)
+                except discord.Forbidden:
+                    embed.add_field(name="Error Assigning Role!",
+                                    value=f"I could not assign {role_to_assign.mention} to `{user}`. Either this role is "
+                                          f"too high up on the roles list for them, or I do not have permissions to give "
+                                          f"them this role. Please ensure I have the `manage_roles` permission.",
+                                    inline=False)
         if len(users_with_role_list) < 1:
             embed.insert_field_at(0,
                                   name="Complete!",
@@ -143,7 +148,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                 user = unclean_username
             else:
                 embed.add_field(name="Error Finding User!",
-                                value=f"Could not find user `{unclean_username}`. Did you ping them? I won't accept raw usernames",
+                                value=f"Could not find user `{unclean_username}`. Perhaps check your spelling or try mentioning the user instead.",
                                 inline=False)
                 continue
 
