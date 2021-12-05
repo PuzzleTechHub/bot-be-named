@@ -66,11 +66,13 @@ class DiscordCog(commands.Cog, name="Discord"):
         """Lists all the pinned posts in the current channel
 
         Category : Verified Roles only.
-        Usage: `~listpins~`"""
+        Usage: `~listpins~`
+        """
+        
         logging_utils.log_command("listpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
-        pins = await ctx.message.channel.pins()
         
+        pins = await ctx.message.channel.pins()
         strmsg = ""
         i = 1
         for pin in pins:
@@ -92,7 +94,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         Category : Verified Roles only.
         Usage: `~unpin 2` (unpins latest 2 pins)
-        Usage: (as a reply to pinned message) `~unpin`
+        Usage: `~unpin` (as a reply to pinned message)
         """
         logging_utils.log_command("unpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()

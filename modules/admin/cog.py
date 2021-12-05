@@ -109,7 +109,8 @@ class AdminCog(commands.Cog, name="Admin"):
         """Remove a role from the list of verifieds. Only available to server admins or bot owners.
         
         Category : Admin or Bot Owner Roles only.
-        Usage: `~rmverified @Verified`"""
+        Usage: `~rmverified @Verified`
+        """
         logging_utils.log_command("rmverified", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
@@ -175,7 +176,8 @@ class AdminCog(commands.Cog, name="Admin"):
         """Reloads the custom command cache. This is useful when we're editing commands or playing with the Database.
         
         Category : Admin or Bot Owner Roles only.
-        Usage: `~reloaddatabasecache`"""
+        Usage: `~reloaddatabasecache`
+        """
         logging_utils.log_command("reloaddatabasecache", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 

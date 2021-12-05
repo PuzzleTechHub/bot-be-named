@@ -185,7 +185,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         """Command to download the history of every text channel in the category
 
         Category : Admin or Bot Owner Roles only.
-        Usage: `~archivecategory category name`
+        Usage: `~archivecategory "Category name"`
         """
         logging_utils.log_command("archivecategory", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()

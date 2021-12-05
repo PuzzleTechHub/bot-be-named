@@ -113,7 +113,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
         Category : Trusted Roles only.        
         Usage: `~unassignrole @RoleName @User1 @User2`
-        Usage: `~assignrole "RoleName" @User1`
+        Usage: `~unassignrole "RoleName" @User1`
         """
         logging_utils.log_command("unassignrole", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()

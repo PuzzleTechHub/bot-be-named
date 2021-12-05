@@ -226,9 +226,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         Note : Use "0" or "top" instead to say "Top of the category". But if a channel in the server is named #top or #0 then the respective argument wont work
         Category : Verified Roles only.
-        Usage: `~shiftchan '#chana' '#chanb'` (Shifts Chan A to just below Chan B)
-        Usage: `~shiftchan 'chanb'` (Shifts the current channel to just below Chan B)
-        Usage: `~shiftchan 'chana' top` (Shifts ChanA to top of category)
+        Usage: `~shiftchan #chana #chanb` (Shifts Chan A to just below Chan B)
+        Usage: `~shiftchan "chanb"` (Shifts the current channel to just below Chan B)
+        Usage: `~shiftchan "chana" top` (Shifts ChanA to top of category)
         Usage: `~shiftchan 0` (Shifts the current channel to top of category)
         """
         logging_utils.log_command("shiftchannel", ctx.guild, ctx.channel, ctx.author)
@@ -376,10 +376,10 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Note : Use "0" or "top" instead to say "Top of the server". But if a category in the server is named "top" or "0" then the respective argument wont work
 
         Category : Verified Roles only.
-        Usage: `~shiftcat 'Category A' 'Category B'` (Shifts Cat A to just below Cat B)
-        Usage: `~shiftcat 'Category B'` (Shifts the current category to just below Category B)
-        Usage: `~shiftcat 'Category A' '0'` (Shifts Cat A to the top)
-        Usage: `~shiftcat 'top'` (Shifts the current category to the top)
+        Usage: `~shiftcat "Category A" "Category B"` (Shifts Cat A to just below Cat B)
+        Usage: `~shiftcat "Category B"` (Shifts the current category to just below Category B)
+        Usage: `~shiftcat "Category A" 0` (Shifts Cat A to the top)
+        Usage: `~shiftcat top` (Shifts the current category to the top)
         """
         logging_utils.log_command("shiftcategory", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -453,8 +453,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Create targetRole if it doesn't exist already (with same server permissions). See `~clonerole` for example.
 
         Category : Verified Roles only.
-        Usage: `~clonecategory 'Category A' 'Category B'` (Clones Cat A as Cat B)
-        Usage: `~clonecategory 'Category A' 'Category B' @RoleC @RoleD` (Clones Cat A as Cat B. Takes RoleC permission on Cat A, and replicates it with RoleD and Cat B)
+        Usage: `~clonecategory "Category A" "Category B"` (Clones Cat A as Cat B)
+        Usage: `~clonecategory "Category A" "Category B" @RoleC @RoleD` (Clones Cat A as Cat B. Takes RoleC permission on Cat A, and replicates it with RoleD and Cat B)
         """
         logging_utils.log_command("clonecategory", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -512,7 +512,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                                               colour=origRole.colour, 
                                               hoist=origRole.hoist, 
                                               mentionable=origRole.mentionable)
-                embed.description += f"\nCreated {targetRole.mention} with the same server permissions as {origRole.mention}"
+                embed.add_field(name=f"{constants.SUCCESS}",
+                                value= f"\nCreated {targetRole.mention} with the same server permissions as {origRole.mention}")
             except discord.Forbidden:
                 embed.add_field(name=f"{constants.FAILED}",
                                 value=f"I was unable to create role {targetRole}. Do I have the `manage_roles` permission?")
@@ -524,23 +525,28 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         try:
             if targetCat is None:
                 targetCat = await origCat.clone(name=targetCatName)
-                embed.description += f"\nCloned `{origCat}` as `{targetCat}`"
                 await targetCat.edit(position=origCat.position+1)
+                embed.add_field(name=f"{constants.SUCCESS}",
+                                value= f"Cloned `{origCat}` as `{targetCat}`")
+            elif origRole is None:
+                embed.add_field(name=f"{constants.SUCCESS}",
+                                value= f"Nothing to do. Category `{origCat}` and `{targetCat} already exist, and no roles were given to sync.")
+
             if origRole is not None:
                 if origRole in origCat.overwrites:
                     await targetCat.set_permissions(targetRole, overwrite=origCat.overwrites[origRole])
                     await targetCat.set_permissions(origRole, overwrite=None)
-                    embed.description += f"\nSynced {targetRole.mention}'s permissions in `{targetCat}` with " + \
-                                        f"{origRole.mention}'s in `{origCat}`"
+                    embed.add_field(name=f"{constants.SUCCESS}",
+                                    value= f"Synced {targetRole.mention}'s permissions in `{targetCat}` with {origRole.mention}'s in `{origCat}`")
                 else:
-                    embed.description += f"\n{origRole.mention} does not seem to have permission overwrites in `{origCat}`"
+                    embed.add_field(name=f"{constants.FAILED}",
+                                    value= f"{origRole.mention} does not seem to have permission overwrites in `{origCat}`")
         except discord.Forbidden:
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"I was unable to create category {targetCatName}. Do I have the `manage_channels` permission?")
             await ctx.send(embed=embed)
             return
 
-        embed.title = f"{constants.SUCCESS}"
         await ctx.send(embed=embed)
 
     @command_predicates.is_owner_or_admin()
