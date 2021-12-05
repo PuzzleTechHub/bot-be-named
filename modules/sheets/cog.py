@@ -150,17 +150,18 @@ class SheetsCog(commands.Cog, name="Sheets"):
             return
 
     @command_predicates.is_verified()
-    @commands.command(name="channelsheetcreatetab",aliases=["channelsheetcrab","cheetcrab","chancrab"])
-    async def channelsheetcreatetab(self, ctx, chan_name: str, *args):
+    @commands.command(name="channelcreatetab",aliases=["channelcrab","chancrab"])
+    async def channelcreatetab(self, ctx, chan_name: str, *args):
         """Create new channel, then a New tab on the sheet that is currently tethered to this category, then pins links to the channel, if any.
 
-        This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet. Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
+        This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet. 
+        Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
         Category : Verified Roles only.
         Usage : `~sheetcrab PuzzleName`
         Usage : `~sheetcrab PuzzleName linktopuzzle`
         """
-        logging_utils.log_command("channelsheetcreatetab", ctx.guild, ctx.channel, ctx.author)
+        logging_utils.log_command("channelcreatetab", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         # Cannot make a new channel if the category is full
@@ -271,7 +272,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
     async def sheetcreatetab(self, ctx, tab_name:str):
         """Create a New tab on the sheet that is currently tethered to this category
 
-        This requires a tethered sheet (See `~help addtether`) and a tab named "Template" on the sheet. Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
+        This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet. 
+        Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
         Category : Verified Roles only.
         Usage : `~sheettab TabName`
@@ -503,11 +505,34 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return curr_sheet_link, newsheet
 
+    def findlinkedtab(self, curr_chan_id: str, overviewtab):
+        """Find linked tab based on lion overview"""
+
+        curr_chan_or_cat_cell = None
+        tether_type = None
+        try:
+            # Search first column for the channel
+            curr_chan_or_cat_cell = overviewtab.find(curr_chan_id, in_column=1)
+            tether_type = sheets_constants.CHANNEL
+        except gspread.exceptions.CellNotFound:
+            # If there is no tether for the specific channel, check if there is one for the category.
+            try:
+                # Search first column for the category
+                curr_chan_or_cat_cell = self.category_tether_tab.find(curr_cat_id, in_column=1)
+                tether_type = sheets_constants.CATEGORY
+            except gspread.exceptions.CellNotFound:
+                pass
+
+        return curr_chan_or_cat_cell, tether_type
+
+
     ## WIP code. DO NOT USE
     async def sheetliongeneric(self, ctx, curr_chan, curr_cat, tab_name):
         """
         Part of the Lion series of improvements to sheetcrab/chancrab. 
         This function will work with Overview and create shit
+
+
         """
         curr_sheet_link = None
         newsheet = None
@@ -558,11 +583,33 @@ class SheetsCog(commands.Cog, name="Sheets"):
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
-                            value=f"The [sheet]({curr_sheet_link}) has no tab named 'Template'. "
+                            value=f"The [sheet]({curr_sheet_link}) has no tab named 'Overview'. "
                                   f"Did you forget to add one?",
                             inline=False)
             await ctx.send(embed=embed)
             return curr_sheet_link, newsheet
+
+        overviewtab = 0
+        #TODO
+
+        #Find the tethered sheet for the channel/category from the DB
+        curr_chan_or_cat_cell, tether_type = findlinkedtab(str(curr_chan.id), overviewtab)
+        
+
+        #Error if no such sheet exists
+        if curr_chan_or_cat_cell:
+            curr_sheet_link = self.category_tether_tab.cell(curr_chan_or_cat_cell.row, curr_chan_or_cat_cell.col + 2).value
+        else:
+            embed = discord_utils.create_embed()
+            embed.add_field(name=f"{constants.FAILED}",
+                            value=f"The category **{curr_cat.name}** nor the channel **{curr_chan.name}** are not "
+                                  f"tethered to any Google sheet.",
+                            inline=False)
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+
+
+        self.category_tether_tab = self.gspread_client.open_by_key(os.getenv("MASTER_SHEET_KEY")).worksheet(sheets_constants.CATEGORY_TAB)
 
         # Make sure tab_name does not exist
         try:

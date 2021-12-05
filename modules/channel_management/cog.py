@@ -20,10 +20,14 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     @command_predicates.is_verified()
     @commands.command(name="movechannel", aliases=["movechan"])
     async def movechannel(self, ctx, category_name: str, *args:Union[discord.TextChannel, str]):
-        """Command to move the current channel to category with given name
+        """Command to move channels to category with given name
 
         Category : Verified Roles only.
-        Usage: `~movechannel "Category name"`
+        Usage: `~movechannel "CatA"` (Moves current channel to CatA)
+        Usage: `~movechannel "CatA" #chan1 "chan2" "chan3"` (Moves all listed channels to CatA. Note - This does not move current channel unless listed)
+        Usage: `~movechannel "CatA" all` (Moves all channels in current category to CatA.)
+        
+        Note that channels may be mentioned or named, but a channel is named "all", then it must be mentioned to avoid issues.
         """
         logging_utils.log_command("movechannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -40,26 +44,63 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             await ctx.send(embed=embed)
             return
 
-        if discord_utils.category_is_full(new_category):
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Category `{new_category.name}` is already full, max limit is 50 channels.")
-            # reply to user
-            await ctx.send(embed=embed)
-            return
+        channelstomove = []
 
-        try:
-            # move channel
-            await ctx.channel.edit(category=new_category)
-        except discord.Forbidden:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Forbidden! Have you checked if the bot has the required permisisons?")
-            # reply to user
-            await ctx.send(embed=embed)
-            return
+        #No arg given. Move only current channel
+        if(len(args)==0):
+            channelstomove.append(channel)
+        #Only one arg given, "All". Move all channels in category
+        elif(len(args)==1 and args[0]=="all"):
+            for chan in ctx.channel.category.channels:
+                channelstomove.append(chan)
+        #One or more args given. All processed as channels.
+        else:
+            #Process as N channels then add
+            for unclean_chan in args:
+                if(isinstance(unclean_chan,discord.TextChannel)):
+                    chan = unclean_chan
+                else:
+                    embed.add_field(name="Error Finding Channel!",
+                                    value=f"Could not find channel `{unclean_chan}`. Perhaps check your spelling and try again.",
+                                    inline=False)
+                    continue
+                channelstomove.append(chan)
 
-        embed.add_field(name=f"{constants.SUCCESS}!",
-                        value=f"Moving {channel.mention} to {new_category.name}!")
-        # reply to user
+        channels_moved = []
+        for chan in channelstomove:
+            if(chan.category == new_category):
+                embed.add_field(name=f"{constants.FAILED}!",
+                                value=f"Channel {chan.mention} is already in Category `{new_category.name}`.",
+                                inline=False)
+                continue
+            if discord_utils.category_is_full(new_category):
+                embed.add_field(name=f"{constants.FAILED}!",
+                                value=f"Could not move channel {chan.mention}. Category `{new_category.name}` is already full, max limit is 50 channels.",
+                                inline=False)
+                continue
+            #Move the channels
+            try:
+                await chan.edit(category=new_category)
+                channels_moved.append(chan)
+            except discord.Forbidden:
+                embed.insert_field_at(0,
+                                name=f"{constants.FAILED}!",
+                                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                                inline=False)
+                # reply to user
+                await ctx.send(embed=embed)
+                return
+
+        if len(channels_moved) < 1:
+            embed.insert_field_at(0,
+                                  name="Complete!",
+                                  value=f"Did not move any channels to `{new_category.name}`.",
+                                  inline=False)
+        else:
+            embed.add_field(name=f"{constants.SUCCESS}!",
+                            value=f"Moved these channels to `{new_category.name}` : {', '.join([chan.mention for chan in channels_moved])}",
+                            inline=False)
+
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
@@ -69,6 +110,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         Category : Verified Roles only.
         Usage: `~renamechannel newname`
+
+        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
         # log command in console
         logging_utils.log_command("renamechannel", ctx.guild, ctx.channel, ctx.author)
@@ -125,7 +168,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="clonechannel")
+    @commands.command(name="clonechannel", aliases=["clonechan", "chanclone"])
     async def clonechannel(self, ctx, original: Union[discord.TextChannel, str], new: str):
         """Command to create channel in same category with given name
 

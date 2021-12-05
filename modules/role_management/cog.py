@@ -309,9 +309,11 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         embed = discord_utils.create_embed()
 
         roles = await ctx.guild.fetch_roles()
+        roles_sorted = sorted(roles, key=lambda x: x.position, reverse = True)
+        rolestext = f"{', '.join([role.mention for role in roles_sorted])}"
         roles.sort(key=lambda x:x.position, reverse=True)
         embed.add_field(name=f"Roles in {ctx.guild.name}",
-                        value=f"{', '.join([role.mention for role in roles])}")
+                        value=rolestext)
         await ctx.send(embed=embed)
 
 def setup(bot):

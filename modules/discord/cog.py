@@ -113,7 +113,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             orig_msg = ctx.message.reference.resolved
             #TODO - if orig_msg is DeletedReferencedMessage
             if not orig_msg.pinned:
-                embed.add_field(name="{constants.FAILED}!",
+                embed.add_field(name=f"{constants.FAILED}!",
                                 value=f"The linked message [Msg]({orig_msg.jump_url}) has not been pinned, there's nothing to unpin.",
                                 inline=False)
                 await ctx.send(embed=embed)
@@ -134,7 +134,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                 strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
                 i=i+1
             except discord.Forbidden:
-                embed.add_field(name="{constants.FAILED}!",
+                embed.add_field(name=f"{constants.FAILED}!",
                                 value=f"I do not have permissions to unpin that message. Please check my perms and try again?",
                                 inline=False)
                 await ctx.send(embed=embed)

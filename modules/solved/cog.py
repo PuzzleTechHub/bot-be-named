@@ -56,6 +56,8 @@ class SolvedCog(commands.Cog):
 
         Category : Verified Roles only.
         Usage: `~solved`
+
+        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
         # log command in console
         logging_utils.log_command("solved", ctx.guild, ctx.channel, ctx.author)
@@ -86,6 +88,8 @@ class SolvedCog(commands.Cog):
 
         Category : Verified Roles only.
         Usage: `~solvedish`
+
+        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
         # log command in console
         logging_utils.log_command("solvedish", ctx.guild, ctx.channel, ctx.author)
@@ -112,6 +116,8 @@ class SolvedCog(commands.Cog):
 
         Category : Verified Roles only.
         Usage: `~backsolved`
+
+        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
         # log command in console
         logging_utils.log_command("backsolved", ctx.guild, ctx.channel, ctx.author)
@@ -137,6 +143,8 @@ class SolvedCog(commands.Cog):
 
         Category : Verified Roles only.
         Usage: `~unsolved`
+
+        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
         # log command in console
         logging_utils.log_command("unsolved", ctx.guild, ctx.channel, ctx.author)
