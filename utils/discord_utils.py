@@ -85,7 +85,6 @@ async def find_category(ctx: commands.Context, category_name: Union[discord.Cate
     return category
 
 
-# TODO: I REALLY don't like making embeds outside of commands, but I guess this is for the best...
 async def pin_message(message: discord.Message) -> discord.Embed:
     """Pin a message. Catches Forbidden, HTTPSError (too many pins in channel)
     Arguments:
@@ -102,6 +101,7 @@ async def pin_message(message: discord.Message) -> discord.Embed:
         return embed
 
     try:
+        await message.unpin()
         await message.pin()
         async for pinmsg in message.channel.history(limit=5):
             if pinmsg.is_system():

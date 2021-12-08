@@ -211,9 +211,12 @@ class SheetsCog(commands.Cog, name="Sheets"):
             msg = await new_chan.send(embed=embed)
             # Pin message in the new channel
             embed_or_none = await discord_utils.pin_message(msg)
+
             # Error pinning message
             if embed_or_none is not None:
                 await ctx.send(embed=embed_or_none)
+            else:
+                await msg.add_reaction(EMOJIS[':pushpin:'])
 
         embed = discord_utils.create_embed()
         # TODO: technically there's a world where the posts *weren't* pinned, although it's unclear how much that matters in this message.
@@ -578,7 +581,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         # Make sure the Overview tab exists on the sheet.
         try:
             curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
-            template_id = curr_sheet.worksheet("Overview").id
+            overview_id = curr_sheet.worksheet("Overview").id
         # Error when the sheet has no Overview tab
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()

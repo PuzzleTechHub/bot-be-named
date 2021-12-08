@@ -305,20 +305,49 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
             return
 
     @commands.command(name="listroles", aliases=["lsroles", "listrole", "lsrole"])
-    async def listroles(self, ctx):
-        """List all roles in the server
+    async def listroles(self, ctx, rolename: Union[discord.Role, str]=""):
+        """List all roles in the server, or all users under a given role. 
 
-        Usage:`~listroles`
+        Usage:`~listroles` (All roles in the server)
+        Usage:`~listrole @RoleName` (List all users with role @RoleName)
         """
         logging_utils.log_command("listroles", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        roles = await ctx.guild.fetch_roles()
-        roles_sorted = sorted(roles, key=lambda x: x.position, reverse = True)
-        rolestext = f"{', '.join([role.mention for role in roles_sorted])}"
-        roles.sort(key=lambda x:x.position, reverse=True)
-        embed.add_field(name=f"Roles in {ctx.guild.name}",
-                        value=rolestext)
+        if(rolename==""):
+            roles = await ctx.guild.fetch_roles()
+            roles_sorted = sorted(roles, key=lambda x: x.position, reverse = True)
+            rolestext = f"{', '.join([role.mention for role in roles_sorted])}"
+            roles.sort(key=lambda x:x.position, reverse=True)
+            embed.add_field(name=f"Roles in {ctx.guild.name}",
+                            value=rolestext)
+            await ctx.send(embed=embed)
+            return
+
+        role_to_list = None
+        if isinstance(rolename, discord.Role):
+            role_to_list = rolename
+        # The input was not an int (i.e. the user gave the name of the role (e.g. ~deleterole rolename))
+        else:
+            # Search over all roles
+            roles = await ctx.guild.fetch_roles()
+            for role in roles:
+                if role.name.lower() == rolename.lower():
+                    role_to_list = role
+                    break
+            if role_to_list is None:
+                embed.add_field(name=f"{constants.FAILED}!",
+                                value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
+                                inline=False)
+                await ctx.send(embed=embed)
+                return
+
+        allusers = f"{', '.join([user.mention for user in role_to_list.members])}"
+        if(allusers==""):
+            allusers = "(This role has no members)"
+        embed.add_field(name=f"List of members in {role_to_list}",
+                        value=allusers,
+                        inline=False)
         await ctx.send(embed=embed)
 
 def setup(bot):

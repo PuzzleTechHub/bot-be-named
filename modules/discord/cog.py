@@ -21,12 +21,17 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     @command_predicates.is_verified()
     @commands.command(name="pin")
-    async def pin(self, ctx):
+    async def pin(self, ctx, to_delete:str=""):
         """Pin a message (Either reply to the message, or it auto pins the message above)
+
+        If the message is already pinned, just unpins and repins (brings it to top of pins).
+
+        If you say delete after the command, it deletes original message that called the command.
 
         Category : Verified Roles only.
         Usage: `~pin` (as reply to message)
         Usage: `~pin` (to just pin the last message)
+        Usage: `~pin del` (to pin the message and also delete the msg)
         """
         logging_utils.log_command("pin", ctx.guild, ctx.channel, ctx.author)
 
@@ -41,7 +46,17 @@ class DiscordCog(commands.Cog, name="Discord"):
         if embed_or_none is not None:
             await ctx.send(embed=embed_or_none)
         else:
+            await message.add_reaction(EMOJIS[':pushpin:'])
             await ctx.message.add_reaction(EMOJIS[':white_check_mark:'])
+
+        try:
+            if(to_delete.lower()[0:3]=="del"):
+                await ctx.message.delete()
+        except discord.Forbidden:
+            embed.add_field(name=f"{constants.FAILED}!",
+                            value=f"Unable to delete original message. Do I have `manage_messages` permissions?")
+            await ctx.send(embed=embed)
+            return
 
     @command_predicates.is_verified()
     @commands.command(name="pinme")
@@ -58,35 +73,9 @@ class DiscordCog(commands.Cog, name="Discord"):
         if embed_or_none is not None:
             await ctx.send(embed=embed_or_none)
         else:
-            await ctx.message.add_reaction(EMOJIS[':white_check_mark:'])
+            await ctx.message.add_reaction(EMOJIS[':pushpin:'])
+            #await ctx.message.add_reaction(EMOJIS[':white_check_mark:'])
 
-    @command_predicates.is_verified()
-    @commands.command(name="lspin", aliases=["lspins", "listpin", "listpins"])
-    async def listpin(self, ctx):
-        """Lists all the pinned posts in the current channel
-
-        Category : Verified Roles only.
-        Usage: `~listpins~`
-        """
-        
-        logging_utils.log_command("listpin", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-        
-        pins = await ctx.message.channel.pins()
-        strmsg = ""
-        i = 1
-        for pin in pins:
-            strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
-            i += 1
-        
-        embed.add_field(name=f"{constants.SUCCESS}!",
-                        value=f"There are {len(pins)} pinned posts on this channel." 
-                            f"\n{strmsg[:-3]}",
-                        inline=False)
-        embeds = discord_utils.split_embed(embed)
-        for embed in embeds:
-            await ctx.send(embed=embed)
-    
     @command_predicates.is_verified()
     @commands.command(name="unpin")
     async def unpin(self, ctx, num_to_unpin: int = 1):
@@ -133,6 +122,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         for pin in messages_to_unpin:
             try:
                 await pin.unpin()
+                await pin.remove_reaction(EMOJIS[':pushpin:'],ctx.me)
                 strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
                 i=i+1
             except discord.Forbidden:
@@ -147,6 +137,35 @@ class DiscordCog(commands.Cog, name="Discord"):
                             f"{strmsg[:-3]}",
                         inline=False)
         await ctx.send(embed=embed)
+        await ctx.message.add_reaction(EMOJIS[':white_check_mark:'])
+
+    @command_predicates.is_verified()
+    @commands.command(name="lspin", aliases=["lspins", "listpin", "listpins"])
+    async def listpin(self, ctx):
+        """Lists all the pinned posts in the current channel
+
+        Category : Verified Roles only.
+        Usage: `~listpins~`
+        """
+        
+        logging_utils.log_command("listpin", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+        
+        pins = await ctx.message.channel.pins()
+        strmsg = ""
+        i = 1
+        for pin in pins:
+            strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
+            i += 1
+        
+        embed.add_field(name=f"{constants.SUCCESS}!",
+                        value=f"There are {len(pins)} pinned posts on this channel." 
+                            f"\n{strmsg[:-3]}",
+                        inline=False)
+        embeds = discord_utils.split_embed(embed)
+        for embed in embeds:
+            await ctx.send(embed=embed)
+    
 
     #######################
     # STATISTICS COMMANDS #
