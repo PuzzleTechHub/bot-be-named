@@ -12,6 +12,7 @@ import httplib2
 from googleapiclient import discovery
 import asyncio
 import shutil
+from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 
 
 class SheetsCog(commands.Cog, name="Sheets"):
