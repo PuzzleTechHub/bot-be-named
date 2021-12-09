@@ -27,8 +27,6 @@ class MiscCog(commands.Cog, name="Misc"):
         logging_utils.log_command("emoji", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        emoji = None
-
         try:
             if(to_delete.lower()[0:3]=="del"):
                 await ctx.message.delete()
@@ -38,21 +36,24 @@ class MiscCog(commands.Cog, name="Misc"):
             await ctx.send(embed=embed)
             return
 
+        emoji = None
+        hasurl = False
+
         # custom emoji
         if isinstance(emojiname, discord.Emoji):
-            await ctx.send(emojiname.url)
-            return
+            emoji = emojiname
+            hasurl = True
         # default emoji
         elif isinstance(emojiname, str) and emojiname in UNICODE_EMOJI:
-            await ctx.send(emojiname)
-            return
-        if emojiname[0]==":" and emojiname[-1]==":":
+            emoji = emojiname
+            hasurl = False
+        elif emojiname[0]==":" and emojiname[-1]==":":
             emojiname = emojiname[1:-1]
-
-        for guild in self.bot.guilds:
-            emoji = discord.utils.get(guild.emojis, name=emojiname)
-            if emoji is not None:
-                break
+            for guild in self.bot.guilds:
+                emoji = discord.utils.get(guild.emojis, name=emojiname)
+                if emoji is not None:
+                    break
+                hasurl=True
 
         if emoji is None:
             embed.add_field(name=f"{constants.FAILED}!",
@@ -61,7 +62,18 @@ class MiscCog(commands.Cog, name="Misc"):
             await ctx.send(embed=embed)
             return
 
-        await ctx.send(emoji.url)
+        if ctx.message.reference:
+            #If it's replying to a message
+            orig_msg = ctx.message.reference.resolved
+            await orig_msg.add_reaction(emoji)
+            return
+        else:
+            #Just a normal command
+            if(hasurl):
+                await ctx.send(emoji.url)
+            else:
+                await ctx.send(emoji)                
+            return
 
     @commands.command(name="about", aliases=["aboutthebot","github"])
     async def about(self, ctx):
