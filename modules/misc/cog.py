@@ -21,6 +21,8 @@ class MiscCog(commands.Cog, name="Misc"):
 
         If you say delete after the emoji name, it deletes original message
 
+        If this command is a reply to another message, it'll instead be a react to that message.
+        
         Usage : `~emoji snoo_glow delete`
         Usage : `~emoji :snoo_grin:`
         """

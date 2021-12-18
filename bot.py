@@ -74,7 +74,7 @@ def main():
     @client.event
     async def on_guild_remove(guild: discord.Guild):
         """When the bot leaves a guild, remove all database entries pertaining to that guild"""
-        print("Leaving {guild} -- Bye bye!")
+        print(f"Leaving {guild} -- Bye bye!")
         with Session(database_utils.DATABASE_ENGINE) as session:
             session.query(database_utils.CustomCommmands)\
                    .filter_by(server_id=guild.id)\
