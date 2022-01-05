@@ -13,7 +13,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         self.bot = bot
 
     @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="addembedcommand", aliases=["addcustomcommand", "addccommand"])
+    @commands.command(name="addembedcommand", aliases=["addcustomcommand", "addccommand", "customcommand", "addcc"])
     async def addembedcommand(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with an embed reply
         
@@ -71,7 +71,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         await ctx.send(embed=embed)
 
     @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="addtextcommand", aliases=["addcustomimage", "addcimage"])
+    @commands.command(name="addcustomimage", aliases=["addcimage", "addccimage", "addimagecc"])
     async def addtextcommand(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with a text reply. It is not in embed, so is ideal for images and role pings.
 
@@ -130,7 +130,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="lscustomcommands", aliases=["lsccommands","listcustomcommands", "listccommands"])
+    @commands.command(name="listcustomcommands", aliases=["lsccommands","lscustomcommands", "listccommands","listcc"])
     async def lscustomcommands(self, ctx):
         """List custom commands in the server
 
@@ -152,7 +152,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         await ctx.send(embed=embed)
 
     @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="editcustomcommand", aliases=["editccommand", "editcimage"])
+    @commands.command(name="editcustomcommand", aliases=["editccommand", "editcimage","editcc"])
     async def editcustomcommand(self, ctx, command_name: str, *args):
         """Edit an existing custom command. If the command doesn't already exist, adds the command.
         See also: `~addccommand`
@@ -199,7 +199,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         await ctx.send(embed=embed)
 
     @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="rmcustomcommand", aliases=["removecustomcommand", "rmccommand", "removeccommand"])
+    @commands.command(name="removecustomcommand", aliases=["rmcustomcommand", "rmccommand", "removeccommand", "removecc"])
     async def rmcustomcommand(self, ctx, command_name: str):
         """Remove an existing custom command
         

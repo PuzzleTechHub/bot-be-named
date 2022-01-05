@@ -21,15 +21,16 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
     #################
 
     @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="assignrole", aliases=["makerole","createrole"])
+    @commands.command(name="assignrole", aliases=["makerole","createrole","addrole"])
     async def assignrole(self, ctx, rolename: Union[discord.Role,discord.Member,str], *args:Union[discord.Member,str]):
         """Assign a role to a list of users. If the role does not already exist, then creates the role.
-        To not ping them, you may name the role or the users (nick or username) instead. Mentioning either is also guaranteed to work.
+        You may name the role or the users (nick or username) instead. Mentioning either is also guaranteed to work, but pings them.
         The role created is always mentionable by all users.
 
         Note that if the role is not already created, it cannot share name with a user. Use `~clonerole` or manually to create the role first.
 
         Category : Trusted Roles only.        
+        Usage: `~assignrole "RoleName" "User3" "User2"`
         Usage: `~assignrole @RoleName "User3" "User2"`
         Usage: `~assignrole "NewRoleName" @User1`
         Usage: `~assignrole "NewRolename"` (if no users given, just creates the role)
@@ -90,7 +91,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                     users_with_role_list.append(user)
                 except discord.Forbidden:
                     embed.add_field(name="Error Assigning Role!",
-                                    value=f"I could not assign {role_to_assign.mention} to `{user}`. Either this role is "
+                                    value=f"I could not assign {role_to_assign.mention} to `{user.mention}`. Either this role is "
                                           f"too high up on the roles list for them, or I do not have permissions to give "
                                           f"them this role. Please ensure I have the `manage_roles` permission.",
                                     inline=False)
@@ -156,14 +157,14 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
             try:
                 if role_to_unassign not in user.roles:
                     embed.add_field(name="Error Unassigning Role!",
-                                value=f"{user} does not have {role_to_unassign.mention} role to unassign.",
+                                value=f"{user.mention} does not have {role_to_unassign.mention} role to unassign.",
                                 inline=False)
                 else:
                     await user.remove_roles(role_to_unassign)
                     users_with_role_list.append(user)
             except discord.Forbidden:
                 embed.add_field(name="Error Unassigning Role!",
-                                value=f"I could not unsassign {role_to_unassign.mention} from `{user}`. Either this role is "
+                                value=f"I could not unsassign {role_to_unassign.mention} from `{user.mention}`. Either this role is "
                                       f"too high up on the roles list for them, or I do not have permissions to give "
                                       f"them this role. Please ensure I have the `manage_roles` permission.",
                                 inline=False)
