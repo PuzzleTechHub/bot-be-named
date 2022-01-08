@@ -50,9 +50,10 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.message.add_reaction(EMOJIS[':white_check_mark:'])
 
         try:
-            if(to_delete.lower()[0:3]=="del"):
+            if to_delete.lower()[0:3] == "del":
                 await ctx.message.delete()
         except discord.Forbidden:
+            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Unable to delete original message. Do I have `manage_messages` permissions?")
             await ctx.send(embed=embed)

@@ -1,5 +1,5 @@
 from discord.ext import commands
-from utils import database_utils
+import database
 
 
 def is_owner_or_admin():
@@ -15,11 +15,32 @@ def is_verified():
     async def predicate(ctx):
         if ctx.message.guild is None:
             return False
-        if ctx.guild.id in database_utils.VERIFIEDS:
-            for role_id in [role.id for role in ctx.author.roles]:
-                if role_id in database_utils.VERIFIEDS[ctx.guild.id]:
+        # Being Trusted or Verified is (supposed to be) mutually exclusive
+        # So we need to check both independently
+        if ctx.guild.id in database.TRUSTEDS:
+            for role in ctx.author.roles:
+                role_id = role.id
+                if role_id in database.TRUSTEDS[ctx.guild.id]:
+                    return True
+        if ctx.guild.id in database.VERIFIEDS:
+            for role in ctx.author.roles:
+                role_id = role.id
+                if role_id in database.VERIFIEDS[ctx.guild.id]:
                     return True
             return False  
         else:
+            return False
+    return commands.check(predicate)
+
+
+def is_trusted():
+    async def predicate(ctx):
+        if ctx.message.guild is None:
+            return False
+        if ctx.guild.id in database.TRUSTEDS:
+            for role in ctx.author.roles:
+                role_id = role.id
+                if role_id in database.TRUSTEDS[ctx.guild.id]:
+                    return True
             return False
     return commands.check(predicate)

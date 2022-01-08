@@ -1,5 +1,3 @@
-import configparser
-
 import googleapiclient
 from utils import discord_utils, google_utils, logging_utils, command_predicates
 from modules.sheets import sheets_constants
@@ -10,8 +8,12 @@ import os
 import gspread
 import httplib2
 from googleapiclient import discovery
+import database
+from sqlalchemy.sql.expression import insert
+from sqlalchemy.orm import Session
 import asyncio
 import shutil
+from typing import Union
 from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 
 
@@ -39,16 +41,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
         logging_utils.log_command("addsheettether", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        # Get category information
-        curr_cat = ctx.message.channel.category.name
-        curr_cat_id = str(ctx.message.channel.category_id)
-        curr_guild = ctx.guild.name
-
-        proposed_sheet = self.addsheettethergeneric(sheet_key_or_link, curr_guild, curr_cat, curr_cat_id)
+        proposed_sheet = self.addsheettethergeneric(sheet_key_or_link, ctx.guild, ctx.channel.category)
 
         if proposed_sheet:
             embed.add_field(name=f"{constants.SUCCESS}!",
-                            value=f"The category **{curr_cat}** is now tethered to the "
+                            value=f"The category **{ctx.channel.category.name}** is now tethered to the "
                                   f"[Google sheet at link]({proposed_sheet.url})",
                             inline=False)
             await ctx.send(embed=embed)
@@ -80,16 +77,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
         logging_utils.log_command("addchannelsheettether", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        # Get channel information
-        curr_chan = ctx.message.channel
-        curr_chan_id = str(ctx.message.channel.id)
-        curr_guild = str(ctx.guild)
-
-        proposed_sheet = self.addsheettethergeneric(sheet_key_or_link, curr_guild, str(curr_chan), curr_chan_id)
+        proposed_sheet = self.addsheettethergeneric(sheet_key_or_link, ctx.guild, ctx.channel)
 
         if proposed_sheet:
             embed.add_field(name=f"{constants.SUCCESS}",
-                            value=f"The channel {curr_chan.mention} is now tethered to the "
+                            value=f"The channel {ctx.channel.mention} is now tethered to the "
                                   f"[Google sheet at link]({proposed_sheet.url})",
                             inline=False)
             await ctx.send(embed=embed)
@@ -122,24 +114,28 @@ class SheetsCog(commands.Cog, name="Sheets"):
         curr_chan = ctx.message.channel
         curr_chan_id = str(ctx.message.channel.id)
 
-        curr_chan_or_cat_cell, tether_type = self.findsheettether(curr_chan_id, curr_cat_id)
+        curr_chan_or_cat_row, tether_type = self.findsheettether(curr_chan_id, curr_cat_id)
+        sheet_link = curr_chan_or_cat_row.sheet_link
 
         # If the tethering exists, remove it from the sheet.
-        if curr_chan_or_cat_cell:
-            curr_sheet_link = self.category_tether_tab.cell(curr_chan_or_cat_cell.row, curr_chan_or_cat_cell.col + 2).value
-            self.category_tether_tab.delete_row(curr_chan_or_cat_cell.row)
+        if curr_chan_or_cat_row is not None:
+            with Session(database.DATABASE_ENGINE) as session:
+                session.query(database.SheetTethers)\
+                       .filter_by(channel_or_cat_id=curr_chan_or_cat_row.channel_or_cat_id)\
+                       .delete()
+                session.commit()
             if tether_type == sheets_constants.CHANNEL:
                 embed.add_field(name=f"{constants.SUCCESS}",
-                                value=f"{ctx.channel.mention}'s tether to [sheet]({curr_sheet_link}) has been removed!",
+                                value=f"{ctx.channel.mention}'s tether to [sheet]({sheet_link}) has been removed!",
                                 inline=False)
             elif tether_type == sheets_constants.CATEGORY:
                 embed.add_field(name=f"{constants.SUCCESS}",
-                                value=f"The category **{ctx.channel.category}**'s tether to [sheet]({curr_sheet_link}) has been removed!",
+                                value=f"The category **{ctx.channel.category}**'s tether to [sheet]({sheet_link}) has been removed!",
                                 inline=False)
             # Else: Generic catch
             else:
                 embed.add_field(name=f"{constants.SUCCESS}",
-                                value=f"The tether to [sheet]({curr_sheet_link}) has been removed!",
+                                value=f"The tether to [sheet]({sheet_link}) has been removed!",
                                 inline=False)
             await ctx.send(embed=embed)
         else:
@@ -238,15 +234,13 @@ class SheetsCog(commands.Cog, name="Sheets"):
         embed = discord_utils.create_embed()
 
         # Get category information
-        curr_cat = str(ctx.message.channel.category)
-        curr_cat_id = str(ctx.message.channel.category_id)
+        curr_cat = ctx.message.channel.category
         curr_chan = ctx.message.channel
-        curr_chan_id = str(ctx.message.channel.id)
 
-        curr_chan_cell, tether_type = self.findsheettether(curr_chan_id, curr_cat_id)
+        curr_chan_row, tether_type = self.findsheettether(curr_chan.id, curr_cat.id)
 
-        if curr_chan_cell:
-            curr_sheet_link = self.category_tether_tab.cell(curr_chan_cell.row, curr_chan_cell.col + 2).value
+        if curr_chan_row is not None:
+            curr_sheet_link = curr_chan_row.sheet_link
             if tether_type == sheets_constants.CHANNEL:
                 embed.add_field(name=f"Result",
                                 value=f"The channel {curr_chan.mention} is currently tethered to the "
@@ -254,7 +248,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                                 inline=False)
             elif tether_type == sheets_constants.CATEGORY:
                 embed.add_field(name=f"Result",
-                                value=f"The category **{curr_cat}** is currently tethered to the "
+                                value=f"The category **{curr_cat.name}** is currently tethered to the "
                                       f"[Google sheet at link]({curr_sheet_link})",
                                 inline=False)
             # Generic catch
@@ -265,7 +259,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
         else:
             embed.add_field(name=f"{constants.FAILED}",
-                            value=f"Neither the category **{curr_cat}** nor the channel {curr_chan.mention} "
+                            value=f"Neither the category **{curr_cat.name}** nor the channel {curr_chan.mention} "
                                   f"are tethered to any Google sheet.",
                             inline=False)
             await ctx.send(embed=embed)
@@ -322,17 +316,16 @@ class SheetsCog(commands.Cog, name="Sheets"):
         service = discovery.build('drive', 'v3', http=http)
 
         if sheet_url is None:
-            tether_cell, _ = self.findsheettether(str(ctx.channel.id), str(ctx.channel.category.id))
-            if tether_cell is None:
+            tether_db_result, _ = self.findsheettether(ctx.channel.id, ctx.channel.category.id)
+            if tether_db_result is None:
                 embed.add_field(name=f"{constants.FAILED}",
                                 value=f"There is no sheet tethered to {ctx.channel.mention} or the " 
                                       f"**{ctx.channel.category.name}** category. You'll need to supply a sheet link "
                                       f"for me to download.")
                 await ctx.send(embed=embed)
                 return
-            sheet_url = self.category_tether_tab.cell(tether_cell.row, tether_cell.col + 2).value
 
-        sheet = self.get_sheet_from_key_or_link(sheet_url)
+        sheet = self.get_sheet_from_key_or_link(tether_db_result.sheet_link)
         if sheet is None:
             embed.add_field(name=f"{constants.FAILED}",
                             value="I can't find that sheet. Are you sure the link is a valid sheet with permissions set to "
@@ -372,7 +365,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
             await ctx.send(file=discord.File(download_path))
 
-    def addsheettethergeneric(self, sheet_key_or_link, curr_guild, curr_catorchan, curr_catorchan_id) -> gspread.Spreadsheet:
+    def addsheettethergeneric(self, sheet_key_or_link: str, curr_guild: discord.Guild, curr_catorchan: Union[discord.CategoryChannel, discord.TextChannel]) -> gspread.Spreadsheet:
         """Add a sheet to the current channel"""
         # We accept both sheet keys or full links
         proposed_sheet = self.get_sheet_from_key_or_link(sheet_key_or_link)
@@ -383,38 +376,40 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         # If the channel already has a sheet, then we update it.
         # Otherwise, we add the channel to our master sheet to establish the tether
-        try:
-            # Search first column for the channel
-            curr_catorchan_cell = self.category_tether_tab.find(curr_catorchan_id, in_column=1)
-            #TODO: Lock sheet?
-            # Prepare Row and update values
-            row_vals = [[curr_catorchan_id, curr_guild + " - " + curr_catorchan, proposed_sheet.url]]
-            rownum = "A" + str(curr_catorchan_cell.row) + ":C" + str(curr_catorchan_cell.row)
-            self.category_tether_tab.update(rownum, row_vals)
-        except gspread.exceptions.CellNotFound:
-            # Cell isn't found, so we add a new row to the sheet to establish the tether
-            values = [curr_catorchan_id, curr_guild + " - " + curr_catorchan, proposed_sheet.url]
-            self.category_tether_tab.append_row(values)
+
+        with Session(database.DATABASE_ENGINE) as session:
+            result = session.query(database.SheetTethers)\
+                .filter_by(channel_or_cat_id=curr_catorchan.id).first()
+            # If there is already an entry, we just need to update it. 
+            if result is not None:
+                result.sheet_link = proposed_sheet.url
+            # Otherwise, we need to create an entry
+            else:
+                stmt = insert(database.SheetTethers).values(server_id=curr_guild.id, server_name=curr_guild.name,
+                                                            channel_or_cat_name=curr_catorchan.name, channel_or_cat_id=curr_catorchan.id,
+                                                            sheet_link=proposed_sheet.url)
+                session.execute(stmt)
+            # Commits change
+            session.commit()
         return proposed_sheet
 
-    def findsheettether(self, curr_chan_id: str, curr_cat_id: str):
+    def findsheettether(self, curr_chan_id: int, curr_cat_id: int):
         """For finding the appropriate sheet tethering for a given category or channel"""
-        curr_chan_or_cat_cell = None
+        result = None
         tether_type = None
-        try:
-            # Search first column for the channel
-            curr_chan_or_cat_cell = self.category_tether_tab.find(curr_chan_id, in_column=1)
-            tether_type = sheets_constants.CHANNEL
-        except gspread.exceptions.CellNotFound:
-            # If there is no tether for the specific channel, check if there is one for the category.
-            try:
-                # Search first column for the category
-                curr_chan_or_cat_cell = self.category_tether_tab.find(curr_cat_id, in_column=1)
-                tether_type = sheets_constants.CATEGORY
-            except gspread.exceptions.CellNotFound:
-                pass
-
-        return curr_chan_or_cat_cell, tether_type
+        # Search DB for the sheet tether, if there is one
+        with Session(database.DATABASE_ENGINE) as session:
+            # Search for channel's tether
+            result = session.query(database.SheetTethers).filter_by(channel_or_cat_id=curr_chan_id).first()
+            # If we miss on the channel ID, try the category ID
+            if result is None:
+                result = session.query(database.SheetTethers).filter_by(channel_or_cat_id=curr_cat_id).first()
+                if result is not None:
+                    tether_type = sheets_constants.CATEGORY
+            else:
+                tether_type = sheets_constants.CHANNEL
+    
+        return result, tether_type
 
     def get_sheet_from_key_or_link(self, sheet_key_or_link: str) -> gspread.Spreadsheet:
         """Takes in a string, which could be a google sheet key or URL"""
@@ -441,10 +436,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
         curr_sheet_link = None
         newsheet = None
 
-        curr_chan_or_cat_cell, tether_type = self.findsheettether(str(curr_chan.id), str(curr_cat.id))
+        tether_db_result, tether_type = self.findsheettether(str(curr_chan.id), str(curr_cat.id))
 
-        if curr_chan_or_cat_cell:
-            curr_sheet_link = self.category_tether_tab.cell(curr_chan_or_cat_cell.row, curr_chan_or_cat_cell.col + 2).value
+        if tether_db_result is not None:
+            curr_sheet_link = tether_db_result.sheet_link
         else:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
@@ -509,6 +504,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return curr_sheet_link, newsheet
 
+    ## WIP code. DO NOT USE
     def findlinkedtab(self, curr_chan_id: str, overviewtab):
         """Find linked tab based on lion overview"""
 
@@ -529,7 +525,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return curr_chan_or_cat_cell, tether_type
 
-
     ## WIP code. DO NOT USE
     async def sheetliongeneric(self, ctx, curr_chan, curr_cat, tab_name):
         """
@@ -542,11 +537,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
         newsheet = None
 
         #Find the tethered sheet for the channel/category from the DB
-        curr_chan_or_cat_cell, tether_type = self.findsheettether(str(curr_chan.id), str(curr_cat.id))
+        curr_chan_or_cat_row, tether_type = self.findsheettether(str(curr_chan.id), str(curr_cat.id))
 
         #Error if no such sheet exists
-        if curr_chan_or_cat_cell:
-            curr_sheet_link = self.category_tether_tab.cell(curr_chan_or_cat_cell.row, curr_chan_or_cat_cell.col + 2).value
+        if curr_chan_or_cat_row is not None:
+            curr_sheet_link = curr_chan_or_cat_row.sheet_link
         else:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
@@ -597,7 +592,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         #TODO
 
         #Find the tethered sheet for the channel/category from the DB
-        curr_chan_or_cat_cell, tether_type = findlinkedtab(str(curr_chan.id), overviewtab)
+        curr_chan_or_cat_cell, tether_type = self.findlinkedtab(curr_chan.id, overviewtab)
         
 
         #Error if no such sheet exists

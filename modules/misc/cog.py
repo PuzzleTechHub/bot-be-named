@@ -3,9 +3,8 @@ import os
 from discord.ext import commands
 from emoji import UNICODE_EMOJI
 from typing import Union
-
 import constants
-from utils import discord_utils, logging_utils
+from utils import discord_utils, logging_utils, command_predicates
 
 
 class MiscCog(commands.Cog, name="Misc"):
@@ -160,7 +159,7 @@ class MiscCog(commands.Cog, name="Misc"):
     # BOTSAY COMMANDS #
     ###################
 
-    @commands.has_any_role(*constants.TRUSTED)
+    @command_predicates.is_trusted()
     @commands.command(name="botsay")
     async def botsay(self, ctx, channel_id_or_name: str, *args):
         """Say something in another channel
@@ -202,7 +201,7 @@ class MiscCog(commands.Cog, name="Misc"):
         # reply to user
         await ctx.send(embed=embed)
 
-    @commands.has_any_role(*constants.TRUSTED)
+    @command_predicates.is_trusted()
     @commands.command(name="botsayembed")
     async def botsayembed(self, ctx, channel_id_or_name: str, *args):
         """Say something in another channel, but as an embed
@@ -219,7 +218,6 @@ class MiscCog(commands.Cog, name="Misc"):
             await ctx.send(embed=embed)
             return
 
-        guild = ctx.message.guild
         message = " ".join(args)
 
         try:
