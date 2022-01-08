@@ -1,41 +1,36 @@
-from sqlalchemy import Column, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.sqltypes import BIGINT, Boolean, String
+import os
 
-
+print(os.getenv('POSTGRES_DB_URL'))
+DATABASE_ENGINE = create_engine(os.getenv("POSTGRES_DB_URL"), echo=True, future=True)
 Base = declarative_base()
 
-# One server has:
-#   - Many verifieds
-#   - Many Custom Commands
-#   - Many Sheet Tethers
-#   - One prefix (I can keep this on its own table for now if it makes it easier)
-
-
-class Servers(Base):
-    __tablename__ = 'test_servers'
-    server_id = Column(BIGINT, primary_key=True)
-    server_name = Column(String)
-    verifieds = relationship("Verifieds", cascade="all, delete", passive_deletes=True)
-    custom_commands = relationship("CustomCommands", cascade="all, delete")
-    sheet_tethers = relationship("SheetTethers", cascade="all, delete")
+# TODO: Right now, each of our databases is being treated as a key-value store.
+# It would be great to take advantage of using postgres as a relational db
 
 
 class Verifieds(Base):
     __tablename__ = 'test_verifieds'
+    server_id = Column(BIGINT)
+    server_name = Column(String)
     role_id = Column(BIGINT, primary_key=True)
     role_name = Column(String)
-    server_id = Column(BIGINT, ForeignKey('test_servers.server_id', ondelete="CASCADE"))
     permissions = Column(String)
 
+
 # enum for the different permissions in Verifieds
-VERIFIED_CATEGORIES = ["Verified", "Tester"]
+VERIFIED = "Verified"
+TRUSTED = "Trusted"
+TESTER = "Tester"
+VERIFIED_CATEGORIES = [VERIFIED, TRUSTED, TESTER]
 
 
 class CustomCommands(Base):
     __tablename__ = 'test_custom_commands'
-    server_id = Column(BIGINT, ForeignKey('test_servers.server_id', ondelete="CASCADE"))
+    server_id = Column(BIGINT)
+    server_name = Column(String)
     server_id_command = Column(String, primary_key=True) # server id + command name
     command_name = Column(String)
     command_return = Column(String)
@@ -44,15 +39,18 @@ class CustomCommands(Base):
 
 class SheetTethers(Base):
     __tablename__ = 'sheet_tethers'
-    channel_id = Column(BIGINT, primary_key=True)
-    channel_name = Column(String)
+    server_id = Column(BIGINT)
+    server_name = Column(String)
+    channel_or_cat_id = Column(BIGINT, primary_key=True)
+    channel_or_cat_name = Column(String)
     sheet_link = Column(String)
-    server_id = Column(BIGINT, ForeignKey('test_servers.server_id', ondelete="CASCADE"))
 
 
-# TODO: Should I link this to the servers table?
 class Prefixes(Base):
-    __tablename__ = 'prefixes'
+    __tablename__ = 'test_prefixes'
     server_id = Column(BIGINT, primary_key=True)
     server_name = Column(String)
     prefix = Column(String)
+
+
+Base.metadata.create_all(DATABASE_ENGINE)

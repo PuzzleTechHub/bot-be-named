@@ -377,7 +377,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                         inline=False)
         await ctx.send(embed=embed)
 
-    @commands.has_any_role(*constants.TRUSTED)
+    @command_predicates.is_trusted()
     @commands.command(name="synccategory", aliases=["synccat","catsync"])
     async def synccategory(self, ctx, cat_name: str = ""):
         """Changes permissions of all channels in Current Category to be synced to Cat-permissions.
