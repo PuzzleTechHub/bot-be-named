@@ -35,9 +35,9 @@ class MusicRace(commands.Cog, name="Music Race"):
         Usage: `~hint`
         """
         logging_utils.log_command("hint", ctx.guild, ctx.channel, ctx.author)
-        embed = discord.Embed(title="This is not a hint",
-                              description="*Hints will always be given at Hogwarts to those who ask for it.*",
-                              color=constants.EMBED_COLOR)
+        embed = discord_utils.create_embed()
+        embed.add_field(name="This is not a hint",
+                        value="*Hints will always be given at Hogwarts to those who ask for it.*")
         await ctx.send(embed=embed)
 
     @commands.command(name="notesaw", aliases=["musicpuzzleinfo"])
@@ -47,8 +47,8 @@ class MusicRace(commands.Cog, name="Music Race"):
         Usage: `~notesaw`
         """
         logging_utils.log_command("notesaw", ctx.guild, ctx.channel, ctx.author)
-
         embed = discord_utils.create_embed()
+
         embed.add_field(name=f"Welcome to Notesaw!",
                         value=f"To start the puzzle, use `{ctx.prefix}guesstune`. "
                               f"For example, try `{ctx.prefix}guesstune PIANO`. Have fun!",
@@ -77,7 +77,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         word = re.sub("[^A-Z]+", "", "".join(args).upper())
 
         if len(word) < 1 or len(word) > 20:
-            embed.add_field(name=f"Error!",
+            embed.add_field(name=f"{constants.FAILED}!",
                             value=f"Word provided `{word}` is not between 1-20 letters")
             await ctx.send(embed=embed)
             return

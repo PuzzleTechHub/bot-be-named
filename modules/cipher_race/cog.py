@@ -112,6 +112,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         """
         logging_utils.log_command("practice", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
+
         # Supply no arguments: randomly sample
         # Supply 2 arguments: sample specific cipher_race
         # Supply more arguments: incorrect
@@ -166,10 +167,10 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         """
         channel = ctx.channel.id
         logging_utils.log_command("answerrace", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
         
         # if the team isn't puzzling then we need to instruct them to use startpuzzle command first.
         if channel not in self.current_races:
-            embed = discord_utils.create_embed()
             embed.add_field(name="No race!",
                             value="This channel doesn't have a race going on. You can't answer anything!",
                             inline=False)
@@ -219,6 +220,9 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         Category: Admin or Bot Owner only.
         Usage: `~reloadciphersheet`
         """
+        logging_utils.log_command("reloadciphersheet", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         self.sheet_map = {
             cipher_race_constants.HP: google_utils.get_dataframe_from_gsheet(
                 self.spreadsheet.worksheet(cipher_race_constants.HP_SHEET_TAB_NAME),
@@ -234,7 +238,6 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
             )
         }
         print(f"Reload used. Reloaded {cipher_race_constants.CODE} sheet")
-        embed = discord_utils.create_embed()
         embed.add_field(name="Sheet Reloaded",
                         value="Google sheet successfully reloaded",
                         inline=False)
@@ -250,9 +253,11 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
 
         Usage: `~resetcipherrace`
         """
-        self.current_races = {}
+        logging_utils.log_command("resetcipherrace", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
-        embed.add_field(name="Success",
+
+        self.current_races = {}
+        embed.add_field(name=f"{constants.SUCCESS}",
                         value="Bot has been reset, and all races have been forcibly ended. I feel brand new!",
                         inline=False)
         await ctx.send(embed=embed)
@@ -300,7 +305,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         
         print(f"{channel}'s time is up, unlucky.")
         # Create an embed to send to the team. 
-        embed = discord.Embed(color=constants.EMBED_COLOR)
+        embed = discord_utils.create_embed()
         embed.add_field(name="Time's up!",
                         value=f"Sorry! Your time is up. You still had {len(self.current_races[channel][cipher_race_constants.ANSWERS])} "
                               f"{cipher_race_constants.CODE} left to solve for level {level}. "

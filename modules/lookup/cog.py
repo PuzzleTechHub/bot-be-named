@@ -18,6 +18,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         Usage: `~search <target_site> <[query...]>`
         """
         logging_utils.log_command("search", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         if len(args) < 1:
             await ctx.send(embed=discord_utils.create_no_argument_embed("Query"))
@@ -45,7 +46,6 @@ class LookupCog(commands.Cog, name="Lookup"):
         # If not google:
         #   Find the first result that matches the target site and return that
         #   If we can't find it, return the google query I think
-        embed = discord_utils.create_embed()
         results = []
         for result in googlesearch.search(query_with_site, num=lookup_constants.QUERY_NUM,
                                           stop=lookup_constants.QUERY_NUM,
@@ -73,9 +73,10 @@ class LookupCog(commands.Cog, name="Lookup"):
         Usage: `~google <[query...]>`
         """        
         logging_utils.log_command("google", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         results = lookup_utils.search_query(' '.join(args))
 
-        embed = discord_utils.create_embed()
         embed.add_field(name=f"Google Result for {' '.join(args)}",
                         value=f"{chr(10).join(results)}")
         await ctx.send(embed=embed)
@@ -88,9 +89,10 @@ class LookupCog(commands.Cog, name="Lookup"):
         Usage: `~wikipedia <[query...]>`
         """        
         logging_utils.log_command("wikipedia", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         results = lookup_utils.search_query(' '.join(args), target_site=lookup_constants.WIKI)
 
-        embed = discord_utils.create_embed()
         if len(results) > 1:
             embed.add_field(name=f"Search failed!",
                             value=f"Sorry! We weren't able to find a Wikipedia"
@@ -100,7 +102,6 @@ class LookupCog(commands.Cog, name="Lookup"):
             embed.add_field(name=f"Wikipedia Result for {' '.join(args)}",
                             value=f"{chr(10).join(results)}")
         await ctx.send(embed=embed)
-
 
 def setup(bot):
     bot.add_cog(LookupCog(bot))

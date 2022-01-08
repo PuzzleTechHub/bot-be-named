@@ -45,7 +45,7 @@ def main():
                     session.execute(stmt)
                     session.commit()
             print(f"{client.user.name} has connected to the following guild: "
-                  f"{guild.name} (id: {guild.id} with prefix {database_utils.PREFIXES[guild.id]}")
+                  f"{guild.name} (id: {guild.id}) with prefix {database_utils.PREFIXES[guild.id]}")
             # Make sure there are at least empty entries for VERIFIEDS, and CUSTOM_COMMANDS for every guild we're in
             if guild.id not in database_utils.VERIFIEDS:
                 database_utils.VERIFIEDS[guild.id] = []
@@ -74,7 +74,7 @@ def main():
     @client.event
     async def on_guild_remove(guild: discord.Guild):
         """When the bot leaves a guild, remove all database entries pertaining to that guild"""
-        print("Leaving {guild} -- Bye bye!")
+        print(f"Leaving {guild} -- Bye bye!")
         with Session(database_utils.DATABASE_ENGINE) as session:
             session.query(database_utils.CustomCommmands)\
                    .filter_by(server_id=guild.id)\

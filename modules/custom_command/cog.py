@@ -13,7 +13,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         self.bot = bot
 
     @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="addembedcommand", aliases=["addcustomcommand", "addccommand"])
+    @commands.command(name="addembedcommand", aliases=["addcustomcommand", "addccommand", "customcommand", "addcc"])
     async def addembedcommand(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with an embed reply
         
@@ -21,6 +21,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Usage: `~addccommand command_name "This is my custom command!"`
         """
         logging_utils.log_command("addembedcommand", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         if len(args) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
@@ -31,7 +32,6 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         command_return = " ".join(args)
         
         if command_name in constants.DEFAULT_COMMANDS:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"Command {command_name} is a default command. Please use a different name.")
 
@@ -39,7 +39,6 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             return
 
         if command_name in database_utils.CUSTOM_COMMANDS[ctx.guild.id]:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value "
                                     f"`{database_utils.CUSTOM_COMMANDS[ctx.guild.id][command_name][0]}`. If you'd like to replace "
@@ -72,7 +71,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         await ctx.send(embed=embed)
 
     @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="addtextcommand", aliases=["addcustomimage", "addcimage"])
+    @commands.command(name="addcustomimage", aliases=["addcimage", "addccimage", "addimagecc"])
     async def addtextcommand(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with a text reply. It is not in embed, so is ideal for images and role pings.
 
@@ -81,6 +80,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Usage: `~addcimage command_name Link_to_hyperlink`
         """
         logging_utils.log_command("addtextcommand", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         if len(args) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
@@ -91,7 +91,6 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         command_return = " ".join(args)
 
         if command_name in constants.DEFAULT_COMMANDS:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"Command {command_name} is a default command. Please use a different name.")
 
@@ -99,7 +98,6 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             return
 
         if command_name in database_utils.CUSTOM_COMMANDS[ctx.guild.id]:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value "
                                     f"`{database_utils.CUSTOM_COMMANDS[ctx.guild.id][command_name][0]}`. If you'd like to replace "
@@ -132,13 +130,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="lscustomcommands", aliases=["lscustomcommand",
-                                                        "listcustomcommands",
-                                                        "listcustomcommand", 
-                                                        "lsccommands",
-                                                        "lsccommand", 
-                                                        "listccommands",
-                                                        "listccommand"])
+    @commands.command(name="listcustomcommands", aliases=["lsccommands","lscustomcommands", "listccommands","listcc"])
     async def lscustomcommands(self, ctx):
         """List custom commands in the server
 
@@ -146,20 +138,21 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Usage: `~listccommands`
         """
         logging_utils.log_command("lscustomcommands", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
         if ctx.guild.id in database_utils.CUSTOM_COMMANDS and len(database_utils.CUSTOM_COMMANDS[ctx.guild.id]) > 0:
-            custom_commands = "\n".join(database_utils.CUSTOM_COMMANDS[ctx.guild.id].keys())
-            embed = discord.Embed(title=f"Custom Commands for {ctx.guild.name}",
-                                description=custom_commands,
-                                color=constants.EMBED_COLOR)
+            cclist = database_utils.CUSTOM_COMMANDS[ctx.guild.id].keys()
+            custom_commands = "\n".join(sorted(cclist))
+            embed.add_field(name=f"Custom Commands for {ctx.guild.name}",
+                            value=custom_commands)
         else:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}!",
                             value=f"No custom commands in `{ctx.guild}`, why not use "
                                   f"`{ctx.prefix}addcustomcommand` to create one?")
         await ctx.send(embed=embed)
 
     @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="editcustomcommand", aliases=["editccommand", "editcimage"])
+    @commands.command(name="editcustomcommand", aliases=["editccommand", "editcimage","editcc"])
     async def editcustomcommand(self, ctx, command_name: str, *args):
         """Edit an existing custom command. If the command doesn't already exist, adds the command.
         See also: `~addccommand`
@@ -168,6 +161,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Usage: `~editcustomcommand potato "My new return value"`
         """
         logging_utils.log_command("editcustomcommand", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         if len(args) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
@@ -184,7 +178,6 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                        .filter_by(server_id_command=f"{ctx.guild.id} {command_name}")\
                        .update({"command_return": command_return})
                 session.commit()
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.SUCCESS}",
                             value=f"Edited command `{ctx.prefix}{command_name}` to have return value "
                                   f"`{command_return}`")
@@ -199,7 +192,6 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 session.execute(stmt)
                 session.commit()
             database_utils.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (command_return, False)
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.SUCCESS}",
                             value=f"Added command `{ctx.prefix}{command_name}` with return value "
                                   f"`{command_return}`")
@@ -207,7 +199,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         await ctx.send(embed=embed)
 
     @commands.has_any_role(*constants.TRUSTED)
-    @commands.command(name="rmcustomcommand", aliases=["removecustomcommand", "rmccommand", "removeccommand"])
+    @commands.command(name="removecustomcommand", aliases=["rmcustomcommand", "rmccommand", "removeccommand", "removecc"])
     async def rmcustomcommand(self, ctx, command_name: str):
         """Remove an existing custom command
         
@@ -215,6 +207,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Usage: `~rmcustomcommand potato`
         """
         logging_utils.log_command("rmcustomcommand", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
         command_name = command_name.lower()
         if command_name in database_utils.CUSTOM_COMMANDS[ctx.guild.id]:
@@ -224,11 +217,9 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                        .filter_by(server_id_command=f"{ctx.guild.id} {command_name}")\
                        .delete()
                 session.commit()
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.SUCCESS}",
                             value=f"Deleted custom command `{ctx.prefix}{command_name}`")
         else:
-            embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
                             value=f"Command `{ctx.prefix}{command_name}` does not exist in {ctx.guild.name}")
         await ctx.send(embed=embed)
