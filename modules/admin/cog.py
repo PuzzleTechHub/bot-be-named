@@ -117,31 +117,18 @@ class AdminCog(commands.Cog, name="Admin"):
         logging_utils.log_command("lsverifieds", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
+        if ctx.guild.id in database.TRUSTEDS and len(database.TRUSTEDS[ctx.guild.id]) > 0:
+            embed.add_field(name=f"Trusteds for {ctx.guild.name}",
+                            value=f"{' '.join([ctx.guild.get_role(trusted).mention for trusted in database.TRUSTEDS[ctx.guild.id]])}")
+        else:
+            embed.add_field(name=f"No trusted roles for {ctx.guild.name}",
+                            value="Set up trusted roles with `{ctx.prefix}trusted`")
         if ctx.guild.id in database.VERIFIEDS and len(database.VERIFIEDS[ctx.guild.id]) > 0:
             embed.add_field(name=f"Verifieds for {ctx.guild.name}",
                             value=f"{' '.join([ctx.guild.get_role(verified).mention for verified in database.VERIFIEDS[ctx.guild.id]])}")
         else:
             embed.add_field(name=f"No verified roles for {ctx.guild.name}",
                             value="Set up verified roles with `{ctx.prefix}addverified`")
-        await ctx.send(embed=embed)
-
-    @command_predicates.is_owner_or_admin()
-    @commands.command(name="lstrusteds", aliases=["listtrusteds", "trusteds", "lstrusted", "listtrusted"])
-    async def lstrusteds(self, ctx):
-        """List all roles in Trusted Permissions within the server. 
-        
-        Category : Admin or Bot Owner Roles only.
-        Usage: `~listtrusteds`
-        """
-        logging_utils.log_command("lstrusteds", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        if ctx.guild.id in database.TRUSTEDS and len(database.TRUSTEDS[ctx.guild.id]) > 0:
-            embed.add_field(name=f"Trusteds for {ctx.guild.name}",
-                            value=f"{' '.join([ctx.guild.get_role(trusted).mention for trusted in database.TRUSTEDS[ctx.guild.id]])}")
-        else:
-            embed.add_field(name=f"No trusted roles for {ctx.guild.name}",
-                            value="Set up verified roles with `{ctx.prefix}trusted`")
         await ctx.send(embed=embed)
 
     @command_predicates.is_owner_or_admin()

@@ -4,7 +4,7 @@ from sqlalchemy.sql.sqltypes import BIGINT, Boolean, String
 import os
 
 print(os.getenv('POSTGRES_DB_URL'))
-DATABASE_ENGINE = create_engine(os.getenv("POSTGRES_DB_URL"), echo=True, future=True)
+DATABASE_ENGINE = create_engine(os.getenv("POSTGRES_DB_URL"), echo=False, future=True)
 Base = declarative_base()
 
 # TODO: Right now, each of our databases is being treated as a key-value store.
