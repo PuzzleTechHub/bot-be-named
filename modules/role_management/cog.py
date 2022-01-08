@@ -1,11 +1,7 @@
-import typing
 import discord
 from discord.ext import commands
-import aiohttp
-import io
 from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 from typing import Union
-
 import constants
 from utils import discord_utils, logging_utils, command_predicates
 
@@ -20,7 +16,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
     # ROLE COMMANDS #
     #################
 
-    @commands.has_any_role(*constants.TRUSTED)
+    @command_predicates.is_trusted()
     @commands.command(name="assignrole", aliases=["makerole","createrole","addrole"])
     async def assignrole(self, ctx, rolename: Union[discord.Role,discord.Member,str], *args:Union[discord.Member,str]):
         """Assign a role to a list of users. If the role does not already exist, then creates the role.
@@ -106,7 +102,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                             inline=False)
         await ctx.send(embed=embed)
 
-    @commands.has_any_role(*constants.TRUSTED)
+    @command_predicates.is_trusted()
     @commands.command(name="unassignrole", aliases=["removerole"])
     async def unassignrole(self, ctx, rolename: Union[discord.Role,str], *args:Union[discord.Member,str]):
         """Unassigns a role from a list of users.
@@ -179,7 +175,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                             inline=False)
         await ctx.send(embed=embed)
 
-    @commands.has_any_role(*constants.TRUSTED)
+    @command_predicates.is_trusted()
     @commands.command(name="clonerole", aliases=["syncrole"])
     async def clonerole(self, ctx, oldrole: Union[discord.Role,str], newrole: Union[discord.Role,str]):
         """Clones a role to another role in the Server. 

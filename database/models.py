@@ -12,7 +12,7 @@ Base = declarative_base()
 
 
 class Verifieds(Base):
-    __tablename__ = 'test_verifieds'
+    __tablename__ = 'verifieds'
     server_id = Column(BIGINT)
     server_name = Column(String)
     role_id = Column(BIGINT, primary_key=True)
@@ -28,7 +28,7 @@ VERIFIED_CATEGORIES = [VERIFIED, TRUSTED, TESTER]
 
 
 class CustomCommands(Base):
-    __tablename__ = 'test_custom_commands'
+    __tablename__ = 'custom_commands'
     server_id = Column(BIGINT)
     server_name = Column(String)
     server_id_command = Column(String, primary_key=True) # server id + command name
@@ -47,7 +47,7 @@ class SheetTethers(Base):
 
 
 class Prefixes(Base):
-    __tablename__ = 'test_prefixes'
+    __tablename__ = 'prefixes'
     server_id = Column(BIGINT, primary_key=True)
     server_name = Column(String)
     prefix = Column(String)
