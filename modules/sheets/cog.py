@@ -24,7 +24,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         self.lock = asyncio.Lock()
         self.gdrive_credentials = google_utils.get_gdrive_credentials()
         self.gspread_client = google_utils.create_gspread_client()
-        self.category_tether_tab = self.gspread_client.open_by_key(os.getenv("MASTER_SHEET_KEY")).worksheet(sheets_constants.CATEGORY_TAB)
 
     @command_predicates.is_verified()
     @commands.command(name="addsheettether", aliases=["editsheettether", "tether", "edittether", "addtether"])
@@ -518,7 +517,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
             # If there is no tether for the specific channel, check if there is one for the category.
             try:
                 # Search first column for the category
-                curr_chan_or_cat_cell = self.category_tether_tab.find(curr_cat_id, in_column=1)
+                # TODO: Change to dB
+                #curr_chan_or_cat_cell = self.category_tether_tab.find(curr_cat_id, in_column=1)
                 tether_type = sheets_constants.CATEGORY
             except gspread.exceptions.CellNotFound:
                 pass
@@ -597,7 +597,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         #Error if no such sheet exists
         if curr_chan_or_cat_cell:
-            curr_sheet_link = self.category_tether_tab.cell(curr_chan_or_cat_cell.row, curr_chan_or_cat_cell.col + 2).value
+            # TODO: Change to db
+            #curr_sheet_link = self.category_tether_tab.cell(curr_chan_or_cat_cell.row, curr_chan_or_cat_cell.col + 2).value
+            pass
         else:
             embed = discord_utils.create_embed()
             embed.add_field(name=f"{constants.FAILED}",
@@ -607,8 +609,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return curr_sheet_link, newsheet
 
-
-        self.category_tether_tab = self.gspread_client.open_by_key(os.getenv("MASTER_SHEET_KEY")).worksheet(sheets_constants.CATEGORY_TAB)
+        # TODO: Why would we change the cog's attribute here? Anyways, change to DB
+        #self.category_tether_tab = self.gspread_client.open_by_key(os.getenv("MASTER_SHEET_KEY")).worksheet(sheets_constants.CATEGORY_TAB)
 
         # Make sure tab_name does not exist
         try:

@@ -119,16 +119,20 @@ class AdminCog(commands.Cog, name="Admin"):
 
         if ctx.guild.id in database.TRUSTEDS and len(database.TRUSTEDS[ctx.guild.id]) > 0:
             embed.add_field(name=f"Trusteds for {ctx.guild.name}",
-                            value=f"{' '.join([ctx.guild.get_role(trusted).mention for trusted in database.TRUSTEDS[ctx.guild.id]])}")
+                            value=f"{' '.join([ctx.guild.get_role(trusted).mention for trusted in database.TRUSTEDS[ctx.guild.id]])}",
+                            inline=False)
         else:
             embed.add_field(name=f"No trusted roles for {ctx.guild.name}",
-                            value="Set up trusted roles with `{ctx.prefix}trusted`")
+                            value="Set up trusted roles with `{ctx.prefix}trusted`",
+                            inline=False)
         if ctx.guild.id in database.VERIFIEDS and len(database.VERIFIEDS[ctx.guild.id]) > 0:
             embed.add_field(name=f"Verifieds for {ctx.guild.name}",
-                            value=f"{' '.join([ctx.guild.get_role(verified).mention for verified in database.VERIFIEDS[ctx.guild.id]])}")
+                            value=f"{' '.join([ctx.guild.get_role(verified).mention for verified in database.VERIFIEDS[ctx.guild.id]])}",
+                            inline=False)
         else:
             embed.add_field(name=f"No verified roles for {ctx.guild.name}",
-                            value="Set up verified roles with `{ctx.prefix}addverified`")
+                            value="Set up verified roles with `{ctx.prefix}addverified`",
+                            inline=False)
         await ctx.send(embed=embed)
 
     @command_predicates.is_owner_or_admin()
