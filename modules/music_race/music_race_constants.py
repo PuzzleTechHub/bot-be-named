@@ -2,9 +2,15 @@ import os
 import constants
 
 MUSIC_RACE_DIR = "music_race"
-PUZZLE_OUTPUTS_DIR = os.path.join(os.getcwd(), constants.MODULES_DIR, MUSIC_RACE_DIR, "puzzle_outputs")
-PUZZLE_PARTIAL_SONGS_DIR = os.path.join(os.getcwd(), constants.MODULES_DIR, MUSIC_RACE_DIR, "puzzle_partial_songs")
-PUZZLE_FULL_SONGS_DIR = os.path.join(os.getcwd(), constants.MODULES_DIR, MUSIC_RACE_DIR, "puzzle_full_songs")
+PUZZLE_OUTPUTS_DIR = os.path.join(
+    os.getcwd(), constants.MODULES_DIR, MUSIC_RACE_DIR, "puzzle_outputs"
+)
+PUZZLE_PARTIAL_SONGS_DIR = os.path.join(
+    os.getcwd(), constants.MODULES_DIR, MUSIC_RACE_DIR, "puzzle_partial_songs"
+)
+PUZZLE_FULL_SONGS_DIR = os.path.join(
+    os.getcwd(), constants.MODULES_DIR, MUSIC_RACE_DIR, "puzzle_full_songs"
+)
 MP3_EXTENSION = ".mp3"
 
 SONG_SNIPPET_LENGTH = 3
@@ -56,5 +62,5 @@ ANSWERS = {
     "FROZEN": {
         DELAY: 5,
         TUNE: "~playtune R R R R R m=1.2 o=5 Re Ee F#e Ghd De Be Ahd Ge F#e Ee Ee E Ee F# Ghd Ee F#e Ghd De Be Ahd Ge Ae B B C6e B Ae Ge Ae Ghd Dqd B4qd A4hd G4 G4 Dqd B4qd G4w",
-    }
+    },
 }

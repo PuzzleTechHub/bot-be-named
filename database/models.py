@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.sqltypes import BIGINT, Boolean, String
 import os
 
-print(os.getenv('POSTGRES_DB_URL'))
+print(os.getenv("POSTGRES_DB_URL"))
 DATABASE_ENGINE = create_engine(os.getenv("POSTGRES_DB_URL"), echo=False, future=True)
 Base = declarative_base()
 
@@ -12,7 +12,7 @@ Base = declarative_base()
 
 
 class Verifieds(Base):
-    __tablename__ = 'verifieds'
+    __tablename__ = "verifieds"
     server_id = Column(BIGINT)
     server_name = Column(String)
     role_id = Column(BIGINT, primary_key=True)
@@ -28,17 +28,17 @@ VERIFIED_CATEGORIES = [VERIFIED, TRUSTED, TESTER]
 
 
 class CustomCommands(Base):
-    __tablename__ = 'custom_commands'
+    __tablename__ = "custom_commands"
     server_id = Column(BIGINT)
     server_name = Column(String)
-    server_id_command = Column(String, primary_key=True) # server id + command name
+    server_id_command = Column(String, primary_key=True)  # server id + command name
     command_name = Column(String)
     command_return = Column(String)
-    image = Column(Boolean) # Flag for whether or not we need to send an embed 
+    image = Column(Boolean)  # Flag for whether or not we need to send an embed
 
 
 class SheetTethers(Base):
-    __tablename__ = 'sheet_tethers'
+    __tablename__ = "sheet_tethers"
     server_id = Column(BIGINT)
     server_name = Column(String)
     channel_or_cat_id = Column(BIGINT, primary_key=True)
@@ -47,7 +47,7 @@ class SheetTethers(Base):
 
 
 class Prefixes(Base):
-    __tablename__ = 'prefixes'
+    __tablename__ = "prefixes"
     server_id = Column(BIGINT, primary_key=True)
     server_name = Column(String)
     prefix = Column(String)

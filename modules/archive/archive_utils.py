@@ -5,10 +5,12 @@ import os, shutil
 
 def get_delay_embed():
     embed = discord_utils.create_embed()
-    embed.add_field(name="Warning: Delay!",
-                    value="Hi! It appears we're a little busy at the moment, so our archiving may take a while. "
-                          "Sorry about that! We'll get to it as soon as possible.",
-                    inline=False)
+    embed.add_field(
+        name="Warning: Delay!",
+        value="Hi! It appears we're a little busy at the moment, so our archiving may take a while. "
+        "Sorry about that! We'll get to it as soon as possible.",
+        inline=False,
+    )
     return embed
 
 

@@ -36,7 +36,6 @@
 #     assert proposed_new_channel == new_name
 
 
-
 # @pytest.mark.parametrize("original_name,prefix,new_name",
 #                           [("puzzle1", solved_constants.SOLVED_PREFIX, None),
 #                           ("puzzle1", solved_constants.BACKSOLVED_PREFIX, None),

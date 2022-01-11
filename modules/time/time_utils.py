@@ -44,7 +44,8 @@ def parse_date(
     # return the datetime object
     return date
 
+
 def replace_offset(text: str) -> str:
     """Overrides the offset for better timezones"""
-    #print(text)
-    return text.replace('UTC\+05:30', 'IST').replace('UTC\+01:00', 'BST')
+    # print(text)
+    return text.replace("UTC\+05:30", "IST").replace("UTC\+01:00", "BST")

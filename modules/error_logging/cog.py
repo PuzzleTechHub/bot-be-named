@@ -6,7 +6,6 @@ import sys
 import os
 
 
-
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
 class ErrorLogCog(commands.Cog):
@@ -24,9 +23,11 @@ class ErrorLogCog(commands.Cog):
         logging_utils.log_command("errorlog", ctx.guild, ctx.channel, ctx.author)
         if not os.path.exists(error_constants.ERROR_LOGFILE):
             embed = discord_utils.create_embed()
-            embed.add_field(name="Error!",
-                            value=f"Is this an error? Is it a blessing in disguise? I don't know, but there have been "
-                                  f"no errors since I've last started!")
+            embed.add_field(
+                name="Error!",
+                value=f"Is this an error? Is it a blessing in disguise? I don't know, but there have been "
+                f"no errors since I've last started!",
+            )
             await ctx.send(embed=embed)
             return
 
@@ -55,18 +56,16 @@ async def on_error(event, *args, **kwargs):
         msg = f"**Error while handling a message**"
         user_error = ErrorHandler(args[0], error, msg).handle_error()
         if user_error:
-            embed.add_field(name="Error!",
-                            value=user_error,
-                            inline=False)
+            embed.add_field(name="Error!", value=user_error, inline=False)
     # other errors
     else:
         msg = f"An error occurred during an event and was not reported: {event}"
-        user_error = ErrorHandler(args[0], error, msg).handle_error()# TODO: change args[0] to ""
+        user_error = ErrorHandler(
+            args[0], error, msg
+        ).handle_error()  # TODO: change args[0] to ""
         if user_error:
             embed = discord_utils.create_embed()
-            embed.add_field(name="Error!",
-                            value=user_error,
-                            inline=False)
+            embed.add_field(name="Error!", value=user_error, inline=False)
     await args[0].channel.send(embed=embed)
 
 
@@ -76,9 +75,7 @@ async def on_command_error(ctx, error):
     user_error = ErrorHandler(ctx.message, error, details).handle_error()
     if user_error:
         embed = discord_utils.create_embed()
-        embed.add_field(name="Error!",
-                        value=user_error,
-                        inline=False)
+        embed.add_field(name="Error!", value=user_error, inline=False)
         await ctx.send(embed=embed)
     else:
         print("on_command_error has no user_error")

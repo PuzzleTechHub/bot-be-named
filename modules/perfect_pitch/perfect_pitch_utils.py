@@ -10,10 +10,10 @@ import numpy as np
 class Note:
     def __init__(self, letter, duration, octave, instrument):
         """Arguments:
-            - letter: e.g. C, E, G, and R means rest
-            - duration: e.g. quarter, whole, half, sixteenth
-            - octave: e.g. 0, 1, .., 7
-            - instrument: e.g. piano, trumpet, etc."""
+        - letter: e.g. C, E, G, and R means rest
+        - duration: e.g. quarter, whole, half, sixteenth
+        - octave: e.g. 0, 1, .., 7
+        - instrument: e.g. piano, trumpet, etc."""
         self.letter = letter
         self.duration = duration
         # Rest notes don't have octave, instrument, or files
@@ -25,20 +25,32 @@ class Note:
             self.octave = octave
             self.instrument = instrument
             # TODO: is this the best way to check if a note is inside an instrument's range?
-            proposed_path = os.path.join(os.getcwd(), constants.MODULES_DIR,
-                                     constants.PERFECT_PITCH.lower().replace(' ', '_'), perfect_pitch_constants.MUSIC,
-                                     self.instrument, perfect_pitch_constants.NOTES, f"{self.letter}{self.octave}.mp3")
+            proposed_path = os.path.join(
+                os.getcwd(),
+                constants.MODULES_DIR,
+                constants.PERFECT_PITCH.lower().replace(" ", "_"),
+                perfect_pitch_constants.MUSIC,
+                self.instrument,
+                perfect_pitch_constants.NOTES,
+                f"{self.letter}{self.octave}.mp3",
+            )
             if os.path.exists(proposed_path):
                 self.path = proposed_path
             else:
-                self.path = os.path.join(os.getcwd(), constants.MODULES_DIR,
-                                         constants.PERFECT_PITCH.lower().replace(' ', '_'),
-                                         perfect_pitch_constants.MUSIC, "piano", perfect_pitch_constants.NOTES,
-                                         f"{self.letter}{self.octave}.mp3")
+                self.path = os.path.join(
+                    os.getcwd(),
+                    constants.MODULES_DIR,
+                    constants.PERFECT_PITCH.lower().replace(" ", "_"),
+                    perfect_pitch_constants.MUSIC,
+                    "piano",
+                    perfect_pitch_constants.NOTES,
+                    f"{self.letter}{self.octave}.mp3",
+                )
 
 
 class Tune:
     """A tune to be combined by FFMPEG as audio"""
+
     def __init__(self, channel_name):
         """Set default parameters"""
         # Speed of tune
@@ -56,42 +68,42 @@ class Tune:
 
     def process_args(self, args) -> None:
         """Handle input arguments into meter, octave, instrument, and notes
-            - meter: {m, meter}={float>0}
-            - octave: {o, octave}={int\in[0,...,7]}
-            - instrument: {piano}
-            -
+        - meter: {m, meter}={float>0}
+        - octave: {o, octave}={int\in[0,...,7]}
+        - instrument: {piano}
+        -
         """
         for arg in args:
             # Check if arg is meter
             # NOTE: we will only accept one meter, and so first one wins
-            if arg.startswith('m=') or arg.startswith('meter='):
+            if arg.startswith("m=") or arg.startswith("meter="):
                 try:
-                    self.meter = float(arg.split('=')[-1])
+                    self.meter = float(arg.split("=")[-1])
                 except ValueError:
                     print(f"{arg} is not a meter")
                     # If they do not properly supply the meter, just ignore it and keep the default
                     pass
-            elif arg.startswith('o=') or arg.startswith('octave='):
+            elif arg.startswith("o=") or arg.startswith("octave="):
                 try:
-                    self.default_octave = int(arg.split('=')[-1])
+                    self.default_octave = int(arg.split("=")[-1])
                 except ValueError:
                     print(f"{arg} is not an octave")
                     # If they do not properly supply the octave, just ignore it and keep the default
                     pass
             # TODO: add instrument handling here
-            elif arg.startswith('i=') or arg.startswith('instrument='):
-                self.instrument = arg.split('=')[-1].lower()
+            elif arg.startswith("i=") or arg.startswith("instrument="):
+                self.instrument = arg.split("=")[-1].lower()
             # Right now there is only piano so
             # if the arg is not a meter or an octave then it must be a note
             else:
                 try:
                     # TODO: Let's you stack multiple notes at the same time, but it doesn't work very well...
-                    #if 'v' in arg:
+                    # if 'v' in arg:
                     #    for chord_idx, chord_note in enumerate(arg.split('v')):
                     #        self.notes.append(self.get_note(chord_note))
                     #        if chord_idx < len(arg.split('v')) - 1:
                     #            self.notes[-1].duration = 0
-                    #else:
+                    # else:
                     self.notes.append(self.get_note(arg))
                 except KeyError:
                     print(f"{arg} is not a note")
@@ -111,8 +123,8 @@ class Tune:
         """
         # Get duration, which can come in two forms. "L" or dotted
         # "L" duration
-        if len(note.split('L')) > 1:
-            split_note = note.split('L')
+        if len(note.split("L")) > 1:
+            split_note = note.split("L")
             duration = float(split_note[1])
             note = split_note[0]
         # Duration includes a dot (e.g. wd, hd, ...)
@@ -144,8 +156,14 @@ class Tune:
         """Use FFMPEG to mix the notes, and return the path of the mixed audio"""
         # Store the tune here. NOTE: only one tune per channel, for scaling reasons and within arithmancy puzzling.
         # TODO: Maybe fix later?
-        output_dir = os.path.join(os.getcwd(), constants.MODULES_DIR, constants.PERFECT_PITCH.lower().replace(' ', '_'),
-                                  perfect_pitch_constants.MUSIC, perfect_pitch_constants.TUNES, self.channel_name)
+        output_dir = os.path.join(
+            os.getcwd(),
+            constants.MODULES_DIR,
+            constants.PERFECT_PITCH.lower().replace(" ", "_"),
+            perfect_pitch_constants.MUSIC,
+            perfect_pitch_constants.TUNES,
+            self.channel_name,
+        )
         if os.path.exists(output_dir):
             shutil.rmtree(output_dir)
             os.mkdir(output_dir)
@@ -153,7 +171,9 @@ class Tune:
         # R represents a resting note, which we want for the timing but we do not want to use as an input since
         # it doesn't have a path.
         # Get all non-resting notes
-        input_notes = list(filter(lambda x: x.letter != perfect_pitch_constants.REST, self.notes))
+        input_notes = list(
+            filter(lambda x: x.letter != perfect_pitch_constants.REST, self.notes)
+        )
         input_paths = [f"-i {note.path}" for note in input_notes]
         # We need to keep track of where each note should come in the tune.
         # Each note after the first will need to be delayed by some amount
@@ -164,7 +184,9 @@ class Tune:
         # We don't actually add REST to the song (input_notes), but we need to keep track of rest's time delays.
         for idx, note in enumerate(self.notes):
             if idx > 0:
-                delay += self.default_interval * self.notes[idx-1].duration / self.meter
+                delay += (
+                    self.default_interval * self.notes[idx - 1].duration / self.meter
+                )
             else:
                 delay = 0
             if not note.letter == perfect_pitch_constants.REST:
@@ -177,25 +199,37 @@ class Tune:
         # The code for one partition can be much easier than multiple partitions, so I think we should handle them
         # differently
         if len(input_notes) <= perfect_pitch_constants.MAX_PARTITION_SIZE:
-            filter_complex = ''.join([f"[{idx}]atrim=0:{input_notes[idx].duration+0.125},adelay={time_indices[idx]}|{time_indices[idx]}[{letter}];"
-                                      for idx, letter in
-                                      zip(range(len(time_indices)), list(string.ascii_lowercase))])
-            mix = ''.join([f"[{letter}]" for _, letter in zip(time_indices, list(string.ascii_lowercase))])
+            filter_complex = "".join(
+                [
+                    f"[{idx}]atrim=0:{input_notes[idx].duration+0.125},adelay={time_indices[idx]}|{time_indices[idx]}[{letter}];"
+                    for idx, letter in zip(
+                        range(len(time_indices)), list(string.ascii_lowercase)
+                    )
+                ]
+            )
+            mix = "".join(
+                [
+                    f"[{letter}]"
+                    for _, letter in zip(time_indices, list(string.ascii_lowercase))
+                ]
+            )
             # Call ffmpeg from the command line
             os.system(
                 f"ffmpeg -y {' '.join(input_paths)} -filter_complex "
                 f"'{filter_complex}{mix}amix=inputs={len(time_indices)}:dropout_transition=1000,volume={perfect_pitch_constants.VOLUME},loudnorm' {final_output_path}"
             )
             # TODO: optimize ffmpeg-normalize
-            #os.system(
+            # os.system(
             #    f"ffmpeg-normalize -f -c:a libmp3lame {final_output_path} -o {final_output_path}"
-            #)
+            # )
         # Multi-Partition Case
         else:
             # Split notes into equal-part partitions
             # num paritions: ceil(35 / 25) = 2
             # partition size: ceil(35 / 2) = 18
-            num_partitions = int(np.ceil(len(input_notes)/perfect_pitch_constants.MAX_PARTITION_SIZE))
+            num_partitions = int(
+                np.ceil(len(input_notes) / perfect_pitch_constants.MAX_PARTITION_SIZE)
+            )
             partition_size = int(np.ceil(len(input_notes) / num_partitions))
 
             relative_time_indices = np.array(time_indices).copy()
@@ -207,29 +241,54 @@ class Tune:
 
             for partition_idx in range(num_partitions):
                 partition_start_index = partition_idx * partition_size
-                partition_output_path = os.path.join(output_dir, f"partition{partition_idx}.mp3")
+                partition_output_path = os.path.join(
+                    output_dir, f"partition{partition_idx}.mp3"
+                )
                 merge_paths.append(f"-i {partition_output_path}")
 
                 # Get all notes, file paths, and time indices for that partition
-                partition_input_notes = input_notes[partition_start_index:
-                                                    partition_start_index + partition_size]
-                partition_input_paths = input_paths[partition_start_index:
-                                                    partition_start_index + partition_size]
-                partition_time_indices = relative_time_indices[partition_start_index:
-                                                               partition_start_index + partition_size]
+                partition_input_notes = input_notes[
+                    partition_start_index : partition_start_index + partition_size
+                ]
+                partition_input_paths = input_paths[
+                    partition_start_index : partition_start_index + partition_size
+                ]
+                partition_time_indices = relative_time_indices[
+                    partition_start_index : partition_start_index + partition_size
+                ]
                 # Keep track of the times we will need to merge each partition back in at the end
                 # TODO: We're doing something a little funky with the time...
                 # Either we have to do -1 in the index of merge_time_indices, or we have to subtract the next index for
                 # relative time indices. Technically, the latter way is more correct. the current way kinda looks cleaner.
-                merge_time_indices.append(time_indices[partition_idx*partition_size - 1] if partition_idx > 0 else 0)
+                merge_time_indices.append(
+                    time_indices[partition_idx * partition_size - 1]
+                    if partition_idx > 0
+                    else 0
+                )
                 # Relative time indices keeps track of the delays relative to that partition.
                 # The start of partition 2 should have time 0, so we need to subtract the lar.... see TODO above
-                relative_time_indices = relative_time_indices - partition_time_indices[-1]
+                relative_time_indices = (
+                    relative_time_indices - partition_time_indices[-1]
+                )
                 # Create the filter_complex part of the ffmpeg string. This is the part that
-                filter_complex = ''.join([f"[{idx}]atrim=0:{partition_input_notes[idx].duration+0.125},"
-                                          f"adelay={partition_time_indices[idx]}|{partition_time_indices[idx]}[{letter}];"
-                                          for idx, letter in zip(range(len(partition_input_notes)), list(string.ascii_lowercase))])
-                mix = ''.join([f"[{letter}]" for _, letter in zip(partition_input_notes, list(string.ascii_lowercase))])
+                filter_complex = "".join(
+                    [
+                        f"[{idx}]atrim=0:{partition_input_notes[idx].duration+0.125},"
+                        f"adelay={partition_time_indices[idx]}|{partition_time_indices[idx]}[{letter}];"
+                        for idx, letter in zip(
+                            range(len(partition_input_notes)),
+                            list(string.ascii_lowercase),
+                        )
+                    ]
+                )
+                mix = "".join(
+                    [
+                        f"[{letter}]"
+                        for _, letter in zip(
+                            partition_input_notes, list(string.ascii_lowercase)
+                        )
+                    ]
+                )
 
                 os.system(
                     f"ffmpeg -y {' '.join(partition_input_paths)} -filter_complex "
@@ -238,9 +297,22 @@ class Tune:
                 )
 
             # AFTER EACH PARTITION HAS BEEN CREATED, REMERGE THE PARTITIONS
-            filter_complex = ''.join([f"[{idx}]adelay={merge_time_indices[idx]}|{merge_time_indices[idx]}[{letter}];"
-                                      for idx, letter in zip(range(len(merge_time_indices)), list(string.ascii_lowercase))])
-            mix = ''.join([f"[{letter}]" for _, letter in zip(merge_time_indices, list(string.ascii_lowercase))])
+            filter_complex = "".join(
+                [
+                    f"[{idx}]adelay={merge_time_indices[idx]}|{merge_time_indices[idx]}[{letter}];"
+                    for idx, letter in zip(
+                        range(len(merge_time_indices)), list(string.ascii_lowercase)
+                    )
+                ]
+            )
+            mix = "".join(
+                [
+                    f"[{letter}]"
+                    for _, letter in zip(
+                        merge_time_indices, list(string.ascii_lowercase)
+                    )
+                ]
+            )
             # Call ffmpeg from the command line
             os.system(
                 f"ffmpeg -y {' '.join(merge_paths)} -filter_complex "
@@ -248,8 +320,8 @@ class Tune:
                 f"volume={perfect_pitch_constants.VOLUME},loudnorm' {final_output_path}"
             )
             # TODO: ffmpeg-normalize is too slow for now
-            #os.system(
+            # os.system(
             #    f"ffmpeg-normalize -f -c:a libmp3lame {final_output_path} -o {final_output_path}"
-            #)
+            # )
 
         return final_output_path

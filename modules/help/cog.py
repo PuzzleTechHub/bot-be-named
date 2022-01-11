@@ -8,6 +8,7 @@ from modules.help import help_command
 # from his repo https://github.com/DenverCoder1/weasley-chess-bot
 class HelpCog(commands.Cog, name="Help"):
     """Help"""
+
     def __init__(self, bot: commands.Bot):
         self._original_help_command = bot.help_command
         self.bot = bot

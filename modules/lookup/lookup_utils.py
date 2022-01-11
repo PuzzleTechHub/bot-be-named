@@ -17,7 +17,7 @@ def search_query(original_query, target_site="google"):
 
     # Don't add google to the query but add any other target site for easier access/SEO
     if not is_google_search:
-        query = original_query + ' ' + target_site
+        query = original_query + " " + target_site
     else:
         query = original_query
     # Dude this loop is going to be horrible wtf
@@ -27,9 +27,12 @@ def search_query(original_query, target_site="google"):
     #   Find the first result that matches the target site and return that
     #   If we can't find it, return the google query I think
     results = []
-    for result in googlesearch.search(query, num=lookup_constants.QUERY_NUM,
-                                      stop=lookup_constants.QUERY_NUM,
-                                      pause=lookup_constants.PAUSE_TIME):
+    for result in googlesearch.search(
+        query,
+        num=lookup_constants.QUERY_NUM,
+        stop=lookup_constants.QUERY_NUM,
+        pause=lookup_constants.PAUSE_TIME,
+    ):
         if target_site in result:
             return [result]
         results.append(result)

@@ -19,7 +19,7 @@ def get_verifieds():
             if row.server_id in verifieds:
                 verifieds[row.server_id].append(row.role_id)
             else:
-                verifieds[row.server_id] = [row.role_id] 
+                verifieds[row.server_id] = [row.role_id]
     return verifieds
 
 
@@ -42,5 +42,8 @@ def get_custom_commands():
         for row in result:
             if row.server_id not in custom_commands:
                 custom_commands[row.server_id] = {}
-            custom_commands[row.server_id][row.command_name.lower()] = (row.command_return, row.image)
-    return custom_commands 
+            custom_commands[row.server_id][row.command_name.lower()] = (
+                row.command_return,
+                row.image,
+            )
+    return custom_commands

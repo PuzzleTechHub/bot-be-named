@@ -14,14 +14,16 @@ class MiscCog(commands.Cog, name="Misc"):
         self.bot = bot
 
     @commands.command(name="emoji")
-    async def emoji(self, ctx, emojiname: Union[discord.Emoji, str], to_delete: str = ""):
-        """Finds the custom emoji mentioned and uses it. 
+    async def emoji(
+        self, ctx, emojiname: Union[discord.Emoji, str], to_delete: str = ""
+    ):
+        """Finds the custom emoji mentioned and uses it.
         This command works for normal as well as animated emojis, as long as the bot is in one server with that emoji.
 
         If you say delete after the emoji name, it deletes original message
 
         If this command is a reply to another message, it'll instead be a react to that message.
-        
+
         Usage : `~emoji snoo_glow delete`
         Usage : `~emoji :snoo_grin:`
         """
@@ -29,11 +31,13 @@ class MiscCog(commands.Cog, name="Misc"):
         embed = discord_utils.create_embed()
 
         try:
-            if(to_delete.lower()[0:3]=="del"):
+            if to_delete.lower()[0:3] == "del":
                 await ctx.message.delete()
         except discord.Forbidden:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Unable to delete original message. Do I have `manage_messages` permissions?")
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Unable to delete original message. Do I have `manage_messages` permissions?",
+            )
             await ctx.send(embed=embed)
             return
 
@@ -48,35 +52,37 @@ class MiscCog(commands.Cog, name="Misc"):
         elif isinstance(emojiname, str) and emojiname in UNICODE_EMOJI:
             emoji = emojiname
             hasurl = False
-        elif emojiname[0]==":" and emojiname[-1]==":":
+        elif emojiname[0] == ":" and emojiname[-1] == ":":
             emojiname = emojiname[1:-1]
             for guild in self.bot.guilds:
                 emoji = discord.utils.get(guild.emojis, name=emojiname)
                 if emoji is not None:
                     break
-                hasurl=True
+                hasurl = True
 
         if emoji is None:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Emoji named {emojiname} not found",
-                            inline=False)
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Emoji named {emojiname} not found",
+                inline=False,
+            )
             await ctx.send(embed=embed)
             return
 
         if ctx.message.reference:
-            #If it's replying to a message
+            # If it's replying to a message
             orig_msg = ctx.message.reference.resolved
             await orig_msg.add_reaction(emoji)
             return
         else:
-            #Just a normal command
-            if(hasurl):
+            # Just a normal command
+            if hasurl:
                 await ctx.send(emoji.url)
             else:
-                await ctx.send(emoji)                
+                await ctx.send(emoji)
             return
 
-    @commands.command(name="about", aliases=["aboutthebot","github"])
+    @commands.command(name="about", aliases=["aboutthebot", "github"])
     async def about(self, ctx):
         """A quick primer about BBN and what it does
 
@@ -88,16 +94,18 @@ class MiscCog(commands.Cog, name="Misc"):
         emoji = None
         owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
 
-        embed.add_field(name=f"About Me!",
-                        value=f"Hello!\n"
-                        f"Bot Be Named is a discord bot that we use while solving Puzzle Hunts.\n"
-                        f"The bot has a few channel management functions, some puzzle-hunt utility functions, "
-                        f"as well as Google-Sheets interactivity.\n"
-                        f"You can make channels as well as tabs on your Sheet, and other similar QoL upgrades to your puzzlehunting setup.\n\n"
-                        f"[Bot Github link](https://github.com/kevslinger/bot-be-named/)\n\n"
-                        f"To learn more about the bot or useful functions, use `{constants.DEFAULT_BOT_PREFIX}startup`\n"
-                        f"Any problems? Let {owner.mention} know.",
-                        inline=False)
+        embed.add_field(
+            name=f"About Me!",
+            value=f"Hello!\n"
+            f"Bot Be Named is a discord bot that we use while solving Puzzle Hunts.\n"
+            f"The bot has a few channel management functions, some puzzle-hunt utility functions, "
+            f"as well as Google-Sheets interactivity.\n"
+            f"You can make channels as well as tabs on your Sheet, and other similar QoL upgrades to your puzzlehunting setup.\n\n"
+            f"[Bot Github link](https://github.com/kevslinger/bot-be-named/)\n\n"
+            f"To learn more about the bot or useful functions, use `{constants.DEFAULT_BOT_PREFIX}startup`\n"
+            f"Any problems? Let {owner.mention} know.",
+            inline=False,
+        )
         await ctx.send(embed=embed)
 
     @commands.command(name="startup")
@@ -112,16 +120,18 @@ class MiscCog(commands.Cog, name="Misc"):
         emoji = None
         owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
 
-        embed.add_field(name=f"Helpful commands!",
-                        value=f"Some of the useful bot commands are -\n"
-                        f"- `{ctx.prefix}help` for a list of commands\n"
-                        f"- `{ctx.prefix}help commandname` for a description of a command (and its limitations). \n **When in doubt, use this command**.\n"
-                        f"- `{ctx.prefix}chancrab` and `{ctx.prefix}sheetcrab` for making Google Sheet tabs for your current hunt\n"
-                        f"- `{ctx.prefix}solved` etc for marking puzzle channels as solved etc\n"
-                        f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply.\n\n"
-                        f"Note that some commands are only restricted to certain roles. The current categories for those are - Verified/Trusted/Admin. These need to be configured accordingly.\n"
-                        f"- `{ctx.prefix}addverifieds` for setting up roles in Verifieds and Trusted categories on your server\n",
-                        inline=False)
+        embed.add_field(
+            name=f"Helpful commands!",
+            value=f"Some of the useful bot commands are -\n"
+            f"- `{ctx.prefix}help` for a list of commands\n"
+            f"- `{ctx.prefix}help commandname` for a description of a command (and its limitations). \n **When in doubt, use this command**.\n"
+            f"- `{ctx.prefix}chancrab` and `{ctx.prefix}sheetcrab` for making Google Sheet tabs for your current hunt\n"
+            f"- `{ctx.prefix}solved` etc for marking puzzle channels as solved etc\n"
+            f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply.\n\n"
+            f"Note that some commands are only restricted to certain roles. The current categories for those are - Verified/Trusted/Admin. These need to be configured accordingly.\n"
+            f"- `{ctx.prefix}addverifieds` for setting up roles in Verifieds and Trusted categories on your server\n",
+            inline=False,
+        )
         await ctx.send(embed=embed)
 
     @commands.command(name="issue", aliases=["issues"])
@@ -133,7 +143,7 @@ class MiscCog(commands.Cog, name="Misc"):
         Usage : `~issues` (Links all issues)
         """
         logging_utils.log_command("issue", ctx.guild, ctx.channel, ctx.author)
-        
+
         repo_link = "https://github.com/kevslinger/bot-be-named/"
         kwargs = " ".join(args)
 
@@ -180,24 +190,32 @@ class MiscCog(commands.Cog, name="Misc"):
         guild = ctx.message.guild
 
         try:
-            channel = await commands.TextChannelConverter().convert(ctx, channel_id_or_name)
+            channel = await commands.TextChannelConverter().convert(
+                ctx, channel_id_or_name
+            )
         except ValueError:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Error! The channel `{channel_id_or_name}` was not found")
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Error! The channel `{channel_id_or_name}` was not found",
+            )
             await ctx.send(embed=embed)
             return
 
         try:
-            await channel.send(message)   
+            await channel.send(message)
         except discord.Forbidden:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
-                                  f"the bot has the required permisisons?")
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
+                f"the bot has the required permisisons?",
+            )
             await ctx.send(embed=embed)
             return
 
-        embed.add_field(name=f"{constants.SUCCESS}!",
-                        value=f"Message sent to {channel.mention}: {message}!")
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"Message sent to {channel.mention}: {message}!",
+        )
         # reply to user
         await ctx.send(embed=embed)
 
@@ -221,10 +239,14 @@ class MiscCog(commands.Cog, name="Misc"):
         message = " ".join(args)
 
         try:
-            channel = await commands.TextChannelConverter().convert(ctx, channel_id_or_name)
+            channel = await commands.TextChannelConverter().convert(
+                ctx, channel_id_or_name
+            )
         except ValueError:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Error! The channel `{channel_id_or_name}` was not found")
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Error! The channel `{channel_id_or_name}` was not found",
+            )
             await ctx.send(embed=embed)
             return
 
@@ -233,16 +255,20 @@ class MiscCog(commands.Cog, name="Misc"):
             sent_embed.description = message
             await channel.send(embed=sent_embed)
         except discord.Forbidden:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
-                                  f"the bot has the required permisisons?")
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
+                f"the bot has the required permisisons?",
+            )
             await ctx.send(embed=embed)
             return
 
         # reply to user
-        sent_embed.add_field(name=f"{constants.SUCCESS}!",
-                             value=f"Embed sent to {channel.mention}",
-                             inline=False)
+        sent_embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"Embed sent to {channel.mention}",
+            inline=False,
+        )
         await ctx.send(embed=sent_embed)
 
 

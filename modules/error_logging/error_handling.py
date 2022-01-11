@@ -10,14 +10,16 @@ from datetime import datetime
 # https://github.com/DenverCoder1/professor-vector-discord-bot
 class ErrorHandler:
     """Handles errors, sends a message to user and to Error channel"""
+
     def __init__(self, message, error, human_readable_msg):
         self.message = message
         self.error = error
         self.human_readable_msg = human_readable_msg
         # Formats the error as traceback
         self.trace = traceback.format_exc()
-        traceback.print_exception(type(self.error), self.error, self.error.__traceback__, file=sys.stderr)
-
+        traceback.print_exception(
+            type(self.error), self.error, self.error.__traceback__, file=sys.stderr
+        )
 
     def handle_error(self):
         """Send error to user and error log channel"""
@@ -27,7 +29,7 @@ class ErrorHandler:
         print(f"Printing from handle_error {error_details}")
         self.__log_to_file(error_constants.ERROR_LOGFILE, error_details)
         user_error = self.__user_error_message()
-        if user_error == -1: # No error from __user_error_message
+        if user_error == -1:  # No error from __user_error_message
             return error_details
         else:
             return user_error
@@ -53,8 +55,10 @@ class ErrorHandler:
         elif isinstance(self.error, errors.CommandInvokeError):
             return f"Error while executing the command."
         elif isinstance(self.error, errors.CheckFailure):
-            return f"You do not have the required perms to use this command. Please speak with a server " \
+            return (
+                f"You do not have the required perms to use this command. Please speak with a server "
                 "admin to get verified."
+            )
         elif isinstance(self.error, errors.MissingAnyRole):
             # Get the missing role list.
             # We need to convert the role IDs to strings for the people to understand
@@ -69,17 +73,23 @@ class ErrorHandler:
                     missing_role_list.append(role.name)
             # Send all possible perms to give them access to the command
             if len(missing_role_list) >= 1:
-                return f"You must have one of the following roles to use this command: " \
-                       f"{', '.join(missing_role_list)}"
+                return (
+                    f"You must have one of the following roles to use this command: "
+                    f"{', '.join(missing_role_list)}"
+                )
             # This would happen if the perm is not available in that server.
             else:
-                return f"You don't have the necessary permissions to use that command! Speak with kevslinger to " \
-                       f"get your permissions set up for that."
+                return (
+                    f"You don't have the necessary permissions to use that command! Speak with kevslinger to "
+                    f"get your permissions set up for that."
+                )
         else:
-            return -1 # No Error found
+            return -1  # No Error found
 
     def __log_to_file(self, filename: str, text: str):
         """Appends the error to the error log file"""
         with open(filename, "a") as f:
             f.write(f"[ {datetime.now().strftime('%m-%d-%Y, %H:%M:%S')} ] {text}\n\n")
-            traceback.print_exception(type(self.error), self.error, self.error.__traceback__, file=f)
+            traceback.print_exception(
+                type(self.error), self.error, self.error.__traceback__, file=f
+            )

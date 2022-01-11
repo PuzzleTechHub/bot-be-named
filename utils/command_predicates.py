@@ -8,6 +8,7 @@ def is_owner_or_admin():
             return False
         is_owner = await ctx.bot.is_owner(ctx.author)
         return is_owner or ctx.message.author.guild_permissions.administrator
+
     return commands.check(predicate)
 
 
@@ -27,9 +28,10 @@ def is_verified():
                 role_id = role.id
                 if role_id in database.VERIFIEDS[ctx.guild.id]:
                     return True
-            return False  
+            return False
         else:
             return False
+
     return commands.check(predicate)
 
 
@@ -43,4 +45,5 @@ def is_trusted():
                 if role_id in database.TRUSTEDS[ctx.guild.id]:
                     return True
             return False
+
     return commands.check(predicate)

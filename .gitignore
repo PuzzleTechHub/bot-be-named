@@ -7,3 +7,4 @@ error_logfile.txt
 .idea
 modules/perfect_pitch/music/tunes
 modules/music_race/puzzle_outputs
+env/

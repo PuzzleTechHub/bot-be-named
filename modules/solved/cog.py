@@ -14,6 +14,7 @@ from utils import discord_utils, logging_utils, command_predicates
 # https://github.com/DenverCoder1/professor-vector-discord-bot
 class SolvedCog(commands.Cog):
     """Updates channel names as teams are progressing through puzzlehunts"""
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -27,7 +28,9 @@ class SolvedCog(commands.Cog):
             # Abusing p notation here
             # Remove other prefixes that might be present
             # e.g. ~backsolved on solved-channel should remove solved- and add backsolved-
-            for other_prefix in [op for op in solved_constants.PREFIXES if op != prefix]:
+            for other_prefix in [
+                op for op in solved_constants.PREFIXES if op != prefix
+            ]:
                 p = Prefix(channel, other_prefix)
                 if p.has_prefix():
                     new_channel_name = p.remove_prefix()
@@ -68,17 +71,23 @@ class SolvedCog(commands.Cog):
             try:
                 await ctx.channel.edit(name=new_channel_name)
             except discord.Forbidden:
-                embed.add_field(name=f"{constants.FAILED}!",
-                                value=f"Unable to prepend `solved` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?")
+                embed.add_field(
+                    name=f"{constants.FAILED}!",
+                    value=f"Unable to prepend `solved` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?",
+                )
                 await ctx.send(embed=embed)
                 return
-            embed.add_field(name=f"{constants.SUCCESS}!",
-                            value=f"Marking {ctx.channel.mention} as {solved_constants.SOLVED_PREFIX[:-1]}!",
-                            inline=False)
+            embed.add_field(
+                name=f"{constants.SUCCESS}!",
+                value=f"Marking {ctx.channel.mention} as {solved_constants.SOLVED_PREFIX[:-1]}!",
+                inline=False,
+            )
         else:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Channel already marked as {solved_constants.SOLVED_PREFIX[:-1]}!",
-                            inline=False)
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Channel already marked as {solved_constants.SOLVED_PREFIX[:-1]}!",
+                inline=False,
+            )
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
@@ -96,16 +105,22 @@ class SolvedCog(commands.Cog):
         embed = discord_utils.create_embed()
 
         channel = ctx.message.channel
-        new_channel_name = self.add_prefix(ctx.message.channel, solved_constants.SOLVEDISH_PREFIX)
+        new_channel_name = self.add_prefix(
+            ctx.message.channel, solved_constants.SOLVEDISH_PREFIX
+        )
         if new_channel_name:
             await channel.edit(name=new_channel_name)
-            embed.add_field(name=f"{constants.SUCCESS}!",
-                            value=f"Marking {channel.mention} as {solved_constants.SOLVEDISH_PREFIX[:-1]}!",
-                            inline=False)
+            embed.add_field(
+                name=f"{constants.SUCCESS}!",
+                value=f"Marking {channel.mention} as {solved_constants.SOLVEDISH_PREFIX[:-1]}!",
+                inline=False,
+            )
         else:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Channel already marked as {solved_constants.SOLVEDISH_PREFIX[:-1]}!",
-                            inline=False)
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Channel already marked as {solved_constants.SOLVEDISH_PREFIX[:-1]}!",
+                inline=False,
+            )
         await channel.edit(name=new_channel_name)
         await ctx.send(embed=embed)
 
@@ -127,13 +142,17 @@ class SolvedCog(commands.Cog):
         new_channel_name = self.add_prefix(channel, solved_constants.BACKSOLVED_PREFIX)
         if new_channel_name:
             await channel.edit(name=new_channel_name)
-            embed.add_field(name=f"{constants.SUCCESS}",
-                            value=f"Marking {channel.mention} as {solved_constants.BACKSOLVED_PREFIX[:-1]}!",
-                            inline=False)
+            embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value=f"Marking {channel.mention} as {solved_constants.BACKSOLVED_PREFIX[:-1]}!",
+                inline=False,
+            )
         else:
-            embed.add_field(name=f"{constants.FAILED}",
-                            value=f"Channel already marked as {solved_constants.BACKSOLVED_PREFIX[:-1]}!",
-                            inline=False)
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Channel already marked as {solved_constants.BACKSOLVED_PREFIX[:-1]}!",
+                inline=False,
+            )
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
@@ -155,20 +174,24 @@ class SolvedCog(commands.Cog):
             new_channel_name = self.remove_prefix(ctx.message.channel, prefix)
             if new_channel_name:
                 await channel.edit(name=new_channel_name)
-                embed.add_field(name=f"{constants.SUCCESS}!",
-                                value=f"Marking {channel.mention} as un{prefix[:-1]}!",
-                                inline=False)
+                embed.add_field(
+                    name=f"{constants.SUCCESS}!",
+                    value=f"Marking {channel.mention} as un{prefix[:-1]}!",
+                    inline=False,
+                )
                 await ctx.send(embed=embed)
                 return
-        embed.add_field(name=f"{constants.FAILED}!",
-                        value=f"Channel is not marked as {solved_constants.SOLVED_PREFIX[:-1]}!",
-                        inline=False)
+        embed.add_field(
+            name=f"{constants.FAILED}!",
+            value=f"Channel is not marked as {solved_constants.SOLVED_PREFIX[:-1]}!",
+            inline=False,
+        )
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
     @commands.command(name="movetoarchive", aliases=["mta"])
     async def movetoarchive(self, ctx):
-        """Finds a category with `<category_name> Archive`, and moves the channel to that category. 
+        """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
 
         Category : Verified Roles only.
@@ -178,21 +201,33 @@ class SolvedCog(commands.Cog):
         embed = discord_utils.create_embed()
 
         # Find category with same name + Archive (or select combinations)
-        archive_category = await discord_utils.find_category(ctx, f"{ctx.channel.category.name} Archive") or \
-                           await discord_utils.find_category(ctx, f"Archive: {ctx.channel.category.name}") or \
-                           await discord_utils.find_category(ctx, f"{ctx.channel.category.name} archive")
+        archive_category = (
+            await discord_utils.find_category(
+                ctx, f"{ctx.channel.category.name} Archive"
+            )
+            or await discord_utils.find_category(
+                ctx, f"Archive: {ctx.channel.category.name}"
+            )
+            or await discord_utils.find_category(
+                ctx, f"{ctx.channel.category.name} archive"
+            )
+        )
 
         if archive_category is None:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"There is no category named `{ctx.channel.category.name} Archive` or "
-                                  f"`Archive: {ctx.channel.category.name}`, so I cannot move {ctx.channel.mention}.")
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"There is no category named `{ctx.channel.category.name} Archive` or "
+                f"`Archive: {ctx.channel.category.name}`, so I cannot move {ctx.channel.mention}.",
+            )
             await ctx.send(embed=embed)
             return
 
         if discord_utils.category_is_full(archive_category):
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"`{archive_category}` is already full, max limit is 50 channels. Consider renaming"
-                                  f" `{archive_category}` and creating a new `{archive_category}`.")
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"`{archive_category}` is already full, max limit is 50 channels. Consider renaming"
+                f" `{archive_category}` and creating a new `{archive_category}`.",
+            )
             await ctx.send(embed=embed)
             return
 
@@ -201,15 +236,20 @@ class SolvedCog(commands.Cog):
             await ctx.channel.edit(category=archive_category)
             await ctx.channel.edit(position=1)
         except discord.Forbidden:
-            embed.add_field(name=f"{constants.FAILED}!",
-                            value=f"Can you check my permissions? I can't seem to be able to move "
-                                  f"{ctx.channel.mention} to `{archive_category.name}`")
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Can you check my permissions? I can't seem to be able to move "
+                f"{ctx.channel.mention} to `{archive_category.name}`",
+            )
             await ctx.send(embed=embed)
             return
 
-        embed.add_field(name=f"{constants.SUCCESS}!",
-                        value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`")
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`",
+        )
         await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(SolvedCog(bot))

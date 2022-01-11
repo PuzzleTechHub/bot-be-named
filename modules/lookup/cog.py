@@ -34,10 +34,10 @@ class LookupCog(commands.Cog, name="Lookup"):
         else:
             is_google_search = False
 
-        original_query = ' '.join(args)
+        original_query = " ".join(args)
         # Don't add google to the query but add any other target site for easier access/SEO
         if not is_google_search:
-            query_with_site = original_query + ' ' + target_site
+            query_with_site = original_query + " " + target_site
         else:
             query_with_site = original_query
         # Dude this loop is going to be horrible wtf
@@ -47,22 +47,32 @@ class LookupCog(commands.Cog, name="Lookup"):
         #   Find the first result that matches the target site and return that
         #   If we can't find it, return the google query I think
         results = []
-        for result in googlesearch.search(query_with_site, num=lookup_constants.QUERY_NUM,
-                                          stop=lookup_constants.QUERY_NUM,
-                                          pause=lookup_constants.PAUSE_TIME):
+        for result in googlesearch.search(
+            query_with_site,
+            num=lookup_constants.QUERY_NUM,
+            stop=lookup_constants.QUERY_NUM,
+            pause=lookup_constants.PAUSE_TIME,
+        ):
             if target_site in result:
-                embed.add_field(name=f"{target_site.capitalize()} Result for {original_query}",
-                                value=result)
+                embed.add_field(
+                    name=f"{target_site.capitalize()} Result for {original_query}",
+                    value=result,
+                )
                 await ctx.send(embed=embed)
                 return
             results.append(result)
         if is_google_search:
-            embed.add_field(name=f"{target_site.capitalize()} Result for {original_query}",
-                            value = f"{chr(10).join(results)}")
+            embed.add_field(
+                name=f"{target_site.capitalize()} Result for {original_query}",
+                value=f"{chr(10).join(results)}",
+            )
         else:
-            embed.add_field(name=f"Search failed!", value=f"Sorry! We weren't able to find a {target_site.capitalize()}"
-                                                          f"link for {original_query}. However, here are the top 10 hits on Google:\n"
-                                                          f"{chr(10).join(results)}")
+            embed.add_field(
+                name=f"Search failed!",
+                value=f"Sorry! We weren't able to find a {target_site.capitalize()}"
+                f"link for {original_query}. However, here are the top 10 hits on Google:\n"
+                f"{chr(10).join(results)}",
+            )
         await ctx.send(embed=embed)
 
     @commands.command(name="google")
@@ -71,14 +81,15 @@ class LookupCog(commands.Cog, name="Lookup"):
         Command to search google!
 
         Usage: `~google <[query...]>`
-        """        
+        """
         logging_utils.log_command("google", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        results = lookup_utils.search_query(' '.join(args))
+        results = lookup_utils.search_query(" ".join(args))
 
-        embed.add_field(name=f"Google Result for {' '.join(args)}",
-                        value=f"{chr(10).join(results)}")
+        embed.add_field(
+            name=f"Google Result for {' '.join(args)}", value=f"{chr(10).join(results)}"
+        )
         await ctx.send(embed=embed)
 
     @commands.command(name="wikipedia", aliases=["wiki"])
@@ -87,21 +98,28 @@ class LookupCog(commands.Cog, name="Lookup"):
         Command to search Wikipedia!
 
         Usage: `~wikipedia <[query...]>`
-        """        
+        """
         logging_utils.log_command("wikipedia", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        results = lookup_utils.search_query(' '.join(args), target_site=lookup_constants.WIKI)
+        results = lookup_utils.search_query(
+            " ".join(args), target_site=lookup_constants.WIKI
+        )
 
         if len(results) > 1:
-            embed.add_field(name=f"Search failed!",
-                            value=f"Sorry! We weren't able to find a Wikipedia"
-                                  f"link for {' '.join(args)}. However, here are the top 10 hits on Google:\n"
-                                  f"{chr(10).join(results)}")
+            embed.add_field(
+                name=f"Search failed!",
+                value=f"Sorry! We weren't able to find a Wikipedia"
+                f"link for {' '.join(args)}. However, here are the top 10 hits on Google:\n"
+                f"{chr(10).join(results)}",
+            )
         else:
-            embed.add_field(name=f"Wikipedia Result for {' '.join(args)}",
-                            value=f"{chr(10).join(results)}")
+            embed.add_field(
+                name=f"Wikipedia Result for {' '.join(args)}",
+                value=f"{chr(10).join(results)}",
+            )
         await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(LookupCog(bot))

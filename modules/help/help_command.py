@@ -41,7 +41,7 @@ class HelpCommand(commands.MinimalHelpCommand):
                 embed.add_field(name=name, value=value)
 
         # TODO: We don't have any commands with no category anymore
-        #embed.add_field(name="No category", value=f"{chr(10)}".join(f"{prefix}{c.name}" for c in no_category_commands))
+        # embed.add_field(name="No category", value=f"{chr(10)}".join(f"{prefix}{c.name}" for c in no_category_commands))
 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
@@ -50,9 +50,9 @@ class HelpCommand(commands.MinimalHelpCommand):
         """implements cog help page"""
         embed = discord_utils.create_embed()
         embed.title = f"{cog.qualified_name} Commands"
-        #embed = discord.Embed(
+        # embed = discord.Embed(
         #    title=f"{cog.qualified_name} Commands", colour=constants.EMBED_COLOR
-        #)
+        # )
         if cog.description:
             embed.description = cog.description
 
@@ -70,7 +70,7 @@ class HelpCommand(commands.MinimalHelpCommand):
     async def send_group_help(self, group: commands.Group):
         """implements group help page and command help page"""
         embed = discord_utils.create_embed()
-        embed.title= group.qualified_name
+        embed.title = group.qualified_name
         if group.help:
             embed.description = group.help
 

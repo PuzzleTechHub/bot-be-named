@@ -44,24 +44,33 @@ def parse_date(
     # return the datetime object
     return date
 
+
 def replace_offset(text: str) -> str:
     """Overrides the offset for better timezones"""
-    return text.replace('UTC\+05:30', 'IST').replace('UTC\+01:00', 'BST')
+    return text.replace("UTC\+05:30", "IST").replace("UTC\+01:00", "BST")
 
 
 def format_time(time):
     """Rearrange time str. Comes in as YYYY-MM-DD HH:MM, change to MM-DD-YYYY HH:MM"""
     date = datetime.strptime(time, "%Y-%m-%d %H:%M")
-    return date.strftime('%B %d, %H:%M')
+    return date.strftime("%B %d, %H:%M")
+
 
 def format_gmt_offset(timezone_dict):
     """Find GMT offset (include dst if applicable)"""
-    raw_offset = timezone_dict['gmtOffset']
-    dst_offset = timezone_dict['dstOffset']
+    raw_offset = timezone_dict["gmtOffset"]
+    dst_offset = timezone_dict["dstOffset"]
     if raw_offset == dst_offset:
-        return f"{timezone_dict['timezoneId']} (" + (
-            "+" if timezone_dict['gmtOffset'] > 0 else "") + f"{timezone_dict['gmtOffset']})"
+        return (
+            f"{timezone_dict['timezoneId']} ("
+            + ("+" if timezone_dict["gmtOffset"] > 0 else "")
+            + f"{timezone_dict['gmtOffset']})"
+        )
     else:
-        return f"{timezone_dict['timezoneId']} (" + (
-            "+" if timezone_dict['gmtOffset'] > 0 else "") + f"{timezone_dict['gmtOffset']}/" + \
-                ("+" if timezone_dict['dstOffset'] > 0 else "") + f"{timezone_dict['dstOffset']})"
+        return (
+            f"{timezone_dict['timezoneId']} ("
+            + ("+" if timezone_dict["gmtOffset"] > 0 else "")
+            + f"{timezone_dict['gmtOffset']}/"
+            + ("+" if timezone_dict["dstOffset"] > 0 else "")
+            + f"{timezone_dict['dstOffset']})"
+        )
