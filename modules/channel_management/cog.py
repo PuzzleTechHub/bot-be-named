@@ -866,7 +866,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_owner()
     @commands.command(
         name="deletecategory",
         aliases=[

@@ -12,6 +12,13 @@ def is_owner_or_admin():
     return commands.check(predicate)
 
 
+def is_owner():
+    async def predicate(ctx):
+        return ctx.author == ctx.guild.owner
+
+    return commands.check(predicate)
+
+
 def is_verified():
     async def predicate(ctx):
         if ctx.message.guild is None:
