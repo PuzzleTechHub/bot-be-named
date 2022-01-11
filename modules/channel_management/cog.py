@@ -920,6 +920,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         confirm_emoji = "✅"
         cancel_emoji = "❌"
 
+        # Send warning to user
         embed.add_field(
             name="Are you sure?",
             value=f"This will delete the category `{category.name}` and all its channels. This is not reversable. Make sure you archive the category first before continuing. You have 15 seconds to confirm.",
@@ -932,6 +933,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await emb.add_reaction(confirm_emoji)
         await emb.add_reaction(cancel_emoji)
 
+        # check that the reaction is the correct one and that the correct user reacted
         def chk(reaction, user):
             return (
                 reaction.message.id == emb.id
@@ -942,9 +944,10 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         final_embed = discord_utils.create_embed()
 
         try:
-            react, user = await self.bot.wait_for(
+            react, _ = await self.bot.wait_for(
                 event="reaction_add", check=chk, timeout=15
             )
+            # delete category
             if react.emoji == confirm_emoji:
                 try:
                     for channel in channel_list:
