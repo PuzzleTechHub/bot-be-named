@@ -1,7 +1,7 @@
 from discord.ext import commands
 from modules.error_logging.error_handling import ErrorHandler
 from modules.error_logging import error_constants
-from utils import discord_utils, logging_utils
+from utils import discord_utils, logging_utils, command_predicates
 import sys
 import os
 
@@ -13,11 +13,11 @@ class ErrorLogCog(commands.Cog):
         self.bot = bot
 
     @commands.command(name="errorlog")
-    @commands.is_owner()
+    @command_predicates.is_owner()
     async def errorlog(self, ctx, num_lines: int = 50):
         """Shows errors in reverse chronological order
 
-        Category : Bot Owner Only.
+        Category : Admin and Bot Owner only.
         Usage: `~errorlog`
         """
         logging_utils.log_command("errorlog", ctx.guild, ctx.channel, ctx.author)

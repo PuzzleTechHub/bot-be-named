@@ -866,7 +866,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_owner()
     @commands.command(
         name="deletecategory",
         aliases=[
@@ -881,10 +880,11 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             "nukecategory",
         ],
     )
+    @command_predicates.is_owner()
     async def deletecategory(self, ctx, cat_name: str = ""):
         """Delete a category in the server. Requires emoji confirmation
 
-        Category : Admin and Bot Owner only.
+        Category : Server Owner only.
         Usage: `~deletecat "Cat A"` (List all the channels in the given category)
         """
         logging_utils.log_command("deletecategory", ctx.guild, ctx.channel, ctx.author)
@@ -913,12 +913,19 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         channel_list = category.channels
 
+        channels = [f"#{chan.name}" for chan in channel_list]
+        if channels == []:
+            channels = ["(This Category is empty)"]
+
         confirm_emoji = "✅"
         cancel_emoji = "❌"
 
         embed.add_field(
             name="Are you sure?",
             value=f"This will delete the category `{category.name}` and all its channels. This is not reversable. Make sure you archive the category first before continuing. You have 15 seconds to confirm.",
+        )
+        embed.add_field(
+            name=f"Channels to delete", value=f"{chr(10).join(channels)}", inline=False
         )
 
         emb = await ctx.send(embed=embed)
@@ -946,6 +953,11 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                     final_embed.add_field(
                         name=f"{constants.SUCCESS}!",
                         value=f"The category named `{category.name}` has been deleted!",
+                    )
+                    final_embed.add_field(
+                        name=f"Channels deleted",
+                        value=f"{chr(10).join(channels)}",
+                        inline=False,
                     )
                 except:
                     final_embed.add_field(
