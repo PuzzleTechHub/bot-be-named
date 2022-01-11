@@ -166,17 +166,17 @@ class TimeCog(commands.Cog, name="Time"):
         utctime = datetime.datetime.now(tz=pytz.UTC)
 
         # TODO: I'm being REALLY loose on the arguments here
-        if "d" in args[0]:
+        if "d" in args[0] and args[0][0] != "-":
             remind_time = utctime + datetime.timedelta(days=int(args[0][:-1]))
-        elif "h" in args[0]:
+        elif "h" in args[0] and args[0][0] != "-":
             remind_time = utctime + datetime.timedelta(hours=int(args[0][:-1]))
-        elif "m" in args[0]:
+        elif "m" in args[0] and args[0][0] != "-":
             remind_time = utctime + datetime.timedelta(minutes=int(args[0][:-1]))
         else:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value="Must supply a unit of time! (e.g. 5d, 24h, 30m)",
+                value="Must supply a positive unit of time! (e.g. 5d, 24h, 30m)",
                 inline=False,
             )
             await ctx.send(embed=embed)
