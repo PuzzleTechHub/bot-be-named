@@ -612,9 +612,13 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return curr_sheet_link, newsheet
 
+    #################
+    # LION COMMANDS #
+    #################
+
     """
     TODO: New workflow for hunts:
-    ~templatelion (set the template sheet for the server)
+    ~DONE: templatelion (set the template sheet for the server)
     ~huntlion (duplicates the sheet and then adds hunt info to the sheet, also tethers the sheet to the category)
     ~chanlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
     ~metalion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
@@ -787,24 +791,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
         # TODO - Overview work.
         return curr_sheet_link, newsheet
 
-    @command_predicates.is_verified()
-    @commands.command(
-        name="settemplatelion", aliases=["settemplion", "settemplate", "settemp"]
-    )
-    async def settemplion(self, ctx, template_sheet_key_or_link: str):
-        """Set the template Google sheets for puzzlehunts on this server.
-
-        Replaces the current template if one already exists.
-
-        Category: Verified Roles only.
-        Usage: '~settemplatelion <sheet link>'
-        """
-        logging_utils.log_command("settemplatelion", ctx.guild, ctx.channel, ctx.author)
-
+    async def validate_template(self, ctx, proposed_sheet):
         embed = discord_utils.create_embed()
 
-        # see if our link is actually a GSheet, if not then fail
-        proposed_template = self.get_sheet_from_key_or_link(template_sheet_key_or_link)
+        proposed_template = self.get_sheet_from_key_or_link(proposed_sheet)
 
         if not proposed_template:
             embed.add_field(
@@ -814,6 +804,95 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 inline=False,
             )
             await ctx.send(embed=embed)
+            return None
+
+        curr_link = proposed_template.url
+
+        # Make sure the template tab exists on the sheet.
+        try:
+            curr_sheet = self.gspread_client.open_by_url(curr_link)
+            template_id = curr_sheet.worksheet("Template").id
+        # Error when we can't open the curr sheet link
+        except gspread.exceptions.APIError:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"I'm unable to open the tethered [sheet]({curr_link}). "
+                f"Did the permissions change?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return None
+        # Error when the sheet has no template tab
+        except gspread.exceptions.WorksheetNotFound:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The [sheet]({curr_link}) has no tab named 'Template'. "
+                f"Did you forget to add one?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return None
+
+        # Make sure the Meta Template tab exists on the sheet.
+        try:
+            curr_sheet = self.gspread_client.open_by_url(curr_link)
+            overview_id = curr_sheet.worksheet("Meta Template").id
+        # Error when the sheet has no Meta Template tab
+        except gspread.exceptions.WorksheetNotFound:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The [sheet]({curr_link}) has no tab named 'Meta Template'. "
+                f"Did you forget to add one?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return None
+
+        # Make sure the Overview tab exists on the sheet.
+        try:
+            curr_sheet = self.gspread_client.open_by_url(curr_link)
+            overview_id = curr_sheet.worksheet("Overview").id
+        # Error when the sheet has no Overview tab
+        except gspread.exceptions.WorksheetNotFound:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The [sheet]({curr_link}) has no tab named 'Overview'. "
+                f"Did you forget to add one?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return None
+
+        return proposed_template
+
+    @command_predicates.is_verified()
+    @commands.command(
+        name="settemplatelion", aliases=["settemplion", "settemplate", "settemp"]
+    )
+    async def settemplion(self, ctx, template_sheet_key_or_link: str):
+        """Set the template Google sheets for puzzlehunts on this server.
+
+        Replaces the current template if one already exists.
+
+        Requires that the template has the following tabs: Overview, Template, Meta Template
+
+        Category: Verified Roles only.
+        Usage: '~settemplatelion <sheet link>'
+        """
+        logging_utils.log_command("settemplatelion", ctx.guild, ctx.channel, ctx.author)
+
+        embed = discord_utils.create_embed()
+
+        # see if our link is actually a GSheet and has the required tabs
+        proposed_template = await self.validate_template(
+            ctx, template_sheet_key_or_link
+        )
+
+        if not proposed_template:
             return
 
         # If the server already has a template, update it, otherwise insert it into the database
