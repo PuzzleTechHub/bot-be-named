@@ -925,6 +925,15 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         await ctx.send(embed=embed)
 
+    def findtemplate(self, ctx):
+        """For finding the hunt template for a given server."""
+        with Session(database.DATABASE_ENGINE) as session:
+            return (
+                session.query(database.SheetTemplates)
+                .filter_by(server_id=ctx.guild.id)
+                .first()
+            )
+
     @command_predicates.is_verified()
     @commands.command(
         name="gettemplatelion",
@@ -955,15 +964,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         logging_utils.log_command("gettemplatelion", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        result = None
-
-        # Search DB for the template sheet, if it exists
-        with Session(database.DATABASE_ENGINE) as session:
-            result = (
-                session.query(database.SheetTemplates)
-                .filter_by(server_id=ctx.guild.id)
-                .first()
-            )
+        result = self.findtemplate(ctx)
 
         # No template
         if result is None:
@@ -982,6 +983,57 @@ class SheetsCog(commands.Cog, name="Sheets"):
             f"[Google sheet at link]({result.sheet_link})",
             inline=False,
         )
+        await ctx.send(embed=embed)
+
+    @command_predicates.is_verified()
+    @commands.command(
+        name="deletetemplatelion",
+        aliases=[
+            "deletetemplion",
+            "deletetemplate",
+            "deletetemp",
+            "deltemplatelion",
+            "deltemplion",
+            "removetemplatelion",
+            "deltemplate",
+            "deltemp",
+            "removetemplion",
+            "removetemplate",
+            "removetemp",
+        ],
+    )
+    async def deletetemplatelion(self, ctx):
+        """Unbind the template from the server.
+
+        Category: Verified Roles only.
+        Usage: '~removetether'
+        """
+        logging_utils.log_command(
+            "deletetemplatelion", ctx.guild, ctx.channel, ctx.author
+        )
+        embed = discord_utils.create_embed()
+
+        sheet = self.findtemplate(ctx)
+
+        # Remove the existing binding if it exists
+        if sheet is not None:
+            with Session(database.DATABASE_ENGINE) as session:
+                sheet_link = sheet.sheet_link
+                session.query(database.SheetTemplates).filter_by(
+                    server_id=ctx.guild.id
+                ).delete()
+                session.commit()
+            embed.add_field(
+                name=f"{constants.SUCCESS}!",
+                value=f"This server **{ctx.guild.name}** is no longer bound to [sheet]({sheet_link})!",
+                inline=False,
+            )
+        else:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"This server **{ctx.guild.name}** does not have a bound template.",
+                inline=False,
+            )
         await ctx.send(embed=embed)
 
 
