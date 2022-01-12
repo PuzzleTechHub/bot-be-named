@@ -176,6 +176,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
+    # TODO: PETE READ THIS
     @command_predicates.is_verified()
     @commands.command(name="channelcreatetab", aliases=["channelcrab", "chancrab"])
     async def channelcreatetab(self, ctx, chan_name: str, *args):
@@ -645,13 +646,13 @@ class SheetsCog(commands.Cog, name="Sheets"):
         newsheet = None
 
         # Find the tethered sheet for the channel/category from the DB
-        curr_chan_or_cat_row, tether_type = self.findsheettether(
+        tether_result, tether_type = self.findsheettether(
             str(curr_chan.id), str(curr_cat.id)
         )
 
         # Error if no such sheet exists
-        if curr_chan_or_cat_row is not None:
-            curr_sheet_link = curr_chan_or_cat_row.sheet_link
+        if tether_result is not None:
+            curr_sheet_link = tether_result.sheet_link
         else:
             embed = discord_utils.create_embed()
             embed.add_field(
@@ -707,7 +708,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
             return curr_sheet_link, newsheet
 
         overviewtab = 0
-        # TODO
 
         # Find the tethered sheet for the channel/category from the DB
         curr_chan_or_cat_cell, tether_type = self.findlinkedtab(
