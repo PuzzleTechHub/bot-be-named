@@ -612,6 +612,20 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return curr_sheet_link, newsheet
 
+    """
+    TODO: New workflow for hunts:
+    ~templatelion (set the template sheet for the server)
+    ~huntlion (duplicates the sheet and then adds hunt info to the sheet, also tethers the sheet to the category)
+    ~chanlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
+    ~metalion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
+    ~roundlion (adds a puzzle to a round)
+    ~taglion (tags a specific role to a puzzle)
+    ~mentionlion (mentions the tagged roles of that puzzle, used when you need help)
+    ~solvedlion/solvishedlion/backsolvedlion/unsolvedlion/unsolvablelion/workingonlion/abandonedlion (changes the color of the tab and also the sheet, also updates stats, for solved/solvedish/backsolved/unsolved, also changes the name of the discord channel)
+    ~hintlion/hintsentlion (hintlion expresses the intent to request a hint and puts a matter to a vote, hintsentlion signifies that a hint has been sent)
+    ~archivelion (is the same as regular move to archive, but also moves the sheet to the end/hides the sheet)
+    """
+
     ## WIP code. DO NOT USE
     def findlinkedtab(self, curr_chan_id: str, overviewtab):
         """Find linked tab based on lion overview"""
