@@ -365,7 +365,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @command_predicates.is_verified()
     @commands.command(name="downloadsheet", aliases=["savesheet"])
     async def downloadsheet(self, ctx, sheet_url=None):
-        """Download the channel/category's currently tethered sheet. You can supply a URL or it will
+        """Download  the channel/category's currently tethered sheet. You can supply a URL or it will
         use the currently tethered sheet.
 
         Category : Verified Roles only.
