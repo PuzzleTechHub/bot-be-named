@@ -5,6 +5,7 @@ from database.models import (
     CustomCommands,
     Prefixes,
     SheetTethers,
+    SheetTemplates,
 )
 
 from database.database_utils import (

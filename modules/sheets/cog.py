@@ -787,6 +787,124 @@ class SheetsCog(commands.Cog, name="Sheets"):
         # TODO - Overview work.
         return curr_sheet_link, newsheet
 
+    @command_predicates.is_verified()
+    @commands.command(
+        name="settemplatelion", aliases=["settemplion", "settemplate", "settemp"]
+    )
+    async def settemplion(self, ctx, template_sheet_key_or_link: str):
+        """Set the template Google sheets for puzzlehunts on this server.
+
+        Replaces the current template if one already exists.
+
+        Category: Verified Roles only.
+        Usage: '~settemplatelion <sheet link>'
+        """
+        logging_utils.log_command("settemplatelion", ctx.guild, ctx.channel, ctx.author)
+
+        embed = discord_utils.create_embed()
+
+        # see if our link is actually a GSheet, if not then fail
+        proposed_template = self.get_sheet_from_key_or_link(template_sheet_key_or_link)
+
+        if not proposed_template:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Sorry, we can't find a sheet there. "
+                f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        # If the server already has a template, update it, otherwise insert it into the database
+        with Session(database.DATABASE_ENGINE) as session:
+            result = (
+                session.query(database.SheetTemplates)
+                .filter_by(server_id=ctx.guild.id)
+                .first()
+            )
+
+            # template already exists
+            if result is not None:
+                result.sheet_link = proposed_template.url
+            # template does not exist
+            else:
+                stmt = insert(database.SheetTemplates).values(
+                    server_id=ctx.guild.id,
+                    server_name=ctx.guild.name,
+                    sheet_link=proposed_template.url,
+                )
+                session.execute(stmt)
+            # Commits change
+            session.commit()
+
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"This server **{ctx.guild.name}** now has the hunt template "
+            f"[Google sheet at link]({proposed_template.url})",
+            inline=False,
+        )
+        await ctx.send(embed=embed)
+
+    @command_predicates.is_verified()
+    @commands.command(
+        name="gettemplatelion",
+        aliases=[
+            "gettemplion",
+            "gettemplate",
+            "gettemp",
+            "templatelion",
+            "templion",
+            "template",
+            "temp",
+            "showtemplatelion",
+            "showtemplion",
+            "showtemplate",
+            "showtemp",
+            "displaytemplatelion",
+            "displaytemplion",
+            "displaytemplate",
+            "displaytemp",
+        ],
+    )
+    async def gettemplatelion(self, ctx):
+        """Find the sheet used as the puzzlehunt template for this server.
+
+        Category: Verified Roles only.
+        Usage: '~gettemplatelion'
+        """
+        logging_utils.log_command("gettemplatelion", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        result = None
+
+        # Search DB for the template sheet, if it exists
+        with Session(database.DATABASE_ENGINE) as session:
+            result = (
+                session.query(database.SheetTemplates)
+                .filter_by(server_id=ctx.guild.id)
+                .first()
+            )
+
+        # No template
+        if result is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"This server **{ctx.guild.name}** does not have a template Google Sheet.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        # Template exists
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"We found a template for this server **{ctx.guild.name}** at "
+            f"[Google sheet at link]({result.sheet_link})",
+            inline=False,
+        )
+        await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(SheetsCog(bot))
