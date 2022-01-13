@@ -1,3 +1,4 @@
+from xmlrpc import server
 from sqlalchemy import Column, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.sqltypes import BIGINT, Boolean, String
@@ -43,6 +44,13 @@ class SheetTethers(Base):
     server_name = Column(String)
     channel_or_cat_id = Column(BIGINT, primary_key=True)
     channel_or_cat_name = Column(String)
+    sheet_link = Column(String)
+
+
+class SheetTemplates(Base):
+    __tablename__ = "sheet_templates"
+    server_id = Column(BIGINT, primary_key=True)
+    server_name = Column(String)
     sheet_link = Column(String)
 
 
