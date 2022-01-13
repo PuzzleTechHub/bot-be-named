@@ -630,7 +630,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     """
     TODO: New workflow for hunts:
     ~DONE templatelion (set the template sheet for the server)
-    ~IN PROGRESS huntlion/clonelion (duplicates the sheet and then adds hunt info to the sheet, also tethers the sheet to the category)
+    ~DONE huntlion/clonelion (duplicates the sheet and then adds hunt info to the sheet, also tethers the sheet to the category)
     ~IN PROGRESS chanlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
     ~NOT STARTED metalion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
     ~NOT STARTED roundlion (adds a puzzle to a round)
@@ -800,7 +800,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return curr_sheet_link, None
 
-        # TODO - Overview work.
+        # TODO: Overview work.
         return curr_sheet_link, newsheet
 
     async def validate_template(self, ctx, proposed_sheet):
@@ -1048,18 +1048,21 @@ class SheetsCog(commands.Cog, name="Sheets"):
             )
         await ctx.send(embed=embed)
 
-    # TODO:
+    @command_predicates.is_verified()
+    @commands.command(
+        name="huntlion",
+    )
     async def huntlion(
         self,
         ctx,
         hunt_team_name: str,
         hunturl: str,
-        rolename_orurl: Union[discord.Role, str] = None,
+        rolename_or_folderurl: Union[discord.Role, str] = None,
         folderurl: str = None,
     ):
         """Clone the template and names the new sheet into a new category named huntteamname.
 
-        This new category will have 2 premade channels: #huntteamname-main and #huntteamname-bot-spam
+        This new category will have 3 premade channels: #huntteamname-main and #huntteamname-bot-spam and #huntteamname-vc
 
         The category will only be visible to those with the role rolename.
 
@@ -1077,9 +1080,137 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Usage: ~huntlion SheetName hunturl role folderurl
         Usage: ~huntlion SheetName hunturl folderurl
         """
-        pass
+        logging_utils.log_command("huntlion", ctx.guild, ctx.channel, ctx.author)
 
-    # TODO:
+        f_url = folderurl
+        roleName = None
+        if folderurl is None:
+            if (
+                isinstance(rolename_or_folderurl, str)
+                and len(rolename_or_folderurl.split("folders/")) == 2
+            ):
+                f_url = rolename_or_folderurl
+            else:
+                roleName = rolename_or_folderurl
+        else:
+            roleName = rolename_or_folderurl
+
+        try:
+            await ctx.guild.create_category(hunt_team_name)
+            cat = await discord_utils.find_category(ctx, hunt_team_name)
+            if cat is None:
+                embed = discord_utils.create_embed()
+                embed.add_field(
+                    name=f"{constants.FAILED}!",
+                    value=f"Error! The hunt category was not correctly created.",
+                )
+                # reply to user
+                await ctx.send(embed=embed)
+                return
+
+            if roleName:
+                role_to_allow = None
+                if isinstance(roleName, str):
+                    roles = await ctx.guild.fetch_roles()
+                    for role in roles:
+                        if role.name.lower() == roleName.lower():
+                            role_to_allow = role
+                            break
+                else:
+                    role_to_allow = roleName
+
+                if not role_to_allow:
+                    role_to_allow = await ctx.guild.create_role(name=roleName)
+                    embed = discord_utils.create_embed()
+                    embed.add_field(
+                        name=f"Created role {roleName}",
+                        value=f"Could not find role `{roleName}`, so I created it.",
+                        inline=False,
+                    )
+                    await ctx.send(embed=embed)
+
+                await cat.set_permissions(
+                    role_to_allow,
+                    read_messages=True,
+                    send_messages=True,
+                    connect=True,
+                    speak=True,
+                )
+                await cat.set_permissions(
+                    ctx.guild.default_role, read_messages=False, connect=False
+                )
+
+            await discord_utils.createchannelgeneric(
+                ctx.guild, cat, hunt_team_name + " main"
+            )
+            await discord_utils.createchannelgeneric(
+                ctx.guild, cat, hunt_team_name + " bot spam"
+            )
+            await discord_utils.createvoicechannelgeneric(
+                ctx.guild, cat, hunt_team_name + " VC"
+            )
+        except discord.Forbidden:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        channel_list = cat.channels
+        channels = [f"{chan.mention}" for chan in channel_list]
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"The hunt category was created.",
+            inline=False,
+        )
+        embed.add_field(name=f"Channels in {cat}", value=f"{chr(10).join(channels)}")
+        await ctx.send(embed=embed)
+
+        new_sheet = await self.clonetemplatelion(ctx, hunt_team_name, f_url)
+        if new_sheet is None:
+            return
+
+        if await self.validate_template(ctx, new_sheet.url) is None:
+            return
+
+        proposed_sheet = self.addsheettethergeneric(new_sheet.url, ctx.guild, cat)
+
+        if proposed_sheet:
+            new_embed = discord_utils.create_embed()
+            new_embed.add_field(
+                name=f"{constants.SUCCESS}!",
+                value=f"The category **{cat.name}** is now tethered to the "
+                f"[Google sheet at link]({proposed_sheet.url})",
+                inline=False,
+            )
+            await ctx.send(embed=new_embed)
+        # If we can't open the sheet, send an error and return
+        else:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Sorry, we can't find a sheet there. "
+                f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        if await self.initoverview(ctx, hunturl, new_sheet):
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.SUCCESS}!",
+                value=f"The sheet is now set up for use",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+
+    @command_predicates.is_verified()
+    @commands.command(name="clonelion")
     async def clonelion(
         self, ctx, huntroundname: str, hunturl: str, folderurl: str = None
     ):
@@ -1093,7 +1224,42 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Usage: ~clonelion SheetName hunturl
         Usage: ~clonelion SheetName hunturl folderurl
         """
-        pass
+        logging_utils.log_command("clonelion", ctx.guild, ctx.channel, ctx.author)
+
+        new_sheet = await self.clonetemplatelion(ctx, huntroundname, folderurl)
+        if new_sheet is None:
+            return
+
+        await self.tetherlion(ctx, new_sheet.url)
+        if await self.initoverview(ctx, hunturl, new_sheet):
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.SUCCESS}!",
+                value=f"The sheet is now set up for use",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+
+    async def initoverview(self, ctx, hunturl, sheet):
+        """Initializes the overview sheet for the hunt."""
+        overview = None
+
+        try:
+            overview = sheet.worksheet("Overview")
+        # Error when the sheet has no Overview tab
+        except gspread.exceptions.WorksheetNotFound:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The [sheet]({overview.url}) has no tab named 'Overview'. "
+                f"Did you forget to add one?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return None
+
+        overview.update("C1", hunturl)
+        return True
 
     @command_predicates.is_verified()
     @commands.command(

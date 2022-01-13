@@ -35,6 +35,26 @@ async def createchannelgeneric(
     return channel
 
 
+async def createvoicechannelgeneric(
+    guild: discord.Guild, category: discord.CategoryChannel, name: str
+) -> discord.TextChannel:
+    """Command to create channel in same category with given name
+    Arguments:
+        - guild (discord.Guild): the guild the channel is being created in
+        - category (discord.CategoryChannel): the category the channel is being created in
+        - name (str): the name for the channel
+    Returns:
+        - channel (discord.TextChannel): The created channel, or none if the bot does not have sufficient perms.
+    """
+    try:
+        # create channel
+        channel = await guild.create_voice_channel(name, category=category)
+    except discord.Forbidden:
+        return None
+
+    return channel
+
+
 def create_embed() -> discord.Embed:
     """
     Create an empty discord embed with color.
