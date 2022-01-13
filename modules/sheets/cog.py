@@ -980,19 +980,63 @@ class SheetsCog(commands.Cog, name="Sheets"):
         return len(worksheet.get_values()) + 1
 
     status_dict = {
-        "solved": {"prefix": "", "color": ""},
-        "solvedish": {"prefix": "", "color": ""},
-        "backsolved": {"prefix": "", "color": ""},
-        "postsolved": {"prefix": "", "color": ""},
-        "unsolved": {"prefix": "", "color": ""},
-        "unsolvable": {"prefix": "", "color": ""},
-        "stuck": {"prefix": "", "color": ""},
-        "postsolved": {"prefix": "", "color": ""},
-        "abandoned": {"prefix": "", "color": ""},
+        "Solved": {"color": [182, 215, 168], "update_ans": True, "prefix": True},
+        "Solvedish": {"color": [217, 234, 211], "update_ans": False, "prefix": True},
+        "Backsolved": {"color": [164, 194, 244], "update_ans": True, "prefix": True},
+        "Postsolved": {"color": [182, 215, 168], "update_ans": True, "prefix": True},
+        "Unstarted": {"color": [217, 217, 217], "update_ans": False, "prefix": False},
+        "Unsolvable": {"color": [102, 102, 102], "update_ans": False, "prefix": False},
+        "Stuck": {"color": [255, 255, 135], "update_ans": False, "prefix": False},
+        "Abandoned": {"color": [102, 102, 102], "update_ans": False, "prefix": False},
+        "In Progress": {"color": [255, 229, 153], "update_ans": False, "prefix": False},
     }
 
+    @command_predicates.is_verified()
+    @commands.command(name="solvedlion")
+    async def solvedlion(self, ctx, answer: str = None):
+        """Sets the puzzle to solved and updates the sheet and channel name accordingly
+
+        Category: Verified Roles only.
+        Usage: ~solvedlion
+        Usage: ~solvedlion answer
+        """
+        await self.statuslion(ctx, "solved", answer)
+
+    @command_predicates.is_verified()
+    @commands.command(name="backsolvedlion", aliases=["backlion"])
+    async def backsolvedlion(self, ctx, answer: str = None):
+        """Sets the puzzle to backsolved and updates the sheet and channel name accordingly
+
+        Category: Verified Roles only.
+        Usage: ~backsolvedlion
+        Usage: ~backsolvedlion answer
+        """
+        await self.statuslion(ctx, "backsolved", answer)
+
+    @command_predicates.is_verified()
+    @commands.command(name="solvedishlion")
+    async def solvedishlion(self, ctx):
+        """Sets the puzzle to solvedish and updates the sheet and channel name accordingly
+
+        Category: Verified Roles only.
+        Usage: ~solvedishlion
+        """
+        await self.statuslion(ctx, "solvedish")
+
+    @command_predicates.is_verified()
+    @commands.command(name="unsolvedlion", aliases=["unlion"])
+    async def unsolvedlion(self, ctx):
+        """Sets the puzzle to in progress and updates the sheet and channel name accordingly
+
+        Category: Verified Roles only.
+        Usage: ~unsolvedlion
+        """
+        await self.statuslion(ctx, "inprogress")
+
+    @command_predicates.is_verified()
+    @commands.command(name="statuslion", aliases=["statlion", "stat"])
     async def statuslion(self, ctx, status: str, answer: str = None):
-        """Adds a status to the puzzle and updates the sheet accordingly
+        """Adds a status to the puzzle and updates the sheet and channel name accordingly
 
         For statuses solved, postsolved, and backsolved, users have the option to add an answer
 
@@ -1002,9 +1046,163 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """
         logging_utils.log_command("statuslion", ctx.guild, ctx.channel, ctx.author)
         channel = ctx.message.channel
-        status = status.lower()
+        status = status.capitalize()
+        if status == "Inprogress":
+            status = "In Progress"
 
-        pass
+        status_info = self.status_dict.get(status)
+
+        if status_info is None:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="Invalid status. Please double check the spelling of the status.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        result, _ = self.findsheettether(
+            str(ctx.message.channel.id), str(ctx.message.channel.category_id)
+        )
+
+        if result is None:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
+                f"are tethered to any Google sheet.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        curr_sheet_link = result.sheet_link
+
+        chan_cell, overview = None, None
+
+        chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
+
+        curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+
+        if chan_cell is None or overview is None:
+            return
+
+        row_to_find = chan_cell.row
+
+        tab_id = overview.acell("B" + str(row_to_find)).value
+
+        puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
+
+        if answer and status_info.get("update_ans"):
+            puzzle_tab.update("B3", answer.upper())
+        elif not status_info.get("update_ans"):
+            puzzle_tab.update("B3", "")
+
+        status_col = overview.acell("B1").value
+        puzz_name_col = overview.acell("A1").value
+
+        curr_status = overview.acell(status_col + str(row_to_find)).value
+        curr_stat_info = self.status_dict.get(curr_status)
+
+        overview.update_acell(status_col + str(row_to_find), status)
+
+        color = status_info.get("color")
+
+        body = {
+            "requests": [
+                {
+                    "updateSheetProperties": {
+                        "properties": {
+                            "sheetId": tab_id,
+                            "tabColor": {
+                                "red": color[0] / 255,
+                                "green": color[1] / 255,
+                                "blue": color[2] / 255,
+                            },
+                        },
+                        "fields": "tabColor",
+                    }
+                }
+            ]
+        }
+
+        try:
+            curr_sheet.batch_update(body)
+        except gspread.exceptions.APIError:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="Could not update the sheet.",
+                inline=False,
+            )
+            return
+
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.SUCCESS}",
+            value="The sheet was successfully updated.",
+            inline=False,
+        )
+        await ctx.send(embed=embed)
+
+        if status == curr_status:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value="Operations finished!",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        add_prefix = status_info.get("prefix")
+        past_prefix = curr_stat_info.get("prefix")
+        tab_name = overview.acell(puzz_name_col + str(row_to_find)).value
+
+        if not add_prefix and not past_prefix:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value="Operations finished!",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+        elif past_prefix and not add_prefix:
+            await channel.edit(name=tab_name)
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value=f"Channel renamed to {channel.mention}",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value="Operations finished!",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+        else:
+            await channel.edit(name=status + " " + tab_name)
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value=f"Channel renamed to {channel.mention}",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value="Operations finished!",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
 
     ##### LION CHANNEL/SHEET CREATION #####
 
