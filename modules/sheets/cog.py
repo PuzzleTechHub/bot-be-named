@@ -112,7 +112,18 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     @command_predicates.is_verified()
     @commands.command(
-        name="removesheettether", aliases=["deletetether", "removetether"]
+        name="removesheettether",
+        aliases=[
+            "deletetether",
+            "removetether",
+            "deltether",
+            "removetetherlion",
+            "deltetherlion",
+            "unhunt",
+            "huntnt",
+            "unhuntlion",
+            "huntntlion",
+        ],
     )
     async def removesheettether(self, ctx):
         """Remove the Category or Channel tethering to the sheet.
@@ -618,16 +629,16 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     """
     TODO: New workflow for hunts:
-    ~DONE: templatelion (set the template sheet for the server)
-    ~huntlion (duplicates the sheet and then adds hunt info to the sheet, also tethers the sheet to the category)
-    ~chanlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
-    ~metalion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
-    ~roundlion (adds a puzzle to a round)
-    ~taglion (tags a specific role to a puzzle)
-    ~mentionlion (mentions the tagged roles of that puzzle, used when you need help)
-    ~solvedlion/solvishedlion/backsolvedlion/unsolvedlion/unsolvablelion/workingonlion/abandonedlion (changes the color of the tab and also the sheet, also updates stats, for solved/solvedish/backsolved/unsolved, also changes the name of the discord channel)
-    ~hintlion/hintsentlion (hintlion expresses the intent to request a hint and puts a matter to a vote, hintsentlion signifies that a hint has been sent)
-    ~archivelion (is the same as regular move to archive, but also moves the sheet to the end/hides the sheet)
+    ~DONE templatelion (set the template sheet for the server)
+    ~IN PROGRESS huntlion/clonelion (duplicates the sheet and then adds hunt info to the sheet, also tethers the sheet to the category)
+    ~IN PROGRESS chanlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
+    ~NOT STARTED metalion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
+    ~NOT STARTED roundlion (adds a puzzle to a round)
+    ~NOT STARTED taglion (tags a specific role to a puzzle)
+    ~NOT STARTED mentionlion (mentions the tagged roles of that puzzle, used when you need help)
+    ~NOT STARTED solvedlion/solvishedlion/backsolvedlion/unsolvedlion/unsolvablelion/workingonlion/abandonedlion (changes the color of the tab and also the sheet, also updates stats, for solved/solvedish/backsolved/unsolved, also changes the name of the discord channel)
+    ~NOT STARTED hintlion/hintsentlion (hintlion expresses the intent to request a hint and puts a matter to a vote, hintsentlion signifies that a hint has been sent)
+    ~NOT STARTED archivelion (is the same as regular move to archive, but also moves the sheet to the end/hides the sheet)
     """
 
     ## WIP code. DO NOT USE
@@ -653,6 +664,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         return curr_chan_or_cat_cell, tether_type
 
     ## WIP code. DO NOT USE
+    # TODO: ~chanlion
     async def sheetliongeneric(self, ctx, curr_chan, curr_cat, tab_name):
         """
         Part of the Lion series of improvements to sheetcrab/chancrab.
@@ -1035,6 +1047,143 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 inline=False,
             )
         await ctx.send(embed=embed)
+
+    # TODO:
+    async def huntlion(
+        self,
+        ctx,
+        hunt_team_name: str,
+        hunturl: str,
+        rolename_orurl: Union[discord.Role, str] = None,
+        folderurl: str = None,
+    ):
+        """Clone the template and names the new sheet into a new category named huntteamname.
+
+        This new category will have 2 premade channels: #huntteamname-main and #huntteamname-bot-spam
+
+        The category will only be visible to those with the role rolename.
+
+        Also tethers the new sheet to the category.
+
+        Useful when we want to make a new hunt team.
+
+        For any lion commands, a tether using either ~clonelion or ~huntlion is necessary.
+
+        Requires that role does not have "folder/" inside the role name
+
+        Category: Verified Roles only.
+        Usage: ~huntlion SheetName hunturl
+        Usage: ~huntlion SheetName hunturl role
+        Usage: ~huntlion SheetName hunturl role folderurl
+        Usage: ~huntlion SheetName hunturl folderurl
+        """
+        pass
+
+    # TODO:
+    async def clonelion(
+        self, ctx, huntroundname: str, hunturl: str, folderurl: str = None
+    ):
+        """Clone the template and names the new sheet. Also tethers the new sheet to the category.
+
+        Useful when we want to make a new sheet for a new set of rounds.
+
+        For any lion commands, a tether using either ~clonelion or ~huntlion is necessary.
+
+        Category: Verified Roles only.
+        Usage: ~clonelion SheetName hunturl
+        Usage: ~clonelion SheetName hunturl folderurl
+        """
+        pass
+
+    @command_predicates.is_verified()
+    @commands.command(
+        name="clonetemplatelion",
+        aliases=["clonetemplate", "clonetemp", "clonetemplion"],
+    )
+    async def clonetemplatelion(self, ctx, newname, folderurl: str = None):
+        """Clones the template and names the new sheet
+
+        For developers: also returns the cloned sheet
+
+        Category: Verified Roles only.
+        Usage: ~clonetemplatelion SheetName
+        """
+        logging_utils.log_command(
+            "clonetemplatelion", ctx.guild, ctx.channel, ctx.author
+        )
+        embed = discord_utils.create_embed()
+
+        result = self.findtemplate(ctx)
+
+        if result is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"This server **{ctx.guild.name}** does not have a template Google Sheet.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return None
+
+        f_id = ""
+
+        if folderurl:
+            try:
+                f_id = folderurl.split("folders/")[1]
+            except IndexError:
+                f_id = ""
+
+        sheet = result.sheet_link
+        curr_sheet = self.gspread_client.open_by_url(sheet)
+
+        new_sheet = ""
+
+        try:
+            new_sheet = self.gspread_client.copy(
+                file_id=curr_sheet.id,
+                title=newname,
+                copy_permissions=True,
+                folder_id=(f_id or None),
+            )
+        except gspread.exceptions.APIError:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="Invalid folder. Please check to see that you have the correct link and permissions.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return None
+
+        if f_id:
+            embed.add_field(
+                name=f"{constants.SUCCESS}!",
+                value=f"Cloned sheet located at [sheet link]({new_sheet.url}) "
+                f"in folder [GDrive folder link]({folderurl})",
+                inline=False,
+            )
+        else:
+            embed.add_field(
+                name=f"{constants.SUCCESS}!",
+                value=f"Cloned sheet located at [sheet link]({new_sheet.url})",
+                inline=False,
+            )
+
+        await ctx.send(embed=embed)
+        return new_sheet
+
+    @command_predicates.is_verified()
+    @commands.command(name="tetherlion")
+    async def tetherlion(self, ctx, sheet_key_or_link: str):
+        """Tethers a sheet to the category and also checks that it is the correct format to be used by the lion commands
+
+        Sheet must have the following tabs: Overview, Template, Meta Template
+
+        Usage: ~tetherlion sheeturl
+        """
+        logging_utils.log_command("tetherlion", ctx.guild, ctx.channel, ctx.author)
+        if await self.validate_template(ctx, sheet_key_or_link) is None:
+            return
+
+        await self.addsheettether(ctx, sheet_key_or_link)
 
 
 def setup(bot):
