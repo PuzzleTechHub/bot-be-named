@@ -278,6 +278,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         await ctx.send(embed=embed)
 
+        return curr_sheet_link, newsheet, new_chan
+
     @command_predicates.is_verified()
     @commands.command(
         name="displaysheettether",
@@ -559,9 +561,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
             return curr_sheet_link, newsheet
 
         # Make sure the template tab exists on the sheet.
+        template_index = 0
         try:
             curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
             template_id = curr_sheet.worksheet("Template").id
+            template_index = curr_sheet.worksheet("Template").index
         # Error when we can't open the curr sheet link
         except gspread.exceptions.APIError:
             embed = discord_utils.create_embed()
@@ -607,13 +611,102 @@ class SheetsCog(commands.Cog, name="Sheets"):
             newsheet = curr_sheet.duplicate_sheet(
                 source_sheet_id=template_id,
                 new_sheet_name=tab_name,
-                insert_sheet_index=4,
+                insert_sheet_index=template_index + 2,
             )
         except gspread.exceptions.APIError:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"Could not duplicate 'Template' tab in the "
+                f"[Google sheet at link]({curr_sheet_link}). "
+                f"Is the permission set up with 'Anyone with link can edit'?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return curr_sheet_link, None
+
+        return curr_sheet_link, newsheet
+
+    async def sheetcreatetabmeta(self, ctx, curr_chan, curr_cat, tab_name):
+        """Actually creates the meta sheet and handles errors"""
+        embed = discord_utils.create_embed()
+        curr_sheet_link = None
+        newsheet = None
+
+        tether_db_result, tether_type = self.findsheettether(
+            str(curr_chan.id), str(curr_cat.id)
+        )
+
+        if tether_db_result is not None:
+            curr_sheet_link = tether_db_result.sheet_link
+        else:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The category **{curr_cat.name}** nor the channel **{curr_chan.name}** are not "
+                f"tethered to any Google sheet.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+
+        # Make sure the template tab exists on the sheet.
+        try:
+            curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+            template_id = curr_sheet.worksheet("Meta Template").id
+            template_index = curr_sheet.worksheet("Meta Template").index
+        # Error when we can't open the curr sheet link
+        except gspread.exceptions.APIError:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
+                f"Did the permissions change?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+        # Error when the sheet has no template tab
+        except gspread.exceptions.WorksheetNotFound:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The [sheet]({curr_sheet_link}) has no tab named 'Meta Template'. "
+                f"Did you forget to add one?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+        # Make sure tab_name does not exist
+        try:
+            curr_sheet.worksheet(tab_name)
+            # If there is a tab with the given name, that's an error!
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The [Google sheet at link]({curr_sheet_link}) already has a tab named "
+                f"**{tab_name}**. Cannot create a tab with same name.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+        except gspread.exceptions.WorksheetNotFound:
+            # If the tab isn't found, that's good! We will create one.
+            pass
+
+        # Try to duplicate the template tab and rename it to the given name
+        try:
+            # Index of 4 is hardcoded for Team Arithmancy server
+            newsheet = curr_sheet.duplicate_sheet(
+                source_sheet_id=template_id,
+                new_sheet_name=tab_name,
+                insert_sheet_index=template_index + 1,
+            )
+        except gspread.exceptions.APIError:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Could not duplicate 'Meta Template' tab in the "
                 f"[Google sheet at link]({curr_sheet_link}). "
                 f"Is the permission set up with 'Anyone with link can edit'?",
                 inline=False,
@@ -631,14 +724,14 @@ class SheetsCog(commands.Cog, name="Sheets"):
     TODO: New workflow for hunts:
     ~DONE templatelion (set the template sheet for the server)
     ~DONE huntlion/clonelion (duplicates the sheet and then adds hunt info to the sheet, also tethers the sheet to the category)
-    ~IN PROGRESS chanlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
-    ~NOT STARTED metalion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
+    ~IN PROGRESS ! chanlion/sheetlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
+    ~IN PROGRESS ! metalion/metasheetlion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
     ~NOT STARTED roundlion (adds a puzzle to a round)
     ~NOT STARTED taglion (tags a specific role to a puzzle)
     ~NOT STARTED mentionlion (mentions the tagged roles of that puzzle, used when you need help)
-    ~NOT STARTED solvedlion/solvishedlion/backsolvedlion/unsolvedlion/unsolvablelion/workingonlion/abandonedlion (changes the color of the tab and also the sheet, also updates stats, for solved/solvedish/backsolved/unsolved, also changes the name of the discord channel)
+    ~NOT STARTED ! solvedlion/solvishedlion/backsolvedlion/unsolvedlion/unsolvablelion/workingonlion/abandonedlion (changes the color of the tab and also the sheet, also updates stats, for solved/solvedish/backsolved/unsolved, also changes the name of the discord channel)
     ~NOT STARTED hintlion/hintsentlion (hintlion expresses the intent to request a hint and puts a matter to a vote, hintsentlion signifies that a hint has been sent)
-    ~NOT STARTED archivelion (is the same as regular move to archive, but also moves the sheet to the end/hides the sheet)
+    ~NOT STARTED ! archivelion (is the same as regular move to archive, but also moves the sheet to the end/hides the sheet)
     """
 
     ## WIP code. DO NOT USE
@@ -663,68 +756,18 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return curr_chan_or_cat_cell, tether_type
 
-    ## WIP code. DO NOT USE
-    # TODO: ~chanlion
-    async def sheetliongeneric(self, ctx, curr_chan, curr_cat, tab_name):
-        """
-        Part of the Lion series of improvements to sheetcrab/chancrab.
-        This function will work with Overview and create shit
+    def firstemptyrow(self, worksheet):
+        """Finds the first empty row in a worksheet"""
+        return len(worksheet.get_values()) + 1
 
-
-        """
-        curr_sheet_link = None
-        newsheet = None
-
-        # Find the tethered sheet for the channel/category from the DB
-        tether_result, tether_type = self.findsheettether(
-            str(curr_chan.id), str(curr_cat.id)
-        )
-
-        # Error if no such sheet exists
-        if tether_result is not None:
-            curr_sheet_link = tether_result.sheet_link
-        else:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"The category **{curr_cat.name}** nor the channel **{curr_chan.name}** are not "
-                f"tethered to any Google sheet.",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return curr_sheet_link, newsheet
-
-        # Make sure the template tab exists on the sheet.
+    async def puzzlelion(
+        self, ctx, chan_name, url, curr_sheet_link, newsheet, new_chan
+    ):
+        """Does the final touches on the sheet after creating a puzzle"""
+        sheet = self.gspread_client.open_by_url(curr_sheet_link)
+        overview = None
         try:
-            curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
-            template_id = curr_sheet.worksheet("Template").id
-        # Error when we can't open the curr sheet link
-        except gspread.exceptions.APIError:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
-                f"Did the permissions change?",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return curr_sheet_link, newsheet
-        # Error when the sheet has no template tab
-        except gspread.exceptions.WorksheetNotFound:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"The [sheet]({curr_sheet_link}) has no tab named 'Template'. "
-                f"Did you forget to add one?",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return curr_sheet_link, newsheet
-
-        # Make sure the Overview tab exists on the sheet.
-        try:
-            curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
-            overview_id = curr_sheet.worksheet("Overview").id
+            overview = sheet.worksheet("Overview")
         # Error when the sheet has no Overview tab
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
@@ -735,73 +778,68 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 inline=False,
             )
             await ctx.send(embed=embed)
-            return curr_sheet_link, newsheet
+            return
 
-        overviewtab = 0
+        first_empty = self.firstemptyrow(overview)
 
-        # Find the tethered sheet for the channel/category from the DB
-        curr_chan_or_cat_cell, tether_type = self.findlinkedtab(
-            curr_chan.id, overviewtab
+        puzz_name_col = overview.acell("A1").value
+        answer_col = overview.acell("A2").value
+        status_col = overview.acell("B1").value
+        final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
+
+        overview.update_acell(
+            puzz_name_col + str(first_empty),
+            f'=HYPERLINK("{final_sheet_link}", "{chan_name}")',
         )
 
-        # Error if no such sheet exists
-        if curr_chan_or_cat_cell:
-            # TODO: Change to db
-            # curr_sheet_link = self.category_tether_tab.cell(curr_chan_or_cat_cell.row, curr_chan_or_cat_cell.col + 2).value
-            pass
+        overview.update_acell("A" + str(first_empty), str(new_chan.id))
+        overview.update_acell("B" + str(first_empty), str(newsheet.id))
+        overview.update_acell(status_col + str(first_empty), "Unstarted")
+        overview.update_acell(answer_col + str(first_empty), f"='{chan_name}'!B3")
+
+        # TODO: update stats sheet, can be done after MH
+
+        newsheet.update_acell("A1", chan_name)
+
+        if url:
+            newsheet.update_acell("B1", f'=HYPERLINK("{url}", "Puzzle Link")')
+
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.SUCCESS}", value=f"Sheet now ready to use!", inline=False
+        )
+        await ctx.send(embed=embed)
+
+    @command_predicates.is_verified()
+    @commands.command(name="chanlion")
+    async def chanlion(self, ctx, chan_name: str, url=None):
+        logging_utils.log_command("chanlion", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        curr_sheet_link, newsheet, new_chan = None, None, None
+
+        if url is not None:
+            curr_sheet_link, newsheet, new_chan = await self.channelcreatetab(
+                ctx, chan_name, url
+            )
         else:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"The category **{curr_cat.name}** nor the channel **{curr_chan.name}** are not "
-                f"tethered to any Google sheet.",
-                inline=False,
+            curr_sheet_link, newsheet, new_chan = await self.channelcreatetab(
+                ctx, chan_name
             )
-            await ctx.send(embed=embed)
-            return curr_sheet_link, newsheet
 
-        # TODO: Why would we change the cog's attribute here? Anyways, change to DB
-        # self.category_tether_tab = self.gspread_client.open_by_key(os.getenv("MASTER_SHEET_KEY")).worksheet(sheets_constants.CATEGORY_TAB)
+        if curr_sheet_link is None or newsheet is None or new_chan is None:
+            return
 
-        # Make sure tab_name does not exist
-        try:
-            curr_sheet.worksheet(tab_name)
-            # If there is a tab with the given name, that's an error!
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"The [Google sheet at link]({curr_sheet_link}) already has a tab named "
-                f"**{tab_name}**. Cannot create a tab with same name.",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return curr_sheet_link, newsheet
-        except gspread.exceptions.WorksheetNotFound:
-            # If the tab isn't found, that's good! We will create one.
-            pass
+        await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
 
-        # Try to duplicate the template tab and rename it to the given name
-        try:
-            # Index of 4 is hardcoded for Team Arithmancy server
-            newsheet = curr_sheet.duplicate_sheet(
-                source_sheet_id=template_id,
-                new_sheet_name=tab_name,
-                insert_sheet_index=4,
-            )
-        except gspread.exceptions.APIError:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Could not duplicate 'Template' tab in the "
-                f"[Google sheet at link]({curr_sheet_link}). "
-                f"Is the permission set up with 'Anyone with link can edit'?",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return curr_sheet_link, None
+    async def sheetlion(self, ctx, tab_name: str, url: str = None):
+        pass
 
-        # TODO: Overview work.
-        return curr_sheet_link, newsheet
+    async def metalion(self, ctx, chan_name: str, round: str, url: str = None):
+        pass
+
+    async def metasheetlion(self, ctx, tab_name: str, round: str, url: str = None):
+        pass
 
     async def validate_template(self, ctx, proposed_sheet):
         embed = discord_utils.create_embed()
