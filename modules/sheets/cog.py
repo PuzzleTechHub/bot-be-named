@@ -280,6 +280,101 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return curr_sheet_link, newsheet, new_chan
 
+    command_predicates.is_verified()
+
+    @commands.command(name="channelcreatemetatab", aliases=["metacrab"])
+    async def channelcreatemetatab(self, ctx, chan_name: str, *args):
+        """Create new channel, then a New tab on the sheet that is currently tethered to this category, then pins links to the channel, if any.
+
+        FOR METAPUZZLES ONLY
+
+        This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
+        Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
+
+        Category : Verified Roles only.
+        Usage : `~sheetcrab PuzzleName`
+        Usage : `~sheetcrab PuzzleName linktopuzzle`
+        """
+        logging_utils.log_command(
+            "channelcreatetab", ctx.guild, ctx.channel, ctx.author
+        )
+        embed = discord_utils.create_embed()
+
+        # Cannot make a new channel if the category is full
+        if discord_utils.category_is_full(ctx.channel.category):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
+            )
+            # reply to user
+            await ctx.send(embed=embed)
+            return
+
+        text_to_pin = " ".join(args)
+        tab_name = chan_name.replace("#", "").replace("-", " ")
+
+        curr_sheet_link, newsheet = await self.sheetcreatetabmeta(
+            ctx, ctx.channel, ctx.channel.category, tab_name
+        )
+
+        # Error, already being handled at the generic function
+        if not curr_sheet_link or not newsheet or not newsheet.id:
+            return
+
+        # This link is customized for the newly made tab
+        final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
+
+        # new channel created (or None)
+        new_chan = await discord_utils.createchannelgeneric(
+            ctx.guild, ctx.channel.category, chan_name
+        )
+        # Error creating channel
+        if not new_chan:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+            )
+            await ctx.send(embed=embed)
+            return
+
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
+            inline=False,
+        )
+        msg = await new_chan.send(embed=embed)
+        # Try to pin the message in new channel
+        embed_or_none = await discord_utils.pin_message(msg)
+        # Error pinning message
+        if embed_or_none is not None:
+            await new_chan.send(embed=embed_or_none)
+
+        if text_to_pin:
+            embed = discord_utils.create_embed()
+            embed.description = text_to_pin
+            msg = await new_chan.send(embed=embed)
+            # Pin message in the new channel
+            embed_or_none = await discord_utils.pin_message(msg)
+
+            # Error pinning message
+            if embed_or_none is not None:
+                await ctx.send(embed=embed_or_none)
+            else:
+                await msg.add_reaction(EMOJIS[":pushpin:"])
+
+        embed = discord_utils.create_embed()
+        # TODO: technically there's a world where the posts *weren't* pinned, although it's unclear how much that matters in this message.
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
+            inline=False,
+        )
+        await ctx.send(embed=embed)
+
+        return curr_sheet_link, newsheet, new_chan
+
     @command_predicates.is_verified()
     @commands.command(
         name="displaysheettether",
@@ -374,6 +469,51 @@ class SheetsCog(commands.Cog, name="Sheets"):
         # TODO: Do we even care about printing out the error message if the pin failed?
         if embed_or_none is not None:
             await ctx.send(embed=embed_or_none)
+
+        return curr_sheet_link, newsheet
+
+    @command_predicates.is_verified()
+    @commands.command(
+        name="sheetcreatemetatab", aliases=["sheetmetatab", "sheetmetacrab"]
+    )
+    async def sheetcreatemetatab(self, ctx, tab_name: str):
+        """Create a New tab on the sheet that is currently tethered to this category
+
+        This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
+        Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
+
+        Category : Verified Roles only.
+        Usage : `~sheettab TabName`
+        """
+        logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        curr_chan = ctx.message.channel
+        curr_cat = ctx.message.channel.category
+        curr_sheet_link, newsheet = await self.sheetcreatetabmeta(
+            ctx, curr_chan, curr_cat, tab_name
+        )
+
+        # Error, already being handled at the generic function
+        if not curr_sheet_link or newsheet is None:
+            return
+
+        # This link is customized for the newly made tab
+        final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
+
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
+            inline=False,
+        )
+        msg = await ctx.send(embed=embed)
+        # Pin message to the new channel
+        embed_or_none = await discord_utils.pin_message(msg)
+        # TODO: Do we even care about printing out the error message if the pin failed?
+        if embed_or_none is not None:
+            await ctx.send(embed=embed_or_none)
+
+        return curr_sheet_link, newsheet
 
     @command_predicates.is_verified()
     @commands.command(name="downloadsheet", aliases=["savesheet"])
@@ -802,7 +942,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         newsheet.update_acell("A1", chan_name)
 
         if url:
-            newsheet.update_acell("B1", f'=HYPERLINK("{url}", "Puzzle Link")')
+            newsheet.update_acell("B1", url)
 
         embed = discord_utils.create_embed()
         embed.add_field(
@@ -813,8 +953,15 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @command_predicates.is_verified()
     @commands.command(name="chanlion")
     async def chanlion(self, ctx, chan_name: str, url=None):
+        """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
+
+        Requires that the sheet has Overview and Template tabs
+
+        Category: Verified Roles only.
+        Usage: ~chanlion PuzzleName
+        Usage: ~chanlion PuzzleName linktopuzzle
+        """
         logging_utils.log_command("chanlion", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
 
         curr_sheet_link, newsheet, new_chan = None, None, None
 
@@ -832,14 +979,82 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
 
+    @command_predicates.is_verified()
+    @commands.command(name="sheetlion")
     async def sheetlion(self, ctx, tab_name: str, url: str = None):
-        pass
+        """Creates a new tab for a new feeder puzzle and then updates the info in the sheet accordingly.
 
-    async def metalion(self, ctx, chan_name: str, round: str, url: str = None):
-        pass
+        Requires that the sheet has Overview and Template tabs
 
-    async def metasheetlion(self, ctx, tab_name: str, round: str, url: str = None):
-        pass
+        Category: Verified Roles only.
+        Usage: ~chanlion PuzzleName
+        Usage: ~chanlion PuzzleName linktopuzzle
+        """
+        logging_utils.log_command("sheetlion", ctx.guild, ctx.channel, ctx.author)
+
+        curr_sheet_link, newsheet = None, None
+
+        curr_sheet_link, newsheet = await self.sheetcreatetab(ctx, tab_name)
+
+        if curr_sheet_link is None or newsheet is None:
+            return
+
+        await self.puzzlelion(
+            ctx, tab_name, url, curr_sheet_link, newsheet, ctx.channel
+        )
+
+    @command_predicates.is_verified()
+    @commands.command(name="metalion")
+    async def metalion(self, ctx, chan_name: str, url: str = None):
+        """Creates a new tab and a new channel for a new metapuzzle and then updates the info in the sheet accordingly.
+
+        Requires that the sheet has Overview and Meta Template tabs
+
+        Category: Verified Roles only.
+        Usage: ~chanlion PuzzleName
+        Usage: ~chanlion PuzzleName linktopuzzle
+        """
+        logging_utils.log_command("metalion", ctx.guild, ctx.channel, ctx.author)
+
+        curr_sheet_link, newsheet, new_chan = None, None, None
+
+        if url is not None:
+            curr_sheet_link, newsheet, new_chan = await self.channelcreatemetatab(
+                ctx, chan_name, url
+            )
+        else:
+            curr_sheet_link, newsheet, new_chan = await self.channelcreatemetatab(
+                ctx, chan_name
+            )
+
+        if curr_sheet_link is None or newsheet is None or new_chan is None:
+            return
+
+        await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
+
+    @command_predicates.is_verified()
+    @commands.command(name="metasheetlion")
+    async def metasheetlion(self, ctx, tab_name: str, url: str = None):
+        """Creates a new tab for a new metapuzzle and then updates the info in the sheet accordingly.
+
+        Requires that the sheet has Overview and Meta Template tabs
+
+        Category: Verified Roles only.
+        Usage: ~chanlion PuzzleName
+        Usage: ~chanlion PuzzleName linktopuzzle
+        """
+        logging_utils.log_command("metasheetlion", ctx.guild, ctx.channel, ctx.author)
+
+        curr_sheet_link, newsheet = None, None
+
+        curr_sheet_link, newsheet = await self.sheetcreatemetatab(ctx, tab_name)
+
+        if curr_sheet_link is None or newsheet is None:
+            return
+
+        await self.puzzlelion(
+            ctx, tab_name, url, curr_sheet_link, newsheet, ctx.channel
+        )
 
     async def validate_template(self, ctx, proposed_sheet):
         embed = discord_utils.create_embed()
