@@ -190,28 +190,32 @@ class SolvedCog(commands.Cog):
 
     @command_predicates.is_verified()
     @commands.command(name="movetoarchive", aliases=["mta"])
-    async def movetoarchive(self, ctx):
+    async def movetoarchive(self, ctx, archive_name: str = None):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
 
         Category : Verified Roles only.
         Usage: `~movetoarchive`
+        Usage: `~movetoarchive archive_category_name`
         """
         logging_utils.log_command("movetoarchive", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
-
-        # Find category with same name + Archive (or select combinations)
-        archive_category = (
-            await discord_utils.find_category(
-                ctx, f"{ctx.channel.category.name} Archive"
+        archive_category = None
+        if archive_name is None:
+            # Find category with same name + Archive (or select combinations)
+            archive_category = (
+                await discord_utils.find_category(
+                    ctx, f"{ctx.channel.category.name} Archive"
+                )
+                or await discord_utils.find_category(
+                    ctx, f"Archive: {ctx.channel.category.name}"
+                )
+                or await discord_utils.find_category(
+                    ctx, f"{ctx.channel.category.name} archive"
+                )
             )
-            or await discord_utils.find_category(
-                ctx, f"Archive: {ctx.channel.category.name}"
-            )
-            or await discord_utils.find_category(
-                ctx, f"{ctx.channel.category.name} archive"
-            )
-        )
+        else:
+            archive_category = await discord_utils.find_category(ctx, archive_name)
 
         if archive_category is None:
             embed.add_field(

@@ -866,16 +866,16 @@ class SheetsCog(commands.Cog, name="Sheets"):
     ~DONE huntlion/clonelion (duplicates the sheet and then adds hunt info to the sheet, also tethers the sheet to the category)
     ~DONE chanlion/sheetlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
     ~DONE metalion/metasheetlion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
-    ~IN PROGRESS ! ~hunturllion/urllion/renamelion/flavorlion/answerlion (change attributes of the hunt and updates the sheet)
+    ~IN PROGRESS ! ~hunturllion/urllion/renamelion/flavorlion (change attributes of the hunt and updates the sheet)
     ~NOT STARTED roundlion (adds a puzzle to a round)
     ~NOT STARTED taglion (tags a specific role to a puzzle)
     ~NOT STARTED mentionlion (mentions the tagged roles of that puzzle, used when you need help)
-    ~NOT STARTED ! solvedlion/solvishedlion/backsolvedlion/unsolvedlion/unsolvablelion/workingonlion/abandonedlion (changes the color of the tab and also the sheet, also updates stats, for solved/solvedish/backsolved/unsolved, also changes the name of the discord channel)
+    ~DONE ! solvedlion/solvishedlion/backsolvedlion/unsolvedlion/unsolvablelion/workingonlion/abandonedlion (changes the color of the tab and also the sheet, also updates stats, for solved/solvedish/backsolved/unsolved, also changes the name of the discord channel)
     ~NOT STARTED hintlion/hintsentlion (hintlion expresses the intent to request a hint and puts a matter to a vote, hintsentlion signifies that a hint has been sent)
-    ~NOT STARTED ! archivelion (is the same as regular move to archive, but also moves the sheet to the end/hides the sheet)
+    ~IN PROGRESS ! archivelion (is the same as regular move to archive, but also moves the sheet to the end/hides the sheet)
     """
 
-    ##### LION STATUS AND TAB ATTRIBUTE COMMANDS #####
+    ##### LION STATUS COMMANDS #####
 
     async def findchanidcell(self, ctx, sheet_link):
         """Find the cell with the discord channel id based on lion overview"""
@@ -1203,6 +1203,114 @@ class SheetsCog(commands.Cog, name="Sheets"):
             )
             await ctx.send(embed=embed)
             return
+
+    @command_predicates.is_verified()
+    @commands.command(name="mtalion", aliases=["movetoarchivelion", "archivelion"])
+    async def mtalion(self, ctx, archive_name: str = None):
+        """Finds a category with `<category_name> Archive`, and moves the channel to that category.
+        Fails if there is no such category, or is the category is full (i.e. 50 Channels).
+
+        Also moves the tab to the end of the list of tabs on the Google Sheet.
+
+        Category : Verified Roles only.
+        Usage: `~mtalion`
+        Usage: `~mtalion archive_category_name`
+        """
+        logging_utils.log_command("mtalion", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+        archive_category = None
+        if archive_name is None:
+            # Find category with same name + Archive (or select combinations)
+            archive_category = (
+                await discord_utils.find_category(
+                    ctx, f"{ctx.channel.category.name} Archive"
+                )
+                or await discord_utils.find_category(
+                    ctx, f"Archive: {ctx.channel.category.name}"
+                )
+                or await discord_utils.find_category(
+                    ctx, f"{ctx.channel.category.name} archive"
+                )
+            )
+        else:
+            archive_category = await discord_utils.find_category(ctx, archive_name)
+
+        if archive_category is None:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"There is no category named `{ctx.channel.category.name} Archive` or "
+                f"`Archive: {ctx.channel.category.name}`, so I cannot move {ctx.channel.mention}.",
+            )
+            await ctx.send(embed=embed)
+            return
+
+        if discord_utils.category_is_full(archive_category):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"`{archive_category}` is already full, max limit is 50 channels. Consider renaming"
+                f" `{archive_category}` and creating a new `{archive_category}`.",
+            )
+            await ctx.send(embed=embed)
+            return
+
+        try:
+            # move channel
+            await ctx.channel.edit(category=archive_category)
+            await ctx.channel.edit(position=1)
+        except discord.Forbidden:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Can you check my permissions? I can't seem to be able to move "
+                f"{ctx.channel.mention} to `{archive_category.name}`",
+            )
+            await ctx.send(embed=embed)
+            return
+
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`",
+        )
+        await ctx.send(embed=embed)
+
+        result, _ = self.findsheettether(
+            str(ctx.message.channel.id), str(ctx.message.channel.category_id)
+        )
+
+        if result is None:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
+                f"are tethered to any Google sheet.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        curr_sheet_link = result.sheet_link
+
+        chan_cell, overview = None, None
+
+        chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
+
+        curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+
+        if chan_cell is None or overview is None:
+            return
+
+        row_to_find = chan_cell.row
+
+        tab_id = overview.acell("B" + str(row_to_find)).value
+
+        puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
+
+        puzzle_tab.update_index(len(curr_sheet.worksheets() - 1))
+
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"Moved sheet to the end of the spreadsheet!`",
+        )
+        await ctx.send(embed=embed)
 
     ##### LION CHANNEL/SHEET CREATION #####
 
