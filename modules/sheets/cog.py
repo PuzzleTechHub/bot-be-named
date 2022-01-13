@@ -1217,6 +1217,48 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Usage: `~mtalion archive_category_name`
         """
         logging_utils.log_command("mtalion", ctx.guild, ctx.channel, ctx.author)
+
+        result, _ = self.findsheettether(
+            str(ctx.message.channel.id), str(ctx.message.channel.category_id)
+        )
+
+        if result is None:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
+                f"are tethered to any Google sheet.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        curr_sheet_link = result.sheet_link
+
+        chan_cell, overview = None, None
+
+        chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
+
+        curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+
+        if chan_cell is None or overview is None:
+            return
+
+        row_to_find = chan_cell.row
+
+        tab_id = overview.acell("B" + str(row_to_find)).value
+
+        puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
+
+        puzzle_tab.update_index(len(curr_sheet.worksheets() - 1))
+
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"Moved sheet to the end of the spreadsheet!`",
+        )
+        await ctx.send(embed=embed)
+
         embed = discord_utils.create_embed()
         archive_category = None
         if archive_name is None:
@@ -1269,46 +1311,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`",
-        )
-        await ctx.send(embed=embed)
-
-        result, _ = self.findsheettether(
-            str(ctx.message.channel.id), str(ctx.message.channel.category_id)
-        )
-
-        if result is None:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
-                f"are tethered to any Google sheet.",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return
-
-        curr_sheet_link = result.sheet_link
-
-        chan_cell, overview = None, None
-
-        chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
-
-        curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
-
-        if chan_cell is None or overview is None:
-            return
-
-        row_to_find = chan_cell.row
-
-        tab_id = overview.acell("B" + str(row_to_find)).value
-
-        puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
-
-        puzzle_tab.update_index(len(curr_sheet.worksheets() - 1))
-
-        embed.add_field(
-            name=f"{constants.SUCCESS}!",
-            value=f"Moved sheet to the end of the spreadsheet!`",
         )
         await ctx.send(embed=embed)
 
