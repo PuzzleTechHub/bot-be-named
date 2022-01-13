@@ -866,7 +866,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     ~DONE huntlion/clonelion (duplicates the sheet and then adds hunt info to the sheet, also tethers the sheet to the category)
     ~DONE chanlion/sheetlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
     ~DONE metalion/metasheetlion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
-    ~IN PROGRESS ! ~hunturllion/urllion/renamelion/flavorlion (change attributes of the hunt and updates the sheet)
+    ~IN PROGRESS ! ~hunturllion/urllion/renamelion/flavorlion/answerlion (change attributes of the hunt and updates the sheet)
     ~NOT STARTED roundlion (adds a puzzle to a round)
     ~NOT STARTED taglion (tags a specific role to a puzzle)
     ~NOT STARTED mentionlion (mentions the tagged roles of that puzzle, used when you need help)
@@ -874,6 +874,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
     ~NOT STARTED hintlion/hintsentlion (hintlion expresses the intent to request a hint and puts a matter to a vote, hintsentlion signifies that a hint has been sent)
     ~NOT STARTED ! archivelion (is the same as regular move to archive, but also moves the sheet to the end/hides the sheet)
     """
+
+    ##### LION STATUS AND TAB ATTRIBUTE COMMANDS #####
 
     async def findchanidcell(self, ctx, sheet_link):
         """Find the cell with the discord channel id based on lion overview"""
@@ -977,6 +979,35 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """Finds the first empty row in a worksheet"""
         return len(worksheet.get_values()) + 1
 
+    status_dict = {
+        "solved": {"prefix": "", "color": ""},
+        "solvedish": {"prefix": "", "color": ""},
+        "backsolved": {"prefix": "", "color": ""},
+        "postsolved": {"prefix": "", "color": ""},
+        "unsolved": {"prefix": "", "color": ""},
+        "unsolvable": {"prefix": "", "color": ""},
+        "stuck": {"prefix": "", "color": ""},
+        "postsolved": {"prefix": "", "color": ""},
+        "abandoned": {"prefix": "", "color": ""},
+    }
+
+    async def statuslion(self, ctx, status: str, answer: str = None):
+        """Adds a status to the puzzle and updates the sheet accordingly
+
+        For statuses solved, postsolved, and backsolved, users have the option to add an answer
+
+        Category: Verified Roles only.
+        Usage: ~statuslion status
+        Usage: ~statuslion solved answer
+        """
+        logging_utils.log_command("statuslion", ctx.guild, ctx.channel, ctx.author)
+        channel = ctx.message.channel
+        status = status.lower()
+
+        pass
+
+    ##### LION CHANNEL/SHEET CREATION #####
+
     async def puzzlelion(
         self, ctx, chan_name, url, curr_sheet_link, newsheet, new_chan
     ):
@@ -1012,7 +1043,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
         overview.update_acell("A" + str(first_empty), str(new_chan.id))
         overview.update_acell("B" + str(first_empty), str(newsheet.id))
         overview.update_acell(status_col + str(first_empty), "Unstarted")
-        overview.update_acell(answer_col + str(first_empty), f"='{chan_name}'!B3")
+        chan_name_for_sheet_ref = chan_name.replace("'", "''")
+        overview.update_acell(
+            answer_col + str(first_empty), f"='{chan_name_for_sheet_ref}'!B3"
+        )
 
         # TODO: update stats sheet, can be done after MH
 
@@ -1132,6 +1166,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await self.puzzlelion(
             ctx, tab_name, url, curr_sheet_link, newsheet, ctx.channel
         )
+
+    ##### LION TEMPLATE COMMANDS #####
 
     async def validate_template(self, ctx, proposed_sheet):
         embed = discord_utils.create_embed()
@@ -1377,6 +1413,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 inline=False,
             )
         await ctx.send(embed=embed)
+
+    ##### LION HUNT COMMANDS #####
 
     @command_predicates.is_verified()
     @commands.command(
