@@ -1250,7 +1250,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
 
-        puzzle_tab.update_index(len(curr_sheet.worksheets()) - 1)
+        puzzle_tab.update_index(len(curr_sheet.worksheets()))
 
         embed = discord_utils.create_embed()
         embed.add_field(
