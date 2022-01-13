@@ -864,8 +864,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
     TODO: New workflow for hunts:
     ~DONE templatelion (set the template sheet for the server)
     ~DONE huntlion/clonelion (duplicates the sheet and then adds hunt info to the sheet, also tethers the sheet to the category)
-    ~IN PROGRESS ! chanlion/sheetlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
-    ~IN PROGRESS ! metalion/metasheetlion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
+    ~DONE chanlion/sheetlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
+    ~DONE metalion/metasheetlion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
+    ~IN PROGRESS ! ~hunturllion/urllion/renamelion/flavorlion (change attributes of the hunt and updates the sheet)
     ~NOT STARTED roundlion (adds a puzzle to a round)
     ~NOT STARTED taglion (tags a specific role to a puzzle)
     ~NOT STARTED mentionlion (mentions the tagged roles of that puzzle, used when you need help)
@@ -874,27 +875,103 @@ class SheetsCog(commands.Cog, name="Sheets"):
     ~NOT STARTED ! archivelion (is the same as regular move to archive, but also moves the sheet to the end/hides the sheet)
     """
 
-    ## WIP code. DO NOT USE
-    def findlinkedtab(self, curr_chan_id: str, overviewtab):
-        """Find linked tab based on lion overview"""
+    async def findchanidcell(self, ctx, sheet_link):
+        """Find the cell with the discord channel id based on lion overview"""
+        logging_utils.log_command("findchanidcell", ctx.guild, ctx.channel, ctx.author)
+        curr_chan_id = ctx.channel.id
+        curr_sheet = None
+        overview = None
+        try:
+            curr_sheet = self.gspread_client.open_by_url(sheet_link)
+            overview = curr_sheet.worksheet("Overview")
+        # Error when we can't open the curr sheet link
+        except gspread.exceptions.APIError:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"I'm unable to open the tethered [sheet]({sheet_link}). "
+                f"Did the permissions change?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+        # Error when the sheet has no template tab
+        except gspread.exceptions.WorksheetNotFound:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
+                f"Did you forget to add one?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
 
         curr_chan_or_cat_cell = None
-        tether_type = None
-        try:
-            # Search first column for the channel
-            curr_chan_or_cat_cell = overviewtab.find(curr_chan_id, in_column=1)
-            tether_type = sheets_constants.CHANNEL
-        except gspread.exceptions.CellNotFound:
+        # Search first column for the channel
+        curr_chan_or_cat_cell = overview.find(str(curr_chan_id), in_column=1)
+        if curr_chan_or_cat_cell is None:
             # If there is no tether for the specific channel, check if there is one for the category.
-            try:
-                # Search first column for the category
-                # TODO: Change to dB
-                # curr_chan_or_cat_cell = self.category_tether_tab.find(curr_cat_id, in_column=1)
-                tether_type = sheets_constants.CATEGORY
-            except gspread.exceptions.CellNotFound:
-                pass
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"I couldn't find the channel {ctx.channel.mention} in the sheet."
+                f" Are you sure this channel is linked to a puzzle?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
 
-        return curr_chan_or_cat_cell, tether_type
+        return curr_chan_or_cat_cell, overview
+
+    @command_predicates.is_verified()
+    @commands.command(name="gettablion", aliases=["tablion", "gettab"])
+    async def gettablion(self, ctx):
+        """Gets the tab linked to the current channel. Returns an error if there is not one.
+
+        Also see ~sheetlion and ~displaytether.
+
+        Category: Verified Roles only.
+        Usage: ~gettablion
+        """
+        logging_utils.log_command("gettablion", ctx.guild, ctx.channel, ctx.author)
+        result, _ = self.findsheettether(
+            str(ctx.message.channel.id), str(ctx.message.channel.category_id)
+        )
+
+        if result is None:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
+                f"are tethered to any Google sheet.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        curr_sheet_link = result.sheet_link
+
+        chan_cell, overview = None, None
+
+        chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
+
+        if chan_cell is None or overview is None:
+            return
+
+        row_to_find = chan_cell.row
+
+        tab_id = overview.acell("B" + str(row_to_find)).value
+
+        final_link = curr_sheet_link + "/edit#gid=" + str(tab_id)
+
+        embed = discord_utils.create_embed()
+
+        embed.add_field(
+            name=f"{constants.SUCCESS}",
+            value=f"The tab linked to {ctx.message.channel.mention} is at [tab link]({final_link})",
+            inline=False,
+        )
+        await ctx.send(embed=embed)
 
     def firstemptyrow(self, worksheet):
         """Finds the first empty row in a worksheet"""
