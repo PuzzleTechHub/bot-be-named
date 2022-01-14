@@ -1778,10 +1778,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     ##### LION HUNT COMMANDS #####
 
-    #@command_predicates.is_verified()
-    #@commands.command(
+    # @command_predicates.is_verified()
+    # @commands.command(
     #    name="huntlion",
-    #)
+    # )
     async def huntlion(
         self,
         ctx,
@@ -1939,8 +1939,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
             )
             await ctx.send(embed=embed)
 
-    #@command_predicates.is_verified()
-    #@commands.command(name="clonelion")
+    # @command_predicates.is_verified()
+    # @commands.command(name="clonelion")
     async def clonelion(
         self, ctx, huntroundname: str, hunturl: str, folderurl: str = None
     ):
@@ -1991,11 +1991,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
         overview.update("C1", hunturl)
         return True
 
-    #@command_predicates.is_verified()
-    #@commands.command(
+    # @command_predicates.is_verified()
+    # @commands.command(
     #    name="clonetemplatelion",
     #    aliases=["clonetemplate", "clonetemp", "clonetemplion"],
-    #)
+    # )
     async def clonetemplatelion(self, ctx, newname, folderurl: str = None):
         """Clones the template and names the new sheet
 

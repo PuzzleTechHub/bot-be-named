@@ -1,5 +1,6 @@
 # BBN (Bot-Be-Named)
-[![Build Status](https://travis-ci.com/kevslinger/bot-be-named.svg?branch=main)](https://travis-ci.com/kevslinger/bot-be-named)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 - [BBN (Bot-Be-Named)](#bbn-bot-be-named)
   - [What is Bot-Be-Named](#what-is-bot-be-named)

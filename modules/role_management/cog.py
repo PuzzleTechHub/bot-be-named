@@ -403,7 +403,9 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         if allusers == "":
             allusers = "(This role has no members)"
         embed.add_field(
-            name=f"Members in {role_to_list} = {len(role_to_list.members)}", value=allusers, inline=False
+            name=f"Members in {role_to_list} = {len(role_to_list.members)}",
+            value=allusers,
+            inline=False,
         )
         await ctx.send(embed=embed)
 
