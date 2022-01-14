@@ -1034,7 +1034,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await self.statuslion(ctx, "inprogress")
 
     @command_predicates.is_verified()
-    @commands.command(name="statuslion", aliases=["statlion", "stat"])
+    @commands.command(name="statuslion", aliases=["statlion", "stat", "status"])
     async def statuslion(self, ctx, status: str, answer: str = None):
         """Adds a status to the puzzle and updates the sheet and channel name accordingly
 
@@ -1370,7 +1370,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="chanlion")
+    @commands.command(name="chanlion", aliases=["chancrablion"])
     async def chanlion(self, ctx, chan_name: str, url=None):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
 
@@ -1399,7 +1399,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
 
     @command_predicates.is_verified()
-    @commands.command(name="sheetlion")
+    @commands.command(name="sheetlion", aliases=["sheetcrablion"])
     async def sheetlion(self, ctx, tab_name: str, url: str = None):
         """Creates a new tab for a new feeder puzzle and then updates the info in the sheet accordingly.
 
@@ -1423,7 +1423,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
 
     @command_predicates.is_verified()
-    @commands.command(name="metalion")
+    @commands.command(name="metalion", aliases=["metacrablion"])
     async def metalion(self, ctx, chan_name: str, url: str = None):
         """Creates a new tab and a new channel for a new metapuzzle and then updates the info in the sheet accordingly.
 
@@ -1452,7 +1452,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
 
     @command_predicates.is_verified()
-    @commands.command(name="metasheetlion")
+    @commands.command(name="metasheetlion", aliases=["metasheetcrablion"])
     async def metasheetlion(self, ctx, tab_name: str, url: str = None):
         """Creates a new tab for a new metapuzzle and then updates the info in the sheet accordingly.
 
