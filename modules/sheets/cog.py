@@ -1034,7 +1034,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await self.statuslion(ctx, "inprogress")
 
     @command_predicates.is_verified()
-    @commands.command(name="statuslion", aliases=["statlion", "stat", "status"])
+    @commands.command(name="statuslion", aliases=["statlion", "stat", "puzzstatus"])
     async def statuslion(self, ctx, status: str, answer: str = None):
         """Adds a status to the puzzle and updates the sheet and channel name accordingly
 
@@ -1692,6 +1692,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             "displaytemplion",
             "displaytemplate",
             "displaytemp",
+            "template",
         ],
     )
     async def gettemplatelion(self, ctx):
