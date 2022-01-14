@@ -1370,6 +1370,60 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
+    @commands.command(name="urllion", alias=["updateurl", "puzzurl"])
+    async def urllion(self, ctx, url: str):
+        """Updates the url of a puzzle and updates it on the sheet. Also pins the message in the channel.
+
+
+        Category : Verified Roles only.
+        Usage: `~urllion <url>`
+        """
+        logging_utils.log_command("mtalion", ctx.guild, ctx.channel, ctx.author)
+
+        result, _ = self.findsheettether(
+            str(ctx.message.channel.id), str(ctx.message.channel.category_id)
+        )
+
+        if result is None:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
+                f"are tethered to any Google sheet.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        curr_sheet_link = result.sheet_link
+
+        chan_cell, overview = None, None
+
+        chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
+
+        curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+
+        if chan_cell is None or overview is None:
+            return
+
+        row_to_find = chan_cell.row
+
+        tab_id = overview.acell("B" + str(row_to_find)).value
+
+        puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
+        puzzle_tab.update_acell("B1", url)
+
+        await discord_utils.pin_message(ctx.message)
+
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.SUCCESS}",
+            value=f"Updated url to {url}, pinned message.",
+            inline=False,
+        )
+        await ctx.send(embed=embed)
+
+    @command_predicates.is_verified()
     @commands.command(name="chanlion", aliases=["chancrablion"])
     async def chanlion(self, ctx, chan_name: str, url=None):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
