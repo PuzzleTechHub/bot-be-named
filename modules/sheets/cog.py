@@ -980,15 +980,15 @@ class SheetsCog(commands.Cog, name="Sheets"):
         return len(worksheet.get_values()) + 1
 
     status_dict = {
-        "Solved": {"color": [182, 215, 168], "update_ans": True, "prefix": True},
+        "Solved": {"color": [106, 168, 79], "update_ans": True, "prefix": True},
         "Solvedish": {"color": [217, 234, 211], "update_ans": False, "prefix": True},
-        "Backsolved": {"color": [164, 194, 244], "update_ans": True, "prefix": True},
+        "Backsolved": {"color": [60, 120, 216], "update_ans": True, "prefix": True},
         "Postsolved": {"color": [182, 215, 168], "update_ans": True, "prefix": True},
         "Unstarted": {"color": [217, 217, 217], "update_ans": False, "prefix": False},
         "Unsolvable": {"color": [102, 102, 102], "update_ans": False, "prefix": False},
         "Stuck": {"color": [255, 255, 135], "update_ans": False, "prefix": False},
         "Abandoned": {"color": [102, 102, 102], "update_ans": False, "prefix": False},
-        "In Progress": {"color": [255, 229, 153], "update_ans": False, "prefix": False},
+        "In Progress": {"color": [230, 145, 56], "update_ans": False, "prefix": False},
     }
 
     @command_predicates.is_verified()
@@ -998,7 +998,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Category: Verified Roles only.
         Usage: ~solvedlion
-        Usage: ~solvedlion answer
+        Usage: ~solvedlion "answer"
         """
         await self.statuslion(ctx, "solved", answer)
 
@@ -1009,7 +1009,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Category: Verified Roles only.
         Usage: ~backsolvedlion
-        Usage: ~backsolvedlion answer
+        Usage: ~backsolvedlion "answer"
         """
         await self.statuslion(ctx, "backsolved", answer)
 
@@ -1042,7 +1042,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Category: Verified Roles only.
         Usage: ~statuslion status
-        Usage: ~statuslion solved answer
+        Usage: ~statuslion solved "answer"
         """
         logging_utils.log_command("statuslion", ctx.guild, ctx.channel, ctx.author)
         channel = ctx.message.channel
