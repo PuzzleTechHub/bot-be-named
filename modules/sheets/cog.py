@@ -1683,7 +1683,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
             "gettemp",
             "templatelion",
             "templion",
-            "template",
             "temp",
             "showtemplatelion",
             "showtemplion",
