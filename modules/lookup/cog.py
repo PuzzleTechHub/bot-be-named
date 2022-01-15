@@ -143,6 +143,9 @@ class LookupCog(commands.Cog, name="Lookup"):
             await ctx.send('Example regex: `!nut "<asympote_>"`')
             return
 
+        query = query.replace("`", "")
+        query = query.replace("\\", "")
+
         # get html page - TODO change to requests?
         query_initial = query[:]
         query = (
