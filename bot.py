@@ -62,6 +62,8 @@ def main():
             # Make sure there are at least empty entries for VERIFIEDS, and CUSTOM_COMMANDS for every guild we're in
             if guild.id not in database.VERIFIEDS:
                 database.VERIFIEDS[guild.id] = []
+            if guild.id not in database.TRUSTEDS:
+                database.TRUSTEDS[guild.id] = []
             if guild.id not in database.CUSTOM_COMMANDS:
                 database.CUSTOM_COMMANDS[guild.id] = {}
         # Populate default command list
@@ -84,6 +86,7 @@ def main():
             session.commit()
         database.PREFIXES[guild.id] = constants.DEFAULT_BOT_PREFIX
         database.VERIFIEDS[guild.id] = []
+        database.TRUSTEDS[guild.id] = []
         database.CUSTOM_COMMANDS[guild.id] = {}
 
     @client.event
@@ -101,6 +104,7 @@ def main():
             session.commit()
         database.PREFIXES.pop(guild.id)
         database.VERIFIEDS.pop(guild.id)
+        database.TRUSTEDS.pop(guild.id)
         database.CUSTOM_COMMANDS.pop(guild.id)
 
     @client.event
