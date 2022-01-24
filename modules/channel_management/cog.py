@@ -398,6 +398,121 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             )
         await ctx.send(embed=embed)
 
+
+    ##########################
+    # VOICE CHANNEL COMMANDS #
+    ##########################
+
+    @command_predicates.is_verified()
+    @commands.command(name="renamevoicechan", aliases=["renamevc", "renamevoice"])
+    async def renamevoicechan(
+        self, 
+        ctx, 
+        new_name: str
+        ):
+        """Command to rename the Voice Channel in which the user currently is
+
+        Category : Verified Roles only.
+        Usage: `~renamevc "VC-Name"`
+        """
+        # log command in console
+        logging_utils.log_command("renamevoicechan", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        voice_chan_list = ctx.guild.voice_channels
+        calling_user = ctx.author
+
+        voice_chan_to_rename = None
+        for vc in voice_chan_list:
+            if calling_user in vc.members:
+                voice_chan_to_rename = vc
+                break
+
+        if(voice_chan_to_rename is None):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"User {calling_user.mention} needs to be in a Voice Channel to use `~renamevc`!",
+            )
+            # reply to user
+            await ctx.send(embed=embed)
+            return
+
+        try:
+            oldvcname = voice_chan_to_rename.name
+            await voice_chan_to_rename.edit(name=new_name)
+        except discord.Forbidden:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+            )
+            # reply to user
+            await ctx.send(embed=embed)
+            return
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"Renamed voice channel `{oldvcname}` in category `{voice_chan_to_rename.category}` to {voice_chan_to_rename.mention}",
+        )
+        # reply to user
+        await ctx.send(embed=embed)
+
+    @command_predicates.is_verified()
+    @commands.command(name="linkvoice", aliases=["linkvc", "namevc", "namevoice","linkvoicechan"])
+    async def linkvoicechan(
+        self, 
+        ctx, 
+        name: str=""
+        ):
+        """Command to paste the link a specific Voice Channel.
+
+        Category : Verified Roles only.
+        Usage: `~linkvc "VC-Name"` (links to the VC that has the given name)
+        Usage: `~linkvc` (links to the VC that the user currently is in)
+        """
+        # log command in console
+        logging_utils.log_command("linkvoicechan", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        voice_chan_list = ctx.guild.voice_channels
+        calling_user = ctx.author
+
+        voice_chan_to_link = None
+        for vc in voice_chan_list:
+            if (name==""):
+                #Handling the case when VC wasn't named
+                if calling_user in vc.members:
+                    voice_chan_to_link = vc
+                    break
+            else:
+                if(vc.name == name):
+                    voice_chan_to_link = vc
+                    break
+
+        if(voice_chan_to_link is None):
+            if(name==""):
+                embed.add_field(
+                    name=f"{constants.FAILED}!",
+                    value=f"User {calling_user.mention} needs to name or be in a Voice Channel to use `~linkvc`!",
+                )
+                # reply to user
+                await ctx.send(embed=embed)
+                return
+            else:
+                embed.add_field(
+                    name=f"{constants.FAILED}!",
+                    value=f"Voice name `{name}` not found in the guild!",
+                )
+                # reply to user
+                await ctx.send(embed=embed)
+                return
+
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"Linking {voice_chan_to_link.mention} from category `{voice_chan_to_link.category}`",
+        )
+        # reply to user
+        await ctx.send(embed=embed)
+
+
     #####################
     # CATEGORY COMMANDS #
     #####################
@@ -442,7 +557,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         except discord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                value=f"Forbidden! Have you checked if the bot has the `manage_channels` permisisons?",
             )
             # reply to user
             await ctx.send(embed=embed)
