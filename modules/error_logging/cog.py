@@ -42,7 +42,8 @@ class ErrorLogCog(commands.Cog):
 
 async def on_error(event, *args, **kwargs):
     """When an exception is raised, log it in err.log and bot log channel"""
-    print(f"Printing from on_error: {args[0]}")
+    for argsx in args:
+        print(f"Printing from on_error: {argsx}")
     _, error, _ = sys.exc_info()
     embed = discord_utils.create_embed()
     # error while handling message

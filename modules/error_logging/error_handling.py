@@ -26,7 +26,7 @@ class ErrorHandler:
         error_details = self.trace if self.trace != "NoneType: None\n" else self.error
         print(f"In handle_error")
         logging.warning(error_details)
-        print(f"Printing from handle_error {error_details}")
+        print(f"Printing from handle_error: {error_details}")
         self.__log_to_file(error_constants.ERROR_LOGFILE, error_details)
         user_error = self.__user_error_message()
         if user_error == -1:  # No error from __user_error_message
@@ -83,6 +83,8 @@ class ErrorHandler:
                     f"You don't have the necessary permissions to use that command! Speak with kevslinger to "
                     f"get your permissions set up for that."
                 )
+        #elif isinstance(self.error, errors.HTTPException):
+        #    return f"Some HTTPException (We don't know what's going on)"
         else:
             return -1  # No Error found
 
