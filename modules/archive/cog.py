@@ -59,7 +59,12 @@ class ArchiveCog(commands.Cog, name="Archive"):
                             + original_path.split(".")[1]
                         )
                         dupe_counter += 1
-                    await attachment.save(proposed_path)
+                    # The discord filenames can get too long and throw an OSError
+                    try:
+                        await attachment.save(proposed_path)
+                    # TODO: Just do original_path[:N] instead?
+                    except OSError:
+                        await attachment.save(f"path_too_long_{dupe_counter}.{original_path.split('.')[1]}")
                 # Important: Write the newline after each comment is done
                 f.write("\n")
             text_file_size = f.tell()
@@ -132,7 +137,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     @command_predicates.is_verified()
     @commands.command(name="archivechannel", aliases=["archivechan"])
-    async def archivechannel(self, ctx, *args: Union[discord.TextChannel, str]):
+    async def archivechannel(self, ctx, *args: List[Union[discord.TextChannel, str]]):
         """Command to download channel's history
 
         Category : Verified Roles only.
