@@ -109,6 +109,9 @@ def main():
 
     @client.event
     async def on_message(message: discord.Message):
+        # We only want to respond to user messages
+        if message.is_system():
+            return
         # If the message doesn't start with the command prefix, no use querying the db.
         if message.guild is not None:
             command_prefix = database.PREFIXES[message.guild.id]
