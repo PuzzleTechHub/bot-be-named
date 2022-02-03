@@ -52,7 +52,7 @@ git clone https://github.com/kevslinger/bot-be-named.git
 cd bot-be-named
 virtualenv venv -p=3.7
 #This installs all the python dependancies the bot needs
-pip install -r requirements.txt
+pip install -r requirements.txt && pre-commit install
 ```
 
 The bot uses [Heroku Postgres](https://www.heroku.com/postgres) for storing data.
