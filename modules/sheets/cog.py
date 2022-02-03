@@ -1278,7 +1278,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             archive_category = await discord_utils.find_category(ctx, archive_name)
 
         if archive_category is None:
-            if(archive_category=""):
+            if archive_name is None:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
                     value=f"There is no category named `{ctx.channel.category.name} Archive` or "
