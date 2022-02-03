@@ -1278,19 +1278,27 @@ class SheetsCog(commands.Cog, name="Sheets"):
             archive_category = await discord_utils.find_category(ctx, archive_name)
 
         if archive_category is None:
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value=f"There is no category named `{ctx.channel.category.name} Archive` or "
-                f"`Archive: {ctx.channel.category.name}`, so I cannot move {ctx.channel.mention}.",
-            )
-            await ctx.send(embed=embed)
-            return
+            if(archive_category=""):
+                embed.add_field(
+                    name=f"{constants.FAILED}!",
+                    value=f"There is no category named `{ctx.channel.category.name} Archive` or "
+                    f"`Archive: {ctx.channel.category.name}`, so I cannot move {ctx.channel.mention}.",
+                )
+                await ctx.send(embed=embed)
+                return
+            else:
+                embed.add_field(
+                    name=f"{constants.FAILED}!",
+                    value=f"There is no category named `{archive_name}, so I cannot move {ctx.channel.mention}.",
+                )
+                await ctx.send(embed=embed)
+                return
 
         if discord_utils.category_is_full(archive_category):
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"`{archive_category}` is already full, max limit is 50 channels. Consider renaming"
-                f" `{archive_category}` and creating a new `{archive_category}`.",
+                value=f"`{archive_category.name}` is already full, max limit is 50 channels. Consider renaming"
+                f" `{archive_category.name}` and creating a new `{archive_category.name}`.",
             )
             await ctx.send(embed=embed)
             return
