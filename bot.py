@@ -112,6 +112,7 @@ def main():
         # We only want to respond to user messages
         if message.is_system() or message.author.id == client.user.id:
             return
+
         command_prefix = get_prefix(client, message)
 
         if message.clean_content.startswith(command_prefix):
