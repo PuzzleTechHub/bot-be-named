@@ -64,7 +64,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         await attachment.save(proposed_path)
                     # TODO: Just do original_path[:N] instead?
                     except OSError:
-                        await attachment.save(f"path_too_long_{dupe_counter}.{original_path.split('.')[1]}")
+                        await attachment.save(
+                            f"path_too_long_{dupe_counter}.{original_path.split('.')[1]}"
+                        )
                 # Important: Write the newline after each comment is done
                 f.write("\n")
             text_file_size = f.tell()

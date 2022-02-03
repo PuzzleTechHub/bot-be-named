@@ -83,7 +83,7 @@ class ErrorHandler:
                     f"You don't have the necessary permissions to use that command! Speak with kevslinger to "
                     f"get your permissions set up for that."
                 )
-        #elif isinstance(self.error, errors.HTTPException):
+        # elif isinstance(self.error, errors.HTTPException):
         #    return f"Some HTTPException (We don't know what's going on)"
         else:
             return -1  # No Error found

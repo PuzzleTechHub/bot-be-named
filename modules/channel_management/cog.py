@@ -398,18 +398,13 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             )
         await ctx.send(embed=embed)
 
-
     ##########################
     # VOICE CHANNEL COMMANDS #
     ##########################
 
     @command_predicates.is_verified()
     @commands.command(name="renamevoicechan", aliases=["renamevc", "renamevoice"])
-    async def renamevoicechan(
-        self, 
-        ctx, 
-        new_name: str
-        ):
+    async def renamevoicechan(self, ctx, new_name: str):
         """Command to rename the Voice Channel in which the user currently is
 
         Category : Verified Roles only.
@@ -428,7 +423,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 voice_chan_to_rename = vc
                 break
 
-        if(voice_chan_to_rename is None):
+        if voice_chan_to_rename is None:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"User {calling_user.mention} needs to be in a Voice Channel to use `~renamevc`!",
@@ -456,12 +451,10 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="linkvoice", aliases=["linkvc", "namevc", "namevoice","linkvoicechan"])
-    async def linkvoicechan(
-        self, 
-        ctx, 
-        name: str=""
-        ):
+    @commands.command(
+        name="linkvoice", aliases=["linkvc", "namevc", "namevoice", "linkvoicechan"]
+    )
+    async def linkvoicechan(self, ctx, name: str = ""):
         """Command to paste the link a specific Voice Channel.
 
         Category : Verified Roles only.
@@ -477,18 +470,18 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         voice_chan_to_link = None
         for vc in voice_chan_list:
-            if (name==""):
-                #Handling the case when VC wasn't named
+            if name == "":
+                # Handling the case when VC wasn't named
                 if calling_user in vc.members:
                     voice_chan_to_link = vc
                     break
             else:
-                if(vc.name == name):
+                if vc.name == name:
                     voice_chan_to_link = vc
                     break
 
-        if(voice_chan_to_link is None):
-            if(name==""):
+        if voice_chan_to_link is None:
+            if name == "":
                 embed.add_field(
                     name=f"{constants.FAILED}!",
                     value=f"User {calling_user.mention} needs to name or be in a Voice Channel to use `~linkvc`!",
@@ -511,7 +504,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         )
         # reply to user
         await ctx.send(embed=embed)
-
 
     #####################
     # CATEGORY COMMANDS #

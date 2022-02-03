@@ -193,14 +193,22 @@ class DiscordCog(commands.Cog, name="Discord"):
         embed = discord_utils.create_embed()
 
         guild = ctx.guild
-        embed.add_field(name="Members", value=f"{guild.member_count}",inline=False)
-        embed.add_field(name="Roles", value=f"{len(guild.roles)}",inline=False)
+        embed.add_field(name="Members", value=f"{guild.member_count}", inline=False)
+        embed.add_field(name="Roles", value=f"{len(guild.roles)}", inline=False)
         embed.add_field(
-            name="Emoji (limit)", value=f"{len(guild.emojis)} ({guild.emoji_limit})",inline=False
+            name="Emoji (limit)",
+            value=f"{len(guild.emojis)} ({guild.emoji_limit})",
+            inline=False,
         )
-        embed.add_field(name="Categories", value=f"{len(guild.categories)}",inline=False)
-        embed.add_field(name="Text Channels", value=f"{len(guild.text_channels)}",inline=False)
-        embed.add_field(name="Voice Channels", value=f"{len(guild.voice_channels)}",inline=False)
+        embed.add_field(
+            name="Categories", value=f"{len(guild.categories)}", inline=False
+        )
+        embed.add_field(
+            name="Text Channels", value=f"{len(guild.text_channels)}", inline=False
+        )
+        embed.add_field(
+            name="Voice Channels", value=f"{len(guild.voice_channels)}", inline=False
+        )
 
         await ctx.send(embed=embed)
 
@@ -227,9 +235,13 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.send(embed=embed)
             return
 
-        embed.add_field(name="Category Name", value=f"{cat.name}",inline=False)
-        embed.add_field(name="Text Channels", value=f"{len(cat.text_channels)}",inline=False)
-        embed.add_field(name="Voice Channels", value=f"{len(cat.voice_channels)}",inline=False)
+        embed.add_field(name="Category Name", value=f"{cat.name}", inline=False)
+        embed.add_field(
+            name="Text Channels", value=f"{len(cat.text_channels)}", inline=False
+        )
+        embed.add_field(
+            name="Voice Channels", value=f"{len(cat.voice_channels)}", inline=False
+        )
         await ctx.send(embed=embed)
 
     ##################

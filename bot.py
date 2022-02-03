@@ -19,6 +19,7 @@ def get_prefix(client, message):
     else:
         return constants.DEFAULT_BOT_PREFIX
 
+
 def main():
     intents = discord.Intents.default()
     intents.members = True
@@ -109,11 +110,9 @@ def main():
     @client.event
     async def on_message(message: discord.Message):
         # We only want to respond to user messages
-        if message.is_system():
+        if message.is_system() or message.author.id == client.user.id:
             return
-        # If the message doesn't start with the command prefix, no use querying the db.
-        if message.guild is not None:
-            command_prefix = get_prefix(client,message)
+        command_prefix = get_prefix(client, message)
 
         if message.clean_content.startswith(command_prefix):
             # If the command is a default one, just run it.
