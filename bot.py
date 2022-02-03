@@ -19,7 +19,6 @@ def get_prefix(client, message):
     else:
         return constants.DEFAULT_BOT_PREFIX
 
-
 def main():
     intents = discord.Intents.default()
     intents.members = True
@@ -114,9 +113,7 @@ def main():
             return
         # If the message doesn't start with the command prefix, no use querying the db.
         if message.guild is not None:
-            command_prefix = database.PREFIXES[message.guild.id]
-        else:
-            command_prefix = constants.DEFAULT_BOT_PREFIX
+            command_prefix = get_prefix(client,message)
 
         if message.clean_content.startswith(command_prefix):
             # If the command is a default one, just run it.

@@ -48,6 +48,7 @@ TUNES = "tunes"
 PUZZLE_SONGS = "puzzle_partial_songs"
 PUZZLE_OUTPUTS = "puzzle_outputs"
 PERFECT_PITCH_DIR = "perfect_pitch"
+PERFECT_PITCH = "Perfect Pitch"
 
 # INSTRUMENTS
 PIANO = "piano"

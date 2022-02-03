@@ -221,6 +221,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         If the role does not already exist, then creates the role, else just copies the permissions.
 
         This copies server-wide permissions but not Category specific ones. See `~clonecat` for that.
+        This does not copy the colour of roles either.
 
         The role can be mentioned or named.
 
@@ -266,7 +267,6 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                 newrole_as_role = await ctx.guild.create_role(
                     name=newrole,
                     permissions=oldrole_as_role.permissions,
-                    colour=oldrole_as_role.colour,
                     hoist=oldrole_as_role.hoist,
                     mentionable=oldrole_as_role.mentionable,
                 )
@@ -289,7 +289,6 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
             try:
                 await newrole_as_role.edit(
                     permissions=oldrole_as_role.permissions,
-                    colour=oldrole_as_role.colour,
                     hoist=oldrole_as_role.hoist,
                     mentionable=oldrole_as_role.mentionable,
                 )

@@ -28,7 +28,7 @@ class Note:
             proposed_path = os.path.join(
                 os.getcwd(),
                 constants.MODULES_DIR,
-                constants.PERFECT_PITCH.lower().replace(" ", "_"),
+                perfect_pitch_constants.PERFECT_PITCH.lower().replace(" ", "_"),
                 perfect_pitch_constants.MUSIC,
                 self.instrument,
                 perfect_pitch_constants.NOTES,
@@ -40,7 +40,7 @@ class Note:
                 self.path = os.path.join(
                     os.getcwd(),
                     constants.MODULES_DIR,
-                    constants.PERFECT_PITCH.lower().replace(" ", "_"),
+                    perfect_pitch_constants.PERFECT_PITCH.lower().replace(" ", "_"),
                     perfect_pitch_constants.MUSIC,
                     "piano",
                     perfect_pitch_constants.NOTES,
@@ -159,7 +159,7 @@ class Tune:
         output_dir = os.path.join(
             os.getcwd(),
             constants.MODULES_DIR,
-            constants.PERFECT_PITCH.lower().replace(" ", "_"),
+            perfect_pitch_constants.PERFECT_PITCH.lower().replace(" ", "_"),
             perfect_pitch_constants.MUSIC,
             perfect_pitch_constants.TUNES,
             self.channel_name,
