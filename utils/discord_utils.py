@@ -74,6 +74,26 @@ def create_no_argument_embed(arg_name: str = "argument") -> discord.Embed:
     )
     return embed
 
+async def find_guild(
+    ctx: commands.Context, guild_name: Union[discord.Guild, str]
+) -> discord.Guild:
+    """Uses discord.py's GuildConverter to convert the name to a discord Guild
+    Arguments:
+        - ctx (discord.ext.commands.Context): The command's context
+        - guild_name (str): The name of the guild
+    Returns:
+        - guild (discord.Guild): the guild or None if not found"""
+    if (isinstance(guild_name, discord.Guild)) or guild_name is None:
+        return guild_name
+    try:
+        guilds = ctx.bot.guilds
+        for currguild in guilds:
+            if(guild_name==currguild.name):
+                guild = currguild
+                break
+    except Exception as e:
+        guild = None
+    return guild
 
 async def find_category(
     ctx: commands.Context, category_name: Union[discord.CategoryChannel, str]

@@ -179,6 +179,97 @@ class AdminCog(commands.Cog, name="Admin"):
 
     @command_predicates.is_owner_or_admin()
     @commands.command(
+        name="commonmemberguilds",
+    )
+    async def commonmemberguilds(self, ctx, guild_1 : Union[discord.CategoryChannel, str], guild_2 : Union[discord.CategoryChannel, str]):
+        """List all users in common between 2 guilds that the bot is in.
+
+        Category : Admin or Bot Owner Roles only.
+        See also : `~lsguilds`
+        Usage: `~commonmemberguilds "Guild1" "Guild2"`
+        """
+        logging_utils.log_command("commonmemberguilds", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        guild_1_guild = await discord_utils.find_guild(ctx, guild_1)
+
+        guild_2_guild = await discord_utils.find_guild(ctx, guild_2)
+
+        if(guild_1_guild is None):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"There is no guild named `{guild_1}`. Please double check the spelling."
+            )
+            await ctx.send(embed=embed)
+            return
+
+        if(guild_2_guild is None):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"There is no guild named `{guild_2}`. Please double check the spelling."
+            )
+            await ctx.send(embed=embed)
+            return
+
+        members_guild_1 = guild_1_guild.members
+        members_guild_2 = guild_2_guild.members
+
+        members_common = [member for member in members_guild_1 if member in members_guild_2]
+
+        if (
+            len(members_common) > 0
+        ):
+            embed.add_field(
+                name=f"Members common",
+                value=f"Members common in `{guild_1}` and `{guild_2}`\n"
+                f"{' '.join([member.mention for member in members_common])}",
+                inline=False,
+            )
+        else:
+            embed.add_field(
+                name=f"No members in common",
+                value=f"The bot has no members in common between `{guild_1}` and `{guild_2}`",
+                inline=False,
+            )
+        await ctx.send(embed=embed)
+
+
+    @command_predicates.is_owner_or_admin()
+    @commands.command(
+        name="lsguilds",
+        aliases=["listguilds"],
+    )
+    async def lsguilds(self, ctx):
+        """List all guilds that the bot is in.
+
+        Category : Admin or Bot Owner Roles only.
+        Usage: `~lsguilds`
+        """
+        logging_utils.log_command("lsguilds", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        guilds = ctx.bot.guilds
+
+
+        if (
+            len(guilds) > 0
+        ):
+            embed.add_field(
+                name=f"Guilds for {ctx.bot.user.name}",
+                value=f"Guilds for {ctx.bot.user.mention}\n"
+                f"{' '.join(['`'+guild.name+'`' for guild in guilds])}",
+                inline=False,
+            )
+        else:
+            embed.add_field(
+                name=f"No guilds for the bot",
+                value="The bot is currently not in any guilds.",
+                inline=False,
+            )
+        await ctx.send(embed=embed)
+
+    @command_predicates.is_owner_or_admin()
+    @commands.command(
         name="rmverified", aliases=["removeverified", "rmtrusted", "removetrusted"]
     )
     async def rmverified(self, ctx, role_or_rolename: Union[discord.Role, str]):
