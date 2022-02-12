@@ -85,7 +85,6 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 command_return,
                 False,
             )
-
         await ctx.send(embed=embed)
 
     @command_predicates.is_trusted()
@@ -161,7 +160,6 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 command_return,
                 True,
             )
-
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()

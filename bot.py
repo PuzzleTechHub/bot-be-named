@@ -40,7 +40,7 @@ def main():
         """When the bot starts up"""
         await client.change_presence(
             activity=discord.Activity(
-                type=discord.ActivityType.watching, name="you solve👀 |~help"
+                type=discord.ActivityType.watching, name="you solve👀 | ~help"
             )
         )
         for guild in client.guilds:
@@ -128,7 +128,8 @@ def main():
                 message.guild is not None
                 and message.guild.id in database.CUSTOM_COMMANDS
             ):
-                # check if custom command is in cache. If it's not, query the DB for it
+                command_return = None
+                # check if custom command is in cache for that server
                 if command_name in [
                     command.lower()
                     for command in database.CUSTOM_COMMANDS[message.guild.id].keys()
@@ -136,6 +137,9 @@ def main():
                     command_return = database.CUSTOM_COMMANDS[message.guild.id][
                         command_name
                     ][0]
+
+                #Command found in cache
+                if command_return is not None:
                     # Image, so we use normal text.
                     if database.CUSTOM_COMMANDS[message.guild.id][command_name][1]:
                         await message.channel.send(command_return)
@@ -146,29 +150,42 @@ def main():
                         )
                         await message.channel.send(embed=embed)
                     return
-                # If the custom command is not in the cache, query the DB to see if we have a command with that name for this server
-                else:
-                    with Session(database.DATABASE_ENGINE) as session:
-                        result = (
-                            session.query(database.CustomCommands)
-                            .filter_by(
-                                server_id_command=f"{message.guild.id} {command_name}"
-                            )
-                            .first()
+
+                # The custom command is not in the cache
+                #Query the DB to see if we have a command with that name
+                with Session(database.DATABASE_ENGINE) as session:
+                    #Checking for this server
+                    result = (
+                        session.query(database.CustomCommands)
+                        .filter_by(
+                            server_id_command=f"{message.guild.id} {command_name}"
                         )
-                        if result is not None:
-                            if result.image:
-                                await message.channel.send(result.command_return)
-                            else:
-                                embed = discord.Embed(
-                                    description=result.command_return,
-                                    color=constants.EMBED_COLOR,
-                                )
-                                await message.channel.send(embed=embed)
-                            database.CUSTOM_COMMANDS[message.guild.id][command_name] = (
-                                result.command_return,
-                                result.image,
+                        .first()
+                    )
+                    #Check for global custom commands
+                    if result is None:
+                        result = (
+                        session.query(database.CustomCommands)
+                        .filter_by(
+                            server_id_command=f"{constants.DB_GLOBAL} {command_name}"
+                        )
+                        .first()
+                        )
+                    if result is not None:
+                        if result.image:
+                            await message.channel.send(result.command_return)
+                            return
+                        else:
+                            embed = discord.Embed(
+                                description=result.command_return,
+                                color=constants.EMBED_COLOR,
                             )
+                            await message.channel.send(embed=embed)
+                        #Adds to cache. NOTE - This adds to cache even if local or global
+                        database.CUSTOM_COMMANDS[message.guild.id][command_name] = (
+                            result.command_return,
+                            result.image,
+                        )
 
     client.run(os.getenv("DISCORD_TOKEN"))
 

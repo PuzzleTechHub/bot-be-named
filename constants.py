@@ -22,6 +22,12 @@ MODULES_DIR = "modules"
 
 
 ############
+# DATABASE #
+############
+
+DB_GLOBAL = "global"
+
+############
 # REMINDER #
 ############
 
