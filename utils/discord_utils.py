@@ -85,6 +85,7 @@ async def find_guild(
         - guild (nextcord.Guild): the guild or None if not found"""
     if (isinstance(guild_name, nextcord.Guild)) or guild_name is None:
         return guild_name
+    guild = None
     try:
         guilds = ctx.bot.guilds
         for currguild in guilds:
@@ -92,7 +93,7 @@ async def find_guild(
                 guild = currguild
                 break
     except Exception as e:
-        guild = None
+        pass
     return guild
 
 async def find_category(

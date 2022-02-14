@@ -18,7 +18,9 @@ class AdminCog(commands.Cog, name="Admin"):
         self.bot = bot
 
     @command_predicates.is_owner_or_admin()
-    @commands.command(name="addverified")
+    @commands.command(name="addverified",
+        aliases=["addverifieds"],
+        )
     async def addverified(
         self,
         ctx,
@@ -74,7 +76,7 @@ class AdminCog(commands.Cog, name="Admin"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Role {role_to_assign} is already Verified!",
+                value=f"Role {role_to_assign.mention} is already Verified!",
             )
             await ctx.send(embed=embed)
             return
@@ -82,7 +84,7 @@ class AdminCog(commands.Cog, name="Admin"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Role {role_to_assign} is already Trusted!",
+                value=f"Role {role_to_assign.mention} is already Trusted!",
             )
             await ctx.send(embed=embed)
             return
@@ -108,7 +110,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 embed = discord_utils.create_embed()
                 embed.add_field(
                     name=f"{constants.FAILED}!",
-                    value=f"Role {role_to_assign.mention} is already {result.permissions}!",
+                    value=f"Role {role_to_assign.mention} is already `{result.permissions}`!",
                 )
                 await ctx.send(embed=embed)
                 return
@@ -126,7 +128,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         embed.add_field(
             name=constants.SUCCESS,
-            value=f"Added the role {role_to_assign.mention} for this server set to {role_permissions}",
+            value=f"Added the role {role_to_assign.mention} for this server set to `{role_permissions}`",
             inline=False,
         )
         await ctx.send(embed=embed)
@@ -270,7 +272,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
     @command_predicates.is_owner_or_admin()
     @commands.command(
-        name="rmverified", aliases=["removeverified", "rmtrusted", "removetrusted"]
+        name="rmverified", aliases=["removeverified","removeverifieds","rmverifieds", "rmtrusted", "removetrusted"]
     )
     async def rmverified(self, ctx, role_or_rolename: Union[nextcord.Role, str]):
         """Remove a role from the list of verifieds/trusteds. Only available to server admins or bot owners.
@@ -309,7 +311,7 @@ class AdminCog(commands.Cog, name="Admin"):
             if result is None:
                 embed.add_field(
                     name=f"{constants.FAILED}",
-                    value=f"Role {role_to_remove.mention} is not verified or trusted in {ctx.guild.name}",
+                    value=f"Role {role_to_remove.mention} is not verified or trusted in `{ctx.guild.name}`",
                 )
                 await ctx.send(embed=embed)
                 return
