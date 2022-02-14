@@ -1,7 +1,7 @@
 import sys
 import traceback
-from discord import logging
-from discord.ext.commands import errors
+from nextcord import logging
+from nextcord.ext.commands import errors
 from modules.error_logging import error_constants
 from datetime import datetime
 

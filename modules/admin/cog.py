@@ -1,6 +1,6 @@
-import discord
-from discord.ext import commands
-from discord.ext.commands.core import command
+import nextcord
+from nextcord.ext import commands
+from nextcord.ext.commands.core import command
 import psycopg2
 from sqlalchemy.orm import Session
 import sqlalchemy
@@ -22,7 +22,7 @@ class AdminCog(commands.Cog, name="Admin"):
     async def addverified(
         self,
         ctx,
-        role_or_rolename: Union[discord.Role, str],
+        role_or_rolename: Union[nextcord.Role, str],
         role_permissions: str = "Verified",
     ):
         """Add a new verified category for a given role on this server. Only available to server admins or bot owners.
@@ -181,7 +181,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(
         name="commonmemberguilds",
     )
-    async def commonmemberguilds(self, ctx, guild_1 : Union[discord.CategoryChannel, str], guild_2 : Union[discord.CategoryChannel, str]):
+    async def commonmemberguilds(self, ctx, guild_1 : Union[nextcord.CategoryChannel, str], guild_2 : Union[nextcord.CategoryChannel, str]):
         """List all users in common between 2 guilds that the bot is in.
 
         Category : Admin or Bot Owner Roles only.
@@ -272,7 +272,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(
         name="rmverified", aliases=["removeverified", "rmtrusted", "removetrusted"]
     )
-    async def rmverified(self, ctx, role_or_rolename: Union[discord.Role, str]):
+    async def rmverified(self, ctx, role_or_rolename: Union[nextcord.Role, str]):
         """Remove a role from the list of verifieds/trusteds. Only available to server admins or bot owners.
 
         Category : Admin or Bot Owner Roles only.
@@ -283,7 +283,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         role_to_remove = None
         # Get role. Allow people to use the command by pinging the role, or just naming it
-        if isinstance(role_or_rolename, discord.Role):
+        if isinstance(role_or_rolename, nextcord.Role):
             role_to_remove = role_or_rolename
         else:
             # Search over all roles and see if we get a match.

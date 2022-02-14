@@ -1,4 +1,4 @@
-from discord.ext import commands
+from nextcord.ext import commands
 from modules.error_logging.error_handling import ErrorHandler
 from modules.error_logging import error_constants
 from utils import discord_utils, logging_utils, command_predicates

@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import constants
 from utils import discord_utils
 
@@ -50,7 +50,7 @@ class HelpCommand(commands.MinimalHelpCommand):
         """implements cog help page"""
         embed = discord_utils.create_embed()
         embed.title = f"{cog.qualified_name} Commands"
-        # embed = discord.Embed(
+        # embed = nextcord.Embed(
         #    title=f"{cog.qualified_name} Commands", colour=constants.EMBED_COLOR
         # )
         if cog.description:

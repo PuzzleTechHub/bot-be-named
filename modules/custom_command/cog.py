@@ -1,4 +1,4 @@
-from discord.ext import commands
+from nextcord.ext import commands
 from sqlalchemy.orm import Session
 from sqlalchemy import insert
 import database

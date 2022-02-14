@@ -1,69 +1,69 @@
-import discord
-from discord.ext import commands
-from discord.ext.commands.errors import ChannelNotFound
+import nextcord
+from nextcord.ext import commands
+from nextcord.ext.commands.errors import ChannelNotFound
 from typing import List, Tuple, Union
 import constants
 from modules.solved import solved_constants
 
 
-def category_is_full(category: discord.CategoryChannel) -> bool:
+def category_is_full(category: nextcord.CategoryChannel) -> bool:
     """Determines whether a category is full (has 50 channels)
     Arguments:
-        - category (discord.CategoryChannel)
+        - category (nextcord.CategoryChannel)
     Returns:
         - bool"""
     return len(category.channels) >= 50
 
 
 async def createchannelgeneric(
-    guild: discord.Guild, category: discord.CategoryChannel, name: str
-) -> discord.TextChannel:
+    guild: nextcord.Guild, category: nextcord.CategoryChannel, name: str
+) -> nextcord.TextChannel:
     """Command to create channel in same category with given name
     Arguments:
-        - guild (discord.Guild): the guild the channel is being created in
-        - category (discord.CategoryChannel): the category the channel is being created in
+        - guild (nextcord.Guild): the guild the channel is being created in
+        - category (nextcord.CategoryChannel): the category the channel is being created in
         - name (str): the name for the channel
     Returns:
-        - channel (discord.TextChannel): The created channel, or none if the bot does not have sufficient perms.
+        - channel (nextcord.TextChannel): The created channel, or none if the bot does not have sufficient perms.
     """
     try:
         # create channel
         channel = await guild.create_text_channel(name, category=category)
-    except discord.Forbidden:
+    except nextcord.Forbidden:
         return None
 
     return channel
 
 
 async def createvoicechannelgeneric(
-    guild: discord.Guild, category: discord.CategoryChannel, name: str
-) -> discord.TextChannel:
+    guild: nextcord.Guild, category: nextcord.CategoryChannel, name: str
+) -> nextcord.TextChannel:
     """Command to create channel in same category with given name
     Arguments:
-        - guild (discord.Guild): the guild the channel is being created in
-        - category (discord.CategoryChannel): the category the channel is being created in
+        - guild (nextcord.Guild): the guild the channel is being created in
+        - category (nextcord.CategoryChannel): the category the channel is being created in
         - name (str): the name for the channel
     Returns:
-        - channel (discord.TextChannel): The created channel, or none if the bot does not have sufficient perms.
+        - channel (nextcord.TextChannel): The created channel, or none if the bot does not have sufficient perms.
     """
     try:
         # create channel
         channel = await guild.create_voice_channel(name, category=category)
-    except discord.Forbidden:
+    except nextcord.Forbidden:
         return None
 
     return channel
 
 
-def create_embed() -> discord.Embed:
+def create_embed() -> nextcord.Embed:
     """
     Create an empty discord embed with color.
-    :return: (discord.Embed)
+    :return: (nextcord.Embed)
     """
-    return discord.Embed(description="", color=constants.EMBED_COLOR)
+    return nextcord.Embed(description="", color=constants.EMBED_COLOR)
 
 
-def create_no_argument_embed(arg_name: str = "argument") -> discord.Embed:
+def create_no_argument_embed(arg_name: str = "argument") -> nextcord.Embed:
     """
     Create an embed which alerts the user they need to supply an argument
     :param arg_name: (str) The type of argument needed (e.g. channel)
@@ -75,15 +75,15 @@ def create_no_argument_embed(arg_name: str = "argument") -> discord.Embed:
     return embed
 
 async def find_guild(
-    ctx: commands.Context, guild_name: Union[discord.Guild, str]
-) -> discord.Guild:
-    """Uses discord.py's GuildConverter to convert the name to a discord Guild
+    ctx: commands.Context, guild_name: Union[nextcord.Guild, str]
+) -> nextcord.Guild:
+    """Uses nextcord.py's GuildConverter to convert the name to a discord Guild
     Arguments:
-        - ctx (discord.ext.commands.Context): The command's context
+        - ctx (nextcord.ext.commands.Context): The command's context
         - guild_name (str): The name of the guild
     Returns:
-        - guild (discord.Guild): the guild or None if not found"""
-    if (isinstance(guild_name, discord.Guild)) or guild_name is None:
+        - guild (nextcord.Guild): the guild or None if not found"""
+    if (isinstance(guild_name, nextcord.Guild)) or guild_name is None:
         return guild_name
     try:
         guilds = ctx.bot.guilds
@@ -96,15 +96,15 @@ async def find_guild(
     return guild
 
 async def find_category(
-    ctx: commands.Context, category_name: Union[discord.CategoryChannel, str]
-) -> discord.CategoryChannel:
-    """Uses discord.py's CategoryChannelConverter to convert the name to a discord CategoryChannel
+    ctx: commands.Context, category_name: Union[nextcord.CategoryChannel, str]
+) -> nextcord.CategoryChannel:
+    """Uses nextcord.py's CategoryChannelConverter to convert the name to a discord CategoryChannel
     Arguments:
-        - ctx (discord.ext.commands.Context): The command's context
+        - ctx (nextcord.ext.commands.Context): The command's context
         - category_name (str): The name of the category
     Returns:
-        - category (discord.CategoryChannel): the category or None if not found"""
-    if (isinstance(category_name, discord.CategoryChannel)) or category_name is None:
+        - category (nextcord.CategoryChannel): the category or None if not found"""
+    if (isinstance(category_name, nextcord.CategoryChannel)) or category_name is None:
         return category_name
     try:
         category = await commands.CategoryChannelConverter().convert(ctx, category_name)
@@ -139,12 +139,12 @@ async def find_category(
     return category
 
 
-async def pin_message(message: discord.Message) -> discord.Embed:
+async def pin_message(message: nextcord.Message) -> nextcord.Embed:
     """Pin a message. Catches Forbidden, HTTPSError (too many pins in channel)
     Arguments:
-        - message (discord.Message): The message to pin
+        - message (nextcord.Message): The message to pin
     Return:
-        - embed (discord.Embed): We create an embed if any issue occurs in pinning.
+        - embed (nextcord.Embed): We create an embed if any issue occurs in pinning.
     """
     # Channels can't have more than 50 pinned messages
     pins = await message.channel.pins()
@@ -160,17 +160,17 @@ async def pin_message(message: discord.Message) -> discord.Embed:
         await message.unpin()
         await message.pin()
         async for pinmsg in message.channel.history(limit=5):
-            if pinmsg.is_system():
+            if pinmsg.type!= nextcord.MessageType.default:
                 await pinmsg.delete()
                 break
-    except discord.HTTPException:
+    except nextcord.HTTPException:
         embed = create_embed()
         embed.add_field(
             name=f"{constants.FAILED} to pin!",
             value=f"Cannot pin system messages (e.g. **Bot-Be-Named** pinned **a message** to this channel.)",
         )
         return embed
-    except discord.Forbidden:
+    except nextcord.Forbidden:
         embed = create_embed()
         embed.add_field(
             name=f"{constants.FAILED} to pin!",
@@ -182,12 +182,12 @@ async def pin_message(message: discord.Message) -> discord.Embed:
     return None
 
 
-def populate_embed(names: list, values: list, inline: bool = False) -> discord.Embed:
+def populate_embed(names: list, values: list, inline: bool = False) -> nextcord.Embed:
     """Populate an embed with a list of names and values"""
     assert len(names) == len(
         values
     ), "Tried to populate an embed with uneven numbers of names and values"
-    embed = discord.Embed(color=constants.EMBED_COLOR)
+    embed = nextcord.Embed(color=constants.EMBED_COLOR)
     for idx in range(len(names)):
         embed.add_field(name=names[idx], value=values[idx], inline=inline)
     return embed
@@ -217,14 +217,14 @@ def sort_channels_util(
 
 
 # TODO: I'm going to need to rewrite this at some point...
-def split_embed(embed: discord.Embed) -> List[discord.Embed]:
+def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
     """Splits embeds that are too long (discord character limit)
     Arguments:
-        - embed (discord.Embed)
+        - embed (nextcord.Embed)
     Returns
-        - embed_list (List[discord.Embed]):
+        - embed_list (List[nextcord.Embed]):
     """
-    if embed.title == discord.Embed.Empty:
+    if embed.title == nextcord.Embed.Empty:
         embed.title = ""
     EMBED_CHARACTER_LIMIT = 2000
     FIELD_CHARACTER_LIMIT = 1024
@@ -237,7 +237,7 @@ def split_embed(embed: discord.Embed) -> List[discord.Embed]:
         description = embed.description
         while description != "":
             embed_list.append(
-                discord.Embed(
+                nextcord.Embed(
                     title=embed.title + " (continued)"
                     if len(embed_list) > 0
                     else embed.title,
@@ -256,7 +256,7 @@ def split_embed(embed: discord.Embed) -> List[discord.Embed]:
     # If the title + description are small, we can just copy them over
     else:
         embed_list.append(
-            discord.Embed(
+            nextcord.Embed(
                 title=embed.title, description=embed.description, color=embed.color
             )
         )
@@ -301,7 +301,7 @@ def split_embed(embed: discord.Embed) -> List[discord.Embed]:
                 field_description = field_description[cutoff_point + 1 :]
                 # We just filled the entire embed up, so now we need to make a new one
                 embed_list.append(
-                    discord.Embed(title=embed.title + " (continued)", color=embed.color)
+                    nextcord.Embed(title=embed.title + " (continued)", color=embed.color)
                 )
                 character_count = len(embed_list[-1].title)
         # Once we've gotten to here, we know that the remaining field character count is able to fit in one field.
@@ -323,7 +323,7 @@ def split_embed(embed: discord.Embed) -> List[discord.Embed]:
                 inline=False,
             )
             embed_list.append(
-                discord.Embed(title=embed.title + " (continued)", color=embed.color)
+                nextcord.Embed(title=embed.title + " (continued)", color=embed.color)
             )
             field_description = field_description[cutoff_point + 1 :]
             character_count = len(embed_list[-1].title) + len(field.name)

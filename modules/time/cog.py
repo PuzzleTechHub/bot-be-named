@@ -1,4 +1,4 @@
-import discord
+import nextcord
 import geopy
 import datetime
 import os
@@ -6,8 +6,8 @@ import pytz
 import constants
 
 from modules.time import time_utils
-from discord.ext import commands
-from discord.ext.tasks import loop
+from nextcord.ext import commands
+from nextcord.ext.tasks import loop
 from utils import logging_utils, time_utils, google_utils, discord_utils
 
 # Code partially taken from Ravenclaw-Discord-Bot, also a bot by Kevslinger

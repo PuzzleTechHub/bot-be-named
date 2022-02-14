@@ -1,7 +1,7 @@
-import discord
+import nextcord
 
 import constants
-from discord.ext import commands
+from nextcord.ext import commands
 from modules.solved.prefix import Prefix
 from modules.solved import solved_constants
 from utils import discord_utils, logging_utils, command_predicates
@@ -70,7 +70,7 @@ class SolvedCog(commands.Cog):
         if new_channel_name:
             try:
                 await ctx.channel.edit(name=new_channel_name)
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
                     value=f"Unable to prepend `solved` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?",
@@ -239,7 +239,7 @@ class SolvedCog(commands.Cog):
             # move channel
             await ctx.channel.edit(category=archive_category)
             await ctx.channel.edit(position=1)
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Can you check my permissions? I can't seem to be able to move "

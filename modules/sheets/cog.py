@@ -2,8 +2,8 @@ import googleapiclient
 from utils import discord_utils, google_utils, logging_utils, command_predicates
 from modules.sheets import sheets_constants
 import constants
-from discord.ext import commands
-import discord
+from nextcord.ext import commands
+import nextcord
 import os
 import gspread
 import httplib2
@@ -590,13 +590,13 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     await ctx.send(embed=embed)
                     return
 
-            await ctx.send(file=discord.File(download_path))
+            await ctx.send(file=nextcord.File(download_path))
 
     def addsheettethergeneric(
         self,
         sheet_key_or_link: str,
-        curr_guild: discord.Guild,
-        curr_catorchan: Union[discord.CategoryChannel, discord.TextChannel],
+        curr_guild: nextcord.Guild,
+        curr_catorchan: Union[nextcord.CategoryChannel, nextcord.TextChannel],
     ) -> gspread.Spreadsheet:
         """Add a sheet to the current channel"""
         # We accept both sheet keys or full links
@@ -1307,7 +1307,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             # move channel
             await ctx.channel.edit(category=archive_category)
             await ctx.channel.edit(position=1)
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Can you check my permissions? I can't seem to be able to move "
@@ -1795,7 +1795,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         ctx,
         hunt_team_name: str,
         hunturl: str,
-        rolename_or_folderurl: Union[discord.Role, str] = None,
+        rolename_or_folderurl: Union[nextcord.Role, str] = None,
         folderurl: str = None,
     ):
         """Clone the template and names the new sheet into a new category named huntteamname.
@@ -1887,7 +1887,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await discord_utils.createvoicechannelgeneric(
                 ctx.guild, cat, hunt_team_name + " VC"
             )
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}",

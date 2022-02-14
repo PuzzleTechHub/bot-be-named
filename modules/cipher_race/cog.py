@@ -1,7 +1,7 @@
 from dotenv.main import load_dotenv
 import discord
-from discord.ext import commands
-from discord.ext.tasks import loop
+from nextcord.ext import commands
+from nextcord.ext.tasks import loop
 import os
 from utils import google_utils, discord_utils, logging_utils, command_predicates
 from modules.cipher_race import cipher_race_constants, cipher_race_utils

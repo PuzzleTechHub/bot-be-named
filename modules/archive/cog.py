@@ -1,6 +1,6 @@
-import discord
-from discord.ext import commands
-from discord.ext.commands.errors import ChannelNotFound
+import nextcord
+from nextcord.ext import commands
+from nextcord.ext.commands.errors import ChannelNotFound
 import constants
 import os
 import zipfile
@@ -24,8 +24,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
     # That would speed up the archiving of categories and servers by a lot. I guess it would be hard since we aren't
     # Compressing in real-time. We could try, though.
     async def archive_one_channel(
-        self, channel: discord.TextChannel
-    ) -> Tuple[discord.File, int, discord.File, int]:
+        self, channel: nextcord.TextChannel
+    ) -> Tuple[nextcord.File, int, nextcord.File, int]:
         """Download a channel's history"""
         # Write the chat log. Replace attachments with their filename (for easy reference)
         text_log_path = os.path.join(
@@ -88,9 +88,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
         # TODO: It may often be the case that we will be above 8MB (max filesize).
         # In that case, we just need to send the textfile
         return (
-            discord.File(ZIP_FILENAME),
+            nextcord.File(ZIP_FILENAME),
             zf_file_size,
-            discord.File(text_log_path),
+            nextcord.File(text_log_path),
             text_file_size,
         )
 
@@ -139,7 +139,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     @command_predicates.is_verified()
     @commands.command(name="archivechannel", aliases=["archivechan"])
-    async def archivechannel(self, ctx, *args: List[Union[discord.TextChannel, str]]):
+    async def archivechannel(self, ctx, *args: List[Union[nextcord.TextChannel, str]]):
         """Command to download channel's history
 
         Category : Verified Roles only.
@@ -168,11 +168,11 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     await msg.delete()
                     msg = None
                 archive_utils.reset_archive_dir()
-                if isinstance(channelname, discord.TextChannel):
+                if isinstance(channelname, nextcord.TextChannel):
                     channel = channelname
                 else:
                     try:
-                        # Convert channel from string to discord.TextChannel
+                        # Convert channel from string to nextcord.TextChannel
                         channel = await commands.TextChannelConverter().convert(
                             ctx, channelname
                         )
@@ -204,7 +204,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         textfile,
                         textfile_size,
                     ) = await self.archive_one_channel(channel)
-                except discord.errors.Forbidden:
+                except nextcord.errors.Forbidden:
                     embed.add_field(
                         name="ERROR: No access",
                         value=f"Sorry! I don't have access to {channel}. You'll need "
@@ -304,7 +304,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         textfile_size,
                     )
                     await ctx.send(file=file, embed=embed)
-                except discord.errors.Forbidden:
+                except nextcord.errors.Forbidden:
                     embed.add_field(
                         name="ERROR: No access",
                         value=f"Sorry! I don't have access to {text_channel.mention}. You'll need "
@@ -388,7 +388,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         textfile_size,
                     )
                     await ctx.send(file=file, embed=embed)
-                except discord.errors.Forbidden:
+                except nextcord.errors.Forbidden:
                     embed.add_field(
                         name="ERROR: No access",
                         value=f"Sorry! I don't have access to {text_channel.mention}. You'll need "

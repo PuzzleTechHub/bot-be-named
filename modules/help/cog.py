@@ -1,4 +1,4 @@
-from discord.ext import commands
+from nextcord.ext import commands
 
 from modules.help import help_command
 
