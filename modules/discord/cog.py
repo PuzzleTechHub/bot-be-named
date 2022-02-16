@@ -318,7 +318,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @command_predicates.is_verified()
     @commands.command(name="getsource")
     async def getsource(self, ctx):
-        """Gives the discord formatted source code for a specific message in the channel. 
+        """Gives the discord formatted source code for a specific message in the channel.
         This command must be a reply
 
         Category : Verified Roles only.
@@ -338,7 +338,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             return
 
         orig_msg = ctx.message.reference.resolved
-        if(orig_msg.content is None or len(orig_msg.content)==0):
+        if orig_msg.content is None or len(orig_msg.content) == 0:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"The replied message has no content to `~getsource` from. Is it a bot or system message?",
@@ -348,7 +348,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             return
 
         # TODO - if orig_msg is DeletedReferencedMessage
-        msg = "```"+orig_msg.content+"```"
+        msg = "```" + orig_msg.content + "```"
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"{msg}",

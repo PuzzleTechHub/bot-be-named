@@ -16,9 +16,10 @@ class Verifieds(Base):
     __tablename__ = "verifieds"
     server_id = Column(BIGINT)
     server_name = Column(String)
-    role_id = Column(BIGINT, primary_key=True)
+    role_id = Column(BIGINT)
     role_name = Column(String)
     permissions = Column(String)
+    role_id_permissions = Column(String, primary_key=True)
 
 
 # enum for the different permissions in Verifieds

@@ -33,7 +33,6 @@ class AdminCog(commands.Cog, name="Admin"):
         Usage: `~addverified @Verified Verified`
         Usage: `~addverified @everyone Verified`
         """
-
         logging_utils.log_command("addverified", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
@@ -69,29 +68,13 @@ class AdminCog(commands.Cog, name="Admin"):
             await ctx.send(embed=embed)
             return
 
-        # Check the cache first to see if the role is already verified or trusted
-        if role_to_assign.id in database.VERIFIEDS[ctx.guild.id]:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value=f"Role {role_to_assign} is already Verified!",
-            )
-            await ctx.send(embed=embed)
-            return
-        elif role_to_assign.id in database.TRUSTEDS[ctx.guild.id]:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value=f"Role {role_to_assign} is already Trusted!",
-            )
-            await ctx.send(embed=embed)
-            return
-
         with Session(database.DATABASE_ENGINE) as session:
             # TODO: Figure out how to catch the duplicate unique key error so I can insert first, then find if exists.
             result = (
                 session.query(database.Verifieds)
-                .filter_by(role_id=role_to_assign.id)
+                .filter_by(
+                    role_id_permissions=f"{role_to_assign.id}_{role_permissions}"
+                )
                 .first()
             )
             if result is None:
@@ -101,6 +84,7 @@ class AdminCog(commands.Cog, name="Admin"):
                     server_id=ctx.guild.id,
                     server_name=ctx.guild.name,
                     permissions=role_permissions,
+                    role_id_permissions=f"{role_to_assign.id}_{role_permissions}"
                 )
                 session.execute(stmt)
                 session.commit()
@@ -136,7 +120,7 @@ class AdminCog(commands.Cog, name="Admin"):
         name="lsverifieds",
         aliases=["listverifieds", "verifieds", "lsverified", "listverified"],
     )
-    async def lsverifieds(self, ctx):
+    async def lsverifieds(self, ctx, role_permissions: str = "Verified"):
         """List all roles in Verified Permissions within the server.
 
         Category : Admin or Bot Owner Roles only.
@@ -145,35 +129,38 @@ class AdminCog(commands.Cog, name="Admin"):
         logging_utils.log_command("lsverifieds", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
+        if role_permissions not in database.VERIFIED_CATEGORIES:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
+                f"but you supplied {role_permissions}",
+            )
+            await ctx.send(embed=embed)
+            return
+
+        cache_map = {
+            models.VERIFIED: database.VERIFIEDS,
+            models.TRUSTED: database.TRUSTEDS,
+            # TODO: Tester will always return null here because we don't save it as a cache,
+            # but this setup will allow us to add new categories without bloating this command.
+            models.TESTER: []
+        }
+
         if (
-            ctx.guild.id in database.TRUSTEDS
-            and len(database.TRUSTEDS[ctx.guild.id]) > 0
+            ctx.guild.id in cache_map[role_permissions]
+            and len(cache_map[role_permissions][ctx.guild.id]) > 0
         ):
             embed.add_field(
-                name=f"Trusteds for {ctx.guild.name}",
-                value=f"{' '.join([ctx.guild.get_role(trusted).mention for trusted in database.TRUSTEDS[ctx.guild.id]])}",
-                inline=False,
+                name=f"{role_permissions}s for {ctx.guild.name}",
+                value=f"{' '.join([ctx.guild.get_role(role).mention for role in cache_map[role_permissions][ctx.guild.id]])}",
+                inline=False
             )
         else:
             embed.add_field(
-                name=f"No trusted roles for {ctx.guild.name}",
-                value="Set up trusted roles with `{ctx.prefix}trusted`",
-                inline=False,
-            )
-        if (
-            ctx.guild.id in database.VERIFIEDS
-            and len(database.VERIFIEDS[ctx.guild.id]) > 0
-        ):
-            embed.add_field(
-                name=f"Verifieds for {ctx.guild.name}",
-                value=f"{' '.join([ctx.guild.get_role(verified).mention for verified in database.VERIFIEDS[ctx.guild.id]])}",
-                inline=False,
-            )
-        else:
-            embed.add_field(
-                name=f"No verified roles for {ctx.guild.name}",
-                value="Set up verified roles with `{ctx.prefix}addverified`",
-                inline=False,
+                name=f"No {role_permissions} roles for {ctx.guild.name}",
+                value=f"Set up {role_permissions} roles with `{ctx.prefix}addverified`",
+                inline=False
             )
         await ctx.send(embed=embed)
 
@@ -181,32 +168,39 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(
         name="commonmemberguilds",
     )
-    async def commonmemberguilds(self, ctx, guild_1 : Union[discord.CategoryChannel, str], guild_2 : Union[discord.CategoryChannel, str]):
+    async def commonmemberguilds(
+        self,
+        ctx,
+        guild_1: Union[discord.CategoryChannel, str],
+        guild_2: Union[discord.CategoryChannel, str],
+    ):
         """List all users in common between 2 guilds that the bot is in.
 
         Category : Admin or Bot Owner Roles only.
         See also : `~lsguilds`
         Usage: `~commonmemberguilds "Guild1" "Guild2"`
         """
-        logging_utils.log_command("commonmemberguilds", ctx.guild, ctx.channel, ctx.author)
+        logging_utils.log_command(
+            "commonmemberguilds", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         guild_1_guild = await discord_utils.find_guild(ctx, guild_1)
 
         guild_2_guild = await discord_utils.find_guild(ctx, guild_2)
 
-        if(guild_1_guild is None):
+        if guild_1_guild is None:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"There is no guild named `{guild_1}`. Please double check the spelling."
+                value=f"There is no guild named `{guild_1}`. Please double check the spelling.",
             )
             await ctx.send(embed=embed)
             return
 
-        if(guild_2_guild is None):
+        if guild_2_guild is None:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"There is no guild named `{guild_2}`. Please double check the spelling."
+                value=f"There is no guild named `{guild_2}`. Please double check the spelling.",
             )
             await ctx.send(embed=embed)
             return
@@ -214,11 +208,11 @@ class AdminCog(commands.Cog, name="Admin"):
         members_guild_1 = guild_1_guild.members
         members_guild_2 = guild_2_guild.members
 
-        members_common = [member for member in members_guild_1 if member in members_guild_2]
+        members_common = [
+            member for member in members_guild_1 if member in members_guild_2
+        ]
 
-        if (
-            len(members_common) > 0
-        ):
+        if len(members_common) > 0:
             embed.add_field(
                 name=f"Members common",
                 value=f"Members common in `{guild_1}` and `{guild_2}`\n"
@@ -232,7 +226,6 @@ class AdminCog(commands.Cog, name="Admin"):
                 inline=False,
             )
         await ctx.send(embed=embed)
-
 
     @command_predicates.is_owner_or_admin()
     @commands.command(
@@ -250,10 +243,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         guilds = ctx.bot.guilds
 
-
-        if (
-            len(guilds) > 0
-        ):
+        if len(guilds) > 0:
             embed.add_field(
                 name=f"Guilds for {ctx.bot.user.name}",
                 value=f"Guilds for {ctx.bot.user.mention}\n"
@@ -272,15 +262,26 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(
         name="rmverified", aliases=["removeverified", "rmtrusted", "removetrusted"]
     )
-    async def rmverified(self, ctx, role_or_rolename: Union[discord.Role, str]):
+    async def rmverified(self, ctx, role_or_rolename: Union[discord.Role, str], role_permissions: str = "Verified"):
         """Remove a role from the list of verifieds/trusteds. Only available to server admins or bot owners.
+        May supply a role category (e.g. `Verified`, `Trusted`)
 
         Category : Admin or Bot Owner Roles only.
         Usage: `~rmverified @Verified`
+        Usage: `~rmverified @Trusted Trusted`
         """
         logging_utils.log_command("rmverified", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
+        if role_permissions not in database.VERIFIED_CATEGORIES:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
+                f"but you supplied {role_permissions}",
+            )
+            await ctx.send(embed=embed)
+            return
+        
         role_to_remove = None
         # Get role. Allow people to use the command by pinging the role, or just naming it
         if isinstance(role_or_rolename, discord.Role):
@@ -303,31 +304,29 @@ class AdminCog(commands.Cog, name="Admin"):
         with Session(database.DATABASE_ENGINE) as session:
             result = (
                 session.query(database.Verifieds)
-                .filter_by(server_id=ctx.guild.id, role_id=role_to_remove.id)
-                .all()
+                .filter_by(server_id=ctx.guild.id, role_id_permissions=f"{role_to_remove.id}_{role_permissions}")
+                .first()
             )
             if result is None:
                 embed.add_field(
                     name=f"{constants.FAILED}",
-                    value=f"Role {role_to_remove.mention} is not verified or trusted in {ctx.guild.name}",
+                    value=f"Role {role_to_remove.mention} is not {role_permissions} in {ctx.guild.name}",
                 )
                 await ctx.send(embed=embed)
                 return
             else:
-                for row in result:
-                    perms = row.permissions
-                    session.delete(row)
-                    session.commit()
+                session.delete(result)
+                session.commit()
 
         if (
-            perms == models.VERIFIED
+            role_permissions == models.VERIFIED
             and role_to_remove.id in database.VERIFIEDS[ctx.guild.id]
         ):
             database.VERIFIEDS[ctx.guild.id].pop(
                 database.VERIFIEDS[ctx.guild.id].index(role_to_remove.id)
             )
         elif (
-            perms == models.TRUSTED
+            role_permissions == models.TRUSTED
             and role_to_remove.id in database.TRUSTEDS[ctx.guild.id]
         ):
             database.TRUSTEDS[ctx.guild.id].pop(
@@ -336,7 +335,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         embed.add_field(
             name=f"{constants.SUCCESS}",
-            value=f"Removed {role_to_remove.mention} from {perms} in {ctx.guild.name}",
+            value=f"Removed {role_to_remove.mention} from {role_permissions} in {ctx.guild.name}",
         )
         await ctx.send(embed=embed)
 

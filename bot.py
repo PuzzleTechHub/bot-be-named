@@ -138,7 +138,7 @@ def main():
                         command_name
                     ][0]
 
-                #Command found in cache
+                # Command found in cache
                 if command_return is not None:
                     # Image, so we use normal text.
                     if database.CUSTOM_COMMANDS[message.guild.id][command_name][1]:
@@ -152,9 +152,9 @@ def main():
                     return
 
                 # The custom command is not in the cache
-                #Query the DB to see if we have a command with that name
+                # Query the DB to see if we have a command with that name
                 with Session(database.DATABASE_ENGINE) as session:
-                    #Checking for this server
+                    # Checking for this server
                     result = (
                         session.query(database.CustomCommands)
                         .filter_by(
@@ -162,14 +162,14 @@ def main():
                         )
                         .first()
                     )
-                    #Check for global custom commands
+                    # Check for global custom commands
                     if result is None:
                         result = (
-                        session.query(database.CustomCommands)
-                        .filter_by(
-                            server_id_command=f"{constants.DB_GLOBAL} {command_name}"
-                        )
-                        .first()
+                            session.query(database.CustomCommands)
+                            .filter_by(
+                                server_id_command=f"{constants.DB_GLOBAL} {command_name}"
+                            )
+                            .first()
                         )
                     if result is not None:
                         if result.image:
@@ -181,7 +181,7 @@ def main():
                                 color=constants.EMBED_COLOR,
                             )
                             await message.channel.send(embed=embed)
-                        #Adds to cache. NOTE - This adds to cache even if local or global
+                        # Adds to cache. NOTE - This adds to cache even if local or global
                         database.CUSTOM_COMMANDS[message.guild.id][command_name] = (
                             result.command_return,
                             result.image,

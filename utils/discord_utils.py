@@ -74,6 +74,7 @@ def create_no_argument_embed(arg_name: str = "argument") -> discord.Embed:
     )
     return embed
 
+
 async def find_guild(
     ctx: commands.Context, guild_name: Union[discord.Guild, str]
 ) -> discord.Guild:
@@ -88,12 +89,13 @@ async def find_guild(
     try:
         guilds = ctx.bot.guilds
         for currguild in guilds:
-            if(guild_name==currguild.name):
+            if guild_name == currguild.name:
                 guild = currguild
                 break
     except Exception as e:
         guild = None
     return guild
+
 
 async def find_category(
     ctx: commands.Context, category_name: Union[discord.CategoryChannel, str]
