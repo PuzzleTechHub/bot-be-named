@@ -46,6 +46,9 @@ async def on_error(event, *args, **kwargs):
         print(f"Printing from on_error: {argsx}")
     _, error, _ = sys.exc_info()
     embed = discord_utils.create_embed()
+    arg = ""
+    if len(args)>0:
+        arg = args[0]
     # error while handling message
     if event in [
         "message",
@@ -55,19 +58,19 @@ async def on_error(event, *args, **kwargs):
         "on_command_error",
     ]:
         msg = f"**Error while handling a message**"
-        user_error = ErrorHandler(args[0], error, msg).handle_error()
+        user_error = ErrorHandler(arg, error, msg).handle_error()
         if user_error:
             embed.add_field(name="Error!", value=user_error, inline=False)
     # other errors
     else:
         msg = f"An error occurred during an event and was not reported: {event}"
         user_error = ErrorHandler(
-            args[0], error, msg
-        ).handle_error()  # TODO: change args[0] to ""
+            arg, error, msg
+        ).handle_error()
         if user_error:
             embed = discord_utils.create_embed()
             embed.add_field(name="Error!", value=user_error, inline=False)
-    await args[0].channel.send(embed=embed)
+    await args.channel.send(embed=embed)
 
 
 async def on_command_error(ctx, error):

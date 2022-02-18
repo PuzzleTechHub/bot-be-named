@@ -30,7 +30,8 @@ class TimeCog(commands.Cog, name="Time"):
     @commands.Cog.listener()
     async def on_ready(self):
         """When discord is connected"""
-        self.check_reminders.start()
+        if not self.check_reminders.is_running():
+            self.check_reminders.start()
 
     @commands.command(name="countdown")
     async def countdown(self, ctx, *args):

@@ -60,7 +60,8 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
     @commands.Cog.listener()
     async def on_ready(self):
         """When discord is connected"""
-        self.reload_sheet.start()
+        if not self.reload_sheet.is_running():
+            self.reload_sheet.start()
 
     @commands.command(name="startcipherrace")
     async def startrace(self, ctx, sheet: str = cipher_race_constants.HP):
