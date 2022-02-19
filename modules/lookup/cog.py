@@ -1,8 +1,8 @@
 import googlesearch
-from discord.ext import commands
+from nextcord.ext import commands
 from utils import discord_utils, logging_utils
 from modules.lookup import lookup_constants, lookup_utils
-import discord
+import nextcord
 import urllib
 from utils.search_utils import Pages
 import re
@@ -159,8 +159,8 @@ class LookupCog(commands.Cog, name="Lookup"):
         text1 = text.decode()
 
         # set up embed template
-        embed = discord.Embed(
-            title="Your nutrimatic link", url=url, colour=discord.Colour.magenta()
+        embed = nextcord.Embed(
+            title="Your nutrimatic link", url=url, colour=nextcord.Colour.magenta()
         )
         embed.set_footer(text="Query: " + query_initial)
 

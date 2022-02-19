@@ -1,6 +1,6 @@
 import typing
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import aiohttp
 import io
 from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
@@ -52,7 +52,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         try:
             if to_delete.lower()[0:3] == "del":
                 await ctx.message.delete()
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}!",
@@ -132,7 +132,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                 await pin.remove_reaction(EMOJIS[":pushpin:"], ctx.me)
                 strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
                 i = i + 1
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
                     value=f"I do not have permissions to unpin that message. Please check my perms and try again?",
@@ -267,7 +267,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @command_predicates.is_verified()
     @commands.command(name="steal")
     async def steal(
-        self, ctx, *emojis: typing.Union[discord.Emoji, discord.PartialEmoji]
+        self, ctx, *emojis: typing.Union[nextcord.Emoji, nextcord.PartialEmoji]
     ):
         """Steals an emote from another server and uploads it to this server with the same name.
 
@@ -295,7 +295,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                                 value=f"Added {emoji} with name {emoji.name}",
                             )
                             await ses.close()
-                        except discord.Forbidden:
+                        except nextcord.Forbidden:
                             embed.add_field(
                                 name=f"{constants.FAILED}",
                                 value=f"Error adding `:{name}:` to server. Do I have the correct permissions to manage emotes in this server?",

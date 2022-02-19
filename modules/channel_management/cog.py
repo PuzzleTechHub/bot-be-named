@@ -1,8 +1,8 @@
-from discord import embeds
-from discord.ext import commands
+from nextcord import embeds
+from nextcord.ext import commands
 from utils import discord_utils, logging_utils, command_predicates
 import constants
-import discord
+import nextcord
 from typing import Union
 import asyncio
 
@@ -21,7 +21,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     @command_predicates.is_verified()
     @commands.command(name="movechannel", aliases=["movechan"])
     async def movechannel(
-        self, ctx, category_name: str, *args: Union[discord.TextChannel, str]
+        self, ctx, category_name: str, *args: Union[nextcord.TextChannel, str]
     ):
         """Command to move channels to category with given name
 
@@ -62,7 +62,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         else:
             # Process as N channels then add
             for unclean_chan in args:
-                if isinstance(unclean_chan, discord.TextChannel):
+                if isinstance(unclean_chan, nextcord.TextChannel):
                     chan = unclean_chan
                 else:
                     embed.add_field(
@@ -93,7 +93,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             try:
                 await chan.edit(category=new_category)
                 channels_moved.append(chan)
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 embed.insert_field_at(
                     0,
                     name=f"{constants.FAILED}!",
@@ -125,8 +125,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def renamechannel(
         self,
         ctx,
-        chan_a: Union[discord.TextChannel, str],
-        chan_b: Union[discord.TextChannel, str] = "",
+        chan_a: Union[nextcord.TextChannel, str],
+        chan_b: Union[nextcord.TextChannel, str] = "",
     ):
         """Changes current channel name to whatever is asked
 
@@ -149,7 +149,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             new_channel_name = chan_b
 
         old_channel = None
-        if isinstance(old_channel_name, discord.TextChannel):
+        if isinstance(old_channel_name, nextcord.TextChannel):
             old_channel = old_channel_name
         else:
             old_channel = await commands.TextChannelConverter().convert(
@@ -172,7 +172,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         try:
             # rename channel
             await old_channel.edit(name=new_channel_name)
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
@@ -230,7 +230,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     @command_predicates.is_verified()
     @commands.command(name="clonechannel", aliases=["clonechan", "chanclone"])
     async def clonechannel(
-        self, ctx, chan_a: Union[discord.TextChannel, str], chan_b: str = ""
+        self, ctx, chan_a: Union[nextcord.TextChannel, str], chan_b: str = ""
     ):
         """Command to create channel in same category with given name
         The channel created is just below the channel being cloned
@@ -251,7 +251,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             new_channel_name = chan_b
 
         old_channel = None
-        if isinstance(old_channel_name, discord.TextChannel):
+        if isinstance(old_channel_name, nextcord.TextChannel):
             old_channel = old_channel_name
         else:
             old_channel = await commands.TextChannelConverter().convert(
@@ -286,7 +286,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 new_channel_name, category=category, overwrites=old_channel.overwrites
             )
             await new_channel.edit(position=old_channel.position + 1)
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
@@ -307,8 +307,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def shiftchannel(
         self,
         ctx,
-        chan_a_name: Union[discord.TextChannel, str],
-        chan_b_name: Union[discord.TextChannel, str] = "",
+        chan_a_name: Union[nextcord.TextChannel, str],
+        chan_b_name: Union[nextcord.TextChannel, str] = "",
     ):
         """Shifts a channel to below another channel in the same category.
 
@@ -346,7 +346,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 chan_to_shift = chan_a_name
                 chan_shifting_to = chan_b_name
 
-        if not isinstance(chan_to_shift, discord.TextChannel):
+        if not isinstance(chan_to_shift, nextcord.TextChannel):
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"I cannot find channel `{chan_to_shift}`. Perhaps check your spelling and try again.",
@@ -356,7 +356,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         # Not top, so position needs to be given
         if pos_to_shift_to == -1:
-            if not isinstance(chan_shifting_to, discord.TextChannel):
+            if not isinstance(chan_shifting_to, nextcord.TextChannel):
                 embed.add_field(
                     name=f"{constants.FAILED}",
                     value=f"I cannot find channel `{chan_shifting_to}`. Perhaps check your spelling and try again.",
@@ -378,7 +378,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # Move channels
         try:
             await chan_to_shift.edit(position=pos_to_shift_to)
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
@@ -435,7 +435,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         try:
             oldvcname = voice_chan_to_rename.name
             await voice_chan_to_rename.edit(name=new_name)
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
@@ -546,7 +546,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         try:
             # rename category
             await old_category.edit(name=new_category_name)
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the `manage_channels` permisisons?",
@@ -603,7 +603,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         try:
             for channel in category.channels:
                 await channel.edit(sync_permissions=True)
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             if start_msg:
                 await start_msg.delete()
             embed.add_field(
@@ -694,7 +694,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         try:
             await cat_to_shift.edit(position=pos_to_shift_to)
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"I was unable to shift category `{cat_to_shift}`. Do I have the `manage_channels` permission?",
@@ -724,8 +724,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         ctx,
         origCatName: str,
         targetCatName: str,
-        origRole: Union[discord.Role, str] = None,
-        targetRole: Union[discord.Role, str] = None,
+        origRole: Union[nextcord.Role, str] = None,
+        targetRole: Union[nextcord.Role, str] = None,
     ):
         """Clones one category as another.
         If roles are given, takes OrigRole's perms in OrigCat and clones them for Targetrole in TargetCat.
@@ -809,7 +809,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                     name=f"{constants.SUCCESS}",
                     value=f"\nCreated {targetRole.mention} with the same server permissions as {origRole.mention}",
                 )
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}",
                     value=f"I was unable to create role {targetRole}. Do I have the `manage_roles` permission?",
@@ -849,7 +849,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                         name=f"{constants.FAILED}",
                         value=f"{origRole.mention} does not seem to have permission overwrites in `{origCat}`",
                     )
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"I was unable to create category {targetCatName}. Do I have the `manage_channels` permission?",
@@ -955,7 +955,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 continue
             try:
                 await channel.edit(position=idx)
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 if start_embed_msg:
                     await start_embed_msg.delete()
                 embed.add_field(

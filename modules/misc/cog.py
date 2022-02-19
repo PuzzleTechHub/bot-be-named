@@ -1,6 +1,6 @@
-import discord
+import nextcord
 import os
-from discord.ext import commands
+from nextcord.ext import commands
 from emoji import UNICODE_EMOJI
 from typing import Union
 import constants
@@ -15,7 +15,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
     @commands.command(name="emoji")
     async def emoji(
-        self, ctx, emojiname: Union[discord.Emoji, str], to_delete: str = ""
+        self, ctx, emojiname: Union[nextcord.Emoji, str], to_delete: str = ""
     ):
         """Finds the custom emoji mentioned and uses it.
         This command works for normal as well as animated emojis, as long as the bot is in one server with that emoji.
@@ -33,7 +33,7 @@ class MiscCog(commands.Cog, name="Misc"):
         try:
             if to_delete.lower()[0:3] == "del":
                 await ctx.message.delete()
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Unable to delete original message. Do I have `manage_messages` permissions?",
@@ -45,7 +45,7 @@ class MiscCog(commands.Cog, name="Misc"):
         hasurl = False
 
         # custom emoji
-        if isinstance(emojiname, discord.Emoji):
+        if isinstance(emojiname, nextcord.Emoji):
             emoji = emojiname
             hasurl = True
         # default emoji
@@ -55,7 +55,7 @@ class MiscCog(commands.Cog, name="Misc"):
         elif emojiname[0] == ":" and emojiname[-1] == ":":
             emojiname = emojiname[1:-1]
             for guild in self.bot.guilds:
-                emoji = discord.utils.get(guild.emojis, name=emojiname)
+                emoji = nextcord.utils.get(guild.emojis, name=emojiname)
                 if emoji is not None:
                     break
                 hasurl = True
@@ -203,7 +203,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
         try:
             await channel.send(message)
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
@@ -254,7 +254,7 @@ class MiscCog(commands.Cog, name="Misc"):
             sent_embed = discord_utils.create_embed()
             sent_embed.description = message
             await channel.send(embed=sent_embed)
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "

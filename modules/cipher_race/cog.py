@@ -1,7 +1,7 @@
 from dotenv.main import load_dotenv
 import discord
-from discord.ext import commands
-from discord.ext.tasks import loop
+from nextcord.ext import commands
+from nextcord.ext.tasks import loop
 import os
 from utils import google_utils, discord_utils, logging_utils, command_predicates
 from modules.cipher_race import cipher_race_constants, cipher_race_utils
@@ -60,7 +60,8 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
     @commands.Cog.listener()
     async def on_ready(self):
         """When discord is connected"""
-        self.reload_sheet.start()
+        if not self.reload_sheet.is_running():
+            self.reload_sheet.start()
 
     @commands.command(name="startcipherrace")
     async def startrace(self, ctx, sheet: str = cipher_race_constants.HP):

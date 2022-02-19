@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 from typing import Union
 import constants
@@ -21,8 +21,8 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
     async def assignrole(
         self,
         ctx,
-        rolename: Union[discord.Role, discord.Member, str],
-        *args: Union[discord.Member, str],
+        rolename: Union[nextcord.Role, nextcord.Member, str],
+        *args: Union[nextcord.Member, str],
     ):
         """Assign a role to a list of users. If the role does not already exist, then creates the role.
         You may name the role or the users (nick or username) instead. Mentioning either is also guaranteed to work, but pings them.
@@ -39,7 +39,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         logging_utils.log_command("assignrole", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        if isinstance(rolename, discord.Member):
+        if isinstance(rolename, nextcord.Member):
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"Role name given is same as {rolename.mention}. Did you forget to specify a rolename?",
@@ -68,7 +68,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                     value=f"Could not find role `{rolename}`, so I created it.",
                     inline=False,
                 )
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
                     value=f"I couldn't find role `{rolename}`, so I tried to make it. But I don't have "
@@ -80,7 +80,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
         users_with_role_list = []
         for unclean_username in args:
-            if isinstance(unclean_username, discord.Member):
+            if isinstance(unclean_username, nextcord.Member):
                 user = unclean_username
             else:
                 embed.add_field(
@@ -100,7 +100,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                 try:
                     await user.add_roles(role_to_assign)
                     users_with_role_list.append(user)
-                except discord.Forbidden:
+                except nextcord.Forbidden:
                     embed.add_field(
                         name="Error Assigning Role!",
                         value=f"I could not assign {role_to_assign.mention} to `{user.mention}`. Either this role is "
@@ -126,7 +126,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
     @command_predicates.is_trusted()
     @commands.command(name="unassignrole", aliases=["removerole"])
     async def unassignrole(
-        self, ctx, rolename: Union[discord.Role, str], *args: Union[discord.Member, str]
+        self, ctx, rolename: Union[nextcord.Role, str], *args: Union[nextcord.Member, str]
     ):
         """Unassigns a role from a list of users.
         To not ping them, you may name the role or the users (nick or username) instead. Mentioning either is also guaranteed to work.
@@ -168,7 +168,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
         users_with_role_list = []
         for unclean_username in args:
-            if isinstance(unclean_username, discord.Member):
+            if isinstance(unclean_username, nextcord.Member):
                 user = unclean_username
             else:
                 embed.add_field(
@@ -189,7 +189,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                 else:
                     await user.remove_roles(role_to_unassign)
                     users_with_role_list.append(user)
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 embed.add_field(
                     name="Error Unassigning Role!",
                     value=f"I could not unsassign {role_to_unassign.mention} from `{user.mention}`. Either this role is "
@@ -215,7 +215,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
     @command_predicates.is_trusted()
     @commands.command(name="clonerole", aliases=["syncrole"])
     async def clonerole(
-        self, ctx, oldrole: Union[discord.Role, str], newrole: Union[discord.Role, str]
+        self, ctx, oldrole: Union[nextcord.Role, str], newrole: Union[nextcord.Role, str]
     ):
         """Clones a role to another role in the Server.
         If the role does not already exist, then creates the role, else just copies the permissions.
@@ -276,7 +276,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                     value=f"Clone rolename {oldrole_as_role.mention} as {newrole_as_role.mention}.",
                     inline=False,
                 )
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
                     value=f"I tried to make `{newrole}`, but I don't have "
@@ -297,7 +297,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                     value=f"{newrole_as_role.mention} already existed. Synced rolename {oldrole_as_role.mention}'s permissions in this server as {newrole_as_role.mention}.",
                     inline=False,
                 )
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
                     value=f"I tried to edit {newrole_as_role.mention}, but I don't have "
@@ -310,7 +310,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
     @command_predicates.is_owner_or_admin()
     @commands.command(name="deleterole")
-    async def deleterole(self, ctx, rolename: Union[discord.Role, str]):
+    async def deleterole(self, ctx, rolename: Union[nextcord.Role, str]):
         """Delete a role from the server
 
         Category : Admin or Bot Owner only.
@@ -321,7 +321,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         embed = discord_utils.create_embed()
 
         role_to_delete = None
-        if isinstance(rolename, discord.Role):
+        if isinstance(rolename, nextcord.Role):
             role_to_delete = rolename
         # The input was not an int (i.e. the user gave the name of the role (e.g. ~deleterole rolename))
         else:
@@ -350,7 +350,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
             )
             await ctx.send(embed=embed)
             return
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"I don't have permission to add or remove a role in this server. Do I have the `add_roles` permission?",
@@ -360,7 +360,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
             return
 
     @commands.command(name="listroles", aliases=["lsroles", "listrole", "lsrole"])
-    async def listroles(self, ctx, rolename: Union[discord.Role, str] = ""):
+    async def listroles(self, ctx, rolename: Union[nextcord.Role, str] = ""):
         """List all roles in the server, or all users under a given role.
 
         Usage:`~listroles` (All roles in the server)
@@ -379,7 +379,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
             return
 
         role_to_list = None
-        if isinstance(rolename, discord.Role):
+        if isinstance(rolename, nextcord.Role):
             role_to_list = rolename
         # The input was not an int (i.e. the user gave the name of the role (e.g. ~deleterole rolename))
         else:

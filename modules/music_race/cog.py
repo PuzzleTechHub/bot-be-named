@@ -1,7 +1,7 @@
 import constants
-import discord
+import nextcord
 import re
-from discord.ext import commands
+from nextcord.ext import commands
 from utils import discord_utils, logging_utils
 from modules.music_race import music_race_constants
 import os
@@ -115,7 +115,7 @@ class MusicRace(commands.Cog, name="Music Race"):
             )
             await ctx.send(embed=embed)
             await ctx.send(
-                file=discord.File(
+                file=nextcord.File(
                     final_song_path,
                     filename=f"{list(music_race_constants.ANSWERS).index(word)+1} of {len(music_race_constants.ANSWERS)}.mp3",
                 )
@@ -192,7 +192,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         # os.system(
         #    f"ffmpeg-normalize -f -c:a libmp3lame {output_path} -o {output_path}"
         # )
-        await ctx.send(file=discord.File(output_path))
+        await ctx.send(file=nextcord.File(output_path))
 
 
 def setup(bot):

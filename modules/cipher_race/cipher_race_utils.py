@@ -1,17 +1,17 @@
 import pandas as pd
 from modules.cipher_race import cipher_race_constants
 from utils import discord_utils
-import discord
+import nextcord
 import math
 
 
-def create_level_prep_embed(level: int) -> discord.Embed:
+def create_level_prep_embed(level: int) -> nextcord.Embed:
     """
     Create an embed to let the team know their next level will start soon.
 
     :param level: (int) the level the team just completed.
     :param teamname: (str) the name of the team
-    :return embed: (discord.Embed) the embed that includes the level-up message.
+    :return embed: (nextcord.Embed) the embed that includes the level-up message.
     """
     embed = discord_utils.create_embed()
     embed.add_field(
@@ -21,11 +21,11 @@ def create_level_prep_embed(level: int) -> discord.Embed:
     return embed
 
 
-def get_opening_statement(sheet_used) -> discord.Embed:
+def get_opening_statement(sheet_used) -> nextcord.Embed:
     """
     Assemble the opening message to send to the team before their puzzle begins
 
-    :return embed: (discord.Embed) the embed that includes the welcome message
+    :return embed: (nextcord.Embed) the embed that includes the welcome message
     """
     embed = discord_utils.create_embed()
     embed.add_field(
@@ -47,7 +47,7 @@ def create_code_embed(level: int, codes: pd.DataFrame, prefix: str):
     :param codes: (pandas.DataFrame) the current set of codes
     :param prefix: (str) The bot prefix for the server the message came from
 
-    :return embeds: (list of discord.Embed) The embeds we create for the cipher_race
+    :return embeds: (list of nextcord.Embed) The embeds we create for the cipher_race
     :return code_answer: (list of str) the answers to the given codes
     """
     code_answers = []
@@ -81,12 +81,12 @@ def create_code_embed(level: int, codes: pd.DataFrame, prefix: str):
     return embed_list, code_answers
 
 
-def create_no_code_embed(prefix: str) -> discord.Embed:
+def create_no_code_embed(prefix: str) -> nextcord.Embed:
     """
     Function to create an embed to say there is no cipher_race
     :param prefix: (str) the prefix for the server
 
-    :return embed: (discord.Embed) The embed we create
+    :return embed: (nextcord.Embed) The embed we create
     """
     embed = discord_utils.create_embed()
     embed.add_field(

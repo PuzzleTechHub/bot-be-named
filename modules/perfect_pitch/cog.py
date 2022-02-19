@@ -1,8 +1,8 @@
-from discord.ext import commands
+from nextcord.ext import commands
 import constants
 from utils import discord_utils, logging_utils
 from modules.perfect_pitch import perfect_pitch_utils, perfect_pitch_constants
-import discord
+import nextcord
 import random
 import os
 import glob
@@ -212,7 +212,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         # TODO: Errors, error handling
         output_path = await tune.create_tune()
         try:
-            await ctx.send(file=discord.File(output_path, filename="tune.mp3"))
+            await ctx.send(file=nextcord.File(output_path, filename="tune.mp3"))
         except FileNotFoundError:
             embed.add_field(
                 name=f"{constants.FAILED}",
@@ -242,7 +242,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
                 )
             )
         )
-        await ctx.send(file=discord.File(chord, filename="random_chord.mp3"))
+        await ctx.send(file=nextcord.File(chord, filename="random_chord.mp3"))
         await ctx.send(
             f"Answer: ||{chord.split('/')[-1].replace('.mp3', '').replace('_', ' ').center(15)}||"
         )
@@ -278,7 +278,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
                 arg + ".mp3",
             )
             if os.path.exists(note_path):
-                await ctx.send(file=discord.File(note_path))
+                await ctx.send(file=nextcord.File(note_path))
                 return
             # Don't redefine octave multiple times; only take first int argument passed
             if not isinstance(octave, int):
@@ -318,7 +318,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
 
         notepath = random.choice(mp3_paths)
 
-        note = discord.File(notepath, filename="random_note.mp3")
+        note = nextcord.File(notepath, filename="random_note.mp3")
         # Send the note, followed by the answer
         await ctx.send(file=note)
         await ctx.send(

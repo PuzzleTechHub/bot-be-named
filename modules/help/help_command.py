@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import constants
 from utils import discord_utils
 
@@ -9,7 +9,7 @@ class HelpCommand(commands.MinimalHelpCommand):
 
     def get_ending_note(self):
         """Returns note to display at the bottom"""
-        prefix = self.clean_prefix
+        prefix = self.context.clean_prefix
         invoked_with = self.invoked_with
         return f"Use {prefix}{invoked_with} [command] for more info on a command."
 
@@ -19,11 +19,11 @@ class HelpCommand(commands.MinimalHelpCommand):
 
     async def send_bot_help(self, mapping: dict):
         """implements bot command help page"""
-        prefix = self.clean_prefix
+        prefix = self.context.clean_prefix
         embed = discord_utils.create_embed()
         embed.title = "Bot Commands"
         embed.set_author(
-            name=self.context.bot.user.name, icon_url=self.context.bot.user.avatar_url
+            name=self.context.bot.user.name, icon_url=self.context.bot.user.avatar
         )
         description = self.context.bot.description
         if description:
@@ -50,7 +50,7 @@ class HelpCommand(commands.MinimalHelpCommand):
         """implements cog help page"""
         embed = discord_utils.create_embed()
         embed.title = f"{cog.qualified_name} Commands"
-        # embed = discord.Embed(
+        # embed = nextcord.Embed(
         #    title=f"{cog.qualified_name} Commands", colour=constants.EMBED_COLOR
         # )
         if cog.description:

@@ -2,8 +2,8 @@ from dotenv.main import load_dotenv
 
 load_dotenv(override=True)
 import os
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import constants
 import sqlalchemy
 from sqlalchemy import insert
@@ -21,7 +21,7 @@ def get_prefix(client, message):
 
 
 def main():
-    intents = discord.Intents.default()
+    intents = nextcord.Intents.default()
     intents.members = True
     client = commands.Bot(
         command_prefix=get_prefix,
@@ -39,8 +39,8 @@ def main():
     async def on_ready():
         """When the bot starts up"""
         await client.change_presence(
-            activity=discord.Activity(
-                type=discord.ActivityType.watching, name="you solve👀 | ~help"
+            activity=nextcord.Activity(
+                type=nextcord.ActivityType.watching, name="you solve👀 | ~help"
             )
         )
         for guild in client.guilds:
@@ -73,7 +73,7 @@ def main():
                 constants.DEFAULT_COMMANDS.append(alias.lower())
 
     @client.event
-    async def on_guild_join(guild: discord.Guild):
+    async def on_guild_join(guild: nextcord.Guild):
         """When the bot joins a new guild, add it to the database for prefixes"""
         print("Joining {guild} -- Hi!")
         with Session(database.DATABASE_ENGINE) as session:
@@ -90,7 +90,7 @@ def main():
         database.CUSTOM_COMMANDS[guild.id] = {}
 
     @client.event
-    async def on_guild_remove(guild: discord.Guild):
+    async def on_guild_remove(guild: nextcord.Guild):
         """When the bot leaves a guild, remove all database entries pertaining to that guild"""
         print(f"Leaving {guild} -- Bye bye!")
         with Session(database.DATABASE_ENGINE) as session:
@@ -108,9 +108,9 @@ def main():
         database.CUSTOM_COMMANDS.pop(guild.id)
 
     @client.event
-    async def on_message(message: discord.Message):
+    async def on_message(message: nextcord.Message):
         # We only want to respond to user messages
-        if message.is_system() or message.author.id == client.user.id:
+        if message.type!= nextcord.MessageType.default or message.author.id == client.user.id:
             return
 
         command_prefix = get_prefix(client, message)
@@ -145,7 +145,7 @@ def main():
                         await message.channel.send(command_return)
                     # Non-Image, so use embed.
                     else:
-                        embed = discord.Embed(
+                        embed = nextcord.Embed(
                             description=command_return, color=constants.EMBED_COLOR
                         )
                         await message.channel.send(embed=embed)
@@ -176,7 +176,7 @@ def main():
                             await message.channel.send(result.command_return)
                             return
                         else:
-                            embed = discord.Embed(
+                            embed = nextcord.Embed(
                                 description=result.command_return,
                                 color=constants.EMBED_COLOR,
                             )
