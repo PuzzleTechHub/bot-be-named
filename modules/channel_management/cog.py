@@ -450,61 +450,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         # reply to user
         await ctx.send(embed=embed)
 
-    @command_predicates.is_verified()
-    @commands.command(
-        name="linkvoice", aliases=["linkvc", "namevc", "namevoice", "linkvoicechan"]
-    )
-    async def linkvoicechan(self, ctx, name: str = ""):
-        """Command to paste the link a specific Voice Channel.
-
-        Category : Verified Roles only.
-        Usage: `~linkvc "VC-Name"` (links to the VC that has the given name)
-        Usage: `~linkvc` (links to the VC that the user currently is in)
-        """
-        # log command in console
-        logging_utils.log_command("linkvoicechan", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        voice_chan_list = ctx.guild.voice_channels
-        calling_user = ctx.author
-
-        voice_chan_to_link = None
-        for vc in voice_chan_list:
-            if name == "":
-                # Handling the case when VC wasn't named
-                if calling_user in vc.members:
-                    voice_chan_to_link = vc
-                    break
-            else:
-                if vc.name == name:
-                    voice_chan_to_link = vc
-                    break
-
-        if voice_chan_to_link is None:
-            if name == "":
-                embed.add_field(
-                    name=f"{constants.FAILED}!",
-                    value=f"User {calling_user.mention} needs to name or be in a Voice Channel to use `~linkvc`!",
-                )
-                # reply to user
-                await ctx.send(embed=embed)
-                return
-            else:
-                embed.add_field(
-                    name=f"{constants.FAILED}!",
-                    value=f"Voice name `{name}` not found in the guild!",
-                )
-                # reply to user
-                await ctx.send(embed=embed)
-                return
-
-        embed.add_field(
-            name=f"{constants.SUCCESS}!",
-            value=f"Linking {voice_chan_to_link.mention} from category `{voice_chan_to_link.category}`",
-        )
-        # reply to user
-        await ctx.send(embed=embed)
-
     #####################
     # CATEGORY COMMANDS #
     #####################

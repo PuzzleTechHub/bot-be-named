@@ -197,8 +197,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
         Category : Verified Roles only.
-        Usage : `~sheetcrab PuzzleName`
-        Usage : `~sheetcrab PuzzleName linktopuzzle`
+        Usage : `~chancrab PuzzleName`
+        Usage : `~chancrab PuzzleName linktopuzzle`
         """
         logging_utils.log_command(
             "channelcreatetab", ctx.guild, ctx.channel, ctx.author
@@ -292,8 +292,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
         Category : Verified Roles only.
-        Usage : `~sheetcrab PuzzleName`
-        Usage : `~sheetcrab PuzzleName linktopuzzle`
+        Usage : `~metacrab PuzzleName`
+        Usage : `~metacrab PuzzleName linktopuzzle`
         """
         logging_utils.log_command(
             "channelcreatetab", ctx.guild, ctx.channel, ctx.author
@@ -433,14 +433,15 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     @command_predicates.is_verified()
     @commands.command(name="sheetcreatetab", aliases=["sheettab", "sheetcrab"])
-    async def sheetcreatetab(self, ctx, tab_name: str):
+    async def sheetcreatetab(self, ctx, tab_name: str, to_pin:str=""):
         """Create a New tab on the sheet that is currently tethered to this category
 
         This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
         Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
         Category : Verified Roles only.
-        Usage : `~sheettab TabName`
+        Usage : `~sheetcrab TabName`
+        Usage : `~sheetcrab TabName pin` (Pins the new tab on creation)
         """
         logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -450,6 +451,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
         curr_sheet_link, newsheet = await self.sheetcreatetabgeneric(
             ctx, curr_chan, curr_cat, tab_name
         )
+
+        pin_flag = False
+        if(to_pin.lower()[0:3]=="pin"):
+            pin_flag=True
 
         # Error, already being handled at the generic function
         if not curr_sheet_link or newsheet is None:
@@ -464,11 +469,14 @@ class SheetsCog(commands.Cog, name="Sheets"):
             inline=False,
         )
         msg = await ctx.send(embed=embed)
+
         # Pin message to the new channel
-        embed_or_none = await discord_utils.pin_message(msg)
-        # TODO: Do we even care about printing out the error message if the pin failed?
-        if embed_or_none is not None:
-            await ctx.send(embed=embed_or_none)
+        if(pin_flag):
+            embed_or_none = await discord_utils.pin_message(msg)
+            if embed_or_none is not None:
+                await ctx.send(embed=embed_or_none)
+            else:
+                await msg.add_reaction(EMOJIS[":pushpin:"])
 
         return curr_sheet_link, newsheet
 
@@ -747,7 +755,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         # Try to duplicate the template tab and rename it to the given name
         try:
-            # Index of 4 is hardcoded for Team Arithmancy server
+            # Index of template+2 is hardcoded for Team Arithmancy server
             newsheet = curr_sheet.duplicate_sheet(
                 source_sheet_id=template_id,
                 new_sheet_name=tab_name,
@@ -1432,7 +1440,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="chanlion", aliases=["chancrablion"])
+    @commands.command(name="chanlion")
     async def chanlion(self, ctx, chan_name: str, url=None):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
 
@@ -1461,7 +1469,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
 
     @command_predicates.is_verified()
-    @commands.command(name="sheetlion", aliases=["sheetcrablion"])
+    @commands.command(name="sheetlion")
     async def sheetlion(self, ctx, tab_name: str, url: str = None):
         """Creates a new tab for a new feeder puzzle and then updates the info in the sheet accordingly.
 
@@ -1485,7 +1493,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
 
     @command_predicates.is_verified()
-    @commands.command(name="metalion", aliases=["metacrablion"])
+    @commands.command(name="metalion")
     async def metalion(self, ctx, chan_name: str, url: str = None):
         """Creates a new tab and a new channel for a new metapuzzle and then updates the info in the sheet accordingly.
 
@@ -1514,7 +1522,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
 
     @command_predicates.is_verified()
-    @commands.command(name="metasheetlion", aliases=["metasheetcrablion"])
+    @commands.command(name="metasheetlion")
     async def metasheetlion(self, ctx, tab_name: str, url: str = None):
         """Creates a new tab for a new metapuzzle and then updates the info in the sheet accordingly.
 

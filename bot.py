@@ -110,7 +110,7 @@ def main():
     @client.event
     async def on_message(message: nextcord.Message):
         # We only want to respond to user messages
-        if message.type!= nextcord.MessageType.default or message.author.id == client.user.id:
+        if message.is_system() or message.author.id == client.user.id:
             return
 
         command_prefix = get_prefix(client, message)

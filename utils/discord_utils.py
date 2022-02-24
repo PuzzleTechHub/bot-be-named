@@ -163,9 +163,8 @@ async def pin_message(message: nextcord.Message) -> nextcord.Embed:
         await message.unpin()
         await message.pin()
         async for pinmsg in message.channel.history(limit=5):
-            if pinmsg.type!= nextcord.MessageType.default:
+            if pinmsg.type == nextcord.MessageType.pins_add:
                 await pinmsg.delete()
-                break
     except nextcord.HTTPException:
         embed = create_embed()
         embed.add_field(
