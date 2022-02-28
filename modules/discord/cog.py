@@ -27,7 +27,6 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         If you say delete after the command, it deletes original message that called the command.
 
-        Category : Verified Roles only.
         Usage: `~pin` (as reply to message)
         Usage: `~pin` (to just pin the last message)
         Usage: `~pin del` (to pin the message and also delete the msg)
@@ -64,7 +63,6 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def pinme(self, ctx):
         """Pins the message that called it.
 
-        Category : Verified Roles only.
         Usage : `~pinme Message`
         """
         logging_utils.log_command("pinme", ctx.guild, ctx.channel, ctx.author)
@@ -81,7 +79,6 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def unpin(self, ctx, num_to_unpin: int = 1):
         """Unpins a specific message from a channel, or a given number of pins
 
-        Category : Verified Roles only.
         Usage: `~unpin 2` (unpins latest 2 pins)
         Usage: `~unpin` (as a reply to pinned message)
         """
@@ -151,7 +148,6 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def listpin(self, ctx):
         """Lists all the pinned posts in the current channel
 
-        Category : Verified Roles only.
         Usage: `~listpins~`
         """
 
@@ -179,10 +175,12 @@ class DiscordCog(commands.Cog, name="Discord"):
     # STATISTICS COMMANDS #
     #######################
 
+    @command_predicates.is_verified()
     @commands.command(name="stats")
     async def stats(self, ctx):
         """Get server stats
 
+        Category : Verified Roles only.
         Usage: `~stats`
         """
         logging_utils.log_command("stats", ctx.guild, ctx.channel, ctx.author)
@@ -208,10 +206,12 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         await ctx.send(embed=embed)
 
+    @command_predicates.is_verified()
     @commands.command(name="catstats")
     async def catstats(self, ctx, cat_name: str = ""):
         """Get category stats
 
+        Category : Verified Roles only.
         Usage: `~catstats` (current category)
         Usage: `~catstats "Cat Name"` (Named category)
         """
