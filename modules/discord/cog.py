@@ -311,13 +311,11 @@ class DiscordCog(commands.Cog, name="Discord"):
                         )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_verified()
     @commands.command(name="getsource")
     async def getsource(self, ctx):
         """Gives the discord formatted source code for a specific message in the channel.
         This command must be a reply
 
-        Category : Verified Roles only.
         Usage: `~getsource` (as a reply to the message)
         """
         logging_utils.log_command("getsource", ctx.guild, ctx.channel, ctx.author)
