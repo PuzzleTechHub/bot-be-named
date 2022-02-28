@@ -11,7 +11,6 @@ Base = declarative_base()
 # TODO: Right now, each of our databases is being treated as a key-value store.
 # It would be great to take advantage of using postgres as a relational db
 
-
 class Verifieds(Base):
     __tablename__ = "verifieds"
     server_id = Column(BIGINT)
@@ -24,9 +23,10 @@ class Verifieds(Base):
 
 # enum for the different permissions in Verifieds
 VERIFIED = "Verified"
+SOLVER = "Solver"
 TRUSTED = "Trusted"
 TESTER = "Tester"
-VERIFIED_CATEGORIES = [VERIFIED, TRUSTED, TESTER]
+VERIFIED_CATEGORIES = [VERIFIED, TRUSTED, TESTER, SOLVER]
 
 
 class CustomCommands(Base):

@@ -14,7 +14,25 @@ def is_owner_or_admin():
 
 def is_owner():
     async def predicate(ctx):
+        if ctx.message.guild is None:
+                return False
         return ctx.author == ctx.guild.owner
+
+    return commands.check(predicate)
+
+
+def is_solver():
+    async def predicate(ctx):
+        if ctx.message.guild is None:
+            return False
+        if ctx.guild.id in database.SOLVERS:
+            for role in ctx.author.roles:
+                role_id = role.id
+                if role_id in database.SOLVERS[ctx.guild.id]:
+                    return True
+            return False
+        else:
+            return False
 
     return commands.check(predicate)
 

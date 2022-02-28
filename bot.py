@@ -64,6 +64,8 @@ def main():
                 database.VERIFIEDS[guild.id] = []
             if guild.id not in database.TRUSTEDS:
                 database.TRUSTEDS[guild.id] = []
+            if guild.id not in database.SOLVERS:
+                database.SOLVERS[guild.id] = []
             if guild.id not in database.CUSTOM_COMMANDS:
                 database.CUSTOM_COMMANDS[guild.id] = {}
         # Populate default command list
@@ -87,6 +89,7 @@ def main():
         database.PREFIXES[guild.id] = constants.DEFAULT_BOT_PREFIX
         database.VERIFIEDS[guild.id] = []
         database.TRUSTEDS[guild.id] = []
+        database.SOLVERS[guild.id] = []
         database.CUSTOM_COMMANDS[guild.id] = {}
 
     @client.event

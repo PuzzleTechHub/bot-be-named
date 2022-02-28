@@ -109,6 +109,11 @@ class AdminCog(commands.Cog, name="Admin"):
                 database.TRUSTEDS[ctx.guild.id].append(role_to_assign.id)
             else:
                 database.TRUSTEDS[ctx.guild.id] = [role_to_assign.id]
+        elif role_permissions == models.SOLVER:
+            if ctx.guild.id in database.SOLVERS:
+                database.SOLVERS[ctx.guild.id].append(role_to_assign.id)
+            else:
+                database.SOLVERS[ctx.guild.id] = [role_to_assign.id]
 
         embed.add_field(
             name=constants.SUCCESS,
@@ -144,6 +149,7 @@ class AdminCog(commands.Cog, name="Admin"):
         cache_map = {
             models.VERIFIED: database.VERIFIEDS,
             models.TRUSTED: database.TRUSTEDS,
+            models.SOLVER: database.SOLVERS,
             # TODO: Tester will always return null here because we don't save it as a cache,
             # but this setup will allow us to add new categories without bloating this command.
             models.TESTER: []
@@ -334,6 +340,13 @@ class AdminCog(commands.Cog, name="Admin"):
             database.TRUSTEDS[ctx.guild.id].pop(
                 database.TRUSTEDS[ctx.guild.id].index(role_to_remove.id)
             )
+        elif (
+            role_permissions == models.SOLVER
+            and role_to_remove.id in database.SOLVERS[ctx.guild.id]
+        ):
+            database.SOLVERS[ctx.guild.id].pop(
+                database.SOLVERS[ctx.guild.id].index(role_to_remove.id)
+            )
 
         embed.add_field(
             name=f"{constants.SUCCESS}",
@@ -384,6 +397,7 @@ class AdminCog(commands.Cog, name="Admin"):
         database.CUSTOM_COMMANDS[ctx.guild.id] = {}
         database.VERIFIEDS[ctx.guild.id] = []
         database.TRUSTEDS[ctx.guild.id] = []
+        database.SOLVERS[ctx.guild.id] = []
 
         with Session(database.DATABASE_ENGINE) as session:
             custom_command_result = (
@@ -414,6 +428,8 @@ class AdminCog(commands.Cog, name="Admin"):
                         database.VERIFIEDS[ctx.guild.id].append(verified.role_id)
                     elif verified.permissions == models.TRUSTED:
                         database.TRUSTEDS[ctx.guild.id].append(verified.role_id)
+                    elif verified.permissions == models.SOLVER:
+                        database.SOLVERS[ctx.guild.id].append(verified.role_id)
             embed.add_field(
                 name=f"{constants.SUCCESS}!",
                 value="Successfully reloaded verifieds cache.",

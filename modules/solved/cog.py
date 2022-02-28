@@ -52,12 +52,12 @@ class SolvedCog(commands.Cog):
             new_channel_name = p.remove_prefix()
         return new_channel_name
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="solved")
     async def solved(self, ctx: commands.Context):
         """Changes channel name to solved-<channel-name>
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage: `~solved`
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
@@ -90,12 +90,12 @@ class SolvedCog(commands.Cog):
             )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="solvedish")
     async def solvedish(self, ctx: commands.Context):
         """Changes channel name to solvedish-<channel-name>
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage: `~solvedish`
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
@@ -124,12 +124,12 @@ class SolvedCog(commands.Cog):
         await channel.edit(name=new_channel_name)
         await ctx.send(embed=embed)
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="backsolved")
     async def backsolved(self, ctx: commands.Context):
         """Changes channel name to backsolved-<channel-name>
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage: `~backsolved`
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
@@ -155,12 +155,12 @@ class SolvedCog(commands.Cog):
             )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="unsolved")
     async def unsolved(self, ctx: commands.context):
         """removes one of the solved prefixes from channel name
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage: `~unsolved`
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
@@ -188,13 +188,13 @@ class SolvedCog(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="movetoarchive", aliases=["mta"])
     async def movetoarchive(self, ctx, archive_name: str = None):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage: `~movetoarchive`
         Usage: `~movetoarchive archive_category_name`
         """

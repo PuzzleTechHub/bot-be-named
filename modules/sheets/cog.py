@@ -26,7 +26,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         self.gdrive_credentials = google_utils.get_gdrive_credentials()
         self.gspread_client = google_utils.create_gspread_client()
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(
         name="addsheettether",
         aliases=["editsheettether", "tether", "edittether", "addtether"],
@@ -38,7 +38,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         See also `~sheettab`.
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage : `~tether SheetLink`
         """
         logging_utils.log_command("addsheettether", ctx.guild, ctx.channel, ctx.author)
@@ -67,7 +67,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(
         name="addchannelsheettether",
         aliases=["channeltether", "editchantether", "addchantether", "chantether", "editthreadtether", "addthreadtether", "threadtether"],
@@ -79,7 +79,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         See also `~sheettab`.
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage : `~chantether SheetLink`
         """
         logging_utils.log_command(
@@ -110,7 +110,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(
         name="removesheettether",
         aliases=[
@@ -131,7 +131,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         If a channel tether and a category tether both exist, the channel tether will always be removed first.
         See also `~addtether` and `~sheettab`.
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage : `~removetether`
         """
         logging_utils.log_command(
@@ -205,7 +205,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             return
 
     # TODO: PETE READ THIS
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="channelcreatetab", aliases=["channelcrab", "chancrab"])
     async def channelcreatetab(self, ctx, chan_name: str, *args):
         """Create new channel, then a New tab on the sheet that is currently tethered to this category, then pins links to the channel, if any.
@@ -213,7 +213,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
         Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage : `~chancrab PuzzleName`
         Usage : `~chancrab PuzzleName linktopuzzle`
         """
@@ -297,8 +297,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return curr_sheet_link, newsheet, new_chan
 
-    command_predicates.is_verified()
-
+    @command_predicates.is_solver()
     @commands.command(name="channelcreatemetatab", aliases=["metacrab"])
     async def channelcreatemetatab(self, ctx, chan_name: str, *args):
         """Create new channel, then a New tab on the sheet that is currently tethered to this category, then pins links to the channel, if any.
@@ -308,7 +307,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
         Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage : `~metacrab PuzzleName`
         Usage : `~metacrab PuzzleName linktopuzzle`
         """
@@ -392,7 +391,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return curr_sheet_link, newsheet, new_chan
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(
         name="displaysheettether",
         aliases=["showsheettether", "showtether", "displaytether"],
@@ -400,7 +399,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     async def displaysheettether(self, ctx):
         """Find the sheet the category is current tethered too
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage : `~showtether`
         """
         logging_utils.log_command(
@@ -470,7 +469,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="sheetcreatetab", aliases=["sheettab", "sheetcrab"])
     async def sheetcreatetab(self, ctx, tab_name: str, to_pin:str=""):
         """Create a New tab on the sheet that is currently tethered to this category
@@ -478,7 +477,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
         Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage : `~sheetcrab TabName`
         Usage : `~sheetcrab TabName pin` (Pins the new tab on creation)
         """
@@ -519,7 +518,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return curr_sheet_link, newsheet
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(
         name="sheetcreatemetatab", aliases=["sheetmetatab", "sheetmetacrab"]
     )
@@ -529,7 +528,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
         Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage : `~sheettab TabName`
         """
         logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
@@ -562,13 +561,13 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return curr_sheet_link, newsheet
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="downloadsheet", aliases=["savesheet"])
     async def downloadsheet(self, ctx, sheet_url=None):
         """Download  the channel/category's currently tethered sheet. You can supply a URL or it will
         use the currently tethered sheet.
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage: `~savesheet`
         """
         logging_utils.log_command("downloadsheet", ctx.guild, ctx.channel, ctx.author)
@@ -978,7 +977,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return curr_chan_or_cat_cell, overview
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="gettablion", aliases=["tablion", "gettab"])
     async def gettablion(self, ctx):
         """Gets the tab linked to the current channel. Returns an error if there is not one.
@@ -1044,7 +1043,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         "In Progress": {"color": [230, 145, 56], "update_ans": False, "prefix": False},
     }
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="solvedlion")
     async def solvedlion(self, ctx, answer: str = None):
         """Sets the puzzle to solved and updates the sheet and channel name accordingly
@@ -1055,7 +1054,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """
         await self.statuslion(ctx, "solved", answer)
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="backsolvedlion", aliases=["backlion"])
     async def backsolvedlion(self, ctx, answer: str = None):
         """Sets the puzzle to backsolved and updates the sheet and channel name accordingly
@@ -1066,7 +1065,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """
         await self.statuslion(ctx, "backsolved", answer)
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="solvedishlion")
     async def solvedishlion(self, ctx):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly
@@ -1076,7 +1075,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """
         await self.statuslion(ctx, "solvedish")
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="unsolvedlion", aliases=["unlion"])
     async def unsolvedlion(self, ctx):
         """Sets the puzzle to in progress and updates the sheet and channel name accordingly
@@ -1086,7 +1085,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """
         await self.statuslion(ctx, "inprogress")
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="statuslion", aliases=["statlion", "stat", "puzzstatus"])
     async def statuslion(self, ctx, status: str, answer: str = None):
         """Adds a status to the puzzle and updates the sheet and channel name accordingly
@@ -1257,7 +1256,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="mtalion", aliases=["movetoarchivelion", "archivelion"])
     async def mtalion(self, ctx, archive_name: str = None):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
@@ -1265,7 +1264,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Also moves the tab to the end of the list of tabs on the Google Sheet.
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage: `~mtalion`
         Usage: `~mtalion archive_category_name`
         """
@@ -1430,13 +1429,13 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="urllion", alias=["updateurl", "puzzurl"])
     async def urllion(self, ctx, url: str):
         """Updates the url of a puzzle and updates it on the sheet. Also pins the message in the channel.
 
 
-        Category : Verified Roles only.
+        Category : Solver Roles only.
         Usage: `~urllion <url>`
         """
         logging_utils.log_command("mtalion", ctx.guild, ctx.channel, ctx.author)
@@ -1484,7 +1483,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="chanlion")
     async def chanlion(self, ctx, chan_name: str, url=None):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
@@ -1513,7 +1512,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="sheetlion")
     async def sheetlion(self, ctx, tab_name: str, url: str = None):
         """Creates a new tab for a new feeder puzzle and then updates the info in the sheet accordingly.
@@ -1537,7 +1536,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             ctx, tab_name, url, curr_sheet_link, newsheet, ctx.channel
         )
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="metalion")
     async def metalion(self, ctx, chan_name: str, url: str = None):
         """Creates a new tab and a new channel for a new metapuzzle and then updates the info in the sheet accordingly.
@@ -1566,7 +1565,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="metasheetlion")
     async def metasheetlion(self, ctx, tab_name: str, url: str = None):
         """Creates a new tab for a new metapuzzle and then updates the info in the sheet accordingly.
@@ -1670,7 +1669,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         return proposed_template
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(
         name="settemplatelion", aliases=["settemplion", "settemplate", "settemp"]
     )
@@ -1735,7 +1734,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 .first()
             )
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(
         name="gettemplatelion",
         aliases=[
@@ -1786,7 +1785,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(
         name="deletetemplatelion",
         aliases=[
@@ -2127,7 +2126,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await ctx.send(embed=embed)
         return new_sheet
 
-    @command_predicates.is_verified()
+    @command_predicates.is_solver()
     @commands.command(name="tetherlion")
     async def tetherlion(self, ctx, sheet_key_or_link: str):
         """Tethers a sheet to the category and also checks that it is the correct format to be used by the lion commands

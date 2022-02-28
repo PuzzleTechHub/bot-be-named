@@ -19,7 +19,6 @@ class DiscordCog(commands.Cog, name="Discord"):
     # PINNING COMMANDS #
     ####################
 
-    @command_predicates.is_verified()
     @commands.command(name="pin")
     async def pin(self, ctx, to_delete: str = ""):
         """Pin a message (Either reply to the message, or it auto pins the message above)
@@ -61,7 +60,6 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.send(embed=embed)
             return
 
-    @command_predicates.is_verified()
     @commands.command(name="pinme")
     async def pinme(self, ctx):
         """Pins the message that called it.
@@ -79,7 +77,6 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.message.add_reaction(EMOJIS[":pushpin:"])
             # await ctx.message.add_reaction(EMOJIS[':white_check_mark:'])
 
-    @command_predicates.is_verified()
     @commands.command(name="unpin")
     async def unpin(self, ctx, num_to_unpin: int = 1):
         """Unpins a specific message from a channel, or a given number of pins
@@ -150,7 +147,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         await ctx.send(embed=embed)
         await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
 
-    @command_predicates.is_verified()
     @commands.command(name="lspin", aliases=["lspins", "listpin", "listpins"])
     async def listpin(self, ctx):
         """Lists all the pinned posts in the current channel
