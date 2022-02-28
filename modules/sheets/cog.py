@@ -70,10 +70,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @command_predicates.is_verified()
     @commands.command(
         name="addchannelsheettether",
-        aliases=["channeltether", "editchantether", "addchantether", "chantether"],
+        aliases=["channeltether", "editchantether", "addchantether", "chantether", "editthreadtether", "addthreadtether", "threadtether"],
     )
     async def addchannelsheettether(self, ctx, sheet_key_or_link: str):
-        """Tethers a sheet to the current channel
+        """Tethers a sheet to the current channel/thread
 
         For any Google sheets commands, a tether to either category (See `~tether`) or channel is necessary.
 
@@ -145,19 +145,36 @@ class SheetsCog(commands.Cog, name="Sheets"):
         curr_chan = ctx.message.channel
         curr_chan_id = str(ctx.message.channel.id)
 
+        curr_thread_id = None
+        if(curr_chan.type in {nextcord.ChannelType.news_thread,nextcord.ChannelType.public_thread,nextcord.ChannelType.private_thread}):
+            curr_thread_id = ctx.message.channel.id
+            curr_chan_id = ctx.message.channel.parent.id
+
         curr_chan_or_cat_row, tether_type = self.findsheettether(
-            curr_chan_id, curr_cat_id
+            curr_cat_id, curr_chan_id, curr_thread_id
         )
-        sheet_link = curr_chan_or_cat_row.sheet_link
 
         # If the tethering exists, remove it from the sheet.
         if curr_chan_or_cat_row is not None:
+            sheet_link = curr_chan_or_cat_row.sheet_link
             with Session(database.DATABASE_ENGINE) as session:
                 session.query(database.SheetTethers).filter_by(
                     channel_or_cat_id=curr_chan_or_cat_row.channel_or_cat_id
                 ).delete()
                 session.commit()
-            if tether_type == sheets_constants.CHANNEL:
+            if tether_type == sheets_constants.THREAD and curr_thread_id is not None:
+                embed.add_field(
+                    name=f"{constants.SUCCESS}",
+                    value=f"{ctx.channel.mention}'s tether to [sheet]({sheet_link}) has been removed!",
+                    inline=False,
+                )
+            elif tether_type == sheets_constants.CHANNEL and curr_thread_id is not None:
+                embed.add_field(
+                    name=f"{constants.SUCCESS}",
+                    value=f"{ctx.channel.parent.mention}'s tether to [sheet]({sheet_link}) has been removed!",
+                    inline=False,
+                )
+            elif tether_type == sheets_constants.CHANNEL:
                 embed.add_field(
                     name=f"{constants.SUCCESS}",
                     value=f"{ctx.channel.mention}'s tether to [sheet]({sheet_link}) has been removed!",
@@ -391,15 +408,37 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         embed = discord_utils.create_embed()
 
-        # Get category information
-        curr_cat = ctx.message.channel.category
+        curr_cat = ctx.message.channel.category.name
+        curr_cat_id = str(ctx.message.channel.category_id)
         curr_chan = ctx.message.channel
+        curr_chan_id = str(ctx.message.channel.id)
 
-        curr_chan_row, tether_type = self.findsheettether(curr_chan.id, curr_cat.id)
+        curr_thread_id = None
+        if(curr_chan.type in {nextcord.ChannelType.news_thread,nextcord.ChannelType.public_thread,nextcord.ChannelType.private_thread}):
+            curr_thread_id = ctx.message.channel.id
+            curr_chan_id = ctx.message.channel.parent.id
 
-        if curr_chan_row is not None:
-            curr_sheet_link = curr_chan_row.sheet_link
-            if tether_type == sheets_constants.CHANNEL:
+        curr_chan_or_cat_row, tether_type = self.findsheettether(
+            curr_cat_id, curr_chan_id, curr_thread_id
+        )
+
+        if curr_chan_or_cat_row is not None:
+            curr_sheet_link = curr_chan_or_cat_row.sheet_link
+            if tether_type == sheets_constants.THREAD and curr_thread_id is not None:
+                embed.add_field(
+                    name=f"Result",
+                    value=f"The channel {curr_chan.mention} is currently tethered to the "
+                    f"[Google sheet at link]({curr_sheet_link})",
+                    inline=False,
+                )
+            elif tether_type == sheets_constants.CHANNEL and curr_thread_id is not None:
+                embed.add_field(
+                    name=f"Result",
+                    value=f"The channel {curr_chan.parent.mention} is currently tethered to the "
+                    f"[Google sheet at link]({curr_sheet_link})",
+                    inline=False,
+                )
+            elif tether_type == sheets_constants.CHANNEL:
                 embed.add_field(
                     name=f"Result",
                     value=f"The channel {curr_chan.mention} is currently tethered to the "
@@ -640,7 +679,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             session.commit()
         return proposed_sheet
 
-    def findsheettether(self, curr_chan_id: int, curr_cat_id: int):
+    def findsheettether(self, curr_cat_id: int, curr_chan_id: int, curr_thread_id:int=None):
         """For finding the appropriate sheet tethering for a given category or channel"""
         result = None
         tether_type = None
@@ -649,21 +688,27 @@ class SheetsCog(commands.Cog, name="Sheets"):
             # Search for channel's tether
             result = (
                 session.query(database.SheetTethers)
-                .filter_by(channel_or_cat_id=curr_chan_id)
+                .filter_by(channel_or_cat_id=curr_thread_id)
                 .first()
             )
-            # If we miss on the channel ID, try the category ID
-            if result is None:
+            if result is not None:
+                tether_type = sheets_constants.THREAD
+            else:
                 result = (
                     session.query(database.SheetTethers)
-                    .filter_by(channel_or_cat_id=curr_cat_id)
+                    .filter_by(channel_or_cat_id=curr_chan_id)
                     .first()
                 )
+                # If we miss on the channel ID, try the category ID
                 if result is not None:
+                    tether_type = sheets_constants.CHANNEL
+                else:
+                    result = (
+                        session.query(database.SheetTethers)
+                        .filter_by(channel_or_cat_id=curr_cat_id)
+                        .first()
+                    )
                     tether_type = sheets_constants.CATEGORY
-            else:
-                tether_type = sheets_constants.CHANNEL
-
         return result, tether_type
 
     def get_sheet_from_key_or_link(self, sheet_key_or_link: str) -> gspread.Spreadsheet:
@@ -692,7 +737,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         newsheet = None
 
         tether_db_result, tether_type = self.findsheettether(
-            str(curr_chan.id), str(curr_cat.id)
+            str(curr_cat.id), str(curr_chan.id) 
         )
 
         if tether_db_result is not None:
@@ -782,7 +827,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         newsheet = None
 
         tether_db_result, tether_type = self.findsheettether(
-            str(curr_chan.id), str(curr_cat.id)
+            str(curr_cat.id), str(curr_chan.id)
         )
 
         if tether_db_result is not None:
@@ -945,7 +990,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """
         logging_utils.log_command("gettablion", ctx.guild, ctx.channel, ctx.author)
         result, _ = self.findsheettether(
-            str(ctx.message.channel.id), str(ctx.message.channel.category_id)
+            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
         )
 
         if result is None:
@@ -1071,7 +1116,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             return
 
         result, _ = self.findsheettether(
-            str(ctx.message.channel.id), str(ctx.message.channel.category_id)
+            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
         )
 
         if result is None:
@@ -1227,7 +1272,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         logging_utils.log_command("mtalion", ctx.guild, ctx.channel, ctx.author)
 
         result, _ = self.findsheettether(
-            str(ctx.message.channel.id), str(ctx.message.channel.category_id)
+            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
         )
 
         if result is None:
@@ -1397,7 +1442,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         logging_utils.log_command("mtalion", ctx.guild, ctx.channel, ctx.author)
 
         result, _ = self.findsheettether(
-            str(ctx.message.channel.id), str(ctx.message.channel.category_id)
+            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
         )
 
         if result is None:
