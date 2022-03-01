@@ -63,6 +63,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         if not self.reload_sheet.is_running():
             self.reload_sheet.start()
 
+    @command_predicates.is_tester()    
     @commands.command(name="startcipherrace")
     async def startrace(self, ctx, sheet: str = cipher_race_constants.HP):
         """
@@ -116,6 +117,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
             callback_async=True,
         )
 
+    @command_predicates.is_tester()    
     @commands.command(name="practice", aliases=["pigpenpls"])
     async def practice(
         self, ctx, code: str = None, sheet: str = cipher_race_constants.HP
@@ -194,6 +196,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         await ctx.send(embed=embed)
 
     # Command to check the user's answer. They will be replied to telling them whether or not their answer is correct
+    @command_predicates.is_tester()    
     @commands.command(name="answerrace", aliases=["ar"])
     async def answer(self, ctx, *args):
         """
@@ -276,7 +279,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
             callback_async=True,
         )
 
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_tester()    
     @commands.command(name="reloadciphersheet")
     async def reload(self, ctx):
         """
@@ -315,7 +318,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_tester()    
     @commands.command(name="resetcipherrace")
     async def reset(self, ctx):
         """

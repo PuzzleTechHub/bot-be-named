@@ -1,6 +1,6 @@
 from nextcord.ext import commands
 import constants
-from utils import discord_utils, logging_utils
+from utils import discord_utils, logging_utils, command_predicates
 from modules.perfect_pitch import perfect_pitch_utils, perfect_pitch_constants
 import nextcord
 import random
@@ -14,6 +14,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
     def __init__(self, bot):
         self.bot = bot
 
+    @command_predicates.is_tester()    
     @commands.command(name="playtunehelp", aliases=["playtuneinfo"])
     async def playtunehelp(self, ctx):
         """Learn everything there is to know about playtune
@@ -59,6 +60,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         )
         await ctx.send(embed=embed)
 
+    @command_predicates.is_tester()    
     @commands.command(name="playtunecustom", aliases=["ptcustom"])
     async def playtunecustom(self, ctx):
         """Learn everything there is to know about customizing playtune
@@ -109,6 +111,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         )
         await ctx.send(embed=embed)
 
+    @command_predicates.is_tester()    
     @commands.command(name="playtuneinstrument")
     async def playtuneinstrument(self, ctx):
         """Learn everything there is to know about the instruments we offer!
@@ -127,6 +130,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         )
         await ctx.send(embed=embed)
 
+    @command_predicates.is_tester()    
     @commands.command(name="playtunelength")
     async def playtunelength(self, ctx):
         """Learn everything there is to know about changing the note length
@@ -153,6 +157,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         )
         await ctx.send(embed=embed)
 
+    @command_predicates.is_tester()    
     @commands.command(name="playtunesample", aliases=["ptsample"])
     async def playtunesample(self, ctx):
         """See a sample tune command in action.
@@ -182,6 +187,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         )
         await ctx.send(embed=embed)
 
+    @command_predicates.is_tester()    
     @commands.command(name="playtune")
     async def playtune(self, ctx, *args):
         """Play a string of notes together.
@@ -222,6 +228,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
             )
             await ctx.send(embed=embed)
 
+    @command_predicates.is_tester()    
     @commands.command(name="chord")
     async def chord(self, ctx):
         """Sends the user a random chord. Note: all chords come from the 4th octave (middle C)
@@ -247,7 +254,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
             f"Answer: ||{chord.split('/')[-1].replace('.mp3', '').replace('_', ' ').center(15)}||"
         )
 
-    # TODO: CLEAN PLS for the love of christ
+    @command_predicates.is_tester()    
     @commands.command(name="note")
     async def note(self, ctx, *args):
         """Send the user a random note for them to identify.

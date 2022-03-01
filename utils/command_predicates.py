@@ -21,6 +21,22 @@ def is_owner():
     return commands.check(predicate)
 
 
+def is_tester():
+    async def predicate(ctx):
+        if ctx.message.guild is None:
+            return False
+        if ctx.guild.id in database.TESTERS:
+            for role in ctx.author.roles:
+                role_id = role.id
+                if role_id in database.TESTERS[ctx.guild.id]:
+                    return True
+            return False
+        else:
+            return False
+
+    return commands.check(predicate)
+
+
 def is_solver():
     async def predicate(ctx):
         if ctx.message.guild is None:

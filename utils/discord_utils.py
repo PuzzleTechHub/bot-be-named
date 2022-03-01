@@ -165,19 +165,19 @@ async def pin_message(message: nextcord.Message) -> nextcord.Embed:
         async for pinmsg in message.channel.history(limit=5):
             if pinmsg.type == nextcord.MessageType.pins_add:
                 await pinmsg.delete()
-    except nextcord.HTTPException:
-        embed = create_embed()
-        embed.add_field(
-            name=f"{constants.FAILED} to pin!",
-            value=f"Cannot pin system messages (e.g. **Bot-Be-Named** pinned **a message** to this channel.)",
-        )
-        return embed
     except nextcord.Forbidden:
         embed = create_embed()
         embed.add_field(
             name=f"{constants.FAILED} to pin!",
             value=f"I don't have permissions to pin a message in {message.channel.mention}. Please check "
             "my permissions and try again.",
+        )
+        return embed
+    except nextcord.HTTPException:
+        embed = create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED} to pin!",
+            value=f"Cannot pin system messages (e.g. **Bot-Be-Named** pinned **a message** to this channel.)",
         )
         return embed
 

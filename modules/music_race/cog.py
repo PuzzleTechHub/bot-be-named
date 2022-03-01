@@ -2,7 +2,7 @@ import constants
 import nextcord
 import re
 from nextcord.ext import commands
-from utils import discord_utils, logging_utils
+from utils import discord_utils, logging_utils, command_predicates
 from modules.music_race import music_race_constants
 import os
 import numpy as np
@@ -29,6 +29,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         self.bot = bot
         self.partition_map = get_partition_mapping()
 
+    @command_predicates.is_tester()    
     @commands.command(name="hint")
     async def hint(self, ctx):
         """Hint
@@ -43,6 +44,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         )
         await ctx.send(embed=embed)
 
+    @command_predicates.is_tester()    
     @commands.command(name="notesaw", aliases=["musicpuzzleinfo"])
     async def musicpuzzleinfo(self, ctx):
         """Give the users everything they need to know about the puzzle
@@ -66,6 +68,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         )
         await ctx.send(embed=embed)
 
+    @command_predicates.is_tester()    
     @commands.command(name="guesstune")
     async def guesstune(self, ctx, *args):
         """Take a user's guess and give them a response based on what letters they provided
