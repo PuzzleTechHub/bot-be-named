@@ -11,7 +11,7 @@ from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 
 load_dotenv()
 
-# TODO:
+# Not Done:
 # Practice Mode with a timer?
 #   - One cipher_race at a time
 #   - Timer increases with each correct answer?

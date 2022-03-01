@@ -217,8 +217,6 @@ def sort_channels_util(
 
     return unsolved + channel_list_prefixes
 
-
-# TODO: I'm going to need to rewrite this at some point...
 def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
     """Splits embeds that are too long (discord character limit)
     Arguments:

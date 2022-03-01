@@ -1,4 +1,4 @@
-import googlesearch
+Not doneimport googlesearch
 from nextcord.ext import commands
 from utils import discord_utils, logging_utils
 from modules.lookup import lookup_constants, lookup_utils
@@ -146,7 +146,6 @@ class LookupCog(commands.Cog, name="Lookup"):
         query = query.replace("`", "")
         query = query.replace("\\", "")
 
-        # get html page - TODO change to requests?
         query_initial = query[:]
         query = (
             query_initial.replace("&", "%26")

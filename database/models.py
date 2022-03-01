@@ -8,9 +8,6 @@ print(os.getenv("POSTGRES_DB_URL"))
 DATABASE_ENGINE = create_engine(os.getenv("POSTGRES_DB_URL"), echo=False, future=True)
 Base = declarative_base()
 
-# TODO: Right now, each of our databases is being treated as a key-value store.
-# It would be great to take advantage of using postgres as a relational db
-
 class Verifieds(Base):
     __tablename__ = "verifieds"
     server_id = Column(BIGINT)

@@ -215,7 +215,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
         tune = perfect_pitch_utils.Tune(ctx.channel.name)
         tune.process_args(args)
         # Create tune uses FFMPEG to mix the notes together, and returns the path of the file it created
-        # TODO: Errors, error handling
+        # Not Done: Errors, error handling
         output_path = await tune.create_tune()
         try:
             await ctx.send(file=nextcord.File(output_path, filename="tune.mp3"))
@@ -304,7 +304,7 @@ class PerfectPitch(commands.Cog, name="Perfect Pitch"):
             await ctx.send(embed=embed)
             return
         # The user can specify which octave they want to hear, in which case we only get a note from that octave
-        # TODO: currently, note will always be none here
+        # Not Done: currently, note will always be none here
         filenames = f"{note if note else '*'}{'b' if flat_or_nat == 'flat' else '*'}{octave if isinstance(octave, int) else '*'}.mp3"
 
         mp3_paths = glob.glob(

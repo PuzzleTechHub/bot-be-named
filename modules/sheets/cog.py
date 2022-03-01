@@ -204,7 +204,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-    # TODO: PETE READ THIS
     @command_predicates.is_solver()
     @commands.command(name="channelcreatetab", aliases=["channelcrab", "chancrab"])
     async def channelcreatetab(self, ctx, chan_name: str, *args):
@@ -287,7 +286,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 await msg.add_reaction(EMOJIS[":pushpin:"])
 
         embed = discord_utils.create_embed()
-        # TODO: technically there's a world where the posts *weren't* pinned, although it's unclear how much that matters in this message.
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
@@ -381,7 +379,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 await msg.add_reaction(EMOJIS[":pushpin:"])
 
         embed = discord_utils.create_embed()
-        # TODO: technically there's a world where the posts *weren't* pinned, although it's unclear how much that matters in this message.
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
@@ -555,7 +552,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         msg = await ctx.send(embed=embed)
         # Pin message to the new channel
         embed_or_none = await discord_utils.pin_message(msg)
-        # TODO: Do we even care about printing out the error message if the pin failed?
         if embed_or_none is not None:
             await ctx.send(embed=embed_or_none)
 
@@ -911,21 +907,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
     #################
     # LION COMMANDS #
     #################
-
-    """
-    TODO: New workflow for hunts:
-    ~DONE templatelion (set the template sheet for the server)
-    ~DONE huntlion/clonelion (duplicates the sheet and then adds hunt info to the sheet, also tethers the sheet to the category)
-    ~DONE chanlion/sheetlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
-    ~DONE metalion/metasheetlion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
-    ~IN PROGRESS ! ~hunturllion/urllion/renamelion/flavorlion (change attributes of the hunt and updates the sheet)
-    ~NOT STARTED roundlion (adds a puzzle to a round)
-    ~NOT STARTED taglion (tags a specific role to a puzzle)
-    ~NOT STARTED mentionlion (mentions the tagged roles of that puzzle, used when you need help)
-    ~DONE ! solvedlion/solvishedlion/backsolvedlion/unsolvedlion/unsolvablelion/workingonlion/abandonedlion (changes the color of the tab and also the sheet, also updates stats, for solved/solvedish/backsolved/unsolved, also changes the name of the discord channel)
-    ~NOT STARTED hintlion/hintsentlion (hintlion expresses the intent to request a hint and puts a matter to a vote, hintsentlion signifies that a hint has been sent)
-    ~IN PROGRESS ! archivelion (is the same as regular move to archive, but also moves the sheet to the end/hides the sheet)
-    """
 
     ##### LION STATUS COMMANDS #####
 
@@ -1415,8 +1396,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         overview.update_acell(
             answer_col + str(first_empty), f"='{chan_name_for_sheet_ref}'!B3"
         )
-
-        # TODO: update stats sheet, can be done after MH
 
         newsheet.update_acell("A1", chan_name)
 

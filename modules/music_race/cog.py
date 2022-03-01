@@ -107,7 +107,7 @@ class MusicRace(commands.Cog, name="Music Race"):
                 os.system(
                     f"ffmpeg -y -hide_banner -loglevel error -i {os.path.join(music_race_constants.PUZZLE_FULL_SONGS_DIR, word + music_race_constants.MP3_EXTENSION)} -filter_complex 'adelay={delay}|{delay}' {final_song_path}"
                 )
-                # TODO: ffmpeg-normalize is too slow for now. Try to optimize later.
+                # Not done: ffmpeg-normalize is too slow for now. Try to optimize later.
                 # os.system(
                 #    f"ffmpeg-normalize -f -c:a libmp3lame {output_path} -o {output_path}"
                 # )
@@ -154,7 +154,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         # debug_output_msg = ""
         # for ans in finalanswer:
         #    debug_output_msg += f"{ans[1]}-{ans[1]+3}: {ans[0]}\n"
-        # TODO: Remove once we are more certain about how this works. It ruins the puzzle, obviously
+        # Not done: Remove once we are more certain about how this works. It ruins the puzzle, obviously
         # await ctx.send(debug_output_msg)
         # print(word)
         # print(debug_output_msg)
@@ -191,7 +191,7 @@ class MusicRace(commands.Cog, name="Music Race"):
             + f"-filter_complex '{filter_complex}{mix}amix=inputs={len(finalanswer)}:dropout_transition=1000,volume={music_race_constants.VOLUME/2},loudnorm' "
             f"{output_path}"
         )
-        # TODO: ffmpeg-normalize is too slow for now. Try to optimize later.
+        # Not done: ffmpeg-normalize is too slow for now. Try to optimize later.
         # os.system(
         #    f"ffmpeg-normalize -f -c:a libmp3lame {output_path} -o {output_path}"
         # )

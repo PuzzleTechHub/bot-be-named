@@ -6,7 +6,7 @@ from modules.solved.prefix import Prefix
 from modules.solved import solved_constants
 from utils import discord_utils, logging_utils, command_predicates
 
-# TODO: It's awkward but right now the solved constants have a hyphen at the end
+# Note: It's awkward but right now the solved constants have a hyphen at the end
 # Which is why we have [:-1] for all the prefixes. We don't want to have that prefix
 # Sent to the users, but we do need it for prepending to the channel.
 

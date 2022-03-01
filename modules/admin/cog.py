@@ -75,7 +75,6 @@ class AdminCog(commands.Cog, name="Admin"):
             return
 
         with Session(database.DATABASE_ENGINE) as session:
-            # TODO: Figure out how to catch the duplicate unique key error so I can insert first, then find if exists.
             result = (
                 session.query(database.Verifieds)
                 .filter_by(

@@ -101,7 +101,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         if ctx.message.reference:
             reply = True
             orig_msg = ctx.message.reference.resolved
-            # TODO - if orig_msg is DeletedReferencedMessage
             if not orig_msg.pinned:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
@@ -297,7 +296,6 @@ class DiscordCog(commands.Cog, name="Discord"):
                                 value=f"Error adding `:{name}:` to server. Do I have the correct permissions to manage emotes in this server?",
                             )
                             await ses.close()
-                        # TODO: What error gets thrown if there are too many emotes?
                         except:
                             embed.add_field(
                                 name=f"{constants.FAILED}",
@@ -341,7 +339,6 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.send(embed=embed)
             return
 
-        # TODO - if orig_msg is DeletedReferencedMessage
         msg = "```" + orig_msg.content + "```"
         embed.add_field(
             name=f"{constants.SUCCESS}!",
