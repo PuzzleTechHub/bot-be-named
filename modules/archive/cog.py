@@ -142,7 +142,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
     async def archivechannel(self, ctx, *args: List[Union[nextcord.TextChannel, str]]):
         """Command to download channel's history
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~archivechannel #channel`
         Usage: `~archivechannel #channel1 "channel2"`
         """
@@ -247,7 +247,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
     async def archivecategory(self, ctx, *args: str):
         """Command to download the history of every text channel in the category
 
-        Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner Roles only.
         Usage: `~archivecategory "Category name"`
         """
         logging_utils.log_command("archivecategory", ctx.guild, ctx.channel, ctx.author)
@@ -347,7 +347,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         """Command to archive every text channel in the server. WARNING: This command will take *very*
         long on any reasonably aged server
 
-        Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner Roles only.
         Usage: `~archiveserver`
         """
         logging_utils.log_command("archiveserver", ctx.guild, ctx.channel, ctx.author)

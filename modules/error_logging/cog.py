@@ -17,7 +17,7 @@ class ErrorLogCog(commands.Cog):
     async def errorlog(self, ctx, num_lines: int = 50):
         """Shows errors in reverse chronological order
 
-        Category : Admin and Bot Owner only.
+        Permission Category : Admin and Bot Owner only.
         Usage: `~errorlog`
         """
         logging_utils.log_command("errorlog", ctx.guild, ctx.channel, ctx.author)

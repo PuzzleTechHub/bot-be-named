@@ -180,7 +180,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def stats(self, ctx):
         """Get server stats
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~stats`
         """
         logging_utils.log_command("stats", ctx.guild, ctx.channel, ctx.author)
@@ -211,7 +211,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def catstats(self, ctx, cat_name: str = ""):
         """Get category stats
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~catstats` (current category)
         Usage: `~catstats "Cat Name"` (Named category)
         """
@@ -249,7 +249,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def listemoji(self, ctx):
         """List all emojis in a server
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~listemojis`
         """
         logging_utils.log_command("listemoji", ctx.guild, ctx.channel, ctx.author)
@@ -267,7 +267,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     ):
         """Steals an emote from another server and uploads it to this server with the same name.
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~steal :emote1: :emote2:`
         """
         logging_utils.log_command("steal", ctx.guild, ctx.channel, ctx.author)

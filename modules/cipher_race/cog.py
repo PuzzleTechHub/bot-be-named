@@ -283,7 +283,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         Reload the cipherrace Google Sheets so we can update our cipherrace codes instantly.
         See also: `~startcipherrace`
 
-        Category: Admin or Bot Owner only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~reloadciphersheet`
         """
         logging_utils.log_command(

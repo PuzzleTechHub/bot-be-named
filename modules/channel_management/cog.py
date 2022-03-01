@@ -25,7 +25,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     ):
         """Command to move channels to category with given name
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~movechannel "CatA"` (Moves current channel to CatA)
         Usage: `~movechannel "CatA" #chan1 "chan2" "chan3"` (Moves all listed channels to CatA. Note - This does not move current channel unless listed)
         Usage: `~movechannel "CatA" all` (Moves all channels in current category to CatA.)
@@ -130,7 +130,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     ):
         """Changes current channel name to whatever is asked
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~renamechannel newname` (Renames current channel)
         Usage: `~renamechan #old-chan newname`
 
@@ -195,7 +195,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def createchannel(self, ctx, name: str):
         """Command to create channel in same category with given name
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~createchannel new-channel-name`
         """
         # log command in console
@@ -235,7 +235,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         """Command to create channel in same category with given name
         The channel created is just below the channel being cloned
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~clonechannel #channel-to-clone new-channel-name`
         Usage: `~clonechannel new-channel-name` (Clones current channel)
         """
@@ -316,7 +316,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Channels may be mentioned or named, but better to mention (in case of multiple channels with same name).
 
         Note : Use "0" or "top" instead to say "Top of the category". But if a channel in the server is named #top or #0 then the respective argument wont work
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~shiftchan #chana #chanb` (Shifts Chan A to just below Chan B)
         Usage: `~shiftchan "chanb"` (Shifts the current channel to just below Chan B)
         Usage: `~shiftchan "chana" top` (Shifts ChanA to top of category)
@@ -407,7 +407,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def renamevoicechan(self, ctx, new_name: str):
         """Command to rename the Voice Channel in which the user currently is
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~renamevc "VC-Name"`
         """
         # log command in console
@@ -462,7 +462,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Note that if you use more than 2 category renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes.
         Those categories will have to be renamed manually, or wait for the full 10 mins.
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~renamecat newname` (Changes current category name to newname)
         Usage: `~renamecat "CatA" CatB` (Changes CatA name to CatB)
         """
@@ -512,7 +512,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         """Changes permissions of all channels in Current Category to be synced to Cat-permissions.
         So any channel with different role permissions set up is reverted.
 
-        Category : Trusted Roles only.
+        Permission Category : Trusted Roles only.
         Usage: `~synccat` (Syncs current category)
         Usage: `~synccat "CatA"` (Syncs given category)
         """
@@ -576,7 +576,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         Note : Use "0" or "top" instead to say "Top of the server". But if a category in the server is named "top" or "0" then the respective argument wont work
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~shiftcat "Category A" "Category B"` (Shifts Cat A to just below Cat B)
         Usage: `~shiftcat "Category B"` (Shifts the current category to just below Category B)
         Usage: `~shiftcat "Category A" 0` (Shifts Cat A to the top)
@@ -677,7 +677,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Creates targetCat if it doesn't exist already.
         Create targetRole if it doesn't exist already (with same server permissions). See `~clonerole` for example.
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~clonecategory "Category A" "Category B"` (Clones Cat A as Cat B)
         Usage: `~clonecategory "Category A" "Category B" @RoleC @RoleD` (Clones Cat A as Cat B. Takes RoleC permission on Cat A, and replicates it with RoleD and Cat B)
         """
@@ -812,7 +812,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def listcategories(self, ctx, cat_name: str = ""):
         """List all the categories in a server. If Category is provided, list all channels in it.
 
-        Category : Admin and Bot Owner only.
+        Permission Category : Admin and Bot Owner only.
         Usage: `~listcat` (List all the categories in the server)
         Usage: `~listcat "Cat A"` (List all the channels in the given category)
         """
@@ -862,7 +862,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         """Sort all channels in a category. Specifically for puzzle hunts, `solved-`, `backsolved-`, and `solvedish-`
         prefixes will be put behind channels without a prefix.
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~categorysort`
         """
         logging_utils.log_command("categorysort", ctx.guild, ctx.channel, ctx.author)
@@ -936,7 +936,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def deletecategory(self, ctx, cat_name: str = ""):
         """Delete a category in the server. Requires emoji confirmation
 
-        Category : Server Owner only.
+        Permission Category : Server Owner only.
         Usage: `~deletecat "Cat A"` (List all the channels in the given category)
         """
         logging_utils.log_command("deletecategory", ctx.guild, ctx.channel, ctx.author)

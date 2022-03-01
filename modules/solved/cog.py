@@ -57,7 +57,7 @@ class SolvedCog(commands.Cog):
     async def solved(self, ctx: commands.Context):
         """Changes channel name to solved-<channel-name>
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage: `~solved`
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
@@ -95,7 +95,7 @@ class SolvedCog(commands.Cog):
     async def solvedish(self, ctx: commands.Context):
         """Changes channel name to solvedish-<channel-name>
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage: `~solvedish`
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
@@ -129,7 +129,7 @@ class SolvedCog(commands.Cog):
     async def backsolved(self, ctx: commands.Context):
         """Changes channel name to backsolved-<channel-name>
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage: `~backsolved`
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
@@ -160,7 +160,7 @@ class SolvedCog(commands.Cog):
     async def unsolved(self, ctx: commands.context):
         """removes one of the solved prefixes from channel name
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage: `~unsolved`
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
@@ -194,7 +194,7 @@ class SolvedCog(commands.Cog):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage: `~movetoarchive`
         Usage: `~movetoarchive archive_category_name`
         """
