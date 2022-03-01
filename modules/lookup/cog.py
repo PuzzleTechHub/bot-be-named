@@ -1,4 +1,4 @@
-Not doneimport googlesearch
+import googlesearch
 from nextcord.ext import commands
 from utils import discord_utils, logging_utils
 from modules.lookup import lookup_constants, lookup_utils
