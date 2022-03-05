@@ -70,7 +70,15 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @command_predicates.is_solver()
     @commands.command(
         name="addchannelsheettether",
-        aliases=["channeltether", "editchantether", "addchantether", "chantether", "editthreadtether", "addthreadtether", "threadtether"],
+        aliases=[
+            "channeltether",
+            "editchantether",
+            "addchantether",
+            "chantether",
+            "editthreadtether",
+            "addthreadtether",
+            "threadtether",
+        ],
     )
     async def addchannelsheettether(self, ctx, sheet_key_or_link: str):
         """Tethers a sheet to the current channel/thread
@@ -146,7 +154,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
         curr_chan_id = str(ctx.message.channel.id)
 
         curr_thread_id = None
-        if(curr_chan.type in {nextcord.ChannelType.news_thread,nextcord.ChannelType.public_thread,nextcord.ChannelType.private_thread}):
+        if curr_chan.type in {
+            nextcord.ChannelType.news_thread,
+            nextcord.ChannelType.public_thread,
+            nextcord.ChannelType.private_thread,
+        }:
             curr_thread_id = ctx.message.channel.id
             curr_chan_id = ctx.message.channel.parent.id
 
@@ -410,7 +422,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
         curr_chan_id = str(ctx.message.channel.id)
 
         curr_thread_id = None
-        if(curr_chan.type in {nextcord.ChannelType.news_thread,nextcord.ChannelType.public_thread,nextcord.ChannelType.private_thread}):
+        if curr_chan.type in {
+            nextcord.ChannelType.news_thread,
+            nextcord.ChannelType.public_thread,
+            nextcord.ChannelType.private_thread,
+        }:
             curr_thread_id = ctx.message.channel.id
             curr_chan_id = ctx.message.channel.parent.id
 
@@ -468,7 +484,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     @command_predicates.is_solver()
     @commands.command(name="sheetcreatetab", aliases=["sheettab", "sheetcrab"])
-    async def sheetcreatetab(self, ctx, tab_name: str, to_pin:str=""):
+    async def sheetcreatetab(self, ctx, tab_name: str, to_pin: str = ""):
         """Create a New tab on the sheet that is currently tethered to this category
 
         This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
@@ -488,8 +504,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
 
         pin_flag = False
-        if(to_pin.lower()[0:3]=="pin"):
-            pin_flag=True
+        if to_pin.lower()[0:3] == "pin":
+            pin_flag = True
 
         # Error, already being handled at the generic function
         if not curr_sheet_link or newsheet is None:
@@ -506,7 +522,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         msg = await ctx.send(embed=embed)
 
         # Pin message to the new channel
-        if(pin_flag):
+        if pin_flag:
             embed_or_none = await discord_utils.pin_message(msg)
             if embed_or_none is not None:
                 await ctx.send(embed=embed_or_none)
@@ -674,7 +690,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
             session.commit()
         return proposed_sheet
 
-    def findsheettether(self, curr_cat_id: int, curr_chan_id: int, curr_thread_id:int=None):
+    def findsheettether(
+        self, curr_cat_id: int, curr_chan_id: int, curr_thread_id: int = None
+    ):
         """For finding the appropriate sheet tethering for a given category or channel"""
         result = None
         tether_type = None
@@ -732,7 +750,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         newsheet = None
 
         tether_db_result, tether_type = self.findsheettether(
-            str(curr_cat.id), str(curr_chan.id) 
+            str(curr_cat.id), str(curr_chan.id)
         )
 
         if tether_db_result is not None:

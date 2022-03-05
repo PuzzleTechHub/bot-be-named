@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from database import models
 
+
 def get_prefixes():
     prefixes = {}
     with Session(models.DATABASE_ENGINE) as session:
@@ -8,6 +9,7 @@ def get_prefixes():
         for row in result:
             prefixes[row.server_id] = row.prefix
     return prefixes
+
 
 def get_solvers():
     solvers = {}
@@ -19,6 +21,7 @@ def get_solvers():
             else:
                 solvers[row.server_id] = [row.role_id]
     return solvers
+
 
 def get_testers():
     testers = {}

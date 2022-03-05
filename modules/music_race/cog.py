@@ -29,7 +29,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         self.bot = bot
         self.partition_map = get_partition_mapping()
 
-    @command_predicates.is_tester()    
+    @command_predicates.is_tester()
     @commands.command(name="hint")
     async def hint(self, ctx):
         """Hint
@@ -44,7 +44,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_tester()    
+    @command_predicates.is_tester()
     @commands.command(name="notesaw", aliases=["musicpuzzleinfo"])
     async def musicpuzzleinfo(self, ctx):
         """Give the users everything they need to know about the puzzle
@@ -68,7 +68,7 @@ class MusicRace(commands.Cog, name="Music Race"):
         )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_tester()    
+    @command_predicates.is_tester()
     @commands.command(name="guesstune")
     async def guesstune(self, ctx, *args):
         """Take a user's guess and give them a response based on what letters they provided

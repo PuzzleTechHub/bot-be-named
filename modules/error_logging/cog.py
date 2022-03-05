@@ -47,7 +47,7 @@ async def on_error(event, *args, **kwargs):
     _, error, _ = sys.exc_info()
     embed = discord_utils.create_embed()
     arg = ""
-    if len(args)>0:
+    if len(args) > 0:
         arg = args[0]
     # error while handling message
     if event in [
@@ -64,9 +64,7 @@ async def on_error(event, *args, **kwargs):
     # other errors
     else:
         msg = f"An error occurred during an event and was not reported: {event}"
-        user_error = ErrorHandler(
-            arg, error, msg
-        ).handle_error()
+        user_error = ErrorHandler(arg, error, msg).handle_error()
         if user_error:
             embed = discord_utils.create_embed()
             embed.add_field(name="Error!", value=user_error, inline=False)

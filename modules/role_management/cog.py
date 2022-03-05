@@ -126,7 +126,10 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
     @command_predicates.is_trusted()
     @commands.command(name="unassignrole", aliases=["removerole"])
     async def unassignrole(
-        self, ctx, rolename: Union[nextcord.Role, str], *args: Union[nextcord.Member, str]
+        self,
+        ctx,
+        rolename: Union[nextcord.Role, str],
+        *args: Union[nextcord.Member, str],
     ):
         """Unassigns a role from a list of users.
         To not ping them, you may name the role or the users (nick or username) instead. Mentioning either is also guaranteed to work.
@@ -215,7 +218,10 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
     @command_predicates.is_trusted()
     @commands.command(name="clonerole", aliases=["syncrole"])
     async def clonerole(
-        self, ctx, oldrole: Union[nextcord.Role, str], newrole: Union[nextcord.Role, str]
+        self,
+        ctx,
+        oldrole: Union[nextcord.Role, str],
+        newrole: Union[nextcord.Role, str],
     ):
         """Clones a role to another role in the Server.
         If the role does not already exist, then creates the role, else just copies the permissions.

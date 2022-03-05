@@ -22,9 +22,10 @@ class AdminCog(commands.Cog, name="Admin"):
     ################################
 
     @command_predicates.is_owner_or_admin()
-    @commands.command(name="addperm",
-        aliases=["addverifieds","addverified","addperms"],
-        )
+    @commands.command(
+        name="addperm",
+        aliases=["addverifieds", "addverified", "addperms"],
+    )
     async def addperm(
         self,
         ctx,
@@ -89,7 +90,7 @@ class AdminCog(commands.Cog, name="Admin"):
                     server_id=ctx.guild.id,
                     server_name=ctx.guild.name,
                     permissions=role_permissions,
-                    role_id_permissions=f"{role_to_assign.id}_{role_permissions}"
+                    role_id_permissions=f"{role_to_assign.id}_{role_permissions}",
                 )
                 session.execute(stmt)
                 session.commit()
@@ -133,7 +134,16 @@ class AdminCog(commands.Cog, name="Admin"):
     @command_predicates.is_owner_or_admin()
     @commands.command(
         name="listperm",
-        aliases=["lsverifieds","listverifieds", "verifieds", "lsverified", "listverified","lsperms","listperms","lsperm"],
+        aliases=[
+            "lsverifieds",
+            "listverifieds",
+            "verifieds",
+            "lsverified",
+            "listverified",
+            "lsperms",
+            "listperms",
+            "lsperm",
+        ],
     )
     async def listperm(self, ctx, role_permissions: str = "Verified"):
         """List all roles in the given Permission Category within the server.
@@ -160,7 +170,7 @@ class AdminCog(commands.Cog, name="Admin"):
             models.VERIFIED: database.VERIFIEDS,
             models.TRUSTED: database.TRUSTEDS,
             models.SOLVER: database.SOLVERS,
-            models.TESTER: database.TESTERS
+            models.TESTER: database.TESTERS,
         }
 
         if (
@@ -170,22 +180,35 @@ class AdminCog(commands.Cog, name="Admin"):
             embed.add_field(
                 name=f"{role_permissions}s for {ctx.guild.name}",
                 value=f"{' '.join([ctx.guild.get_role(role).mention for role in cache_map[role_permissions][ctx.guild.id]])}",
-                inline=False
+                inline=False,
             )
         else:
             embed.add_field(
                 name=f"No {role_permissions} roles for {ctx.guild.name}",
                 value=f"Set up `{role_permissions}` roles with `{ctx.prefix}addverified`",
-                inline=False
+                inline=False,
             )
         await ctx.send(embed=embed)
 
     @command_predicates.is_owner_or_admin()
     @commands.command(
-        name="removeperm", aliases=["removeverified","removeverifieds","rmverifieds", "rmtrusted", "removetrusted","removeperms","rmperms","rmverified","rmperm"]
+        name="removeperm",
+        aliases=[
+            "removeverified",
+            "removeverifieds",
+            "rmverifieds",
+            "rmtrusted",
+            "removetrusted",
+            "removeperms",
+            "rmperms",
+            "rmverified",
+            "rmperm",
+        ],
     )
-    async def removeperm(self, ctx, role_permissions: str, role_or_rolename: Union[nextcord.Role, str]):
-        """Remove a role from the given Permission Category within the server. 
+    async def removeperm(
+        self, ctx, role_permissions: str, role_or_rolename: Union[nextcord.Role, str]
+    ):
+        """Remove a role from the given Permission Category within the server.
         Only available to server admins or bot owners.
 
         Permission Category : Admin or Bot Owner Roles only.
@@ -203,7 +226,7 @@ class AdminCog(commands.Cog, name="Admin"):
             )
             await ctx.send(embed=embed)
             return
-        
+
         role_to_remove = None
         # Get role. Allow people to use the command by pinging the role, or just naming it
         if isinstance(role_or_rolename, nextcord.Role):
@@ -226,7 +249,10 @@ class AdminCog(commands.Cog, name="Admin"):
         with Session(database.DATABASE_ENGINE) as session:
             result = (
                 session.query(database.Verifieds)
-                .filter_by(server_id=ctx.guild.id, role_id_permissions=f"{role_to_remove.id}_{role_permissions}")
+                .filter_by(
+                    server_id=ctx.guild.id,
+                    role_id_permissions=f"{role_to_remove.id}_{role_permissions}",
+                )
                 .first()
             )
             if result is None:
@@ -268,13 +294,12 @@ class AdminCog(commands.Cog, name="Admin"):
             database.TESTERS[ctx.guild.id].pop(
                 database.TESTERS[ctx.guild.id].index(role_to_remove.id)
             )
-        
+
         embed.add_field(
             name=f"{constants.SUCCESS}",
             value=f"Removed {role_to_remove.mention} from `{role_permissions}` in `{ctx.guild.name}`",
         )
         await ctx.send(embed=embed)
-
 
     ##################
     # GUILD COMMANDS #

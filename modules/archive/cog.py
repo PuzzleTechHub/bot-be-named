@@ -9,6 +9,7 @@ from modules.archive import archive_constants, archive_utils
 import asyncio
 from typing import List, Tuple, Union
 
+
 class ArchiveCog(commands.Cog, name="Archive"):
     """Downloads a channel's history and sends it as a file"""
 

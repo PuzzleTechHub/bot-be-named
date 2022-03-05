@@ -8,6 +8,7 @@ print(os.getenv("POSTGRES_DB_URL"))
 DATABASE_ENGINE = create_engine(os.getenv("POSTGRES_DB_URL"), echo=False, future=True)
 Base = declarative_base()
 
+
 class Verifieds(Base):
     __tablename__ = "verifieds"
     server_id = Column(BIGINT)
