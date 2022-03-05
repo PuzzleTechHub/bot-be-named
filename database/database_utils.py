@@ -20,6 +20,17 @@ def get_solvers():
                 solvers[row.server_id] = [row.role_id]
     return solvers
 
+def get_testers():
+    testers = {}
+    with Session(models.DATABASE_ENGINE) as session:
+        result = session.query(models.Verifieds).filter_by(permissions="Tester").all()
+        for row in result:
+            if row.server_id in testers:
+                testers[row.server_id].append(row.role_id)
+            else:
+                testers[row.server_id] = [row.role_id]
+    return testers
+
 
 def get_verifieds():
     verifieds = {}

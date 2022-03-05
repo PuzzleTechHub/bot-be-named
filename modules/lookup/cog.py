@@ -146,7 +146,6 @@ class LookupCog(commands.Cog, name="Lookup"):
         query = query.replace("`", "")
         query = query.replace("\\", "")
 
-        # get html page - TODO change to requests?
         query_initial = query[:]
         query = (
             query_initial.replace("&", "%26")

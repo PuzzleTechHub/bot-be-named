@@ -9,7 +9,6 @@ from modules.archive import archive_constants, archive_utils
 import asyncio
 from typing import List, Tuple, Union
 
-# TODO: archiving is super slow.
 class ArchiveCog(commands.Cog, name="Archive"):
     """Downloads a channel's history and sends it as a file"""
 
@@ -20,9 +19,6 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
         archive_utils.reset_archive_dir()
 
-    # TODO: While we're going through messages, it would be nice to see if we've already hit the 8MB limit somehow?
-    # That would speed up the archiving of categories and servers by a lot. I guess it would be hard since we aren't
-    # Compressing in real-time. We could try, though.
     async def archive_one_channel(
         self, channel: nextcord.TextChannel
     ) -> Tuple[nextcord.File, int, nextcord.File, int]:
@@ -40,7 +36,6 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     f"{msg.author.display_name.rjust(25, ' ')}: "
                     f"{msg.clean_content}"
                 )
-                # Save attachments TODO is this necessary? Might waste space
                 for attachment in msg.attachments:
                     f.write(f" {attachment.filename}")
                     # change duplicate filenames
@@ -62,7 +57,6 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     # The discord filenames can get too long and throw an OSError
                     try:
                         await attachment.save(proposed_path)
-                    # TODO: Just do original_path[:N] instead?
                     except OSError:
                         await attachment.save(
                             f"path_too_long_{dupe_counter}.{original_path.split('.')[1]}"
@@ -79,14 +73,11 @@ class ArchiveCog(commands.Cog, name="Archive"):
             for root, directories, files in os.walk(archive_constants.ARCHIVE):
                 for filename in files:
                     if filename == ZIP_FILENAME.split("/")[-1]:  # Don't include self
-                        # TODO : It means that the first zipfile in the channel with the same name gets ignored. Minor big
                         continue
                     zf.write(
                         os.path.join(root, filename), compress_type=self.compression
                     )
             zf_file_size = zf.fp.tell()
-        # TODO: It may often be the case that we will be above 8MB (max filesize).
-        # In that case, we just need to send the textfile
         return (
             nextcord.File(ZIP_FILENAME),
             zf_file_size,
@@ -142,11 +133,10 @@ class ArchiveCog(commands.Cog, name="Archive"):
     async def archivechannel(self, ctx, *args: List[Union[nextcord.TextChannel, str]]):
         """Command to download channel's history
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~archivechannel #channel`
         Usage: `~archivechannel #channel1 "channel2"`
         """
-        # TODO: Need error handling for asking a channel we don't have access to or invalid channel name
         logging_utils.log_command("archivechannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
@@ -247,7 +237,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
     async def archivecategory(self, ctx, *args: str):
         """Command to download the history of every text channel in the category
 
-        Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner Roles only.
         Usage: `~archivecategory "Category name"`
         """
         logging_utils.log_command("archivecategory", ctx.guild, ctx.channel, ctx.author)
@@ -340,14 +330,13 @@ class ArchiveCog(commands.Cog, name="Archive"):
         # Clean up the archive dir
         archive_utils.reset_archive_dir()
 
-    # TODO: This is mostly copy/pasted from archivecategory
     @command_predicates.is_owner_or_admin()
     @commands.command(name="archiveserver")
     async def archiveserver(self, ctx):
         """Command to archive every text channel in the server. WARNING: This command will take *very*
         long on any reasonably aged server
 
-        Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner Roles only.
         Usage: `~archiveserver`
         """
         logging_utils.log_command("archiveserver", ctx.guild, ctx.channel, ctx.author)

@@ -128,8 +128,8 @@ class MiscCog(commands.Cog, name="Misc"):
             f"- `{ctx.prefix}chancrab` and `{ctx.prefix}sheetcrab` for making Google Sheet tabs for your current hunt\n"
             f"- `{ctx.prefix}solved` etc for marking puzzle channels as solved etc\n"
             f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply.\n\n"
-            f"Note that some commands are only restricted to certain roles. The current categories for those are - Verified/Trusted/Admin. These need to be configured accordingly.\n"
-            f"- `{ctx.prefix}addverifieds` for setting up roles in Verifieds and Trusted categories on your server\n",
+            f"Note that most commands are only restricted to certain Permission Categories. The current categories for those are - Verified/Trusted/Solver. These need to be configured accordingly.\n"
+            f"- `{ctx.prefix}addverifieds` for setting up Permission Categories on your server\n",
             inline=False,
         )
         await ctx.send(embed=embed)
@@ -174,7 +174,7 @@ class MiscCog(commands.Cog, name="Misc"):
     async def botsay(self, ctx, channel_id_or_name: str, *args):
         """Say something in another channel
 
-        Category : Trusted roles only.
+        Permission Category : Trusted roles only.
         Usage: `~botsay channelname Message`
         Usage: `~botsay #channelmention Longer Message`
         """
@@ -224,7 +224,7 @@ class MiscCog(commands.Cog, name="Misc"):
     async def botsayembed(self, ctx, channel_id_or_name: str, *args):
         """Say something in another channel, but as an embed
 
-        Category : Trusted roles only.
+        Permission Category : Trusted roles only.
         Usage: `~botsayembed channelname Message`
         Usage: `~botsayembed #channelmention Longer Message`
         """

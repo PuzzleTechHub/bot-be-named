@@ -30,7 +30,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
         Note that if the role is not already created, it cannot share name with a user. Use `~clonerole` or manually to create the role first.
 
-        Category : Trusted Roles only.
+        Permission Category : Trusted Roles only.
         Usage: `~assignrole "RoleName" "User3" "User2"`
         Usage: `~assignrole @RoleName "User3" "User2"`
         Usage: `~assignrole "NewRoleName" @User1`
@@ -131,7 +131,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         """Unassigns a role from a list of users.
         To not ping them, you may name the role or the users (nick or username) instead. Mentioning either is also guaranteed to work.
 
-        Category : Trusted Roles only.
+        Permission Category : Trusted Roles only.
         Usage: `~unassignrole @RoleName @User1 @User2`
         Usage: `~unassignrole "RoleName" @User1`
         """
@@ -225,7 +225,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
         The role can be mentioned or named.
 
-        Category : Trusted Roles only.
+        Permission Category : Trusted Roles only.
         Usage: `~clonerole @RoleName "NewRoleName"`
         Usage: `~clonerole @RoleName @RoleName2`
         """
@@ -313,7 +313,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
     async def deleterole(self, ctx, rolename: Union[nextcord.Role, str]):
         """Delete a role from the server
 
-        Category : Admin or Bot Owner only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~deleterole "RoleName"`
         Usage: `~deleterole @RoleMention`
         """

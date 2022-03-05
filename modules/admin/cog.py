@@ -17,25 +17,29 @@ class AdminCog(commands.Cog, name="Admin"):
     def __init__(self, bot):
         self.bot = bot
 
+    ################################
+    # PERMISSION CATEGORY COMMANDS #
+    ################################
+
     @command_predicates.is_owner_or_admin()
-    @commands.command(name="addverified",
-        aliases=["addverifieds"],
+    @commands.command(name="addperm",
+        aliases=["addverifieds","addverified","addperms"],
         )
-    async def addverified(
+    async def addperm(
         self,
         ctx,
+        role_permissions: str,
         role_or_rolename: Union[nextcord.Role, str],
-        role_permissions: str = "Verified",
     ):
-        """Add a new verified category for a given role on this server. Only available to server admins or bot owners.
+        """Add a new Permission Category for a given role on this server. Only available to server admins or bot owners.
 
-        A lot of bot commands can only be used by Verified, so this command is necessary before people can use them.
+        A lot of bot commands can only be used by one of the Permission Categories, so this command is necessary beforehand.
 
-        Category : Admin or Bot Owner Roles only.
-        Usage: `~addverified @Verified Verified`
-        Usage: `~addverified @everyone Verified`
+        Permission Category : Admin or Bot Owner Roles only.
+        Usage: `~addperm Verified @VerifiedRoleName`
+        Usage: `~addperm Trusted @everyone`
         """
-        logging_utils.log_command("addverified", ctx.guild, ctx.channel, ctx.author)
+        logging_utils.log_command("addperm", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if role_permissions not in database.VERIFIED_CATEGORIES:
@@ -71,7 +75,6 @@ class AdminCog(commands.Cog, name="Admin"):
             return
 
         with Session(database.DATABASE_ENGINE) as session:
-            # TODO: Figure out how to catch the duplicate unique key error so I can insert first, then find if exists.
             result = (
                 session.query(database.Verifieds)
                 .filter_by(
@@ -114,6 +117,11 @@ class AdminCog(commands.Cog, name="Admin"):
                 database.SOLVERS[ctx.guild.id].append(role_to_assign.id)
             else:
                 database.SOLVERS[ctx.guild.id] = [role_to_assign.id]
+        elif role_permissions == models.TESTER:
+            if ctx.guild.id in database.TESTERS:
+                database.TESTERS[ctx.guild.id].append(role_to_assign.id)
+            else:
+                database.TESTERS[ctx.guild.id] = [role_to_assign.id]
 
         embed.add_field(
             name=constants.SUCCESS,
@@ -124,24 +132,26 @@ class AdminCog(commands.Cog, name="Admin"):
 
     @command_predicates.is_owner_or_admin()
     @commands.command(
-        name="lsverifieds",
-        aliases=["listverifieds", "verifieds", "lsverified", "listverified"],
+        name="listperm",
+        aliases=["lsverifieds","listverifieds", "verifieds", "lsverified", "listverified","lsperms","listperms","lsperm"],
     )
-    async def lsverifieds(self, ctx, role_permissions: str = "Verified"):
-        """List all roles in Verified Permissions within the server.
+    async def listperm(self, ctx, role_permissions: str = "Verified"):
+        """List all roles in the given Permission Category within the server.
 
-        Category : Admin or Bot Owner Roles only.
-        Usage: `~listverifieds`
+        See also: `~addperms`
+
+        Permission Category : Admin or Bot Owner Roles only.
+        Usage: `~listperm Verified`
         """
-        logging_utils.log_command("lsverifieds", ctx.guild, ctx.channel, ctx.author)
+        logging_utils.log_command("listperm", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if role_permissions not in database.VERIFIED_CATEGORIES:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value=f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
-                f"but you supplied {role_permissions}",
+                value=f"`role_permissions` must be in `{', '.join(database.VERIFIED_CATEGORIES)}`, "
+                f"but you supplied `{role_permissions}`",
             )
             await ctx.send(embed=embed)
             return
@@ -150,9 +160,7 @@ class AdminCog(commands.Cog, name="Admin"):
             models.VERIFIED: database.VERIFIEDS,
             models.TRUSTED: database.TRUSTEDS,
             models.SOLVER: database.SOLVERS,
-            # TODO: Tester will always return null here because we don't save it as a cache,
-            # but this setup will allow us to add new categories without bloating this command.
-            models.TESTER: []
+            models.TESTER: database.TESTERS
         }
 
         if (
@@ -167,10 +175,110 @@ class AdminCog(commands.Cog, name="Admin"):
         else:
             embed.add_field(
                 name=f"No {role_permissions} roles for {ctx.guild.name}",
-                value=f"Set up {role_permissions} roles with `{ctx.prefix}addverified`",
+                value=f"Set up `{role_permissions}` roles with `{ctx.prefix}addverified`",
                 inline=False
             )
         await ctx.send(embed=embed)
+
+    @command_predicates.is_owner_or_admin()
+    @commands.command(
+        name="removeperm", aliases=["removeverified","removeverifieds","rmverifieds", "rmtrusted", "removetrusted","removeperms","rmperms","rmverified","rmperm"]
+    )
+    async def removeperm(self, ctx, role_permissions: str, role_or_rolename: Union[nextcord.Role, str]):
+        """Remove a role from the given Permission Category within the server. 
+        Only available to server admins or bot owners.
+
+        Permission Category : Admin or Bot Owner Roles only.
+        Usage: `~removeperm Verified @VerifiedRoleName`
+        Usage: `~removeperm Trusted @everyone`
+        """
+        logging_utils.log_command("removeperm", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        if role_permissions not in database.VERIFIED_CATEGORIES:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
+                f"but you supplied {role_permissions}",
+            )
+            await ctx.send(embed=embed)
+            return
+        
+        role_to_remove = None
+        # Get role. Allow people to use the command by pinging the role, or just naming it
+        if isinstance(role_or_rolename, nextcord.Role):
+            role_to_remove = role_or_rolename
+        else:
+            # Search over all roles and see if we get a match.
+            roles = await ctx.guild.fetch_roles()
+            for role in roles:
+                if role.name.lower() == role_or_rolename.lower():
+                    role_to_remove = role
+                    break
+            if not role_to_remove:
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"Sorry, I can't find role `{role_or_rolename}`.",
+                )
+                await ctx.send(embed=embed)
+                return
+
+        with Session(database.DATABASE_ENGINE) as session:
+            result = (
+                session.query(database.Verifieds)
+                .filter_by(server_id=ctx.guild.id, role_id_permissions=f"{role_to_remove.id}_{role_permissions}")
+                .first()
+            )
+            if result is None:
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"Role {role_to_remove.mention} is not `{role_permissions}` in `{ctx.guild.name}`",
+                )
+                await ctx.send(embed=embed)
+                return
+            else:
+                session.delete(result)
+                session.commit()
+
+        if (
+            role_permissions == models.VERIFIED
+            and role_to_remove.id in database.VERIFIEDS[ctx.guild.id]
+        ):
+            database.VERIFIEDS[ctx.guild.id].pop(
+                database.VERIFIEDS[ctx.guild.id].index(role_to_remove.id)
+            )
+        elif (
+            role_permissions == models.TRUSTED
+            and role_to_remove.id in database.TRUSTEDS[ctx.guild.id]
+        ):
+            database.TRUSTEDS[ctx.guild.id].pop(
+                database.TRUSTEDS[ctx.guild.id].index(role_to_remove.id)
+            )
+        elif (
+            role_permissions == models.SOLVER
+            and role_to_remove.id in database.SOLVERS[ctx.guild.id]
+        ):
+            database.SOLVERS[ctx.guild.id].pop(
+                database.SOLVERS[ctx.guild.id].index(role_to_remove.id)
+            )
+        elif (
+            role_permissions == models.TESTER
+            and role_to_remove.id in database.TESTERS[ctx.guild.id]
+        ):
+            database.TESTERS[ctx.guild.id].pop(
+                database.TESTERS[ctx.guild.id].index(role_to_remove.id)
+            )
+        
+        embed.add_field(
+            name=f"{constants.SUCCESS}",
+            value=f"Removed {role_to_remove.mention} from `{role_permissions}` in `{ctx.guild.name}`",
+        )
+        await ctx.send(embed=embed)
+
+
+    ##################
+    # GUILD COMMANDS #
+    ##################
 
     @command_predicates.is_owner_or_admin()
     @commands.command(
@@ -184,7 +292,7 @@ class AdminCog(commands.Cog, name="Admin"):
     ):
         """List all users in common between 2 guilds that the bot is in.
 
-        Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner Roles only.
         See also : `~lsguilds`
         Usage: `~commonmemberguilds "Guild1" "Guild2"`
         """
@@ -243,7 +351,7 @@ class AdminCog(commands.Cog, name="Admin"):
     async def lsguilds(self, ctx):
         """List all guilds that the bot is in.
 
-        Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner Roles only.
         Usage: `~lsguilds`
         """
         logging_utils.log_command("lsguilds", ctx.guild, ctx.channel, ctx.author)
@@ -267,99 +375,11 @@ class AdminCog(commands.Cog, name="Admin"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_owner_or_admin()
-    @commands.command(
-        name="rmverified", aliases=["removeverified","removeverifieds","rmverifieds", "rmtrusted", "removetrusted"]
-    )
-    async def rmverified(self, ctx, role_or_rolename: Union[nextcord.Role, str], role_permissions: str = "Verified"):
-        """Remove a role from the list of verifieds/trusteds. Only available to server admins or bot owners.
-        May supply a role category (e.g. `Verified`, `Trusted`)
-
-        Category : Admin or Bot Owner Roles only.
-        Usage: `~rmverified @Verified`
-        Usage: `~rmverified @Trusted Trusted`
-        """
-        logging_utils.log_command("rmverified", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        if role_permissions not in database.VERIFIED_CATEGORIES:
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
-                f"but you supplied {role_permissions}",
-            )
-            await ctx.send(embed=embed)
-            return
-        
-        role_to_remove = None
-        # Get role. Allow people to use the command by pinging the role, or just naming it
-        if isinstance(role_or_rolename, nextcord.Role):
-            role_to_remove = role_or_rolename
-        else:
-            # Search over all roles and see if we get a match.
-            roles = await ctx.guild.fetch_roles()
-            for role in roles:
-                if role.name.lower() == role_or_rolename.lower():
-                    role_to_remove = role
-                    break
-            if not role_to_remove:
-                embed.add_field(
-                    name=f"{constants.FAILED}",
-                    value=f"Sorry, I can't find role {role_or_rolename}.",
-                )
-                await ctx.send(embed=embed)
-                return
-
-        with Session(database.DATABASE_ENGINE) as session:
-            result = (
-                session.query(database.Verifieds)
-                .filter_by(server_id=ctx.guild.id, role_id_permissions=f"{role_to_remove.id}_{role_permissions}")
-                .first()
-            )
-            if result is None:
-                embed.add_field(
-                    name=f"{constants.FAILED}",
-                    value=f"Role {role_to_remove.mention} is not {role_permissions} in {ctx.guild.name}",
-                )
-                await ctx.send(embed=embed)
-                return
-            else:
-                session.delete(result)
-                session.commit()
-
-        if (
-            role_permissions == models.VERIFIED
-            and role_to_remove.id in database.VERIFIEDS[ctx.guild.id]
-        ):
-            database.VERIFIEDS[ctx.guild.id].pop(
-                database.VERIFIEDS[ctx.guild.id].index(role_to_remove.id)
-            )
-        elif (
-            role_permissions == models.TRUSTED
-            and role_to_remove.id in database.TRUSTEDS[ctx.guild.id]
-        ):
-            database.TRUSTEDS[ctx.guild.id].pop(
-                database.TRUSTEDS[ctx.guild.id].index(role_to_remove.id)
-            )
-        elif (
-            role_permissions == models.SOLVER
-            and role_to_remove.id in database.SOLVERS[ctx.guild.id]
-        ):
-            database.SOLVERS[ctx.guild.id].pop(
-                database.SOLVERS[ctx.guild.id].index(role_to_remove.id)
-            )
-
-        embed.add_field(
-            name=f"{constants.SUCCESS}",
-            value=f"Removed {role_to_remove.mention} from {role_permissions} in {ctx.guild.name}",
-        )
-        await ctx.send(embed=embed)
-
-    @command_predicates.is_owner_or_admin()
     @commands.command(name="setprefix")
     async def setprefix(self, ctx, prefix: str):
         """Sets the bot prefix for the server.
 
-        Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner Roles only.
         Usage: `~setprefix !`
         """
         logging_utils.log_command("setprefix", ctx.guild, ctx.channel, ctx.author)
@@ -378,6 +398,10 @@ class AdminCog(commands.Cog, name="Admin"):
         )
         await ctx.send(embed=embed)
 
+    ######################
+    # BOT CACHE COMMANDS #
+    ######################
+
     @command_predicates.is_owner_or_admin()
     @commands.command(
         name="reloaddatabasecache", aliases=["reloaddbcache", "dbcachereload"]
@@ -385,7 +409,7 @@ class AdminCog(commands.Cog, name="Admin"):
     async def reloaddatabasecache(self, ctx):
         """Reloads the custom command cache. This is useful when we're editing commands or playing with the Database.
 
-        Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner Roles only.
         Usage: `~reloaddatabasecache`
         """
         logging_utils.log_command(
@@ -398,6 +422,7 @@ class AdminCog(commands.Cog, name="Admin"):
         database.VERIFIEDS[ctx.guild.id] = []
         database.TRUSTEDS[ctx.guild.id] = []
         database.SOLVERS[ctx.guild.id] = []
+        database.TESTERS[ctx.guild.id] = []
 
         with Session(database.DATABASE_ENGINE) as session:
             custom_command_result = (
@@ -430,6 +455,8 @@ class AdminCog(commands.Cog, name="Admin"):
                         database.TRUSTEDS[ctx.guild.id].append(verified.role_id)
                     elif verified.permissions == models.SOLVER:
                         database.SOLVERS[ctx.guild.id].append(verified.role_id)
+                    elif verified.permissions == models.TESTER:
+                        database.TESTERS[ctx.guild.id].append(verified.role_id)
             embed.add_field(
                 name=f"{constants.SUCCESS}!",
                 value="Successfully reloaded verifieds cache.",

@@ -40,7 +40,7 @@ class HelpCommand(commands.MinimalHelpCommand):
                     value = f"{cog.description}\n{value}"
                 embed.add_field(name=name, value=value)
 
-        # TODO: We don't have any commands with no category anymore
+        # For commands with no category (does not exist anymore)
         # embed.add_field(name="No category", value=f"{chr(10)}".join(f"{prefix}{c.name}" for c in no_category_commands))
 
         embed.set_footer(text=self.get_ending_note())
@@ -50,9 +50,6 @@ class HelpCommand(commands.MinimalHelpCommand):
         """implements cog help page"""
         embed = discord_utils.create_embed()
         embed.title = f"{cog.qualified_name} Commands"
-        # embed = nextcord.Embed(
-        #    title=f"{cog.qualified_name} Commands", colour=constants.EMBED_COLOR
-        # )
         if cog.description:
             embed.description = cog.description
 

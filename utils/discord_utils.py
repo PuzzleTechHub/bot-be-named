@@ -165,19 +165,19 @@ async def pin_message(message: nextcord.Message) -> nextcord.Embed:
         async for pinmsg in message.channel.history(limit=5):
             if pinmsg.type == nextcord.MessageType.pins_add:
                 await pinmsg.delete()
-    except nextcord.HTTPException:
-        embed = create_embed()
-        embed.add_field(
-            name=f"{constants.FAILED} to pin!",
-            value=f"Cannot pin system messages (e.g. **Bot-Be-Named** pinned **a message** to this channel.)",
-        )
-        return embed
     except nextcord.Forbidden:
         embed = create_embed()
         embed.add_field(
             name=f"{constants.FAILED} to pin!",
             value=f"I don't have permissions to pin a message in {message.channel.mention}. Please check "
             "my permissions and try again.",
+        )
+        return embed
+    except nextcord.HTTPException:
+        embed = create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED} to pin!",
+            value=f"Cannot pin system messages (e.g. **Bot-Be-Named** pinned **a message** to this channel.)",
         )
         return embed
 
@@ -195,30 +195,6 @@ def populate_embed(names: list, values: list, inline: bool = False) -> nextcord.
     return embed
 
 
-def sort_channels_util(
-    channel_list: list,
-    prefixes: list = [
-        solved_constants.SOLVEDISH_PREFIX,
-        solved_constants.BACKSOLVED_PREFIX,
-        solved_constants.SOLVED_PREFIX,
-    ],
-) -> list:
-    """Sort channels according to some prefixes"""
-    channel_list_sorted = sorted(channel_list, key=lambda x: x.name)
-
-    channel_list_prefixes = []
-    for prefix in prefixes:
-        channel_list_prefixes += list(
-            filter(lambda x: x.name.startswith(prefix), channel_list_sorted)
-        )
-
-    unsolved = channel_list_sorted
-    unsolved = list(filter(lambda x: x not in channel_list_prefixes, unsolved))
-
-    return unsolved + channel_list_prefixes
-
-
-# TODO: I'm going to need to rewrite this at some point...
 def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
     """Splits embeds that are too long (discord character limit)
     Arguments:

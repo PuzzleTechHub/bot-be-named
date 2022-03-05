@@ -38,7 +38,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         See also `~sheettab`.
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage : `~tether SheetLink`
         """
         logging_utils.log_command("addsheettether", ctx.guild, ctx.channel, ctx.author)
@@ -79,7 +79,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         See also `~sheettab`.
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage : `~chantether SheetLink`
         """
         logging_utils.log_command(
@@ -131,7 +131,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         If a channel tether and a category tether both exist, the channel tether will always be removed first.
         See also `~addtether` and `~sheettab`.
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage : `~removetether`
         """
         logging_utils.log_command(
@@ -204,7 +204,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-    # TODO: PETE READ THIS
     @command_predicates.is_solver()
     @commands.command(name="channelcreatetab", aliases=["channelcrab", "chancrab"])
     async def channelcreatetab(self, ctx, chan_name: str, *args):
@@ -213,7 +212,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
         Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage : `~chancrab PuzzleName`
         Usage : `~chancrab PuzzleName linktopuzzle`
         """
@@ -287,7 +286,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 await msg.add_reaction(EMOJIS[":pushpin:"])
 
         embed = discord_utils.create_embed()
-        # TODO: technically there's a world where the posts *weren't* pinned, although it's unclear how much that matters in this message.
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
@@ -307,7 +305,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
         Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage : `~metacrab PuzzleName`
         Usage : `~metacrab PuzzleName linktopuzzle`
         """
@@ -381,7 +379,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 await msg.add_reaction(EMOJIS[":pushpin:"])
 
         embed = discord_utils.create_embed()
-        # TODO: technically there's a world where the posts *weren't* pinned, although it's unclear how much that matters in this message.
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
@@ -399,7 +396,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     async def displaysheettether(self, ctx):
         """Find the sheet the category is current tethered too
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage : `~showtether`
         """
         logging_utils.log_command(
@@ -477,7 +474,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
         Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage : `~sheetcrab TabName`
         Usage : `~sheetcrab TabName pin` (Pins the new tab on creation)
         """
@@ -528,7 +525,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
         Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage : `~sheettab TabName`
         """
         logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
@@ -555,7 +552,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         msg = await ctx.send(embed=embed)
         # Pin message to the new channel
         embed_or_none = await discord_utils.pin_message(msg)
-        # TODO: Do we even care about printing out the error message if the pin failed?
         if embed_or_none is not None:
             await ctx.send(embed=embed_or_none)
 
@@ -567,7 +563,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """Download  the channel/category's currently tethered sheet. You can supply a URL or it will
         use the currently tethered sheet.
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage: `~savesheet`
         """
         logging_utils.log_command("downloadsheet", ctx.guild, ctx.channel, ctx.author)
@@ -912,21 +908,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
     # LION COMMANDS #
     #################
 
-    """
-    TODO: New workflow for hunts:
-    ~DONE templatelion (set the template sheet for the server)
-    ~DONE huntlion/clonelion (duplicates the sheet and then adds hunt info to the sheet, also tethers the sheet to the category)
-    ~DONE chanlion/sheetlion (makes a new tab for a new feeder puzzle and then updates the info in the sheet accordingly)
-    ~DONE metalion/metasheetlion (makes a new tab for a new meta puzzle and then updates the info in the meta puzzle sheet)
-    ~IN PROGRESS ! ~hunturllion/urllion/renamelion/flavorlion (change attributes of the hunt and updates the sheet)
-    ~NOT STARTED roundlion (adds a puzzle to a round)
-    ~NOT STARTED taglion (tags a specific role to a puzzle)
-    ~NOT STARTED mentionlion (mentions the tagged roles of that puzzle, used when you need help)
-    ~DONE ! solvedlion/solvishedlion/backsolvedlion/unsolvedlion/unsolvablelion/workingonlion/abandonedlion (changes the color of the tab and also the sheet, also updates stats, for solved/solvedish/backsolved/unsolved, also changes the name of the discord channel)
-    ~NOT STARTED hintlion/hintsentlion (hintlion expresses the intent to request a hint and puts a matter to a vote, hintsentlion signifies that a hint has been sent)
-    ~IN PROGRESS ! archivelion (is the same as regular move to archive, but also moves the sheet to the end/hides the sheet)
-    """
-
     ##### LION STATUS COMMANDS #####
 
     async def findchanidcell(self, ctx, sheet_link):
@@ -984,7 +965,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Also see ~sheetlion and ~displaytether.
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~gettablion
         """
         logging_utils.log_command("gettablion", ctx.guild, ctx.channel, ctx.author)
@@ -1048,7 +1029,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     async def solvedlion(self, ctx, answer: str = None):
         """Sets the puzzle to solved and updates the sheet and channel name accordingly
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~solvedlion
         Usage: ~solvedlion "answer"
         """
@@ -1059,7 +1040,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     async def backsolvedlion(self, ctx, answer: str = None):
         """Sets the puzzle to backsolved and updates the sheet and channel name accordingly
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~backsolvedlion
         Usage: ~backsolvedlion "answer"
         """
@@ -1070,7 +1051,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     async def solvedishlion(self, ctx):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~solvedishlion
         """
         await self.statuslion(ctx, "solvedish")
@@ -1080,7 +1061,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     async def unsolvedlion(self, ctx):
         """Sets the puzzle to in progress and updates the sheet and channel name accordingly
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~unsolvedlion
         """
         await self.statuslion(ctx, "inprogress")
@@ -1092,7 +1073,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         For statuses solved, postsolved, and backsolved, users have the option to add an answer
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~statuslion status
         Usage: ~statuslion solved "answer"
         """
@@ -1264,7 +1245,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Also moves the tab to the end of the list of tabs on the Google Sheet.
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage: `~mtalion`
         Usage: `~mtalion archive_category_name`
         """
@@ -1416,8 +1397,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
             answer_col + str(first_empty), f"='{chan_name_for_sheet_ref}'!B3"
         )
 
-        # TODO: update stats sheet, can be done after MH
-
         newsheet.update_acell("A1", chan_name)
 
         if url:
@@ -1435,7 +1414,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """Updates the url of a puzzle and updates it on the sheet. Also pins the message in the channel.
 
 
-        Category : Solver Roles only.
+        Permission Category : Solver Roles only.
         Usage: `~urllion <url>`
         """
         logging_utils.log_command("mtalion", ctx.guild, ctx.channel, ctx.author)
@@ -1490,7 +1469,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Requires that the sheet has Overview and Template tabs
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~chanlion PuzzleName
         Usage: ~chanlion PuzzleName linktopuzzle
         """
@@ -1519,7 +1498,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Requires that the sheet has Overview and Template tabs
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~chanlion PuzzleName
         Usage: ~chanlion PuzzleName linktopuzzle
         """
@@ -1543,7 +1522,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Requires that the sheet has Overview and Meta Template tabs
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~chanlion PuzzleName
         Usage: ~chanlion PuzzleName linktopuzzle
         """
@@ -1572,7 +1551,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Requires that the sheet has Overview and Meta Template tabs
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~chanlion PuzzleName
         Usage: ~chanlion PuzzleName linktopuzzle
         """
@@ -1680,7 +1659,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Requires that the template has the following tabs: Overview, Template, Meta Template
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: '~settemplatelion <sheet link>'
         """
         logging_utils.log_command("settemplatelion", ctx.guild, ctx.channel, ctx.author)
@@ -1758,7 +1737,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     async def gettemplatelion(self, ctx):
         """Find the sheet used as the puzzlehunt template for this server.
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: '~gettemplatelion'
         """
         logging_utils.log_command("gettemplatelion", ctx.guild, ctx.channel, ctx.author)
@@ -1805,7 +1784,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     async def deletetemplatelion(self, ctx):
         """Unbind the template from the server.
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: '~removetether'
         """
         logging_utils.log_command(
@@ -1864,7 +1843,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         Requires that role does not have "folder/" inside the role name
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~huntlion SheetName hunturl
         Usage: ~huntlion SheetName hunturl role
         Usage: ~huntlion SheetName hunturl role folderurl
@@ -2010,7 +1989,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         For any lion commands, a tether using either ~clonelion or ~huntlion is necessary.
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~clonelion SheetName hunturl
         Usage: ~clonelion SheetName hunturl folderurl
         """
@@ -2061,7 +2040,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         For developers: also returns the cloned sheet
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: ~clonetemplatelion SheetName
         """
         logging_utils.log_command(

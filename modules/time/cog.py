@@ -166,7 +166,7 @@ class TimeCog(commands.Cog, name="Time"):
 
         utctime = datetime.datetime.now(tz=pytz.UTC)
 
-        # TODO: I'm being REALLY loose on the arguments here
+        # Note: I'm being REALLY loose on the arguments here
         if "d" in args[0] and args[0][0] != "-":
             remind_time = utctime + datetime.timedelta(days=int(args[0][:-1]))
         elif "h" in args[0] and args[0][0] != "-":

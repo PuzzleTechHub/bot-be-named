@@ -101,7 +101,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         if ctx.message.reference:
             reply = True
             orig_msg = ctx.message.reference.resolved
-            # TODO - if orig_msg is DeletedReferencedMessage
             if not orig_msg.pinned:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
@@ -180,7 +179,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def stats(self, ctx):
         """Get server stats
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~stats`
         """
         logging_utils.log_command("stats", ctx.guild, ctx.channel, ctx.author)
@@ -211,7 +210,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def catstats(self, ctx, cat_name: str = ""):
         """Get category stats
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~catstats` (current category)
         Usage: `~catstats "Cat Name"` (Named category)
         """
@@ -249,7 +248,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def listemoji(self, ctx):
         """List all emojis in a server
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~listemojis`
         """
         logging_utils.log_command("listemoji", ctx.guild, ctx.channel, ctx.author)
@@ -267,7 +266,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     ):
         """Steals an emote from another server and uploads it to this server with the same name.
 
-        Category : Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~steal :emote1: :emote2:`
         """
         logging_utils.log_command("steal", ctx.guild, ctx.channel, ctx.author)
@@ -297,7 +296,6 @@ class DiscordCog(commands.Cog, name="Discord"):
                                 value=f"Error adding `:{name}:` to server. Do I have the correct permissions to manage emotes in this server?",
                             )
                             await ses.close()
-                        # TODO: What error gets thrown if there are too many emotes?
                         except:
                             embed.add_field(
                                 name=f"{constants.FAILED}",
@@ -341,7 +339,6 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.send(embed=embed)
             return
 
-        # TODO - if orig_msg is DeletedReferencedMessage
         msg = "```" + orig_msg.content + "```"
         embed.add_field(
             name=f"{constants.SUCCESS}!",

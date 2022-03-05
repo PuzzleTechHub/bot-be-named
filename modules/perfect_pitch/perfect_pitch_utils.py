@@ -24,7 +24,7 @@ class Note:
         else:
             self.octave = octave
             self.instrument = instrument
-            # TODO: is this the best way to check if a note is inside an instrument's range?
+            # Not Done: is this the best way to check if a note is inside an instrument's range?
             proposed_path = os.path.join(
                 os.getcwd(),
                 constants.MODULES_DIR,
@@ -90,14 +90,14 @@ class Tune:
                     print(f"{arg} is not an octave")
                     # If they do not properly supply the octave, just ignore it and keep the default
                     pass
-            # TODO: add instrument handling here
+            # Not Done:: add instrument handling here
             elif arg.startswith("i=") or arg.startswith("instrument="):
                 self.instrument = arg.split("=")[-1].lower()
             # Right now there is only piano so
             # if the arg is not a meter or an octave then it must be a note
             else:
                 try:
-                    # TODO: Let's you stack multiple notes at the same time, but it doesn't work very well...
+                    # Not Done:: Let's you stack multiple notes at the same time, but it doesn't work very well...
                     # if 'v' in arg:
                     #    for chord_idx, chord_note in enumerate(arg.split('v')):
                     #        self.notes.append(self.get_note(chord_note))
@@ -112,7 +112,7 @@ class Tune:
 
     def get_note(self, note) -> Note:
         """Process one note str
-        Notes can come in one of 8 formats (TODO: instrument?)
+        Notes can come in one of 8 formats (Not Done: instrument?)
         A pure natural note, no octave e.g. C
         A note with flat or sharp e.g. Eb
         A natural note with octave e.g. C4
@@ -145,7 +145,7 @@ class Tune:
             note = note[:-1]
         except ValueError:
             octave = self.default_octave
-        # TODO: instrument?
+        # Not Done: instrument?
         instrument = self.instrument
         # Get the letter (handle sharps and flats in a lookup table)
         letter = perfect_pitch_constants.CLEANED_NOTES[note]
@@ -155,7 +155,7 @@ class Tune:
     async def create_tune(self) -> str:
         """Use FFMPEG to mix the notes, and return the path of the mixed audio"""
         # Store the tune here. NOTE: only one tune per channel, for scaling reasons and within arithmancy puzzling.
-        # TODO: Maybe fix later?
+        # Not Done: Maybe fix later?
         output_dir = os.path.join(
             os.getcwd(),
             constants.MODULES_DIR,
@@ -218,7 +218,7 @@ class Tune:
                 f"ffmpeg -y {' '.join(input_paths)} -filter_complex "
                 f"'{filter_complex}{mix}amix=inputs={len(time_indices)}:dropout_transition=1000,volume={perfect_pitch_constants.VOLUME},loudnorm' {final_output_path}"
             )
-            # TODO: optimize ffmpeg-normalize
+            # Not Done: optimize ffmpeg-normalize
             # os.system(
             #    f"ffmpeg-normalize -f -c:a libmp3lame {final_output_path} -o {final_output_path}"
             # )
@@ -257,7 +257,7 @@ class Tune:
                     partition_start_index : partition_start_index + partition_size
                 ]
                 # Keep track of the times we will need to merge each partition back in at the end
-                # TODO: We're doing something a little funky with the time...
+                # Not Done: We're doing something a little funky with the time...
                 # Either we have to do -1 in the index of merge_time_indices, or we have to subtract the next index for
                 # relative time indices. Technically, the latter way is more correct. the current way kinda looks cleaner.
                 merge_time_indices.append(
@@ -266,7 +266,7 @@ class Tune:
                     else 0
                 )
                 # Relative time indices keeps track of the delays relative to that partition.
-                # The start of partition 2 should have time 0, so we need to subtract the lar.... see TODO above
+                # The start of partition 2 should have time 0, so we need to subtract the lar.... see Note above
                 relative_time_indices = (
                     relative_time_indices - partition_time_indices[-1]
                 )
@@ -319,7 +319,7 @@ class Tune:
                 f"'{filter_complex}{mix}amix=inputs={len(merge_time_indices)},"
                 f"volume={perfect_pitch_constants.VOLUME},loudnorm' {final_output_path}"
             )
-            # TODO: ffmpeg-normalize is too slow for now
+            # Not Done: ffmpeg-normalize is too slow for now
             # os.system(
             #    f"ffmpeg-normalize -f -c:a libmp3lame {final_output_path} -o {final_output_path}"
             # )

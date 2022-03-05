@@ -20,7 +20,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
     async def addembedcommand(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with an embed reply
 
-        Category: Trusted Roles only.
+        Permission Category : Trusted Roles only.
         Usage: `~addccommand command_name "This is my custom command!"`
         """
         logging_utils.log_command("addembedcommand", ctx.guild, ctx.channel, ctx.author)
@@ -94,7 +94,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
     async def addtextcommand(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with a text reply. It is not in embed, so is ideal for images and role pings.
 
-        Category: Trusted Roles only.
+        Permission Category : Trusted Roles only.
         Usage: `~addcimage command_name Link_to_image`
         Usage: `~addcimage command_name Link_to_hyperlink`
         """
@@ -170,7 +170,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
     async def lscustomcommands(self, ctx):
         """List custom commands in the server
 
-        Category: Verified Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~listccommands`
         """
         logging_utils.log_command(
@@ -203,7 +203,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         """Edit an existing custom command. If the command doesn't already exist, adds the command.
         See also: `~addccommand`
 
-        Category: Trusted Roles only.
+        Permission Category : Trusted Roles only.
         Usage: `~editcustomcommand potato "My new return value"`
         """
         logging_utils.log_command(
@@ -268,7 +268,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
     async def rmcustomcommand(self, ctx, command_name: str):
         """Remove an existing custom command
 
-        Category: Trusted Roles only.
+        Permission Category : Trusted Roles only.
         Usage: `~rmcustomcommand potato`
         """
         logging_utils.log_command("rmcustomcommand", ctx.guild, ctx.channel, ctx.author)
