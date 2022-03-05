@@ -63,7 +63,7 @@ To run the bot locally, you will need a `.env` file which is used by [python-dot
 cp .env.template .env
 ```
 
-and fill in the blanks in order to get the bot running. You also need to set up the Postgresql database for the bot using (To be finished).
+and fill in the blanks in order to get the bot running. You also need to set up the Postgresql database for the bot using Heroku's PostgresSQL add-on (To be finished). First [install the add-on](https://elements.heroku.com/addons/heroku-postgresql) then [set it up](https://devcenter.heroku.com/articles/heroku-postgresql) to attach your app to the Postgres. Now you can look at `Heroku - Dashboard - Resources - Add Ons` to look at the app on Heroku, and copy the URI given from Postgres add-on to the respective line in the `.env file`
 
 Once you do all that, run
 
@@ -80,22 +80,29 @@ and the bot will run on the supplied discord token's account.
 Once you have the bot running and basic commands (like `~help`) run properly, you can host it externally. Our instance of the bot is [hosted on Heroku](https://medium.com/@linda0511ny/create-host-a-discord-bot-with-heroku-in-5-min-5cb0830d0ff2)
 
 
+### Other useful things
+
+If you have github + heroku, using Heroku's [Github integration](https://devcenter.heroku.com/articles/github-integration) allows you to automatically push Github pushes to also deploy on Heroku. (Using `git push` to push to both Github and Heroku)
+
+When deploying on heroku, any variables stored in .env locally cannot be pushed to any public repos. It's advisable to use [Heroku Config Vars](https://devcenter.heroku.com/articles/config-vars) to store them.
+
 ## Current Modules
 
-- [Admin](./modules/admin) for administrator commands (currently, only changing the prefix)
+- [Admin](./modules/admin) for administrator commands
 - [Archive](./modules/archive) for downloading channel/category/server contents into a Zip file
-- [Channel Management](./modules/channel_management) for cloning, creating, and moving channels  
-- [Cipher Race](modules/cipher_race) Race against the clock decoding ciphers!
+- [Channel Management](./modules/channel_management) for cloning, creating, and moving channels - [Cipher Race](modules/cipher_race) Race against the clock decoding ciphers!
+- [Custom Command](./modules/custom_command) for making custom commands in different servers
 - [Discord](modules/discord) for discord utility commands (e.g. roles, stats)
 - [Error Logging](./modules/error_logging) for printing error logs
-- [Lookup](./modules/lookup) for Searching the internet via google and wikipedia
-- [Music Race](./modules/music_race/) Help! Our tunes have been sawed apart and put back incorrectly!
 - [Help](./modules/help) is an updated help command which automatically pulls docstrings for `~help`
+- [Lookup](./modules/lookup) for Searching the internet via google and wikipedia
+- [Misc](./modules/misc) for misc. random (fun) commands
+- [Music Race](./modules/music_race/) Help! Our tunes have been sawed apart and put back incorrectly!
 - [Perfect Pitch](./modules/perfect_pitch) Become a composer and write tunes in mp4
+- [Role Management](./modules/role_management) for managing roles and similar
 - [Sheets](./modules/sheets) for working with Google Sheets during puzzlehunts
 - [Solved](./modules/solved) for marking Discord Channels as solved, backsolved, solvedish etc.
 - [Time](./modules/time) for finding the time anywhere in the world
-- [Misc](./modules/misc) for misc. random (fun) commands
 
 ## Acknowledgements
 
