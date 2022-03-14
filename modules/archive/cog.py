@@ -131,7 +131,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     @command_predicates.is_verified()
     @commands.command(name="archivechannel", aliases=["archivechan"])
-    async def archivechannel(self, ctx, *args: List[Union[nextcord.TextChannel, str]]):
+    async def archivechannel(self, ctx, *args: Union[nextcord.TextChannel, str]):
         """Command to download channel's history
 
         Permission Category : Verified Roles only.
