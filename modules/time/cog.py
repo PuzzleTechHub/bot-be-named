@@ -126,6 +126,7 @@ class TimeCog(commands.Cog, name="Time"):
 
         # Server Channel Time Username ID Event
         reminders = self.reminder_tab.get_all_values()
+
         # Skip header row
         for i, row in enumerate(reminders[1:]):
             deadline_time = time_utils.parse_date(
