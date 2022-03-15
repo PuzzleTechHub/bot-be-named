@@ -427,6 +427,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"User {calling_user.mention} needs to be in a Voice Channel to use `~renamevc`!",
+                inline=False,
             )
             # reply to user
             await ctx.send(embed=embed)
@@ -446,6 +447,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"Renamed voice channel `{oldvcname}` in category `{voice_chan_to_rename.category}` to {voice_chan_to_rename.mention}",
+            inline=False,
         )
         # reply to user
         await ctx.send(embed=embed)
@@ -483,6 +485,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Error! The category named `{old_category_name}` not found.  Perhaps check your spelling and try again.",
+                inline=False,
             )
             # reply to user
             await ctx.send(embed=embed)
@@ -495,6 +498,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the `manage_channels` permisisons?",
+                inline=False,
             )
             # reply to user
             await ctx.send(embed=embed)
@@ -530,6 +534,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Error! The category named `{category_to_sync_name}` not found.  Perhaps check your spelling and try again.",
+                inline=False,
             )
             # reply to user
             await ctx.send(embed=embed)
@@ -554,6 +559,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                inline=False,
             )
             # reply to user
             await ctx.send(embed=embed)
@@ -564,6 +570,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"All channels in category `{category.name}` successfully synced to Category!",
+            inline=False,
         )
         await ctx.send(embed=embed)
 
@@ -610,6 +617,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"The current channel {ctx.channel.mention} does not exist in a category I can move. Check `~help shiftcat`.",
+                inline=False,
             )
             await ctx.send(embed=embed)
             return
@@ -619,6 +627,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"I cannot find category `{cat_to_shift_name}`. Perhaps check your spelling and try again.",
+                inline=False,
             )
             await ctx.send(embed=embed)
             return
@@ -632,6 +641,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 embed.add_field(
                     name=f"{constants.FAILED}",
                     value=f"I cannot find category `{cat_shifting_to_name}`. Perhaps check your spelling and try again.",
+                    inline=False,
                 )
                 await ctx.send(embed=embed)
                 return
@@ -643,6 +653,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"I was unable to shift category `{cat_to_shift}`. Do I have the `manage_channels` permission?",
+                inline=False,
             )
             await ctx.send(embed=embed)
             return
@@ -651,11 +662,13 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.SUCCESS}!",
                 value=f"Succesfully moved Category `{cat_to_shift}` to top of the server.",
+                inline=False,
             )
         else:
             embed.add_field(
                 name=f"{constants.SUCCESS}!",
                 value=f"Succesfully moved Category `{cat_to_shift}` to just below Category `{cat_shifting_to}`",
+                inline=False,
             )
         await ctx.send(embed=embed)
 
@@ -691,6 +704,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"I cannot find category {origCatName}. Perhaps check your spelling and try again.",
+                inline=False,
             )
             await ctx.send(embed=embed)
             return
@@ -704,6 +718,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"Next time, please supply both `origRole` and `targetRole`, or neither.",
+                inline=False,
             )
             await ctx.send(embed=embed)
             return
@@ -736,6 +751,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 name=f"{constants.FAILED}",
                 value=f"Cannot find role {origRole}, are you sure it exists? Retry this command with @{origRole} "
                 + f"if it does.",
+                inline=False,
             )
             await ctx.send(embed=embed)
             return
@@ -753,11 +769,13 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 embed.add_field(
                     name=f"{constants.SUCCESS}",
                     value=f"\nCreated {targetRole.mention} with the same server permissions as {origRole.mention}",
+                    inline=False,
                 )
             except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}",
                     value=f"I was unable to create role {targetRole}. Do I have the `manage_roles` permission?",
+                    inline=False,
                 )
                 await ctx.send(embed=embed)
                 return
@@ -771,12 +789,14 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 embed.add_field(
                     name=f"{constants.SUCCESS}",
                     value=f"Cloned `{origCat}` as `{targetCat}`",
+                    inline=False,
                 )
             # if targetCat exists, but no roles were given
             elif origRole is None:
                 embed.add_field(
                     name=f"{constants.SUCCESS}",
                     value=f"Nothing to do. Category `{origCat}` and `{targetCat}` already exist, and no roles were given to sync.",
+                    inline=False,
                 )
 
             if origRole is not None:
@@ -788,16 +808,19 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                     embed.add_field(
                         name=f"{constants.SUCCESS}",
                         value=f"Synced {targetRole.mention}'s permissions in `{targetCat}` with {origRole.mention}'s in `{origCat}`",
+                        inline=False,
                     )
                 else:
                     embed.add_field(
                         name=f"{constants.FAILED}",
                         value=f"{origRole.mention} does not seem to have permission overwrites in `{origCat}`",
+                        inline=False,
                     )
         except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"I was unable to create category {targetCatName}. Do I have the `manage_channels` permission?",
+                inline=False,
             )
             await ctx.send(embed=embed)
             return
@@ -828,6 +851,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"Categories in {ctx.guild.name}",
                 value=f"{chr(10).join(categories)}",
+                inline=False,
             )
             await ctx.send(embed=embed)
             return
@@ -839,6 +863,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Error! The category named `{cat_name}` not found.  Perhaps check your spelling and try again.",
+                inline=False,
             )
             # reply to user
             await ctx.send(embed=embed)
@@ -849,7 +874,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         if channels == []:
             channels = ["(This Category is empty)"]
         embed.add_field(
-            name=f"Channels in {category}", value=f"{chr(10).join(channels)}"
+            name=f"Channels in {category}", value=f"{chr(10).join(channels)}",
+            inline=False,
         )
         await ctx.send(embed=embed)
 
@@ -881,6 +907,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"No category given",
+                inline=False,
             )
             # reply to user
             await ctx.send(embed=embed)
@@ -893,6 +920,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Error! The category named `{cat_name}` not found.  Perhaps check your spelling and try again.",
+                inline=False,
             )
             # reply to user
             await ctx.send(embed=embed)
@@ -943,6 +971,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                     final_embed.add_field(
                         name=f"{constants.SUCCESS}!",
                         value=f"The category named `{category.name}` has been deleted!",
+                        inline=False,
                     )
                     final_embed.add_field(
                         name=f"Channels deleted",
@@ -953,10 +982,12 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                     final_embed.add_field(
                         name=f"{constants.FAILED}!",
                         value=f"The category named `{category.name}` could not be deleted!",
+                        inline=False,
                     )
             else:
                 final_embed.add_field(
-                    name="Canceled", value="The operation was cancelled."
+                    name="Canceled", value="The operation was cancelled.",
+                    inline=False,
                 )
         except asyncio.TimeoutError:
             final_embed.add_field(name="Canceled", value="The operation was cancelled.")
