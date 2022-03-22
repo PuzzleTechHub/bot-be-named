@@ -142,6 +142,42 @@ async def find_category(
     return category
 
 
+async def find_role(
+    ctx: commands.Context, role_name: Union[nextcord.Role, str]
+) -> nextcord.Role:
+    """Convert the name to a nextcord Role
+    Arguments:
+        - ctx (nextcord.ext.commands.Context): The command's context
+        - role_name (str): The name of the role
+    Returns:
+        - role (nextcord.Role): the role or None if not found"""
+
+    if (isinstance(role_name, nextcord.Role)) or role_name is None:
+        return role_name
+    guild_roles = await ctx.guild.roles
+    for role in guild_roles:
+        if(role.name.lower() == role_name.lower()):
+            return role
+    return None
+
+async def find_user(
+    ctx: commands.Context, user_name: Union[nextcord.Member, str]
+) -> nextcord.Role:
+    """Convert the name to a nextcord Member
+    Arguments:
+        - ctx (nextcord.ext.commands.Context): The command's context
+        - user_name (str): The name of the user
+    Returns:
+        - user (nextcord.Member): the user or None if not found"""
+
+    if (isinstance(user_name, nextcord.Member)) or user_name is None:
+        return user_name
+    guild_users = await ctx.guild.members
+    for user in guild_users:
+        if(user.name.lower() == user_name.lower()):
+            return user
+    return None
+
 async def pin_message(message: nextcord.Message) -> nextcord.Embed:
     """Pin a message. Catches Forbidden, HTTPSError (too many pins in channel)
     Arguments:
