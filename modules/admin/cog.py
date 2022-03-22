@@ -135,17 +135,12 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(
         name="listperm",
         aliases=[
-            "lsverifieds",
-            "listverifieds",
-            "verifieds",
-            "lsverified",
-            "listverified",
             "lsperms",
             "listperms",
             "lsperm",
         ],
     )
-    async def listperm(self, ctx, role_permissions: str = "Verified"):
+    async def listperm(self, ctx, role_permissions: str):
         """List all roles in the given Permission Category within the server.
 
         See also: `~addperms`

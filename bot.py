@@ -79,7 +79,7 @@ def main():
     @client.event
     async def on_guild_join(guild: nextcord.Guild):
         """When the bot joins a new guild, add it to the database for prefixes"""
-        print("Joining {guild} -- Hi!")
+        print(f"Joining {guild} -- Hi!")
         with Session(database.DATABASE_ENGINE) as session:
             stmt = insert(database.Prefixes).values(
                 server_id=guild.id,
