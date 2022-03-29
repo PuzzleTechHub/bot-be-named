@@ -154,8 +154,7 @@ async def find_role(
 
     if (isinstance(role_name, nextcord.Role)) or role_name is None:
         return role_name
-    guild_roles = await ctx.guild.roles
-    for role in guild_roles:
+    for role in ctx.guild.roles:
         if(role.name.lower() == role_name.lower()):
             return role
     return None
@@ -172,7 +171,7 @@ async def find_user(
 
     if (isinstance(user_name, nextcord.Member)) or user_name is None:
         return user_name
-    guild_users = await ctx.guild.members
+    guild_users = ctx.guild.members
     for user in guild_users:
         if(user.name.lower() == user_name.lower()):
             return user
