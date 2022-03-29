@@ -291,7 +291,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 origRoleorUser = origUser
 
         if isinstance(targetRoleorUser,str):
-            targetUser = await discord_utils.find_user(ctx,targetUser)
+            targetUser = await discord_utils.find_user(ctx,targetRoleorUser)
             if(targetUser is None):
                 targetRole = await discord_utils.find_role(ctx,targetRoleorUser)
                 if(targetRole is None):
