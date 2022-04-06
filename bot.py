@@ -108,6 +108,8 @@ def main():
             session.commit()
             session.query(database.Verifieds).filter_by(server_id=guild.id).delete()
             session.commit()
+            session.query(database.SheetTethers).filter_by(server_id=guild.id).delete()
+            session.commit()
         database.PREFIXES.pop(guild.id)
         database.VERIFIEDS.pop(guild.id)
         database.TRUSTEDS.pop(guild.id)

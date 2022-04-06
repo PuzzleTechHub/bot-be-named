@@ -216,6 +216,68 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
+
+    @command_predicates.is_owner_or_admin()
+    @commands.command(
+        name="prunetethers",
+    )
+    async def prunetethers(self, ctx):
+        """Remove all tethers from channels that no longer exist
+
+        See also : ~addtether
+
+        Permission Category : Owner or Admin only
+        Usage : `~prunetethers`
+        """
+        logging_utils.log_command(
+            "prunetethers", ctx.guild, ctx.channel, ctx.author
+        )
+        embed = discord_utils.create_embed()
+
+        with Session(database.DATABASE_ENGINE) as session:
+            result = (
+                session.query(database.SheetTethers)
+            )
+        
+        listresults = list(result)
+        to_delete = []
+        not_in_server = set()
+        for x in listresults:
+            serv = x.server_id
+            chan = x.channel_or_cat_id
+            botguilds = list(map(lambda x:x.id,ctx.bot.guilds))
+            if serv not in botguilds:
+                pass
+                not_in_server.add(serv)
+            else:
+                serverguild = list(filter(lambda x:x.id==serv,ctx.bot.guilds))[0]
+                if(chan == serv):
+                    pass
+                    #server tether
+                else:
+                    chan_cat_threads = (serverguild.channels + serverguild.threads)
+                    chan_cat_threads_id = list(map(lambda x:x.id,chan_cat_threads))
+                    if chan not in chan_cat_threads_id:
+                        to_delete.append((serv,chan))
+
+        print("Server not in bot for these channels... probably testing version")
+        print(list(not_in_server))
+
+        print()
+        for x in to_delete:
+            session.query(database.SheetTethers).filter_by(server_id=x[0],channel_or_cat_id=x[1]).delete()
+            session.commit()
+            print(f"Deleting tether at {x[0]} - {x[1]}")
+        
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"**{len(to_delete)}** tethers deleted.",
+            inline=False,
+        )
+        await ctx.send(embed=embed)
+
+
+
     @command_predicates.is_solver()
     @commands.command(name="channelcreatetab", aliases=["channelcrab", "chancrab"])
     async def channelcreatetab(self, ctx, chan_name: str, *args):
