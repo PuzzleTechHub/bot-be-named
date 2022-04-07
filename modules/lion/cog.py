@@ -300,13 +300,7 @@ class LionCog(commands.Cog, name="Lion"):
         await ctx.send(embed=embed)
 
         if status == curr_status:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.SUCCESS}",
-                value="Operations finished!",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
+            await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
             return
 
         add_prefix = status_info.get("prefix")
@@ -314,13 +308,7 @@ class LionCog(commands.Cog, name="Lion"):
         tab_name = overview.acell(puzz_name_col + str(row_to_find)).value
 
         if not add_prefix and not past_prefix:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.SUCCESS}",
-                value="Operations finished!",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
+            await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
             return
         elif past_prefix and not add_prefix:
             await channel.edit(name=tab_name)
@@ -331,13 +319,7 @@ class LionCog(commands.Cog, name="Lion"):
                 inline=False,
             )
             await ctx.send(embed=embed)
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.SUCCESS}",
-                value="Operations finished!",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
+            await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
             return
         else:
             await channel.edit(name=status + " " + tab_name)
@@ -348,13 +330,7 @@ class LionCog(commands.Cog, name="Lion"):
                 inline=False,
             )
             await ctx.send(embed=embed)
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.SUCCESS}",
-                value="Operations finished!",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
+            await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
             return
 
     @command_predicates.is_solver()
@@ -624,9 +600,7 @@ class LionCog(commands.Cog, name="Lion"):
         """
         logging_utils.log_command("sheetlion", ctx.guild, ctx.channel, ctx.author)
 
-        curr_sheet_link, newsheet = None, None
-
-        curr_sheet_link, newsheet = await self.sheetcreatetab(ctx, tab_name)
+        curr_sheet_link, newsheet = await sheet_utils.sheetcrabgeneric(self.gspread_client,ctx, tab_name)
 
         if curr_sheet_link is None or newsheet is None:
             return
@@ -769,173 +743,6 @@ class LionCog(commands.Cog, name="Lion"):
             return None
 
         return proposed_template
-
-    @command_predicates.is_solver()
-    @commands.command(
-        name="settemplatelion", aliases=["settemplion", "settemplate", "settemp"]
-    )
-    async def settemplion(self, ctx, template_sheet_key_or_link: str):
-        """Set the template Google sheets for puzzlehunts on this server.
-
-        Replaces the current template if one already exists.
-
-        Requires that the template has the following tabs: Overview, Template, Meta Template
-
-        Permission Category : Verified Roles only.
-        Usage: '~settemplatelion <sheet link>'
-        """
-        logging_utils.log_command("settemplatelion", ctx.guild, ctx.channel, ctx.author)
-
-        embed = discord_utils.create_embed()
-
-        # see if our link is actually a GSheet and has the required tabs
-        proposed_template = await self.validate_template(
-            ctx, template_sheet_key_or_link
-        )
-
-        if not proposed_template:
-            return
-
-        # If the server already has a template, update it, otherwise insert it into the database
-        with Session(database.DATABASE_ENGINE) as session:
-            result = (
-                session.query(database.SheetTemplates)
-                .filter_by(server_id=ctx.guild.id)
-                .first()
-            )
-
-            # template already exists
-            if result is not None:
-                result.sheet_link = proposed_template.url
-            # template does not exist
-            else:
-                stmt = insert(database.SheetTemplates).values(
-                    server_id=ctx.guild.id,
-                    server_name=ctx.guild.name,
-                    sheet_link=proposed_template.url,
-                )
-                session.execute(stmt)
-            # Commits change
-            session.commit()
-
-        embed.add_field(
-            name=f"{constants.SUCCESS}!",
-            value=f"This server **{ctx.guild.name}** now has the hunt template "
-            f"[Google sheet at link]({proposed_template.url})",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-
-    def findtemplate(self, ctx):
-        """For finding the hunt template for a given server."""
-        with Session(database.DATABASE_ENGINE) as session:
-            return (
-                session.query(database.SheetTemplates)
-                .filter_by(server_id=ctx.guild.id)
-                .first()
-            )
-
-    @command_predicates.is_solver()
-    @commands.command(
-        name="gettemplatelion",
-        aliases=[
-            "gettemplion",
-            "gettemplate",
-            "gettemp",
-            "templatelion",
-            "templion",
-            "temp",
-            "showtemplatelion",
-            "showtemplion",
-            "showtemplate",
-            "showtemp",
-            "displaytemplatelion",
-            "displaytemplion",
-            "displaytemplate",
-            "displaytemp",
-            "template",
-        ],
-    )
-    async def gettemplatelion(self, ctx):
-        """Find the sheet used as the puzzlehunt template for this server.
-
-        Permission Category : Verified Roles only.
-        Usage: '~gettemplatelion'
-        """
-        logging_utils.log_command("gettemplatelion", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        result = self.findtemplate(ctx)
-
-        # No template
-        if result is None:
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"This server **{ctx.guild.name}** does not have a template Google Sheet.",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return
-
-        # Template exists
-        embed.add_field(
-            name=f"{constants.SUCCESS}!",
-            value=f"We found a template for this server **{ctx.guild.name}** at "
-            f"[Google sheet at link]({result.sheet_link})",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-
-    @command_predicates.is_solver()
-    @commands.command(
-        name="deletetemplatelion",
-        aliases=[
-            "deletetemplion",
-            "deletetemplate",
-            "deletetemp",
-            "deltemplatelion",
-            "deltemplion",
-            "removetemplatelion",
-            "deltemplate",
-            "deltemp",
-            "removetemplion",
-            "removetemplate",
-            "removetemp",
-        ],
-    )
-    async def deletetemplatelion(self, ctx):
-        """Unbind the template from the server.
-
-        Permission Category : Verified Roles only.
-        Usage: '~removetether'
-        """
-        logging_utils.log_command(
-            "deletetemplatelion", ctx.guild, ctx.channel, ctx.author
-        )
-        embed = discord_utils.create_embed()
-
-        sheet = self.findtemplate(ctx)
-
-        # Remove the existing binding if it exists
-        if sheet is not None:
-            with Session(database.DATABASE_ENGINE) as session:
-                sheet_link = sheet.sheet_link
-                session.query(database.SheetTemplates).filter_by(
-                    server_id=ctx.guild.id
-                ).delete()
-                session.commit()
-            embed.add_field(
-                name=f"{constants.SUCCESS}!",
-                value=f"This server **{ctx.guild.name}** is no longer bound to [sheet]({sheet_link})!",
-                inline=False,
-            )
-        else:
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"This server **{ctx.guild.name}** does not have a bound template.",
-                inline=False,
-            )
-        await ctx.send(embed=embed)
 
     ######################
     # LION HUNT COMMANDS #

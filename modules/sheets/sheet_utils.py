@@ -58,6 +58,44 @@ def addsheettethergeneric(
         session.commit()
     return proposed_sheet
 
+async def sheetcrabgeneric(gspread_client,ctx, tab_name: str, to_pin: str = ""):
+    embed = discord_utils.create_embed()
+
+    curr_chan = ctx.message.channel
+    curr_cat = ctx.message.channel.category
+    curr_sheet_link, newsheet = await sheet_utils.sheetcreatetabgeneric(
+        gspread_client, ctx, curr_chan, curr_cat, tab_name
+    )
+
+    pin_flag = False
+    if to_pin.lower()[0:3] == "pin":
+        pin_flag = True
+
+    # Error, already being handled at the generic function
+    if not curr_sheet_link or newsheet is None:
+        return
+
+    # This link is customized for the newly made tab
+    final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
+
+    embed.add_field(
+        name=f"{constants.SUCCESS}!",
+        value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
+        inline=False,
+    )
+    msg = await ctx.send(embed=embed)
+
+    # Pin message to the new channel
+    if pin_flag:
+        embed_or_none = await discord_utils.pin_message(msg)
+        if embed_or_none is not None:
+            await ctx.send(embed=embed_or_none)
+        else:
+            await msg.add_reaction(EMOJIS[":pushpin:"])
+
+    return curr_sheet_link, newsheet
+
+
 async def chancrabgeneric(gspread_client,ctx,chan_name: str, *args):
     embed = discord_utils.create_embed()
     # Cannot make a new channel if the category is full
@@ -104,6 +142,8 @@ async def chancrabgeneric(gspread_client,ctx,chan_name: str, *args):
         value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
         inline=False,
     )
+
+    msg = None
     try:
         msg = await new_chan.send(embed=embed)
     except nextcord.Forbidden:
@@ -112,7 +152,10 @@ async def chancrabgeneric(gspread_client,ctx,chan_name: str, *args):
         value=f"Cannot send messages in `{chan_name}`!",
         inline=False,
         )
-        
+        await ctx.send(embed=embed)
+        return None, None, new_chan
+
+    
     # Try to pin the message in new channel
     embed_or_none = await discord_utils.pin_message(msg)
     # Error pinning message

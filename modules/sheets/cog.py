@@ -488,39 +488,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        curr_chan = ctx.message.channel
-        curr_cat = ctx.message.channel.category
-        curr_sheet_link, newsheet = await sheet_utils.sheetcreatetabgeneric(
-            self.gspread_client, ctx, curr_chan, curr_cat, tab_name
-        )
-
-        pin_flag = False
-        if to_pin.lower()[0:3] == "pin":
-            pin_flag = True
-
-        # Error, already being handled at the generic function
-        if not curr_sheet_link or newsheet is None:
-            return
-
-        # This link is customized for the newly made tab
-        final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
-
-        embed.add_field(
-            name=f"{constants.SUCCESS}!",
-            value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
-            inline=False,
-        )
-        msg = await ctx.send(embed=embed)
-
-        # Pin message to the new channel
-        if pin_flag:
-            embed_or_none = await discord_utils.pin_message(msg)
-            if embed_or_none is not None:
-                await ctx.send(embed=embed_or_none)
-            else:
-                await msg.add_reaction(EMOJIS[":pushpin:"])
-
-        return curr_sheet_link, newsheet
+        await sheet_utils.sheetcrabgeneric(self.gspread_client,ctx,tab_name,to_pin)
 
     @command_predicates.is_solver()
     @commands.command(
