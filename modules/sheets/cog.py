@@ -319,7 +319,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             )
             # reply to user
             await ctx.send(embed=embed)
-            return
+            return None,None,None
 
         text_to_pin = " ".join(args)
         tab_name = chan_name.replace("#", "").replace("-", " ")
@@ -330,7 +330,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         # Error, already being handled at the generic function
         if not curr_sheet_link or not newsheet or not newsheet.id:
-            return
+            return None,None,None
 
         # This link is customized for the newly made tab
         final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
@@ -347,7 +347,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
             )
             await ctx.send(embed=embed)
-            return
+            return None,None,None
 
         embed = discord_utils.create_embed()
         embed.add_field(

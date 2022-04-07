@@ -18,7 +18,6 @@ from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 # SHEET UTILS FUNCTIONS #
 #########################
 
-
 def addsheettethergeneric(
     gspread_client,
     sheet_key_or_link: str,
