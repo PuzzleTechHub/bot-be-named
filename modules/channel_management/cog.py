@@ -810,7 +810,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         targetRole_or_none = await discord_utils.find_role(ctx, targetRole)
 
         # If we have looped over all the roles and still can't find an origRole, then that's an error
-        if origRole_or_none is None:
+        if origRole_or_none is None and origRole is not None:
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"Cannot find role {origRole}, are you sure it exists? Retry this command with @{origRole} "
@@ -821,7 +821,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             return
 
         # if targetRole doesn't exist, create it
-        if targetRole_or_none is None:
+        if targetRole_or_none is None and targetRole is not None:
             try:
                 targetRole = await ctx.guild.create_role(
                     name=targetRole,
