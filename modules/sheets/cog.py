@@ -1,6 +1,6 @@
 import googleapiclient
 from utils import discord_utils, google_utils, logging_utils, command_predicates
-from modules.sheets import sheets_constants,sheet_utils
+from modules.sheets import sheets_constants, sheet_utils
 import constants
 from nextcord.ext import commands
 import nextcord
@@ -216,7 +216,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await ctx.send(embed=embed)
             return
 
-
     @command_predicates.is_owner_or_admin()
     @commands.command(
         name="prunetethers",
@@ -229,54 +228,50 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Permission Category : Owner or Admin only
         Usage : `~prunetethers`
         """
-        logging_utils.log_command(
-            "prunetethers", ctx.guild, ctx.channel, ctx.author
-        )
+        logging_utils.log_command("prunetethers", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         with Session(database.DATABASE_ENGINE) as session:
-            result = (
-                session.query(database.SheetTethers)
-            )
-        
+            result = session.query(database.SheetTethers)
+
         listresults = list(result)
         to_delete = []
         not_in_server = set()
         for x in listresults:
             serv = x.server_id
             chan = x.channel_or_cat_id
-            botguilds = list(map(lambda x:x.id,ctx.bot.guilds))
+            botguilds = list(map(lambda x: x.id, ctx.bot.guilds))
             if serv not in botguilds:
                 pass
                 not_in_server.add(serv)
             else:
-                serverguild = list(filter(lambda x:x.id==serv,ctx.bot.guilds))[0]
-                if(chan == serv):
+                serverguild = list(filter(lambda x: x.id == serv, ctx.bot.guilds))[0]
+                if chan == serv:
                     pass
-                    #server tether
+                    # server tether
                 else:
-                    chan_cat_threads = (serverguild.channels + serverguild.threads)
-                    chan_cat_threads_id = list(map(lambda x:x.id,chan_cat_threads))
+                    chan_cat_threads = serverguild.channels + serverguild.threads
+                    chan_cat_threads_id = list(map(lambda x: x.id, chan_cat_threads))
                     if chan not in chan_cat_threads_id:
-                        to_delete.append((serv,chan))
+                        to_delete.append((serv, chan))
 
         print("Server not in bot for these channels... probably testing version")
         print(list(not_in_server))
 
         print()
         for x in to_delete:
-            session.query(database.SheetTethers).filter_by(server_id=x[0],channel_or_cat_id=x[1]).delete()
+            session.query(database.SheetTethers).filter_by(
+                server_id=x[0], channel_or_cat_id=x[1]
+            ).delete()
             session.commit()
             print(f"Deleting tether at {x[0]} - {x[1]}")
-        
+
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"**{len(to_delete)}** tethers deleted.",
             inline=False,
         )
         await ctx.send(embed=embed)
-
-
 
     @command_predicates.is_solver()
     @commands.command(name="chancrab", aliases=["channelcrab", "channelcreatetab"])
@@ -295,8 +290,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         embed = discord_utils.create_embed()
 
-        return sheet_utils.chancrabgeneric(self.gspread_client,ctx,chan_name,args)
-
+        return sheet_utils.chancrabgeneric(self.gspread_client, ctx, chan_name, args)
 
     @command_predicates.is_solver()
     @commands.command(name="channelcreatemetatab", aliases=["metacrab"])
@@ -488,7 +482,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        await sheet_utils.sheetcrabgeneric(self.gspread_client,ctx,tab_name,to_pin)
+        await sheet_utils.sheetcrabgeneric(self.gspread_client, ctx, tab_name, to_pin)
 
     @command_predicates.is_solver()
     @commands.command(
@@ -561,7 +555,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 await ctx.send(embed=embed)
                 return
 
-        sheet = sheet_utils.get_sheet_from_key_or_link(self.gspread_client,tether_db_result.sheet_link)
+        sheet = sheet_utils.get_sheet_from_key_or_link(
+            self.gspread_client, tether_db_result.sheet_link
+        )
         if sheet is None:
             embed.add_field(
                 name=f"{constants.FAILED}",
@@ -608,6 +604,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     return
 
             await ctx.send(file=nextcord.File(download_path))
+
 
 def setup(bot):
     bot.add_cog(SheetsCog(bot))

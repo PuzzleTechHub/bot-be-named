@@ -1,5 +1,5 @@
 from utils import discord_utils, google_utils, logging_utils, command_predicates
-from modules.sheets import sheets_constants,sheet_utils
+from modules.sheets import sheets_constants, sheet_utils
 from modules.sheets import cog
 from modules import sheets
 import constants
@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 import asyncio
 from typing import Union
 from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
+
 
 class LionCog(commands.Cog, name="Lion"):
     """Google Sheets - Lion management commands"""
@@ -505,60 +506,6 @@ class LionCog(commands.Cog, name="Lion"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="urllion", alias=["updateurl", "puzzurl"])
-    async def urllion(self, ctx, url: str):
-        """Updates the url of a puzzle and updates it on the sheet. Also pins the message in the channel.
-
-
-        Permission Category : Solver Roles only.
-        Usage: `~urllion <url>`
-        """
-        logging_utils.log_command("mtalion", ctx.guild, ctx.channel, ctx.author)
-
-        result, _ = sheet_utils.findsheettether(
-            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
-        )
-
-        if result is None:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
-                f"are tethered to any Google sheet.",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return
-
-        curr_sheet_link = result.sheet_link
-
-        chan_cell, overview = None, None
-
-        chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
-
-        curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
-
-        if chan_cell is None or overview is None:
-            return
-
-        row_to_find = chan_cell.row
-
-        tab_id = overview.acell("B" + str(row_to_find)).value
-
-        puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
-        puzzle_tab.update_acell("B1", url)
-
-        await discord_utils.pin_message(ctx.message)
-
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.SUCCESS}",
-            value=f"Updated url to {url}, pinned message.",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-
-    @command_predicates.is_solver()
     @commands.command(name="chanlion")
     async def chanlion(self, ctx, chan_name: str, url=None):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
@@ -575,11 +522,11 @@ class LionCog(commands.Cog, name="Lion"):
 
         if url is not None:
             curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
-                self.gspread_client,ctx, chan_name, url
+                self.gspread_client, ctx, chan_name, url
             )
         else:
             curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
-                self.gspread_client,ctx, chan_name
+                self.gspread_client, ctx, chan_name
             )
 
         if curr_sheet_link is None or newsheet is None or new_chan is None:
@@ -600,7 +547,9 @@ class LionCog(commands.Cog, name="Lion"):
         """
         logging_utils.log_command("sheetlion", ctx.guild, ctx.channel, ctx.author)
 
-        curr_sheet_link, newsheet = await sheet_utils.sheetcrabgeneric(self.gspread_client,ctx, tab_name)
+        curr_sheet_link, newsheet = await sheet_utils.sheetcrabgeneric(
+            self.gspread_client, ctx, tab_name
+        )
 
         if curr_sheet_link is None or newsheet is None:
             return
@@ -669,7 +618,9 @@ class LionCog(commands.Cog, name="Lion"):
     async def validate_template(self, ctx, proposed_sheet):
         embed = discord_utils.create_embed()
 
-        proposed_template = sheet_utils.get_sheet_from_key_or_link(self.gspread_client,proposed_sheet)
+        proposed_template = sheet_utils.get_sheet_from_key_or_link(
+            self.gspread_client, proposed_sheet
+        )
 
         if not proposed_template:
             embed.add_field(
@@ -877,7 +828,9 @@ class LionCog(commands.Cog, name="Lion"):
         if await self.validate_template(ctx, new_sheet.url) is None:
             return
 
-        proposed_sheet = sheet_utils.addsheettethergeneric(self.gspread_client,new_sheet.url, ctx.guild, cat)
+        proposed_sheet = sheet_utils.addsheettethergeneric(
+            self.gspread_client, new_sheet.url, ctx.guild, cat
+        )
 
         if proposed_sheet:
             new_embed = discord_utils.create_embed()

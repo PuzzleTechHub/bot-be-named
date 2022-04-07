@@ -14,9 +14,10 @@ from sqlalchemy.orm import Session
 from typing import Union
 from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 
-    #########################
-    # SHEET UTILS FUNCTIONS #
-    #########################
+#########################
+# SHEET UTILS FUNCTIONS #
+#########################
+
 
 def addsheettethergeneric(
     gspread_client,
@@ -26,7 +27,7 @@ def addsheettethergeneric(
 ) -> gspread.Spreadsheet:
     """Add a sheet to the current channel"""
     # We accept both sheet keys or full links
-    proposed_sheet = get_sheet_from_key_or_link(gspread_client,sheet_key_or_link)
+    proposed_sheet = get_sheet_from_key_or_link(gspread_client, sheet_key_or_link)
 
     # If we can't open the sheet, send an error and return
     if not proposed_sheet:
@@ -58,7 +59,8 @@ def addsheettethergeneric(
         session.commit()
     return proposed_sheet
 
-async def sheetcrabgeneric(gspread_client,ctx, tab_name: str, to_pin: str = ""):
+
+async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = ""):
     embed = discord_utils.create_embed()
 
     curr_chan = ctx.message.channel
@@ -96,7 +98,7 @@ async def sheetcrabgeneric(gspread_client,ctx, tab_name: str, to_pin: str = ""):
     return curr_sheet_link, newsheet
 
 
-async def chancrabgeneric(gspread_client,ctx,chan_name: str, *args):
+async def chancrabgeneric(gspread_client, ctx, chan_name: str, *args):
     embed = discord_utils.create_embed()
     # Cannot make a new channel if the category is full
     if discord_utils.category_is_full(ctx.channel.category):
@@ -106,7 +108,7 @@ async def chancrabgeneric(gspread_client,ctx,chan_name: str, *args):
         )
         # reply to user
         await ctx.send(embed=embed)
-        return None,None,None
+        return None, None, None
 
     text_to_pin = " ".join(args)
     tab_name = chan_name.replace("#", "").replace("-", " ")
@@ -117,7 +119,7 @@ async def chancrabgeneric(gspread_client,ctx,chan_name: str, *args):
 
     # Error, already being handled at the generic function
     if not curr_sheet_link or not newsheet or not newsheet.id:
-        return None,None,None
+        return None, None, None
 
     # This link is customized for the newly made tab
     final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
@@ -134,7 +136,7 @@ async def chancrabgeneric(gspread_client,ctx,chan_name: str, *args):
             value=f"Forbidden! Have you checked if the bot has the required permisisons?",
         )
         await ctx.send(embed=embed)
-        return None,None,None
+        return None, None, None
 
     embed = discord_utils.create_embed()
     embed.add_field(
@@ -148,14 +150,13 @@ async def chancrabgeneric(gspread_client,ctx,chan_name: str, *args):
         msg = await new_chan.send(embed=embed)
     except nextcord.Forbidden:
         embed.add_field(
-        name=f"{constants.FAILED}!",
-        value=f"Cannot send messages in `{chan_name}`!",
-        inline=False,
+            name=f"{constants.FAILED}!",
+            value=f"Cannot send messages in `{chan_name}`!",
+            inline=False,
         )
         await ctx.send(embed=embed)
         return None, None, new_chan
 
-    
     # Try to pin the message in new channel
     embed_or_none = await discord_utils.pin_message(msg)
     # Error pinning message
@@ -185,9 +186,7 @@ async def chancrabgeneric(gspread_client,ctx,chan_name: str, *args):
     return curr_sheet_link, newsheet, new_chan
 
 
-def findsheettether(
-    curr_cat_id: int, curr_chan_id: int, curr_thread_id: int = None
-):
+def findsheettether(curr_cat_id: int, curr_chan_id: int, curr_thread_id: int = None):
     """For finding the appropriate sheet tethering for a given category or channel"""
     result = None
     tether_type = None
@@ -219,7 +218,10 @@ def findsheettether(
                 tether_type = sheets_constants.CATEGORY
     return result, tether_type
 
-def get_sheet_from_key_or_link(gspread_client,sheet_key_or_link: str) -> gspread.Spreadsheet:
+
+def get_sheet_from_key_or_link(
+    gspread_client, sheet_key_or_link: str
+) -> gspread.Spreadsheet:
     """Takes in a string, which could be a google sheet key or URL"""
     # Assume the str is a URL
     try:
@@ -238,15 +240,14 @@ def get_sheet_from_key_or_link(gspread_client,sheet_key_or_link: str) -> gspread
     except gspread.exceptions.APIError:
         return None
 
+
 async def sheetcreatetabgeneric(gspread_client, ctx, curr_chan, curr_cat, tab_name):
     """Actually creates the sheet and handles errors"""
     embed = discord_utils.create_embed()
     curr_sheet_link = None
     newsheet = None
 
-    tether_db_result, tether_type = findsheettether(
-        str(curr_cat.id), str(curr_chan.id)
-    )
+    tether_db_result, tether_type = findsheettether(str(curr_cat.id), str(curr_chan.id))
 
     if tether_db_result is not None:
         curr_sheet_link = tether_db_result.sheet_link
@@ -328,15 +329,14 @@ async def sheetcreatetabgeneric(gspread_client, ctx, curr_chan, curr_cat, tab_na
 
     return curr_sheet_link, newsheet
 
+
 async def sheetcreatetabmeta(gspread_client, ctx, curr_chan, curr_cat, tab_name):
     """Actually creates the meta sheet and handles errors"""
     embed = discord_utils.create_embed()
     curr_sheet_link = None
     newsheet = None
 
-    tether_db_result, tether_type = findsheettether(
-        str(curr_cat.id), str(curr_chan.id)
-    )
+    tether_db_result, tether_type = findsheettether(str(curr_cat.id), str(curr_chan.id))
 
     if tether_db_result is not None:
         curr_sheet_link = tether_db_result.sheet_link
