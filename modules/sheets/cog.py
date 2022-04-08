@@ -28,8 +28,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     @command_predicates.is_solver()
     @commands.command(
-        name="addsheettether",
-        aliases=["editsheettether", "tether", "edittether", "addtether"],
+        name="addtether",
+        aliases=["editsheettether", "tether", "edittether", "addsheettether"],
     )
     async def addsheettether(self, ctx, sheet_key_or_link: str):
         """Tethers a sheet to the current category.
@@ -69,12 +69,12 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     @command_predicates.is_solver()
     @commands.command(
-        name="addchannelsheettether",
+        name="chantether",
         aliases=[
             "channeltether",
             "editchantether",
             "addchantether",
-            "chantether",
+            "addchannelsheettether",
             "editthreadtether",
             "addthreadtether",
             "threadtether",
@@ -120,10 +120,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     @command_predicates.is_solver()
     @commands.command(
-        name="removesheettether",
+        name="removetether",
         aliases=[
             "deletetether",
-            "removetether",
+            "removesheettether",
             "deltether",
             "removetetherlion",
             "deltetherlion",
@@ -290,10 +290,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         embed = discord_utils.create_embed()
 
-        return sheet_utils.chancrabgeneric(self.gspread_client, ctx, chan_name, args)
+        return await sheet_utils.chancrabgeneric(self.gspread_client, ctx, chan_name, *args)
 
     @command_predicates.is_solver()
-    @commands.command(name="channelcreatemetatab", aliases=["metacrab"])
+    @commands.command(name="metacrab", aliases=["channelcreatemetatab"])
     async def channelcreatemetatab(self, ctx, chan_name: str, *args):
         """Create new channel, then a New tab on the sheet that is currently tethered to this category, then pins links to the channel, if any.
 
@@ -311,84 +311,13 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         embed = discord_utils.create_embed()
 
-        # Cannot make a new channel if the category is full
-        if discord_utils.category_is_full(ctx.channel.category):
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
-            )
-            # reply to user
-            await ctx.send(embed=embed)
-            return None,None,None
+        return await sheet_utils.metacrabgeneric(self.gspread_client,ctx,chan_name,*args)
 
-        text_to_pin = " ".join(args)
-        tab_name = chan_name.replace("#", "").replace("-", " ")
-
-        curr_sheet_link, newsheet = await sheet_utils.sheetcreatetabmeta(
-            self.gspread_client, ctx, ctx.channel, ctx.channel.category, tab_name
-        )
-
-        # Error, already being handled at the generic function
-        if not curr_sheet_link or not newsheet or not newsheet.id:
-            return None,None,None
-
-        # This link is customized for the newly made tab
-        final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
-
-        # new channel created (or None)
-        new_chan = await discord_utils.createchannelgeneric(
-            ctx.guild, ctx.channel.category, chan_name
-        )
-        # Error creating channel
-        if not new_chan:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
-            )
-            await ctx.send(embed=embed)
-            return None,None,None
-
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.SUCCESS}!",
-            value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
-            inline=False,
-        )
-        msg = await new_chan.send(embed=embed)
-        # Try to pin the message in new channel
-        embed_or_none = await discord_utils.pin_message(msg)
-        # Error pinning message
-        if embed_or_none is not None:
-            await new_chan.send(embed=embed_or_none)
-
-        if text_to_pin:
-            embed = discord_utils.create_embed()
-            embed.description = text_to_pin
-            msg = await new_chan.send(embed=embed)
-            # Pin message in the new channel
-            embed_or_none = await discord_utils.pin_message(msg)
-
-            # Error pinning message
-            if embed_or_none is not None:
-                await ctx.send(embed=embed_or_none)
-            else:
-                await msg.add_reaction(EMOJIS[":pushpin:"])
-
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.SUCCESS}!",
-            value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-
-        return curr_sheet_link, newsheet, new_chan
 
     @command_predicates.is_solver()
     @commands.command(
-        name="displaysheettether",
-        aliases=["showsheettether", "showtether", "displaytether"],
+        name="showtether",
+        aliases=["showsheettether", "displaysheettether", "displaytether"],
     )
     async def displaysheettether(self, ctx):
         """Find the sheet the category is current tethered too
@@ -445,7 +374,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             elif tether_type == sheets_constants.CATEGORY:
                 embed.add_field(
                     name=f"Result",
-                    value=f"The category **{curr_cat.name}** is currently tethered to the "
+                    value=f"The category **{curr_cat}** is currently tethered to the "
                     f"[Google sheet at link]({curr_sheet_link})",
                     inline=False,
                 )
@@ -468,7 +397,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             return
 
     @command_predicates.is_solver()
-    @commands.command(name="sheetcreatetab", aliases=["sheettab", "sheetcrab"])
+    @commands.command(name="sheetcrab", aliases=["sheettab", "sheetcreatetab"])
     async def sheetcreatetab(self, ctx, tab_name: str, to_pin: str = ""):
         """Create a New tab on the sheet that is currently tethered to this category
 
@@ -486,7 +415,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     @command_predicates.is_solver()
     @commands.command(
-        name="sheetcreatemetatab", aliases=["sheetmetatab", "sheetmetacrab"]
+        name="sheetmetacrab", aliases=["sheetmetatab", "sheetcreatemetatab"]
     )
     async def sheetcreatemetatab(self, ctx, tab_name: str):
         """Create a New tab on the sheet that is currently tethered to this category

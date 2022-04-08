@@ -572,12 +572,12 @@ class LionCog(commands.Cog, name="Lion"):
         curr_sheet_link, newsheet, new_chan = None, None, None
 
         if url is not None:
-            curr_sheet_link, newsheet, new_chan = await self.channelcreatemetatab(
-                ctx, chan_name, url
+            curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
+                self.gspread_client,ctx, chan_name, url
             )
         else:
-            curr_sheet_link, newsheet, new_chan = await self.channelcreatemetatab(
-                ctx, chan_name
+            curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
+                self.gspread_client,ctx, chan_name
             )
 
         if curr_sheet_link is None or newsheet is None or new_chan is None:

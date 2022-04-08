@@ -14,6 +14,8 @@ from sqlalchemy.orm import Session
 from typing import Union
 from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 
+from utils.google_utils import GSPREAD_CLIENT
+
 #########################
 # SHEET UTILS FUNCTIONS #
 #########################
@@ -95,6 +97,81 @@ async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = "")
             await msg.add_reaction(EMOJIS[":pushpin:"])
 
     return curr_sheet_link, newsheet
+
+async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
+    embed = discord_utils.create_embed() 
+    # Cannot make a new channel if the category is full
+    if discord_utils.category_is_full(ctx.channel.category):
+        embed.add_field(
+            name=f"{constants.FAILED}!",
+            value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
+        )
+        # reply to user
+        await ctx.send(embed=embed)
+        return None,None,None
+
+    text_to_pin = " ".join(args)
+    tab_name = chan_name.replace("#", "").replace("-", " ")
+
+    curr_sheet_link, newsheet = await sheet_utils.sheetcreatetabmeta(
+        gspread_client, ctx, ctx.channel, ctx.channel.category, tab_name
+    )
+
+    # Error, already being handled at the generic function
+    if not curr_sheet_link or not newsheet or not newsheet.id:
+        return None,None,None
+
+    # This link is customized for the newly made tab
+    final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
+
+    # new channel created (or None)
+    new_chan = await discord_utils.createchannelgeneric(
+        ctx.guild, ctx.channel.category, chan_name
+    )
+    # Error creating channel
+    if not new_chan:
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED}!",
+            value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+        )
+        await ctx.send(embed=embed)
+        return None,None,None
+
+    embed = discord_utils.create_embed()
+    embed.add_field(
+        name=f"{constants.SUCCESS}!",
+        value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
+        inline=False,
+    )
+    msg = await new_chan.send(embed=embed)
+    # Try to pin the message in new channel
+    embed_or_none = await discord_utils.pin_message(msg)
+    # Error pinning message
+    if embed_or_none is not None:
+        await new_chan.send(embed=embed_or_none)
+
+    if text_to_pin:
+        embed = discord_utils.create_embed()
+        embed.description = text_to_pin
+        msg = await new_chan.send(embed=embed)
+        # Pin message in the new channel
+        embed_or_none = await discord_utils.pin_message(msg)
+
+        # Error pinning message
+        if embed_or_none is not None:
+            await ctx.send(embed=embed_or_none)
+        else:
+            await msg.add_reaction(EMOJIS[":pushpin:"])
+
+    embed = discord_utils.create_embed()
+    embed.add_field(
+        name=f"{constants.SUCCESS}!",
+        value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
+        inline=False,
+    )
+    await ctx.send(embed=embed)
+    return curr_sheet_link, newsheet, new_chan
 
 
 async def chancrabgeneric(gspread_client, ctx, chan_name: str, *args):
