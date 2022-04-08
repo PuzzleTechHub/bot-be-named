@@ -155,9 +155,10 @@ async def find_role(
     if (isinstance(role_name, nextcord.Role)) or role_name is None:
         return role_name
     for role in ctx.guild.roles:
-        if(role.name.lower() == role_name.lower()):
+        if role.name.lower() == role_name.lower():
             return role
     return None
+
 
 async def find_user(
     ctx: commands.Context, user_name: Union[nextcord.Member, str]
@@ -173,9 +174,10 @@ async def find_user(
         return user_name
     guild_users = ctx.guild.members
     for user in guild_users:
-        if(user.name.lower() == user_name.lower()):
+        if user.name.lower() == user_name.lower():
             return user
     return None
+
 
 async def pin_message(message: nextcord.Message) -> nextcord.Embed:
     """Pin a message. Catches Forbidden, HTTPSError (too many pins in channel)

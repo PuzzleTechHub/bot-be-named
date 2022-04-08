@@ -230,11 +230,14 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     @command_predicates.is_verified()
     @commands.command(name="clonechannel", aliases=["clonechan", "chanclone"])
     async def clonechannel(
-        self, ctx, chan_a: Union[nextcord.TextChannel, str], chan_b: str = "",
+        self,
+        ctx,
+        chan_a: Union[nextcord.TextChannel, str],
+        chan_b: str = "",
         origRoleorUser: Union[nextcord.Role, nextcord.Member, str] = None,
         targetRoleorUser: Union[nextcord.Role, nextcord.Member, str] = None,
     ):
-        """Command to create channel in same category with given name. 
+        """Command to create channel in same category with given name.
         If user/role is specified, then syncs permissions as well.
         The channel created is just below the channel being cloned
 
@@ -243,7 +246,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         Permission Category : Verified Roles only.
         Usage: `~clonechannel #channel-to-clone new-channel-name`
         Usage: `~clonechannel new-channel-name` (Clones current channel)
-        Usage: `~clonechannel #chan1 chan2 @roleA @userB` (clones then syncs permission of A in chan1 with B in chan2) 
+        Usage: `~clonechannel #chan1 chan2 @roleA @userB` (clones then syncs permission of A in chan1 with B in chan2)
         """
         # log command in console
         logging_utils.log_command("clonechannel", ctx.guild, ctx.channel, ctx.author)
@@ -273,14 +276,14 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             await ctx.send(embed=embed)
             return
 
-        if isinstance(origRoleorUser,str):
-            origUser = await discord_utils.find_user(ctx,origUser)
-            if(origUser is None):
-                origRole = await discord_utils.find_role(ctx,origRoleorUser)
-                if(origRole is None):
+        if isinstance(origRoleorUser, str):
+            origUser = await discord_utils.find_user(ctx, origUser)
+            if origUser is None:
+                origRole = await discord_utils.find_role(ctx, origRoleorUser)
+                if origRole is None:
                     embed.add_field(
-                    name=f"{constants.FAILED}!",
-                    value=f"Role/User `{origRoleorUser}` does not exist. Please use @ to tag them.",
+                        name=f"{constants.FAILED}!",
+                        value=f"Role/User `{origRoleorUser}` does not exist. Please use @ to tag them.",
                     )
                     # reply to user
                     await ctx.send(embed=embed)
@@ -290,13 +293,15 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             else:
                 origRoleorUser = origUser
 
-        if isinstance(targetRoleorUser,str):
-            targetUser = await discord_utils.find_user(ctx,targetRoleorUser)
-            if(targetUser is None):
-                targetRole = await discord_utils.find_role(ctx,targetRoleorUser)
-                if(targetRole is None):
+        if isinstance(targetRoleorUser, str):
+            targetUser = await discord_utils.find_user(ctx, targetRoleorUser)
+            if targetUser is None:
+                targetRole = await discord_utils.find_role(ctx, targetRoleorUser)
+                if targetRole is None:
                     try:
-                        targetRoleorUser = await ctx.guild.create_role(name=targetRoleorUser)
+                        targetRoleorUser = await ctx.guild.create_role(
+                            name=targetRoleorUser
+                        )
                         await targetRoleorUser.edit(mentionable=True)
                         embed.add_field(
                             name=f"Created role {targetRoleorUser}",
@@ -311,7 +316,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                             inline=False,
                         )
                         await ctx.send(embed=embed)
-                        return       
+                        return
                 else:
                     targetRoleorUser = targetRole
             else:
@@ -351,12 +356,12 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             name=f"{constants.SUCCESS}!",
             value=f"Created channel {new_channel.mention} in `{category}` as a clone of {old_channel.mention}!",
             inline=False,
-            )
+        )
 
-        #If roles exist, add them.
-        if(origRoleorUser and targetRoleorUser):
+        # If roles exist, add them.
+        if origRoleorUser and targetRoleorUser:
             overwrites = old_channel.overwrites
-            if(overwrites.get(origRoleorUser) is None):
+            if overwrites.get(origRoleorUser) is None:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
                     value=f"{origRoleorUser.mention} is not in {old_channel.mention} overwrites. Skipping!",
@@ -366,7 +371,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 try:
                     overwrite = overwrites.get(origRoleorUser)
                     await new_channel.set_permissions(origRoleorUser, overwrite=None)
-                    await new_channel.set_permissions(targetRoleorUser, overwrite=overwrite)
+                    await new_channel.set_permissions(
+                        targetRoleorUser, overwrite=overwrite
+                    )
                     embed.add_field(
                         name=f"{constants.SUCCESS}!",
                         value=f"Synced permissions of {origRoleorUser.mention} in {old_channel.mention} with that of {targetRoleorUser.mention} in {new_channel.mention}.",
@@ -941,7 +948,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         if channels == []:
             channels = ["(This Category is empty)"]
         embed.add_field(
-            name=f"Channels in {category}", value=f"{chr(10).join(channels)}",
+            name=f"Channels in {category}",
+            value=f"{chr(10).join(channels)}",
             inline=False,
         )
         await ctx.send(embed=embed)
@@ -1053,7 +1061,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                     )
             else:
                 final_embed.add_field(
-                    name="Canceled", value="The operation was cancelled.",
+                    name="Canceled",
+                    value="The operation was cancelled.",
                     inline=False,
                 )
         except asyncio.TimeoutError:
