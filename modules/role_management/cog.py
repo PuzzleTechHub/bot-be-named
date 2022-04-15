@@ -32,7 +32,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
         Permission Category : Trusted Roles only.
         Usage: `~assignrole "RoleName" "User3" "User2"`
-        Usage: `~assignrole @RoleName "User3" "User2"`
+        Usage: `~assignrole @RoleName here (Everyone who can see this channel, including BBN)`
         Usage: `~assignrole "NewRoleName" @User1`
         Usage: `~assignrole "NewRolename"` (if no users given, just creates the role)
         """
@@ -78,6 +78,9 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                 await ctx.send(embed=embed)
                 return
 
+        if(args[0] == "here"):
+            args = ctx.channel.members
+         
         users_with_role_list = []
         for unclean_username in args:
             if isinstance(unclean_username, nextcord.Member):

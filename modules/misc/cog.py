@@ -101,7 +101,7 @@ class MiscCog(commands.Cog, name="Misc"):
             f"The bot has a few channel management functions, some puzzle-hunt utility functions, "
             f"as well as Google-Sheets interactivity.\n"
             f"You can make channels as well as tabs on your Sheet, and other similar QoL upgrades to your puzzlehunting setup.\n\n"
-            f"[Bot Github link](https://github.com/kevslinger/bot-be-named/)\n\n"
+            f"[Bot Github link](https://github.com/kevslinger/bot-be-named/) [Bot Discord Link](https://discord.gg/x8f2ywHUky)\n\n"
             f"To learn more about the bot or useful functions, use `{constants.DEFAULT_BOT_PREFIX}startup`\n"
             f"Any problems? Let {owner.mention} know.",
             inline=False,

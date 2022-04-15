@@ -87,6 +87,7 @@ class LionCog(commands.Cog, name="Lion"):
         Also see ~sheetlion and ~displaytether.
 
         Permission Category : Verified Roles only.
+        
         Usage: ~gettablion
         """
         logging_utils.log_command("gettablion", ctx.guild, ctx.channel, ctx.author)

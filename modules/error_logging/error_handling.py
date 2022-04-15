@@ -57,7 +57,7 @@ class ErrorHandler:
         elif isinstance(self.error, errors.CheckFailure):
             return (
                 f"You do not have the required perms to use this command. Please speak with a server "
-                "admin to get verified."
+                "admin to get the relevant role."
             )
         elif isinstance(self.error, errors.MissingAnyRole):
             # Get the missing role list.
