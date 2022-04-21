@@ -78,7 +78,6 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
         """
         channel = ctx.channel.id
         if channel in self.current_races:
-            print("startrace called from a channel that's already racing!!")
             embed = discord_utils.create_embed()
             embed.add_field(
                 name="Already Racing!",
@@ -310,7 +309,7 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
                 cipher_race_constants.COLUMNS,
             ),
         }
-        print(f"Reload used. Reloaded {cipher_race_constants.CODE} sheet")
+
         embed.add_field(
             name="Sheet Reloaded",
             value="Google sheet successfully reloaded",
@@ -396,7 +395,6 @@ class CipherRaceCog(commands.Cog, name="Cipher Race"):
             print(f"{channel}'s time is up, and they have completed the level!")
             return
 
-        print(f"{channel}'s time is up, unlucky.")
         # Create an embed to send to the team.
         embed = discord_utils.create_embed()
         embed.add_field(

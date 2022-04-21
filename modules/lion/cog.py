@@ -574,11 +574,11 @@ class LionCog(commands.Cog, name="Lion"):
 
         if url is not None:
             curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
-                self.gspread_client,ctx, chan_name, url
+                self.gspread_client, ctx, chan_name, url
             )
         else:
             curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
-                self.gspread_client,ctx, chan_name
+                self.gspread_client, ctx, chan_name
             )
 
         if curr_sheet_link is None or newsheet is None or new_chan is None:

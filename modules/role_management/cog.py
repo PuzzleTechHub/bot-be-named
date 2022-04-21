@@ -78,9 +78,9 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                 await ctx.send(embed=embed)
                 return
 
-        if(args[0] == "here"):
+        if args[0] == "here":
             args = ctx.channel.members
-         
+
         users_with_role_list = []
         for unclean_username in args:
             if isinstance(unclean_username, nextcord.Member):

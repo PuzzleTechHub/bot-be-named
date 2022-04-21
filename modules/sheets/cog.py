@@ -265,7 +265,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         embed = discord_utils.create_embed()
 
-        return await sheet_utils.chancrabgeneric(self.gspread_client, ctx, chan_name, *args)
+        return await sheet_utils.chancrabgeneric(
+            self.gspread_client, ctx, chan_name, *args
+        )
 
     @command_predicates.is_solver()
     @commands.command(name="metacrab", aliases=["channelcreatemetatab"])
@@ -286,8 +288,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         embed = discord_utils.create_embed()
 
-        return await sheet_utils.metacrabgeneric(self.gspread_client,ctx,chan_name,*args)
-
+        return await sheet_utils.metacrabgeneric(
+            self.gspread_client, ctx, chan_name, *args
+        )
 
     @command_predicates.is_solver()
     @commands.command(

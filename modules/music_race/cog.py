@@ -151,14 +151,6 @@ class MusicRace(commands.Cog, name="Music Race"):
             # Increments
             delay += 3
 
-        # debug_output_msg = ""
-        # for ans in finalanswer:
-        #    debug_output_msg += f"{ans[1]}-{ans[1]+3}: {ans[0]}\n"
-        # Not done: Remove once we are more certain about how this works. It ruins the puzzle, obviously
-        # await ctx.send(debug_output_msg)
-        # print(word)
-        # print(debug_output_msg)
-
         inputs = "".join(
             [
                 f"-i {os.path.join(music_race_constants.PUZZLE_PARTIAL_SONGS_DIR, finalanswer[idx][0] + '.mp3')} "
@@ -191,10 +183,6 @@ class MusicRace(commands.Cog, name="Music Race"):
             + f"-filter_complex '{filter_complex}{mix}amix=inputs={len(finalanswer)}:dropout_transition=1000,volume={music_race_constants.VOLUME/2},loudnorm' "
             f"{output_path}"
         )
-        # Not done: ffmpeg-normalize is too slow for now. Try to optimize later.
-        # os.system(
-        #    f"ffmpeg-normalize -f -c:a libmp3lame {output_path} -o {output_path}"
-        # )
         await ctx.send(file=nextcord.File(output_path))
 
 
