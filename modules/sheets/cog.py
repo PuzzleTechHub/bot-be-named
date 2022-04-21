@@ -389,7 +389,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         else:
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value=f"Neither the category **{curr_cat.name}** nor the channel {curr_chan.mention} "
+                value=f"Neither the category **{curr_cat}** nor the channel {curr_chan.mention} "
                 f"are tethered to any Google sheet.",
                 inline=False,
             )

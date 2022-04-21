@@ -87,7 +87,7 @@ class LionCog(commands.Cog, name="Lion"):
         Also see ~sheetlion and ~displaytether.
 
         Permission Category : Verified Roles only.
-        
+
         Usage: ~gettablion
         """
         logging_utils.log_command("gettablion", ctx.guild, ctx.channel, ctx.author)
@@ -386,7 +386,7 @@ class LionCog(commands.Cog, name="Lion"):
         embed = discord_utils.create_embed()
         embed.add_field(
             name=f"{constants.SUCCESS}!",
-            value=f"Moved sheet to the end of the spreadsheet!`",
+            value=f"Moved sheet to the end of the spreadsheet!",
         )
         await ctx.send(embed=embed)
 
@@ -420,7 +420,7 @@ class LionCog(commands.Cog, name="Lion"):
             else:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
-                    value=f"There is no category named `{archive_name}, so I cannot move {ctx.channel.mention}.",
+                    value=f"There is no category named `{archive_name}`, so I cannot move {ctx.channel.mention}.",
                 )
                 await ctx.send(embed=embed)
                 return
