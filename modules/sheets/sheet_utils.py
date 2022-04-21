@@ -171,6 +171,8 @@ async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
         inline=False,
     )
     await ctx.send(embed=embed)
+
+    addsheettethergeneric(gspread_client,curr_sheet_link,ctx.message.guild,new_chan)
     return curr_sheet_link, newsheet, new_chan
 
 
