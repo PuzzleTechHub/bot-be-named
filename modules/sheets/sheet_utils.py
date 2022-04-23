@@ -20,6 +20,7 @@ from utils.google_utils import GSPREAD_CLIENT
 # SHEET UTILS FUNCTIONS #
 #########################
 
+
 def addsheettethergeneric(
     gspread_client,
     sheet_key_or_link: str,
@@ -98,8 +99,9 @@ async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = "")
 
     return curr_sheet_link, newsheet
 
+
 async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
-    embed = discord_utils.create_embed() 
+    embed = discord_utils.create_embed()
     # Cannot make a new channel if the category is full
     if discord_utils.category_is_full(ctx.channel.category):
         embed.add_field(
@@ -108,7 +110,7 @@ async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
         )
         # reply to user
         await ctx.send(embed=embed)
-        return None,None,None
+        return None, None, None
 
     text_to_pin = " ".join(args)
     tab_name = chan_name.replace("#", "").replace("-", " ")
@@ -119,7 +121,7 @@ async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
 
     # Error, already being handled at the generic function
     if not curr_sheet_link or not newsheet or not newsheet.id:
-        return None,None,None
+        return None, None, None
 
     # This link is customized for the newly made tab
     final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
@@ -136,7 +138,7 @@ async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
             value=f"Forbidden! Have you checked if the bot has the required permisisons?",
         )
         await ctx.send(embed=embed)
-        return None,None,None
+        return None, None, None
 
     embed = discord_utils.create_embed()
     embed.add_field(
@@ -172,7 +174,7 @@ async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
     )
     await ctx.send(embed=embed)
 
-    addsheettethergeneric(gspread_client,curr_sheet_link,ctx.message.guild,new_chan)
+    addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
     return curr_sheet_link, newsheet, new_chan
 
 
@@ -262,7 +264,7 @@ async def chancrabgeneric(gspread_client, ctx, chan_name: str, *args):
     )
     await ctx.send(embed=embed)
 
-    addsheettethergeneric(gspread_client,curr_sheet_link,ctx.message.guild,new_chan)
+    addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
     return curr_sheet_link, newsheet, new_chan
 
 

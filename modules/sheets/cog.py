@@ -3,6 +3,7 @@ from utils import discord_utils, google_utils, logging_utils, command_predicates
 from modules.sheets import sheets_constants, sheet_utils
 import constants
 from nextcord.ext import commands
+from nextcord.ext.tasks import loop
 import nextcord
 import os
 import gspread
@@ -25,6 +26,13 @@ class SheetsCog(commands.Cog, name="Sheets"):
         self.lock = asyncio.Lock()
         self.gdrive_credentials = google_utils.get_gdrive_credentials()
         self.gspread_client = google_utils.create_gspread_client()
+
+    # Reload the google sheet every hour
+    @commands.Cog.listener()
+    async def on_ready(self):
+        """When discord is connected"""
+        if not self.prune_tethers.is_running():
+            self.prune_tethers.start()
 
     @command_predicates.is_solver()
     @commands.command(
@@ -231,40 +239,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         logging_utils.log_command("prunetethers", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        with Session(database.DATABASE_ENGINE) as session:
-            result = session.query(database.SheetTethers)
-
-        listresults = list(result)
-        to_delete = []
-        not_in_server = set()
-        for x in listresults:
-            serv = x.server_id
-            chan = x.channel_or_cat_id
-            botguilds = list(map(lambda x: x.id, ctx.bot.guilds))
-            if serv not in botguilds:
-                pass
-                not_in_server.add(serv)
-            else:
-                serverguild = list(filter(lambda x: x.id == serv, ctx.bot.guilds))[0]
-                if chan == serv:
-                    pass
-                    # server tether
-                else:
-                    chan_cat_threads = serverguild.channels + serverguild.threads
-                    chan_cat_threads_id = list(map(lambda x: x.id, chan_cat_threads))
-                    if chan not in chan_cat_threads_id:
-                        to_delete.append((serv, chan))
-
-        print("Server not in bot for these channels... probably testing version")
-        print(list(not_in_server))
-
-        print()
-        for x in to_delete:
-            session.query(database.SheetTethers).filter_by(
-                server_id=x[0], channel_or_cat_id=x[1]
-            ).delete()
-            session.commit()
-            print(f"Deleting tether at {x[0]} - {x[1]}")
+        to_delete = await self.prune_tethers()
 
         embed.add_field(
             name=f"{constants.SUCCESS}!",
@@ -290,7 +265,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         embed = discord_utils.create_embed()
 
-        return await sheet_utils.chancrabgeneric(self.gspread_client, ctx, chan_name, *args)
+        return await sheet_utils.chancrabgeneric(
+            self.gspread_client, ctx, chan_name, *args
+        )
 
     @command_predicates.is_solver()
     @commands.command(name="metacrab", aliases=["channelcreatemetatab"])
@@ -311,8 +288,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         embed = discord_utils.create_embed()
 
-        return await sheet_utils.metacrabgeneric(self.gspread_client,ctx,chan_name,*args)
-
+        return await sheet_utils.metacrabgeneric(
+            self.gspread_client, ctx, chan_name, *args
+        )
 
     @command_predicates.is_solver()
     @commands.command(
@@ -533,6 +511,42 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     return
 
             await ctx.send(file=nextcord.File(download_path))
+
+    @loop(hours=12)
+    async def prune_tethers(self):
+        """Function which runs periodically to remove all tethers to channels which have been deleted"""
+        with Session(database.DATABASE_ENGINE) as session:
+            result = session.query(database.SheetTethers)
+
+        listresults = list(result)
+        to_delete = []
+        not_in_server = set()
+        for x in listresults:
+            serv = x.server_id
+            chan = x.channel_or_cat_id
+            botguilds = list(map(lambda x: x.id, self.bot.guilds))
+            if serv not in botguilds:
+                not_in_server.add(serv)
+            else:
+                serverguild = list(filter(lambda x: x.id == serv, self.bot.guilds))[0]
+                # Don't delete server tethers
+                if chan != serv:
+                    chan_cat_threads = serverguild.channels + serverguild.threads
+                    chan_cat_threads_id = list(map(lambda x: x.id, chan_cat_threads))
+                    if chan not in chan_cat_threads_id:
+                        to_delete.append((serv, chan))
+
+        print("Server not in bot for these channels... probably testing version")
+        print(list(not_in_server))
+
+        print()
+        for x in to_delete:
+            session.query(database.SheetTethers).filter_by(
+                server_id=x[0], channel_or_cat_id=x[1]
+            ).delete()
+            session.commit()
+            print(f"Deleting tether at {x[0]} - {x[1]}")
+        return to_delete
 
 
 def setup(bot):
