@@ -22,7 +22,7 @@ def get_prefix(client, message):
 
 def main():
     activity = nextcord.Activity(
-        type=nextcord.ActivityType.listening, name="to confessionals"
+        type=nextcord.ActivityType.listening, name="confessionals"
     )
     intents = nextcord.Intents.default()
     intents.members = True
