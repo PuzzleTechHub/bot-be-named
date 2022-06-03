@@ -32,11 +32,23 @@ class CreateChannelButton(nextcord.ui.Button["CreateChannelView"]):
                 f"Could not find the category {category_name}. Please contact an administrator.",
                 ephemeral=True,
             )
+        # check if the user already has a channel
+        user_mention = interaction.user.mention
+        channel = nextcord.utils.find(
+            lambda c: c.topic == user_mention, category.text_channels
+        )
+        if channel is not None:
+            embed = nextcord.Embed(
+                title="You already have a channel!",
+                description=f"You can view your channel here: {channel.mention}",
+                color=nextcord.Colour.red(),
+            )
+            return await interaction.send(embed=embed, ephemeral=True)
         # create the channel
         channel = await category.create_text_channel(
             f"{interaction.user.name}",
             reason=f"{interaction.user.name} requested a channel",
-            topic=f"{interaction.user.mention}'s channel",
+            topic=interaction.user.mention,
         )
         # give the user manage messages permission on the channel
         await channel.set_permissions(interaction.user, manage_messages=True)
