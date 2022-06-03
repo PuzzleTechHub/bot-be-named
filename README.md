@@ -1,36 +1,17 @@
-# BBN (Bot-Be-Named)
+# Hogwarts Ghost Bot
+
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-- [BBN (Bot-Be-Named)](#bbn-bot-be-named)
-  - [What is Bot-Be-Named](#what-is-bot-be-named)
-  - [How to install](#how-to-install)
-  - [Current Modules](#current-modules)
-  - [Acknowledgements](#acknowledgements)
-  - [Contributing/Issues](#contributingissues)
+Hogwarts Ghost Bot is a bot for allowing users to create confessional channels in the Hogwarts Ghost Discord server.
 
-## What is Bot-Be-Named
-
-A Discord bot that interoperates with Google Sheets to smoothen solving puzzle hunts. 
-If you would like to add Bot-Be-Named to your server, please contact `@kevslinger#9711` or `@Soni#3662` on discord. 
-
-Please note that Bot-Be-Named is set up for our own configurations and environment variables, and may not work for yours. Please contact us if you need help setting up an instance of the bot, but we **highly recommend asking us for a Bot invite link**.
-
-## Inviting the Bot to your server
-
-- Message `@kevslinger#9711` or `@Soni#3662` on discord to get Bot invite link.
-
-- Use the Link and add the Bot to your discord server. Note that you need "Manage Server" permission to do that.
-
-- Use `~about` to get a quick guide to the bot, and `~startup` for all the commands that will come in very handy for you.
-
-- In case of any problems, message us on discord or [open a new issue on Github](https://github.com/kevslinger/bot-be-named/issues/new)
+This bot is a fork of [bot-be-named](https://github.com/kevslinger/bot-be-named) to make use of its archiving features.
 
 ## How to install your own instance
 
-### Prerequisites - 
+### Prerequisites
 
-- [python3.7 or newer](https://realpython.com/installing-python/)
+- [python3.8 or newer](https://realpython.com/installing-python/)
 
 - [Git](https://github.com/git-guides/install-git)
 
@@ -48,9 +29,12 @@ We recommend using [virtual environments](https://docs.python.org/3/tutorial/ven
 
 ```bash
 #Clone the bot locally
-git clone https://github.com/kevslinger/bot-be-named.git
-cd bot-be-named
-virtualenv venv -p=3.7
+git clone https://github.com/DenverCoderOne/hogwarts-ghosts.git
+cd hogwarts-ghosts
+virtualenv .venv
+# Activate the virtual environment
+source .venv/bin/activate # Linux
+source .venv\Scripts\activate # Windows
 #This installs all the python dependancies the bot needs
 pip install -r requirements.txt && pre-commit install
 ```
@@ -91,6 +75,7 @@ When deploying on heroku, any variables stored in .env locally cannot be pushed 
 - [Admin](./modules/admin) for administrator commands
 - [Archive](./modules/archive) for downloading channel/category/server contents into a Zip file
 - [Channel Management](./modules/channel_management) for cloning, creating, and moving channels - [Cipher Race](modules/cipher_race) Race against the clock decoding ciphers!
+- [Confessional Request](./modules/confessional_request) for allowing users to create temporary channels in a category
 - [Custom Command](./modules/custom_command) for making custom commands in different servers
 - [Discord](modules/discord) for discord utility commands (e.g. roles, stats)
 - [Error Logging](./modules/error_logging) for printing error logs
@@ -100,17 +85,8 @@ When deploying on heroku, any variables stored in .env locally cannot be pushed 
 - [Music Race](./modules/music_race/) Help! Our tunes have been sawed apart and put back incorrectly!
 - [Perfect Pitch](./modules/perfect_pitch) Become a composer and write tunes in mp4
 - [Role Management](./modules/role_management) for managing roles and similar
-- [Sheets](./modules/sheets) for working with Google Sheets during puzzlehunts
 - [Solved](./modules/solved) for marking Discord Channels as solved, backsolved, solvedish etc.
-- [Time](./modules/time) for finding the time anywhere in the world
 
-## Acknowledgements
+Note: the main purpose of this bot is for Confessional Requests and Archiving.
 
-Big thanks to [Jonah Lawrence](https://github.com/DenverCoder1) and his [Professor Vector](https://github.com/DenverCoder1/professor-vector-discord-bot)
-repo for much inspiration and code, specifically on the [Channel Management](./modules/channel_management), [Error Logging](./modules/error_logging), [Help](./modules/help), and [Solved](./modules/solved) modules. 
-
-## Contributing/Issues
-
-If you find any issues, bugs, or improvements, please feel free to open an issue and/or pull request! Thank you!
-
-Feel free to find me on discord, `@kevslinger#9711` with any questions you may have!
+The other features have not been tested in this bot and may not work as expected.
