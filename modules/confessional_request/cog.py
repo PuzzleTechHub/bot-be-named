@@ -56,11 +56,11 @@ class ConfessionalRequest(commands.Cog, name="Confessional Request"):
         await ctx.message.delete()
 
     @commands.command()
-    @commands.has_permissions(manage_channels=True)
+    @commands.has_permissions(administrator=True)
     async def close(self, ctx: commands.Context):
         """Archives and closes the channel that the user is currently in"""
-
         # check that the topic is a user mention
+        logging_utils.log_command("close", ctx.guild, ctx.channel, ctx.author)
         ticket_channel = ctx.channel
         if not getattr(ticket_channel, "topic", "").startswith("<@"):
             embed = discord_utils.create_embed()
@@ -70,7 +70,6 @@ class ConfessionalRequest(commands.Cog, name="Confessional Request"):
             )
             return await ctx.send(embed=embed)
         assert ctx.guild is not None
-        logging_utils.log_command("close", ctx.guild, ctx.channel, ctx.author)
         assert isinstance(ticket_channel, nextcord.TextChannel)
         archivechannel_cmd = self._bot.get_command("archivechannel")
         assert isinstance(archivechannel_cmd, commands.Command)
