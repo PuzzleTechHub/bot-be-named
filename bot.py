@@ -21,6 +21,9 @@ def get_prefix(client, message):
 
 
 def main():
+    activity = nextcord.Activity(
+        type=nextcord.ActivityType.listening, name="to confessionals"
+    )
     intents = nextcord.Intents.default()
     intents.members = True
     intents.message_content = True
@@ -29,6 +32,7 @@ def main():
         intents=intents,
         help_command=None,
         case_insensitive=True,
+        activity=activity,
     )
 
     # Get the modules of all cogs whose directory structure is modules/<module_name>/cog.py
@@ -39,11 +43,6 @@ def main():
     @client.event
     async def on_ready():
         """When the bot starts up"""
-        await client.change_presence(
-            activity=nextcord.Activity(
-                type=nextcord.ActivityType.watching, name="you solve👀 | ~help"
-            )
-        )
         for guild in client.guilds:
             if guild.id not in database.PREFIXES:
                 database.PREFIXES[guild.id] = constants.DEFAULT_BOT_PREFIX
