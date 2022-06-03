@@ -57,7 +57,7 @@ class CreateChannelButton(nextcord.ui.Button["CreateChannelView"]):
 
 Please note that this channel can be seen by the players of the other game, so you may not talk about any aspects of the other game in here, and you may lose spectating permissions or face removal from the game if you break the rules.
 
-If you have a question, please ping <@981849279897428048>!""",
+If you have a question, please ping your hosts!""",
             color=0x009999,
         )
         embed.set_author(
