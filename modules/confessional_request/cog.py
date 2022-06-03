@@ -47,6 +47,7 @@ class ConfessionalRequest(commands.Cog, name="Confessional Request"):
             color=0x009999,
         )
         await ctx.send(embed=embed, view=button_view)
+        await ctx.message.delete()
 
 
 def setup(bot: commands.Bot):
