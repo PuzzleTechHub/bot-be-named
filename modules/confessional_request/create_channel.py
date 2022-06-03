@@ -45,8 +45,8 @@ class CreateChannelButton(nextcord.ui.Button["CreateChannelView"]):
             return await interaction.send(embed=embed, ephemeral=True)
         # create the channel
         channel = await category.create_text_channel(
-            f"{interaction.user.name}",
-            reason=f"{interaction.user.name} requested a channel",
+            f"{interaction.user.display_name}",
+            reason=f"{interaction.user.display_name} requested a channel",
             topic=interaction.user.mention,
         )
         # give the user manage messages permission on the channel
@@ -66,7 +66,7 @@ If you have a question, please ping your hosts!""",
             color=0x009999,
         )
         embed.set_author(
-            name=f"{interaction.user.name}",
+            name=f"{interaction.user.display_name}",
             icon_url=interaction.user.display_avatar.url,
         )
         await channel.send(
