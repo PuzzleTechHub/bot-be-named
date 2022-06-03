@@ -76,11 +76,11 @@ class ConfessionalRequest(commands.Cog, name="Confessional Request"):
         archives_channel = nextcord.utils.find(
             lambda c: c.name == f"channel-archives", ctx.guild.text_channels
         )
-        if archives_channel is None or archives_channel.last_message_id is None:
+        if archives_channel is None:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value="#channel-archives channel was not found or has no messages",
+                value="#channel-archives channel was not found",
             )
             return await ctx.send(embed=embed)
         embed = discord_utils.create_embed()
@@ -88,17 +88,18 @@ class ConfessionalRequest(commands.Cog, name="Confessional Request"):
         progress_msg = await ctx.send(embed=embed)
         # create a context where the message is the last message in the archive channel
         fake_ctx = copy.copy(ctx)
-        fake_ctx.message = await archives_channel.fetch_message(
-            archives_channel.last_message_id
-        )
-        del fake_ctx.channel  # delete to reset cached property
+        fake_ctx.channel = archives_channel  # type: ignore
         # execute "~archivechannel #<ticket-channel>"
         await archivechannel_cmd(fake_ctx, ticket_channel)
         # check that the new last message contains the attachment
-        last_message = await archives_channel.fetch_message(
-            archives_channel.last_message_id
-        )
-        if last_message.attachments:
+        last_message = None
+        if archives_channel.last_message is not None:
+            last_message = archives_channel.last_message
+        if last_message is None and archives_channel.last_message_id is not None:
+            last_message = await archives_channel.fetch_message(
+                archives_channel.last_message_id
+            )
+        if not last_message or last_message.attachments:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.SUCCESS}",
