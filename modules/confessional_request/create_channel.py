@@ -2,7 +2,6 @@ from typing import Optional
 
 import nextcord
 from nextcord.ext import commands
-from numpy import isin
 
 
 class CreateChannelButton(nextcord.ui.Button["CreateChannelView"]):

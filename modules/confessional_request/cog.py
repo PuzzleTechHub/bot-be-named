@@ -29,7 +29,7 @@ class ConfessionalRequest(commands.Cog, name="Confessional Request"):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def ticketbtn(self, ctx: commands.Context):
-        """Creates a button for creating a confessional channels"""
+        """Creates a button for creating a confessional channel"""
         if ctx.guild is None:
             return await ctx.send("This command can only be used in a server")
         logging_utils.log_command("ticketbtn", ctx.guild, ctx.channel, ctx.author)
