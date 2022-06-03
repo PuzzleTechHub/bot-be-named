@@ -1,10 +1,10 @@
 import asyncio
 import copy
 
+import constants
 import nextcord
 from nextcord.ext import commands
-from utils import discord_utils
-import constants
+from utils import discord_utils, logging_utils
 
 from .create_channel import CreateChannelView
 from .select_category import SelectCategoryView
@@ -32,6 +32,7 @@ class ConfessionalRequest(commands.Cog, name="Confessional Request"):
         """Creates a button for creating a confessional channels"""
         if ctx.guild is None:
             return await ctx.send("This command can only be used in a server")
+        logging_utils.log_command("ticketbtn", ctx.guild, ctx.channel, ctx.author)
         # prompt for a category
         category_view = SelectCategoryView(categories=ctx.guild.categories, ctx=ctx)
         category_msg = await ctx.reply(f"Please select a category", view=category_view)
@@ -69,6 +70,7 @@ class ConfessionalRequest(commands.Cog, name="Confessional Request"):
             )
             return await ctx.send(embed=embed)
         assert ctx.guild is not None
+        logging_utils.log_command("close", ctx.guild, ctx.channel, ctx.author)
         assert isinstance(ticket_channel, nextcord.TextChannel)
         archivechannel_cmd = self._bot.get_command("archivechannel")
         assert isinstance(archivechannel_cmd, commands.Command)
