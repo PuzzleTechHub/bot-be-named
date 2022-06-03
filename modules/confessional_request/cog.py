@@ -1,5 +1,10 @@
+import asyncio
+import copy
+
 import nextcord
 from nextcord.ext import commands
+from utils import discord_utils
+import constants
 
 from .create_channel import CreateChannelView
 from .select_category import SelectCategoryView
@@ -48,6 +53,70 @@ class ConfessionalRequest(commands.Cog, name="Confessional Request"):
         )
         await ctx.send(embed=embed, view=button_view)
         await ctx.message.delete()
+
+    @commands.command()
+    @commands.has_permissions(manage_channels=True)
+    async def close(self, ctx: commands.Context):
+        """Archives and closes the channel that the user is currently in"""
+
+        # check that the topic is a user mention
+        ticket_channel = ctx.channel
+        if not getattr(ticket_channel, "topic", "").startswith("<@"):
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="You are not in a confessional channel",
+            )
+            return await ctx.send(embed=embed)
+        assert ctx.guild is not None
+        assert isinstance(ticket_channel, nextcord.TextChannel)
+        archivechannel_cmd = self._bot.get_command("archivechannel")
+        assert isinstance(archivechannel_cmd, commands.Command)
+        archives_channel = nextcord.utils.find(
+            lambda c: c.name == f"channel-archives", ctx.guild.text_channels
+        )
+        if archives_channel is None or archives_channel.last_message_id is None:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="#channel-archives channel was not found or has no messages",
+            )
+            return await ctx.send(embed=embed)
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"Archiving in progress", value=f"This may take a while.")
+        progress_msg = await ctx.send(embed=embed)
+        # create a context where the message is the last message in the archive channel
+        fake_ctx = copy.copy(ctx)
+        fake_ctx.message = await archives_channel.fetch_message(
+            archives_channel.last_message_id
+        )
+        del fake_ctx.channel  # delete to reset cached property
+        # execute "~archivechannel #<ticket-channel>"
+        await archivechannel_cmd(fake_ctx, ticket_channel)
+        # check that the new last message contains the attachment
+        last_message = await archives_channel.fetch_message(
+            archives_channel.last_message_id
+        )
+        if last_message.attachments:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value=f"The channel has been archived and will now be deleted.",
+            )
+            await progress_msg.edit(embed=embed)
+            await asyncio.sleep(2)
+            await ticket_channel.delete()
+        else:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The channel was not archived properly. See {archives_channel.mention} for more information.",
+            )
+            await progress_msg.edit(embed=embed)
+            await ctx.send(
+                f"{ticket_channel.topic}, this channel may have too many attachments."
+                "Please save your attachments so this channel can be archived and deleted."
+            )
 
 
 def setup(bot: commands.Bot):
