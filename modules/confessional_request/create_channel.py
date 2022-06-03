@@ -50,7 +50,12 @@ class CreateChannelButton(nextcord.ui.Button["CreateChannelView"]):
             topic=interaction.user.mention,
         )
         # give the user manage messages permission on the channel
-        await channel.set_permissions(interaction.user, manage_messages=True)
+        await channel.set_permissions(
+            interaction.user,
+            manage_messages=True,
+            view_channel=True,
+            send_messages=True,
+        )
         # send a message to the channel
         embed = nextcord.Embed(
             description=f"""Welcome to your private confessional channel where spectators and dead players can read your thoughts! You can say anything here regarding the game you are playing in!
