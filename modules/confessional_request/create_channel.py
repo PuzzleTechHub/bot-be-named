@@ -33,9 +33,7 @@ class CreateChannelButton(nextcord.ui.Button["CreateChannelView"]):
             )
         # check if the user already has a channel
         user_mention = interaction.user.mention
-        channel = nextcord.utils.find(
-            lambda c: c.topic == user_mention, category.text_channels
-        )
+        channel = nextcord.utils.find(lambda c: c.topic == user_mention, category.text_channels)
         if channel is not None:
             embed = nextcord.Embed(
                 title="You already have a channel!",

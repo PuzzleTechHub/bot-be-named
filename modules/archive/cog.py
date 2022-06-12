@@ -1,13 +1,15 @@
+import asyncio
+import os
+import zipfile
+from typing import List, Tuple, Union
+
 import nextcord
 from nextcord.ext import commands
 from nextcord.ext.commands.errors import ChannelNotFound
+
 import constants
-import os
-import zipfile
-from utils import discord_utils, logging_utils, command_predicates
 from modules.archive import archive_constants, archive_utils
-import asyncio
-from typing import List, Tuple, Union
+from utils import command_predicates, discord_utils, logging_utils
 
 
 class ArchiveCog(commands.Cog, name="Archive"):
@@ -66,18 +68,14 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 f.write("\n")
             text_file_size = f.tell()
 
-        ZIP_FILENAME = os.path.join(
-            archive_constants.ARCHIVE, channel.name + "_archive.zip"
-        )
+        ZIP_FILENAME = os.path.join(archive_constants.ARCHIVE, channel.name + "_archive.zip")
         # Create a zipfile and then walk through all the saved chatlogs and images, and zip em up
         with zipfile.ZipFile(ZIP_FILENAME, mode="w") as zf:
             for root, directories, files in os.walk(archive_constants.ARCHIVE):
                 for filename in files:
                     if filename == ZIP_FILENAME.split("/")[-1]:  # Don't include self
                         continue
-                    zf.write(
-                        os.path.join(root, filename), compress_type=self.compression
-                    )
+                    zf.write(os.path.join(root, filename), compress_type=self.compression)
             zf_file_size = zf.fp.tell()
         return (
             nextcord.File(ZIP_FILENAME),
@@ -164,9 +162,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 else:
                     try:
                         # Convert channel from string to nextcord.TextChannel
-                        channel = await commands.TextChannelConverter().convert(
-                            ctx, channelname
-                        )
+                        channel = await commands.TextChannelConverter().convert(ctx, channelname)
                     except ChannelNotFound:
                         embed.add_field(
                             name="ERROR: Cannot find channel",

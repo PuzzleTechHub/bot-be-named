@@ -1,14 +1,16 @@
+from typing import Union
+
 import nextcord
+import psycopg2
+import sqlalchemy
 from nextcord.ext import commands
 from nextcord.ext.commands.core import command
-import psycopg2
 from sqlalchemy.orm import Session
-import sqlalchemy
-from utils import discord_utils, logging_utils, command_predicates
+
+import constants
 import database
 from database import models
-import constants
-from typing import Union
+from utils import command_predicates, discord_utils, logging_utils
 
 
 class AdminCog(commands.Cog, name="Admin"):
@@ -78,9 +80,7 @@ class AdminCog(commands.Cog, name="Admin"):
         with Session(database.DATABASE_ENGINE) as session:
             result = (
                 session.query(database.Verifieds)
-                .filter_by(
-                    role_id_permissions=f"{role_to_assign.id}_{role_permissions}"
-                )
+                .filter_by(role_id_permissions=f"{role_to_assign.id}_{role_permissions}")
                 .first()
             )
             if result is None:
@@ -316,9 +316,7 @@ class AdminCog(commands.Cog, name="Admin"):
         See also : `~lsguilds`
         Usage: `~commonmemberguilds "Guild1" "Guild2"`
         """
-        logging_utils.log_command(
-            "commonmemberguilds", ctx.guild, ctx.channel, ctx.author
-        )
+        logging_utils.log_command("commonmemberguilds", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         guild_1_guild = await discord_utils.find_guild(ctx, guild_1)
@@ -344,9 +342,7 @@ class AdminCog(commands.Cog, name="Admin"):
         members_guild_1 = guild_1_guild.members
         members_guild_2 = guild_2_guild.members
 
-        members_common = [
-            member for member in members_guild_1 if member in members_guild_2
-        ]
+        members_common = [member for member in members_guild_1 if member in members_guild_2]
 
         if len(members_common) > 0:
             embed.add_field(
@@ -423,18 +419,14 @@ class AdminCog(commands.Cog, name="Admin"):
     ######################
 
     @command_predicates.is_owner_or_admin()
-    @commands.command(
-        name="reloaddatabasecache", aliases=["reloaddbcache", "dbcachereload"]
-    )
+    @commands.command(name="reloaddatabasecache", aliases=["reloaddbcache", "dbcachereload"])
     async def reloaddatabasecache(self, ctx):
         """Reloads the custom command cache. This is useful when we're editing commands or playing with the Database.
 
         Permission Category : Admin or Bot Owner Roles only.
         Usage: `~reloaddatabasecache`
         """
-        logging_utils.log_command(
-            "reloaddatabasecache", ctx.guild, ctx.channel, ctx.author
-        )
+        logging_utils.log_command("reloaddatabasecache", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         # Reset custom commands, verifieds, and prefixes for that server
@@ -446,16 +438,15 @@ class AdminCog(commands.Cog, name="Admin"):
 
         with Session(database.DATABASE_ENGINE) as session:
             custom_command_result = (
-                session.query(database.CustomCommands)
-                .filter_by(server_id=ctx.guild.id)
-                .all()
+                session.query(database.CustomCommands).filter_by(server_id=ctx.guild.id).all()
             )
             if custom_command_result is not None:
                 for custom_command in custom_command_result:
                     # Populate custom command dict
-                    database.CUSTOM_COMMANDS[ctx.guild.id][
-                        custom_command.command_name.lower()
-                    ] = (custom_command.command_return, custom_command.image)
+                    database.CUSTOM_COMMANDS[ctx.guild.id][custom_command.command_name.lower()] = (
+                        custom_command.command_return,
+                        custom_command.image,
+                    )
             embed.add_field(
                 name=f"{constants.SUCCESS}",
                 value="Successfully reloaded command cache.",
@@ -463,9 +454,7 @@ class AdminCog(commands.Cog, name="Admin"):
             )
 
             verified_result = (
-                session.query(database.Verifieds)
-                .filter_by(server_id=ctx.guild.id)
-                .all()
+                session.query(database.Verifieds).filter_by(server_id=ctx.guild.id).all()
             )
             if verified_result is not None:
                 for verified in verified_result:
@@ -484,9 +473,7 @@ class AdminCog(commands.Cog, name="Admin"):
             )
 
             prefix_result = (
-                session.query(database.Prefixes)
-                .filter_by(server_id=ctx.guild.id)
-                .first()
+                session.query(database.Prefixes).filter_by(server_id=ctx.guild.id).first()
             )
             if prefix_result is not None:
                 database.PREFIXES[ctx.guild.id] = prefix_result.prefix

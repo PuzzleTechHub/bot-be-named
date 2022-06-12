@@ -1,10 +1,13 @@
+import asyncio
+from typing import Union
+
+import nextcord
 from nextcord import embeds
 from nextcord.ext import commands
-from utils import discord_utils, logging_utils, command_predicates
+
 import constants
-import nextcord
-from typing import Union
-import asyncio
+from utils import command_predicates, discord_utils, logging_utils
+
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
@@ -20,9 +23,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
     @command_predicates.is_verified()
     @commands.command(name="movechannel", aliases=["movechan"])
-    async def movechannel(
-        self, ctx, category_name: str, *args: Union[nextcord.TextChannel, str]
-    ):
+    async def movechannel(self, ctx, category_name: str, *args: Union[nextcord.TextChannel, str]):
         """Command to move channels to category with given name
 
         Permission Category : Verified Roles only.
@@ -152,9 +153,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         if isinstance(old_channel_name, nextcord.TextChannel):
             old_channel = old_channel_name
         else:
-            old_channel = await commands.TextChannelConverter().convert(
-                ctx, old_channel_name
-            )
+            old_channel = await commands.TextChannelConverter().convert(ctx, old_channel_name)
 
         if old_channel is None:
             embed.add_field(
@@ -189,9 +188,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(
-        name="createchannel", aliases=["makechannel", "makechan", "createchan"]
-    )
+    @commands.command(name="createchannel", aliases=["makechannel", "makechan", "createchan"])
     async def createchannel(self, ctx, name: str):
         """Command to create channel in same category with given name
 
@@ -211,9 +208,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             await ctx.send(embed=embed)
             return None
 
-        channel = await discord_utils.createchannelgeneric(
-            ctx.guild, ctx.channel.category, name
-        )
+        channel = await discord_utils.createchannelgeneric(ctx.guild, ctx.channel.category, name)
         # Send status (success or fail)
         if channel:
             embed.add_field(
@@ -263,9 +258,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         if isinstance(old_channel_name, nextcord.TextChannel):
             old_channel = old_channel_name
         else:
-            old_channel = await commands.TextChannelConverter().convert(
-                ctx, old_channel_name
-            )
+            old_channel = await commands.TextChannelConverter().convert(ctx, old_channel_name)
 
         if old_channel is None:
             embed.add_field(
@@ -299,9 +292,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 targetRole = await discord_utils.find_role(ctx, targetRoleorUser)
                 if targetRole is None:
                     try:
-                        targetRoleorUser = await ctx.guild.create_role(
-                            name=targetRoleorUser
-                        )
+                        targetRoleorUser = await ctx.guild.create_role(name=targetRoleorUser)
                         await targetRoleorUser.edit(mentionable=True)
                         embed.add_field(
                             name=f"Created role {targetRoleorUser}",
@@ -371,9 +362,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 try:
                     overwrite = overwrites.get(origRoleorUser)
                     await new_channel.set_permissions(origRoleorUser, overwrite=None)
-                    await new_channel.set_permissions(
-                        targetRoleorUser, overwrite=overwrite
-                    )
+                    await new_channel.set_permissions(targetRoleorUser, overwrite=overwrite)
                     embed.add_field(
                         name=f"{constants.SUCCESS}!",
                         value=f"Synced permissions of {origRoleorUser.mention} in {old_channel.mention} with that of {targetRoleorUser.mention} in {new_channel.mention}.",
@@ -665,9 +654,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(
-        name="shiftcategory", aliases=["shiftcat", "movecategory", "movecat"]
-    )
+    @commands.command(name="shiftcategory", aliases=["shiftcat", "movecategory", "movecat"])
     async def shiftcategory(self, ctx, cat_a_name: str, cat_b_name: str = ""):
         """Shifts a category to below another category.
 
@@ -724,9 +711,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         # Not top, so position needs to be given
         if pos_to_shift_to == -1:
-            cat_shifting_to = await discord_utils.find_category(
-                ctx, cat_shifting_to_name
-            )
+            cat_shifting_to = await discord_utils.find_category(ctx, cat_shifting_to_name)
             if cat_shifting_to is None:
                 embed.add_field(
                     name=f"{constants.FAILED}",
@@ -919,8 +904,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         if cat_name == "":
             # Return all category names in the server
             categories = [
-                f"{cat.name}         : {len(cat.channels)}"
-                for cat in ctx.guild.categories
+                f"{cat.name}         : {len(cat.channels)}" for cat in ctx.guild.categories
             ]
             embed.add_field(
                 name=f"Categories in {ctx.guild.name}",
@@ -1015,9 +999,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             name="Are you sure?",
             value=f"This will delete the category `{category.name}` and all its channels. This is not reversable. Make sure you archive the category first before continuing. You have 15 seconds to confirm.",
         )
-        embed.add_field(
-            name=f"Channels to delete", value=f"{chr(10).join(channels)}", inline=False
-        )
+        embed.add_field(name=f"Channels to delete", value=f"{chr(10).join(channels)}", inline=False)
 
         emb = await ctx.send(embed=embed)
         await emb.add_reaction(confirm_emoji)
@@ -1034,9 +1016,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         final_embed = discord_utils.create_embed()
 
         try:
-            react, _ = await self.bot.wait_for(
-                event="reaction_add", check=chk, timeout=15
-            )
+            react, _ = await self.bot.wait_for(event="reaction_add", check=chk, timeout=15)
             # delete category
             if react.emoji == confirm_emoji:
                 try:

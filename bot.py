@@ -2,12 +2,14 @@ from dotenv.main import load_dotenv
 
 load_dotenv(override=True)
 import os
+
 import nextcord
-from nextcord.ext import commands
-import constants
 import sqlalchemy
+from nextcord.ext import commands
 from sqlalchemy import insert
 from sqlalchemy.orm import Session
+
+import constants
 import database
 
 
@@ -21,9 +23,7 @@ def get_prefix(client, message):
 
 
 def main():
-    activity = nextcord.Activity(
-        type=nextcord.ActivityType.listening, name="confessionals"
-    )
+    activity = nextcord.Activity(type=nextcord.ActivityType.listening, name="confessionals")
     intents = nextcord.Intents.default()
     intents.members = True
     intents.message_content = True
@@ -100,9 +100,7 @@ def main():
         """When the bot leaves a guild, remove all database entries pertaining to that guild"""
         print(f"Leaving {guild} -- Bye bye!")
         with Session(database.DATABASE_ENGINE) as session:
-            session.query(database.CustomCommands).filter_by(
-                server_id=guild.id
-            ).delete()
+            session.query(database.CustomCommands).filter_by(server_id=guild.id).delete()
             session.commit()
             session.query(database.Prefixes).filter_by(server_id=guild.id).delete()
             session.commit()
@@ -125,26 +123,18 @@ def main():
 
         if message.clean_content.startswith(command_prefix):
             # If the command is a default one, just run it.
-            command_name = message.clean_content.split()[0][
-                len(command_prefix) :
-            ].lower()
+            command_name = message.clean_content.split()[0][len(command_prefix) :].lower()
             if command_name in constants.DEFAULT_COMMANDS:
                 await client.process_commands(message)
             # Don't use custom commands for DMs also I think this fixes a bug which gets an error when someone
             # uses a command right as the box is starting up.
-            elif (
-                message.guild is not None
-                and message.guild.id in database.CUSTOM_COMMANDS
-            ):
+            elif message.guild is not None and message.guild.id in database.CUSTOM_COMMANDS:
                 command_return = None
                 # check if custom command is in cache for that server
                 if command_name in [
-                    command.lower()
-                    for command in database.CUSTOM_COMMANDS[message.guild.id].keys()
+                    command.lower() for command in database.CUSTOM_COMMANDS[message.guild.id].keys()
                 ]:
-                    command_return = database.CUSTOM_COMMANDS[message.guild.id][
-                        command_name
-                    ][0]
+                    command_return = database.CUSTOM_COMMANDS[message.guild.id][command_name][0]
 
                 # Command found in cache
                 if command_return is not None:
@@ -165,18 +155,14 @@ def main():
                     # Checking for this server
                     result = (
                         session.query(database.CustomCommands)
-                        .filter_by(
-                            server_id_command=f"{message.guild.id} {command_name}"
-                        )
+                        .filter_by(server_id_command=f"{message.guild.id} {command_name}")
                         .first()
                     )
                     # Check for global custom commands
                     if result is None:
                         result = (
                             session.query(database.CustomCommands)
-                            .filter_by(
-                                server_id_command=f"{constants.DB_GLOBAL} {command_name}"
-                            )
+                            .filter_by(server_id_command=f"{constants.DB_GLOBAL} {command_name}")
                             .first()
                         )
                     if result is not None:

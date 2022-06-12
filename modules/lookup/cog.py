@@ -1,11 +1,13 @@
-import googlesearch
-from nextcord.ext import commands
-from utils import discord_utils, logging_utils
-from modules.lookup import lookup_constants, lookup_utils
-import nextcord
-import urllib
-from utils.search_utils import Pages
 import re
+import urllib
+
+import googlesearch
+import nextcord
+from nextcord.ext import commands
+
+from modules.lookup import lookup_constants, lookup_utils
+from utils import discord_utils, logging_utils
+from utils.search_utils import Pages
 
 
 class LookupCog(commands.Cog, name="Lookup"):
@@ -106,9 +108,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         logging_utils.log_command("wikipedia", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        results = lookup_utils.search_query(
-            " ".join(args), target_site=lookup_constants.WIKI
-        )
+        results = lookup_utils.search_query(" ".join(args), target_site=lookup_constants.WIKI)
 
         if len(results) > 1:
             embed.add_field(
@@ -201,9 +201,7 @@ class LookupCog(commands.Cog, name="Lookup"):
             solutions.append(word)
             weights.append(size)
 
-        p = Pages(
-            ctx, solutions=solutions, weights=weights, embedTemp=embed, endflag=finalend
-        )
+        p = Pages(ctx, solutions=solutions, weights=weights, embedTemp=embed, endflag=finalend)
         await p.pageLoop()
 
 

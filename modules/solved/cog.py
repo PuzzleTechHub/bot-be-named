@@ -1,10 +1,10 @@
 import nextcord
+from nextcord.ext import commands
 
 import constants
-from nextcord.ext import commands
-from modules.solved.prefix import Prefix
 from modules.solved import solved_constants
-from utils import discord_utils, logging_utils, command_predicates
+from modules.solved.prefix import Prefix
+from utils import command_predicates, discord_utils, logging_utils
 
 # Note: It's awkward but right now the solved constants have a hyphen at the end
 # Which is why we have [:-1] for all the prefixes. We don't want to have that prefix
@@ -28,9 +28,7 @@ class SolvedCog(commands.Cog):
             # Abusing p notation here
             # Remove other prefixes that might be present
             # e.g. ~backsolved on solved-channel should remove solved- and add backsolved-
-            for other_prefix in [
-                op for op in solved_constants.PREFIXES if op != prefix
-            ]:
+            for other_prefix in [op for op in solved_constants.PREFIXES if op != prefix]:
                 p = Prefix(channel, other_prefix)
                 if p.has_prefix():
                     new_channel_name = p.remove_prefix()
@@ -105,9 +103,7 @@ class SolvedCog(commands.Cog):
         embed = discord_utils.create_embed()
 
         channel = ctx.message.channel
-        new_channel_name = self.add_prefix(
-            ctx.message.channel, solved_constants.SOLVEDISH_PREFIX
-        )
+        new_channel_name = self.add_prefix(ctx.message.channel, solved_constants.SOLVEDISH_PREFIX)
         if new_channel_name:
             await channel.edit(name=new_channel_name)
             embed.add_field(
@@ -204,15 +200,9 @@ class SolvedCog(commands.Cog):
         if archive_name is None:
             # Find category with same name + Archive (or select combinations)
             archive_category = (
-                await discord_utils.find_category(
-                    ctx, f"{ctx.channel.category.name} Archive"
-                )
-                or await discord_utils.find_category(
-                    ctx, f"Archive: {ctx.channel.category.name}"
-                )
-                or await discord_utils.find_category(
-                    ctx, f"{ctx.channel.category.name} archive"
-                )
+                await discord_utils.find_category(ctx, f"{ctx.channel.category.name} Archive")
+                or await discord_utils.find_category(ctx, f"Archive: {ctx.channel.category.name}")
+                or await discord_utils.find_category(ctx, f"{ctx.channel.category.name} archive")
             )
         else:
             archive_category = await discord_utils.find_category(ctx, archive_name)

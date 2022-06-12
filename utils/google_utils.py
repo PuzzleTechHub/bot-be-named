@@ -1,9 +1,9 @@
-import gspread
+import json
 import os
+
+import gspread
 import pandas as pd
 from oauth2client.service_account import ServiceAccountCredentials
-import json
-
 
 JSON_PARAMS = [
     "type",
@@ -44,15 +44,11 @@ def get_gdrive_credentials() -> ServiceAccountCredentials:
             json_creds[param] = os.getenv(param).replace('"', "").replace("\\n", "\n")
         with open("client_secret.json", "w") as f:
             json.dump(json_creds, f)
-    creds = ServiceAccountCredentials.from_json_keyfile_name(
-        "client_secret.json", scopes
-    )
+    creds = ServiceAccountCredentials.from_json_keyfile_name("client_secret.json", scopes)
     return creds
 
 
-def get_dataframe_from_gsheet(
-    sheet: gspread.Spreadsheet, columns: list
-) -> pd.DataFrame:
+def get_dataframe_from_gsheet(sheet: gspread.Spreadsheet, columns: list) -> pd.DataFrame:
     """
     Load in all the values from the google sheet.
     NOTE: excludes headers from gsheet and replaces them with the ones in constants

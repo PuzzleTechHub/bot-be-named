@@ -1,8 +1,8 @@
 # from  https://github.com/Moonrise55/Mbot/blob/f4e19df1df9fa4ef1a7730e63aa8009894aa304c/utils/paginator.py#L8
 
-import nextcord
 import asyncio
 
+import nextcord
 
 # set up pagination of results
 
@@ -55,11 +55,7 @@ class Pages:
 
         for n in range(start, end):
             if self.weights:
-                line = (
-                    self.solutions[n]
-                    + "...................."
-                    + str(round(self.weights[n], 3))
-                )
+                line = self.solutions[n] + "...................." + str(round(self.weights[n], 3))
             else:
                 line = self.solutions[n]
             final.append(line)
@@ -98,9 +94,7 @@ class Pages:
             await self.sendPage()
 
             try:
-                reaction, user = await self.bot.wait_for(
-                    "reaction_add", check=check, timeout=120.0
-                )
+                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=120.0)
 
             except asyncio.TimeoutError:
                 await self.message.clear_reactions()

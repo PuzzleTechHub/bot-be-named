@@ -1,20 +1,19 @@
+from database.database_utils import (
+    get_custom_commands,
+    get_prefixes,
+    get_solvers,
+    get_testers,
+    get_trusteds,
+    get_verifieds,
+)
 from database.models import (
     DATABASE_ENGINE,
     VERIFIED_CATEGORIES,
-    Verifieds,
     CustomCommands,
     Prefixes,
-    SheetTethers,
     SheetTemplates,
-)
-
-from database.database_utils import (
-    get_prefixes,
-    get_verifieds,
-    get_trusteds,
-    get_solvers,
-    get_testers,
-    get_custom_commands,
+    SheetTethers,
+    Verifieds,
 )
 
 PREFIXES = get_prefixes()

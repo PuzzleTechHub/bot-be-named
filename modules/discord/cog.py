@@ -1,12 +1,13 @@
-import typing
-import nextcord
-from nextcord.ext import commands
-import aiohttp
 import io
+import typing
+
+import aiohttp
+import nextcord
 from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
+from nextcord.ext import commands
 
 import constants
-from utils import discord_utils, logging_utils, command_predicates
+from utils import command_predicates, discord_utils, logging_utils
 
 
 class DiscordCog(commands.Cog, name="Discord"):
@@ -86,9 +87,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         embed = discord_utils.create_embed()
 
         if num_to_unpin < 1 or not isinstance(num_to_unpin, int):
-            embed = discord_utils.create_no_argument_embed(
-                "number of messages to unpin"
-            )
+            embed = discord_utils.create_no_argument_embed("number of messages to unpin")
             await ctx.send(embed=embed)
             return
 
@@ -162,8 +161,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         embed.add_field(
             name=f"{constants.SUCCESS}!",
-            value=f"There are {len(pins)} pinned posts on this channel."
-            f"\n{strmsg[:-3]}",
+            value=f"There are {len(pins)} pinned posts on this channel." f"\n{strmsg[:-3]}",
             inline=False,
         )
         embeds = discord_utils.split_embed(embed)
@@ -193,15 +191,9 @@ class DiscordCog(commands.Cog, name="Discord"):
             value=f"{len(guild.emojis)} ({guild.emoji_limit})",
             inline=False,
         )
-        embed.add_field(
-            name="Categories", value=f"{len(guild.categories)}", inline=False
-        )
-        embed.add_field(
-            name="Text Channels", value=f"{len(guild.text_channels)}", inline=False
-        )
-        embed.add_field(
-            name="Voice Channels", value=f"{len(guild.voice_channels)}", inline=False
-        )
+        embed.add_field(name="Categories", value=f"{len(guild.categories)}", inline=False)
+        embed.add_field(name="Text Channels", value=f"{len(guild.text_channels)}", inline=False)
+        embed.add_field(name="Voice Channels", value=f"{len(guild.voice_channels)}", inline=False)
 
         await ctx.send(embed=embed)
 
@@ -231,12 +223,8 @@ class DiscordCog(commands.Cog, name="Discord"):
             return
 
         embed.add_field(name="Category Name", value=f"{cat.name}", inline=False)
-        embed.add_field(
-            name="Text Channels", value=f"{len(cat.text_channels)}", inline=False
-        )
-        embed.add_field(
-            name="Voice Channels", value=f"{len(cat.voice_channels)}", inline=False
-        )
+        embed.add_field(name="Text Channels", value=f"{len(cat.text_channels)}", inline=False)
+        embed.add_field(name="Voice Channels", value=f"{len(cat.voice_channels)}", inline=False)
         await ctx.send(embed=embed)
 
     ##################
@@ -261,9 +249,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     @command_predicates.is_verified()
     @commands.command(name="steal")
-    async def steal(
-        self, ctx, *emojis: typing.Union[nextcord.Emoji, nextcord.PartialEmoji]
-    ):
+    async def steal(self, ctx, *emojis: typing.Union[nextcord.Emoji, nextcord.PartialEmoji]):
         """Steals an emote from another server and uploads it to this server with the same name.
 
         Permission Category : Verified Roles only.
@@ -281,9 +267,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                         img_or_gif = io.BytesIO(await r.read())
                         b_value = img_or_gif.getvalue()
                         try:
-                            emoji = await ctx.guild.create_custom_emoji(
-                                image=b_value, name=name
-                            )
+                            emoji = await ctx.guild.create_custom_emoji(image=b_value, name=name)
 
                             embed.add_field(
                                 name=f"{constants.SUCCESS}",
