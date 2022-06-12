@@ -15,7 +15,7 @@ repos:
     rev: 5.10.1
     hooks:
       - id: isort
-        args: ["--profile", "black", "--extend-skip"]
+        args: ["--profile", "black", "--extend-skip", "."]
         name: Running isort in all files.
 
   - repo: https://github.com/pre-commit/pre-commit-hooks

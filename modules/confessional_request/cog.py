@@ -98,7 +98,7 @@ class ConfessionalRequest(commands.Cog, name="Confessional Request"):
             last_message = archives_channel.last_message
         if last_message is None and archives_channel.last_message_id is not None:
             last_message = await archives_channel.fetch_message(archives_channel.last_message_id)
-        if not last_message or last_message.attachments:
+        if last_message and last_message.attachments and not last_message.embeds:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.SUCCESS}",
