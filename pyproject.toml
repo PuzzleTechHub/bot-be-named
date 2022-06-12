@@ -1,0 +1,26 @@
+# credit to https://github.com/disnakeDev/disnake/blob/master/pyproject.toml for config
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py310"]
+
+
+[tool.isort]
+profile = "black"
+py_version = 38
+line_length = 100
+combine_as_imports = true
+filter_files = true
+
+
+[tool.taskipy.tasks]
+black = { cmd = "task lint black", help = "Run black" }
+isort = { cmd = "task lint isort", help = "Run isort" }
+lint = { cmd = "pre-commit run --all-files", help = "Check all files for linting errors" }
+precommit = { cmd = "pre-commit install --install-hooks", help = "Install the precommit hook" }
+slotscheck = { cmd = "python -m slotscheck --verbose", help = "Run slotscheck" }
+
+
+[tool.slotscheck]
+strict-imports = true
+require-superclass = true
+require-subclass = false

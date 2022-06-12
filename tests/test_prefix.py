@@ -1,6 +1,7 @@
 import pytest
-from modules.solved.prefix import Prefix
+
 from modules.solved import solved_constants
+from modules.solved.prefix import Prefix
 
 
 @pytest.mark.parametrize(

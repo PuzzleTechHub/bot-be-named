@@ -1,10 +1,12 @@
-import nextcord
 import os
-from nextcord.ext import commands
-from emoji import UNICODE_EMOJI
 from typing import Union
+
+import nextcord
+from emoji import UNICODE_EMOJI
+from nextcord.ext import commands
+
 import constants
-from utils import discord_utils, logging_utils, command_predicates
+from utils import command_predicates, discord_utils, logging_utils
 
 
 class MiscCog(commands.Cog, name="Misc"):
@@ -14,9 +16,7 @@ class MiscCog(commands.Cog, name="Misc"):
         self.bot = bot
 
     @commands.command(name="emoji")
-    async def emoji(
-        self, ctx, emojiname: Union[nextcord.Emoji, str], to_delete: str = ""
-    ):
+    async def emoji(self, ctx, emojiname: Union[nextcord.Emoji, str], to_delete: str = ""):
         """Finds the custom emoji mentioned and uses it.
         This command works for normal as well as animated emojis, as long as the bot is in one server with that emoji.
 
@@ -190,9 +190,7 @@ class MiscCog(commands.Cog, name="Misc"):
         guild = ctx.message.guild
 
         try:
-            channel = await commands.TextChannelConverter().convert(
-                ctx, channel_id_or_name
-            )
+            channel = await commands.TextChannelConverter().convert(ctx, channel_id_or_name)
         except ValueError:
             embed.add_field(
                 name=f"{constants.FAILED}!",
@@ -239,9 +237,7 @@ class MiscCog(commands.Cog, name="Misc"):
         message = " ".join(args)
 
         try:
-            channel = await commands.TextChannelConverter().convert(
-                ctx, channel_id_or_name
-            )
+            channel = await commands.TextChannelConverter().convert(ctx, channel_id_or_name)
         except ValueError:
             embed.add_field(
                 name=f"{constants.FAILED}!",

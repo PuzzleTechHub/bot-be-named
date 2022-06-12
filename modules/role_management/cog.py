@@ -1,9 +1,11 @@
-import nextcord
-from nextcord.ext import commands
-from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 from typing import Union
+
+import nextcord
+from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
+from nextcord.ext import commands
+
 import constants
-from utils import discord_utils, logging_utils, command_predicates
+from utils import command_predicates, discord_utils, logging_utils
 
 
 class RoleManagementCog(commands.Cog, name="Role Management"):

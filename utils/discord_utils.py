@@ -1,7 +1,9 @@
+from typing import List, Tuple, Union
+
 import nextcord
 from nextcord.ext import commands
 from nextcord.ext.commands.errors import ChannelNotFound
-from typing import List, Tuple, Union
+
 import constants
 from modules.solved import solved_constants
 
@@ -69,9 +71,7 @@ def create_no_argument_embed(arg_name: str = "argument") -> nextcord.Embed:
     :param arg_name: (str) The type of argument needed (e.g. channel)
     """
     embed = create_embed()
-    embed.add_field(
-        name=f"{constants.FAILED}!", value=f"You need to supply a {arg_name}!"
-    )
+    embed.add_field(name=f"{constants.FAILED}!", value=f"You need to supply a {arg_name}!")
     return embed
 
 
@@ -116,9 +116,7 @@ async def find_category(
         # Try to search with uppercase, first word capitalized, each word capitalized, and lowercase
         try:
             # Uppercase
-            category = await commands.CategoryChannelConverter().convert(
-                ctx, category_name.upper()
-            )
+            category = await commands.CategoryChannelConverter().convert(ctx, category_name.upper())
         except ChannelNotFound:
             try:
                 # Capitalize each word
@@ -142,9 +140,7 @@ async def find_category(
     return category
 
 
-async def find_role(
-    ctx: commands.Context, role_name: Union[nextcord.Role, str]
-) -> nextcord.Role:
+async def find_role(ctx: commands.Context, role_name: Union[nextcord.Role, str]) -> nextcord.Role:
     """Convert the name to a nextcord Role
     Arguments:
         - ctx (nextcord.ext.commands.Context): The command's context
@@ -160,9 +156,7 @@ async def find_role(
     return None
 
 
-async def find_user(
-    ctx: commands.Context, user_name: Union[nextcord.Member, str]
-) -> nextcord.Role:
+async def find_user(ctx: commands.Context, user_name: Union[nextcord.Member, str]) -> nextcord.Role:
     """Convert the name to a nextcord Member
     Arguments:
         - ctx (nextcord.ext.commands.Context): The command's context
@@ -253,16 +247,12 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
         while description != "":
             embed_list.append(
                 nextcord.Embed(
-                    title=embed.title + " (continued)"
-                    if len(embed_list) > 0
-                    else embed.title,
+                    title=embed.title + " (continued)" if len(embed_list) > 0 else embed.title,
                     color=embed.color,
                 )
             )
             # Find the point that is closest to the cutoff but with a space.
-            cutoff_point = description[
-                : (EMBED_CHARACTER_LIMIT - len(embed.title))
-            ].rfind(" ")
+            cutoff_point = description[: (EMBED_CHARACTER_LIMIT - len(embed.title))].rfind(" ")
             if cutoff_point == -1:
                 cutoff_point = EMBED_CHARACTER_LIMIT - len(embed.title) - 1
             embed_list[-1].description = description[: cutoff_point + 1]
@@ -271,9 +261,7 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
     # If the title + description are small, we can just copy them over
     else:
         embed_list.append(
-            nextcord.Embed(
-                title=embed.title, description=embed.description, color=embed.color
-            )
+            nextcord.Embed(title=embed.title, description=embed.description, color=embed.color)
         )
     character_count = len(embed_list[-1].title) + len(embed_list[-1].description)
 
@@ -284,10 +272,7 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
         # Cut down the proposed fields to the appropriate size
         while field_character_count > FIELD_CHARACTER_LIMIT:
             # If we can add a full-sized field to the embed, do it
-            if (
-                character_count + len(field.name) + FIELD_CHARACTER_LIMIT
-                <= EMBED_CHARACTER_LIMIT
-            ):
+            if character_count + len(field.name) + FIELD_CHARACTER_LIMIT <= EMBED_CHARACTER_LIMIT:
                 cutoff_point = field_description[:FIELD_CHARACTER_LIMIT].rfind(" ")
                 if cutoff_point == -1:
                     cutoff_point = FIELD_CHARACTER_LIMIT - 1
@@ -304,9 +289,7 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
                     : EMBED_CHARACTER_LIMIT - character_count - len(field.name)
                 ].rfind(" ")
                 if cutoff_point == -1:
-                    cutoff_point = (
-                        EMBED_CHARACTER_LIMIT - character_count - len(field.name) - 1
-                    )
+                    cutoff_point = EMBED_CHARACTER_LIMIT - character_count - len(field.name) - 1
                 embed_list[-1].add_field(
                     name=field.name,
                     value=field_description[: cutoff_point + 1],
@@ -316,41 +299,28 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
                 field_description = field_description[cutoff_point + 1 :]
                 # We just filled the entire embed up, so now we need to make a new one
                 embed_list.append(
-                    nextcord.Embed(
-                        title=embed.title + " (continued)", color=embed.color
-                    )
+                    nextcord.Embed(title=embed.title + " (continued)", color=embed.color)
                 )
                 character_count = len(embed_list[-1].title)
         # Once we've gotten to here, we know that the remaining field character count is able to fit in one field.
         # Since the field character limit is smaller than the embed character limit, we know we'd only need one split.
-        if (
-            field_character_count + len(field.name) + character_count
-            > EMBED_CHARACTER_LIMIT
-        ):
+        if field_character_count + len(field.name) + character_count > EMBED_CHARACTER_LIMIT:
             cutoff_point = field_description[
                 : EMBED_CHARACTER_LIMIT - character_count - len(field.name)
             ].rfind(" ")
             if cutoff_point == -1:
-                cutoff_point = (
-                    EMBED_CHARACTER_LIMIT - character_count - len(field.name) - 1
-                )
+                cutoff_point = EMBED_CHARACTER_LIMIT - character_count - len(field.name) - 1
             embed_list[-1].add_field(
                 name=field.name,
                 value=field_description[: cutoff_point + 1],
                 inline=False,
             )
-            embed_list.append(
-                nextcord.Embed(title=embed.title + " (continued)", color=embed.color)
-            )
+            embed_list.append(nextcord.Embed(title=embed.title + " (continued)", color=embed.color))
             field_description = field_description[cutoff_point + 1 :]
             character_count = len(embed_list[-1].title) + len(field.name)
-            embed_list[-1].add_field(
-                name=field.name, value=field_description, inline=False
-            )
+            embed_list[-1].add_field(name=field.name, value=field_description, inline=False)
 
         # I believe if we run here then we just don't need to split anything.
         else:
-            embed_list[-1].add_field(
-                name=field.name, value=field_description, inline=field.inline
-            )
+            embed_list[-1].add_field(name=field.name, value=field_description, inline=field.inline)
     return embed_list

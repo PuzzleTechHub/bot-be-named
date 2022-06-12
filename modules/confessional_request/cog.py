@@ -1,9 +1,10 @@
 import asyncio
 import copy
 
-import constants
 import nextcord
 from nextcord.ext import commands
+
+import constants
 from utils import discord_utils, logging_utils
 
 from .create_channel import CreateChannelView
@@ -96,9 +97,7 @@ class ConfessionalRequest(commands.Cog, name="Confessional Request"):
         if archives_channel.last_message is not None:
             last_message = archives_channel.last_message
         if last_message is None and archives_channel.last_message_id is not None:
-            last_message = await archives_channel.fetch_message(
-                archives_channel.last_message_id
-            )
+            last_message = await archives_channel.fetch_message(archives_channel.last_message_id)
         if not last_message or last_message.attachments:
             embed = discord_utils.create_embed()
             embed.add_field(

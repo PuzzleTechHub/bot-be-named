@@ -1,9 +1,11 @@
-from nextcord.ext import commands
-from modules.error_logging.error_handling import ErrorHandler
-from modules.error_logging import error_constants
-from utils import discord_utils, logging_utils, command_predicates
-import sys
 import os
+import sys
+
+from nextcord.ext import commands
+
+from modules.error_logging import error_constants
+from modules.error_logging.error_handling import ErrorHandler
+from utils import command_predicates, discord_utils, logging_utils
 
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo

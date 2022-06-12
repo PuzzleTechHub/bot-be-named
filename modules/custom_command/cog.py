@@ -1,9 +1,10 @@
 from nextcord.ext import commands
-from sqlalchemy.orm import Session
 from sqlalchemy import insert
-import database
-from utils import discord_utils, logging_utils, command_predicates
+from sqlalchemy.orm import Session
+
 import constants
+import database
+from utils import command_predicates, discord_utils, logging_utils
 
 
 class CustomCommandCog(commands.Cog, name="Custom Command"):
@@ -88,9 +89,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_trusted()
-    @commands.command(
-        name="addcustomimage", aliases=["addcimage", "addccimage", "addimagecc"]
-    )
+    @commands.command(name="addcustomimage", aliases=["addcimage", "addccimage", "addimagecc"])
     async def addtextcommand(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with a text reply. It is not in embed, so is ideal for images and role pings.
 
@@ -173,9 +172,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Permission Category : Verified Roles only.
         Usage: `~listccommands`
         """
-        logging_utils.log_command(
-            "lscustomcommands", ctx.guild, ctx.channel, ctx.author
-        )
+        logging_utils.log_command("lscustomcommands", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if (
@@ -184,9 +181,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         ):
             cclist = database.CUSTOM_COMMANDS[ctx.guild.id].keys()
             custom_commands = "\n".join(sorted(cclist))
-            embed.add_field(
-                name=f"Custom Commands for {ctx.guild.name}", value=custom_commands
-            )
+            embed.add_field(name=f"Custom Commands for {ctx.guild.name}", value=custom_commands)
         else:
             embed.add_field(
                 name=f"{constants.FAILED}!",
@@ -196,9 +191,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_trusted()
-    @commands.command(
-        name="editcustomcommand", aliases=["editccommand", "editcimage", "editcc"]
-    )
+    @commands.command(name="editcustomcommand", aliases=["editccommand", "editcimage", "editcc"])
     async def editcustomcommand(self, ctx, command_name: str, *args):
         """Edit an existing custom command. If the command doesn't already exist, adds the command.
         See also: `~addccommand`
@@ -206,9 +199,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Permission Category : Trusted Roles only.
         Usage: `~editcustomcommand potato "My new return value"`
         """
-        logging_utils.log_command(
-            "editcustomcommand", ctx.guild, ctx.channel, ctx.author
-        )
+        logging_utils.log_command("editcustomcommand", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if len(args) <= 0:
