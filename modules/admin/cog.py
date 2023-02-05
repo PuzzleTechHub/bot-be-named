@@ -55,19 +55,10 @@ class AdminCog(commands.Cog, name="Admin"):
             await ctx.send(embed=embed)
             return
 
-        # Get role. Allow people to use the command by pinging the role, or just naming it
-        if isinstance(role_or_rolename, str):
-            # Search over all roles and see if we get a match.
-            roles = await ctx.guild.fetch_roles()
-            for role in roles:
-                if role.name.lower() == role_or_rolename.lower():
-                    role_to_assign = role
-                    break
-        else:
-            role_to_assign = role_or_rolename
+        role_to_assign = await discord_utils.find_role(ctx, role_or_rolename)
 
         # Ensure role exists
-        if not role_to_assign:
+        if role_to_assign is None:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"Error!",
@@ -224,24 +215,14 @@ class AdminCog(commands.Cog, name="Admin"):
             await ctx.send(embed=embed)
             return
 
-        role_to_remove = None
-        # Get role. Allow people to use the command by pinging the role, or just naming it
-        if isinstance(role_or_rolename, nextcord.Role):
-            role_to_remove = role_or_rolename
-        else:
-            # Search over all roles and see if we get a match.
-            roles = await ctx.guild.fetch_roles()
-            for role in roles:
-                if role.name.lower() == role_or_rolename.lower():
-                    role_to_remove = role
-                    break
-            if not role_to_remove:
-                embed.add_field(
-                    name=f"{constants.FAILED}",
-                    value=f"Sorry, I can't find role `{role_or_rolename}`.",
-                )
-                await ctx.send(embed=embed)
-                return
+        role_to_remove = await discord_utils.find_role(ctx, role_or_rolename)
+        if role_to_remove is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Sorry, I can't find role `{role_or_rolename}`.",
+            )
+            await ctx.send(embed=embed)
+            return
 
         with Session(database.DATABASE_ENGINE) as session:
             result = (

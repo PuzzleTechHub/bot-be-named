@@ -48,18 +48,10 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
             await ctx.send(embed=embed)
             return
 
-        role_to_assign = None
-        if isinstance(rolename, str):
-            roles = await ctx.guild.fetch_roles()
-            for role in roles:
-                if role.name.lower() == rolename.lower():
-                    role_to_assign = role
-                    break
-        else:
-            role_to_assign = rolename
+        role_to_assign = await discord_utils.find_role(ctx, rolename)
 
         # Cannot find the role, so we'll make one
-        if not role_to_assign:
+        if role_to_assign is None:
             try:
                 role_to_assign = await ctx.guild.create_role(name=rolename)
                 await role_to_assign.edit(mentionable=True)
@@ -78,7 +70,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                 await ctx.send(embed=embed)
                 return
 
-        if args[0] == "here":
+        if len(args) > 0 and args[0] == "here":
             args = ctx.channel.members
 
         users_with_role_list = []
@@ -144,15 +136,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         logging_utils.log_command("unassignrole", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        role_to_unassign = None
-        if isinstance(rolename, str):
-            roles = await ctx.guild.fetch_roles()
-            for role in roles:
-                if role.name.lower() == rolename.lower():
-                    role_to_unassign = role
-                    break
-        else:
-            role_to_unassign = rolename
+        role_to_unassign = await discord_utils.find_role(ctx, rolename)
 
         if not role_to_unassign:
             embed.add_field(
@@ -241,25 +225,8 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         logging_utils.log_command("clonerole", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        oldrole_as_role = None
-        if isinstance(oldrole, str):
-            roles = await ctx.guild.fetch_roles()
-            for role in roles:
-                if role.name.lower() == oldrole.lower():
-                    oldrole_as_role = role
-                    break
-        else:
-            oldrole_as_role = oldrole
-
-        newrole_as_role = None
-        if isinstance(newrole, str):
-            roles = await ctx.guild.fetch_roles()
-            for role in roles:
-                if role.name.lower() == newrole.lower():
-                    newrole_as_role = role
-                    break
-        else:
-            newrole_as_role = newrole
+        oldrole_as_role = await discord_utils.find_role(ctx, oldrole)
+        newrole_as_role = await discord_utils.find_role(ctx, newrole)
 
         if not oldrole_as_role:
             embed.add_field(
@@ -329,25 +296,17 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         logging_utils.log_command("deleterole", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        role_to_delete = None
-        if isinstance(rolename, nextcord.Role):
-            role_to_delete = rolename
-        # The input was not an int (i.e. the user gave the name of the role (e.g. ~deleterole rolename))
-        else:
-            # Search over all roles
-            roles = await ctx.guild.fetch_roles()
-            for role in roles:
-                if role.name.lower() == rolename.lower():
-                    role_to_delete = role
-                    break
-            if role_to_delete is None:
-                embed.add_field(
-                    name=f"{constants.FAILED}!",
-                    value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
-                    inline=False,
-                )
-                await ctx.send(embed=embed)
-                return
+        role_to_delete = await discord_utils.find_role(ctx, rolename)
+
+        if role_to_delete is None:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
         # Delete the role or error if it didn't work.
         try:
             role_name = role_to_delete.name
@@ -387,25 +346,16 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
             await ctx.send(embed=embed)
             return
 
-        role_to_list = None
-        if isinstance(rolename, nextcord.Role):
-            role_to_list = rolename
-        # The input was not an int (i.e. the user gave the name of the role (e.g. ~deleterole rolename))
-        else:
-            # Search over all roles
-            roles = await ctx.guild.fetch_roles()
-            for role in roles:
-                if role.name.lower() == rolename.lower():
-                    role_to_list = role
-                    break
-            if role_to_list is None:
-                embed.add_field(
-                    name=f"{constants.FAILED}!",
-                    value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
-                    inline=False,
-                )
-                await ctx.send(embed=embed)
-                return
+        role_to_list = await discord_utils.find_role(ctx, rolename)
+
+        if role_to_list is None:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
 
         allusers = f"{', '.join([user.mention for user in role_to_list.members])}"
         if allusers == "":
@@ -413,6 +363,94 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         embed.add_field(
             name=f"Members in {role_to_list} = {len(role_to_list.members)}",
             value=allusers,
+            inline=False,
+        )
+        await ctx.send(embed=embed)
+
+    @commands.command(name="unreactrole", aliases=[])
+    async def unreactrole(self, ctx, *args: Union[nextcord.Role, str]):
+        """List all people for a given role who have not reacted to a message. (Either reply to the message, or it takes the message above)
+
+        Usage:(as reply to message) `~unreactrole here` (Everyone who can see this channel, including BBN)
+        Usage:(to just consider the last message) `~unreactrole @RoleA "RoleB"`
+        """
+        logging_utils.log_command("unreactrole", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        members = []
+        if len(args) > 0 and args[0] == "here":
+            members = ctx.channel.members
+
+        for rolename in args:
+            role = await discord_utils.find_role(ctx, rolename)
+            if role is not None:
+                members = members + role.members
+            elif rolename != "here":
+                embed.add_field(
+                    name="Error Finding Role!",
+                    value=f"Could not find role `{rolename}`. Perhaps check your spelling or try mentioning the role instead.",
+                    inline=False,
+                )
+                continue
+
+        members = list(set(members))
+
+        if len(members) == 0:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"No members to list. Check your roles again.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        if not ctx.message.reference:
+            channel_history = await ctx.message.channel.history(limit=2).flatten()
+            message = channel_history[-1]
+        else:
+            message = await ctx.fetch_message(ctx.message.reference.message_id)
+
+        reactors = []
+        for react in message.reactions:
+            users = await react.users().flatten()
+            reactors = reactors + users
+
+        reactors = list(set(reactors))
+
+        if len(reactors) == 0:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"No members reacted to the message. Check the message again.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        reactor_but_not_member = []
+        for name in reactors:
+            if name not in members:
+                reactor_but_not_member = reactor_but_not_member + [name]
+
+        member_but_not_reactor = []
+        for name in members:
+            if name not in reactors:
+                member_but_not_reactor = member_but_not_reactor + [name]
+
+        all_reactor_but_not_member = (
+            f"{', '.join([user.mention for user in reactor_but_not_member])}"
+        )
+        all_member_but_not_reactor = (
+            f"{', '.join([user.mention for user in member_but_not_reactor])}"
+        )
+
+        embed.add_field(
+            name=f"Members who reacted to message without being in role = {len(reactor_but_not_member)}",
+            value=all_reactor_but_not_member,
+            inline=False,
+        )
+        embed.add_field(
+            name=f"Members in role who did not react to message = {len(member_but_not_reactor)}",
+            value=all_member_but_not_reactor,
             inline=False,
         )
         await ctx.send(embed=embed)

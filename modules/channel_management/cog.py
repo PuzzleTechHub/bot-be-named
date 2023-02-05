@@ -121,7 +121,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="renamechannel", aliases=["renamechan"])
+    @commands.command(name="renamechan", aliases=["renamechannel"])
     async def renamechannel(
         self,
         ctx,
@@ -190,7 +190,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
     @command_predicates.is_verified()
     @commands.command(
-        name="createchannel", aliases=["makechannel", "makechan", "createchan"]
+        name="createchan", aliases=["makechannel", "makechan", "createchannel"]
     )
     async def createchannel(self, ctx, name: str):
         """Command to create channel in same category with given name
@@ -228,7 +228,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="clonechannel", aliases=["clonechan", "chanclone"])
+    @commands.command(name="clonechan", aliases=["clonechannel", "chanclone"])
     async def clonechannel(
         self,
         ctx,
@@ -393,7 +393,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="shiftchannel", aliases=["shiftchan"])
+    @commands.command(name="shiftchan", aliases=["shiftchannel"])
     async def shiftchannel(
         self,
         ctx,
@@ -493,7 +493,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     ##########################
 
     @command_predicates.is_verified()
-    @commands.command(name="renamevoicechan", aliases=["renamevc", "renamevoice"])
+    @commands.command(name="renamevc", aliases=["renamevoicechan", "renamevoice"])
     async def renamevoicechan(self, ctx, new_name: str):
         """Command to rename the Voice Channel in which the user currently is
 
@@ -612,7 +612,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="renamecategory", aliases=["renamecat"])
+    @commands.command(name="renamecat", aliases=["renamecategory"])
     async def renamecategory(self, ctx, cat_a_name: str, cat_b_name: str = ""):
         """Renames the given category to whatever is asked
 
@@ -666,7 +666,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_trusted()
-    @commands.command(name="synccategory", aliases=["synccat", "catsync"])
+    @commands.command(name="synccat", aliases=["synccategory", "catsync"])
     async def synccategory(self, ctx, cat_name: str = ""):
         """Changes permissions of all channels in Current Category to be synced to Cat-permissions.
         So any channel with different role permissions set up is reverted.
@@ -731,7 +731,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
     @command_predicates.is_verified()
     @commands.command(
-        name="shiftcategory", aliases=["shiftcat", "movecategory", "movecat"]
+        name="shiftcat", aliases=["shiftcategory", "movecategory", "movecat"]
     )
     async def shiftcategory(self, ctx, cat_a_name: str, cat_b_name: str = ""):
         """Shifts a category to below another category.
@@ -829,8 +829,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
     @command_predicates.is_verified()
     @commands.command(
-        name="clonecategory",
-        aliases=["copycategory", "clonecat", "copycat", "catclone"],
+        name="clonecat",
+        aliases=["copycategory", "clonecategory", "copycat", "catclone"],
     )
     async def clonecategory(
         self,
@@ -916,9 +916,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 await ctx.send(embed=embed)
                 return
 
-        targetRole = targetRole_or_none
-        origRole = origRole_or_none
-
         targetCat = await discord_utils.find_category(ctx, targetCatName)
         try:
             # if targetCat doesn't exist, create it
@@ -968,8 +965,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
     @command_predicates.is_owner_or_admin()
     @commands.command(
-        name="listcategories",
-        aliases=["lscategories", "listcats", "lscats", "listcat", "lscat"],
+        name="listcat",
+        aliases=["lscategories", "listcats", "lscats", "listcategories", "lscat"],
     )
     async def listcategories(self, ctx, cat_name: str = ""):
         """List all the categories in a server. If Category is provided, list all channels in it.
@@ -1020,17 +1017,15 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @commands.command(
-        name="deletecategory",
+        name="deletecat",
         aliases=[
             "delcategory",
             "delcat",
-            "deletecat",
+            "deletecategory",
             "removecat",
             "removecategory",
             "rmcat",
             "rmcategory",
-            "nukecat",
-            "nukecategory",
         ],
     )
     @command_predicates.is_owner()

@@ -134,18 +134,6 @@ class LionCog(commands.Cog, name="Lion"):
         """Finds the first empty row in a worksheet"""
         return len(worksheet.get_values()) + 1
 
-    status_dict = {
-        "Solved": {"color": [106, 168, 79], "update_ans": True, "prefix": True},
-        "Solvedish": {"color": [217, 234, 211], "update_ans": False, "prefix": True},
-        "Backsolved": {"color": [60, 120, 216], "update_ans": True, "prefix": True},
-        "Postsolved": {"color": [182, 215, 168], "update_ans": True, "prefix": True},
-        "Unstarted": {"color": [217, 217, 217], "update_ans": False, "prefix": False},
-        "Unsolvable": {"color": [102, 102, 102], "update_ans": False, "prefix": False},
-        "Stuck": {"color": [255, 255, 135], "update_ans": False, "prefix": False},
-        "Abandoned": {"color": [102, 102, 102], "update_ans": False, "prefix": False},
-        "In Progress": {"color": [230, 145, 56], "update_ans": False, "prefix": False},
-    }
-
     @command_predicates.is_solver()
     @commands.command(name="solvedlion")
     async def solvedlion(self, ctx, answer: str = None):
@@ -205,7 +193,7 @@ class LionCog(commands.Cog, name="Lion"):
         if status == "Inprogress":
             status = "In Progress"
 
-        status_info = self.status_dict.get(status)
+        status_info = sheets_constants.status_dict.get(status)
 
         if status_info is None:
             embed = discord_utils.create_embed()
@@ -258,7 +246,7 @@ class LionCog(commands.Cog, name="Lion"):
         puzz_name_col = overview.acell("A1").value
 
         curr_status = overview.acell(status_col + str(row_to_find)).value
-        curr_stat_info = self.status_dict.get(curr_status)
+        curr_stat_info = sheets_constants.status_dict.get(curr_status)
 
         overview.update_acell(status_col + str(row_to_find), status)
 
@@ -781,17 +769,9 @@ class LionCog(commands.Cog, name="Lion"):
                 return
 
             if roleName:
-                role_to_allow = None
-                if isinstance(roleName, str):
-                    roles = await ctx.guild.fetch_roles()
-                    for role in roles:
-                        if role.name.lower() == roleName.lower():
-                            role_to_allow = role
-                            break
-                else:
-                    role_to_allow = roleName
+                role_to_allow = await discord_utils.find_role(ctx, roleName)
 
-                if not role_to_allow:
+                if role_to_allow is None:
                     role_to_allow = await ctx.guild.create_role(name=roleName)
                     embed = discord_utils.create_embed()
                     embed.add_field(
