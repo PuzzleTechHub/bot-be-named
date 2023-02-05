@@ -14,7 +14,7 @@
 A Discord bot that interoperates with Google Sheets to smoothen solving puzzle hunts. 
 If you would like to add Bot-Be-Named to your server, please contact `@kevslinger#9711` or `@Soni#3662` on discord. 
 
-Please note that Bot-Be-Named is set up for our own configurations and environment variables, and may not work for yours. Please contact us if you need help setting up an instance of the bot, but we **highly recommend asking us for a Bot invite link**.
+Bot-Be-Named is currently set up with our own configurations and environment variables, so might have assumptions that don't work for you. Please contact us if you need **a Bot invite link**, or to set up your own fork/instance of the bot.
 
 ## Inviting the Bot to your server
 
@@ -50,9 +50,10 @@ We recommend using [virtual environments](https://docs.python.org/3/tutorial/ven
 #Clone the bot locally
 git clone https://github.com/kevslinger/bot-be-named.git
 cd bot-be-named
-virtualenv venv -p=3.7
-#This installs all the python dependancies the bot needs
+virtualenv venv -p=3.7 
+#Technically optional, but using virtualenv is usually a good idea
 pip install -r requirements.txt && pre-commit install
+#This installs all the python dependancies the bot needs
 ```
 
 The bot uses [Heroku Postgres](https://www.heroku.com/postgres) for storing data.

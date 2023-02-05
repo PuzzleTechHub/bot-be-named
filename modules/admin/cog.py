@@ -36,6 +36,8 @@ class AdminCog(commands.Cog, name="Admin"):
 
         A lot of bot commands can only be used by one of the Permission Categories, so this command is necessary beforehand.
 
+        The permission categories available are - Verified, Trusted, Solver, Tester.
+
         Permission Category : Admin or Bot Owner Roles only.
         Usage: `~addperm Verified @VerifiedRoleName`
         Usage: `~addperm Trusted @everyone`
@@ -383,7 +385,7 @@ class AdminCog(commands.Cog, name="Admin"):
             embed.add_field(
                 name=f"Guilds for {ctx.bot.user.name}",
                 value=f"Guilds for {ctx.bot.user.mention}\n"
-                f"{' '.join(['`'+guild.name+'`' for guild in guilds])}",
+                f"{' '.join(['`'+guild.name+'` - ' for guild in guilds])}",
                 inline=False,
             )
         else:

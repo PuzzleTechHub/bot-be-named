@@ -166,6 +166,8 @@ async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
         else:
             await msg.add_reaction(EMOJIS[":pushpin:"])
 
+    await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
+
     embed = discord_utils.create_embed()
     embed.add_field(
         name=f"{constants.SUCCESS}!",
@@ -255,6 +257,8 @@ async def chancrabgeneric(gspread_client, ctx, chan_name: str, *args):
             await ctx.send(embed=embed_or_none)
         else:
             await msg.add_reaction(EMOJIS[":pushpin:"])
+
+    await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
 
     embed = discord_utils.create_embed()
     embed.add_field(

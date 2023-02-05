@@ -282,10 +282,10 @@ class LionCog(commands.Cog, name="Lion"):
             ]
         }
 
+        embed = discord_utils.create_embed()
         try:
             curr_sheet.batch_update(body)
         except gspread.exceptions.APIError:
-            embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value="Could not update the sheet.",
@@ -293,13 +293,11 @@ class LionCog(commands.Cog, name="Lion"):
             )
             return
 
-        embed = discord_utils.create_embed()
         embed.add_field(
             name=f"{constants.SUCCESS}",
             value="The sheet was successfully updated.",
             inline=False,
         )
-        await ctx.send(embed=embed)
 
         if status == curr_status:
             await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
@@ -311,29 +309,24 @@ class LionCog(commands.Cog, name="Lion"):
 
         if not add_prefix and not past_prefix:
             await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
-            return
         elif past_prefix and not add_prefix:
             await channel.edit(name=tab_name)
-            embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.SUCCESS}",
                 value=f"Channel renamed to {channel.mention}",
                 inline=False,
             )
-            await ctx.send(embed=embed)
             await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
-            return
         else:
             await channel.edit(name=status + " " + tab_name)
-            embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.SUCCESS}",
                 value=f"Channel renamed to {channel.mention}",
                 inline=False,
             )
-            await ctx.send(embed=embed)
             await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
-            return
+
+        await ctx.send(embed=embed)
 
     @command_predicates.is_solver()
     @commands.command(name="mtalion", aliases=["movetoarchivelion", "archivelion"])
@@ -387,10 +380,9 @@ class LionCog(commands.Cog, name="Lion"):
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"Moved sheet to the end of the spreadsheet!",
+            inline=False,
         )
-        await ctx.send(embed=embed)
 
-        embed = discord_utils.create_embed()
         archive_category = None
         if archive_name is None:
             # Find category with same name + Archive (or select combinations)
@@ -414,6 +406,7 @@ class LionCog(commands.Cog, name="Lion"):
                     name=f"{constants.FAILED}!",
                     value=f"There is no category named `{ctx.channel.category.name} Archive` or "
                     f"`Archive: {ctx.channel.category.name}`, so I cannot move {ctx.channel.mention}.",
+                    inline=False,
                 )
                 await ctx.send(embed=embed)
                 return
@@ -421,6 +414,7 @@ class LionCog(commands.Cog, name="Lion"):
                 embed.add_field(
                     name=f"{constants.FAILED}!",
                     value=f"There is no category named `{archive_name}`, so I cannot move {ctx.channel.mention}.",
+                    inline=False,
                 )
                 await ctx.send(embed=embed)
                 return
@@ -430,6 +424,7 @@ class LionCog(commands.Cog, name="Lion"):
                 name=f"{constants.FAILED}!",
                 value=f"`{archive_category.name}` is already full, max limit is 50 channels. Consider renaming"
                 f" `{archive_category.name}` and creating a new `{archive_category.name}`.",
+                inline=False,
             )
             await ctx.send(embed=embed)
             return
@@ -443,6 +438,7 @@ class LionCog(commands.Cog, name="Lion"):
                 name=f"{constants.FAILED}!",
                 value=f"Can you check my permissions? I can't seem to be able to move "
                 f"{ctx.channel.mention} to `{archive_category.name}`",
+                inline=False,
             )
             await ctx.send(embed=embed)
             return
@@ -450,6 +446,7 @@ class LionCog(commands.Cog, name="Lion"):
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`",
+            inline=False,
         )
         await ctx.send(embed=embed)
 

@@ -128,8 +128,8 @@ class MiscCog(commands.Cog, name="Misc"):
             f"- `{ctx.prefix}chancrab` and `{ctx.prefix}sheetcrab` for making Google Sheet tabs for your current hunt\n"
             f"- `{ctx.prefix}solved` etc for marking puzzle channels as solved etc\n"
             f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply.\n\n"
-            f"Note that most commands are only restricted to certain Permission Categories. The current categories for those are - Verified/Trusted/Solver. These need to be configured accordingly.\n"
-            f"- `{ctx.prefix}addverifieds` for setting up Permission Categories on your server\n",
+            f"Note that most commands are only restricted to certain Permission Categories. The current categories for those are - Verified/Trusted/Solver/Tester. These need to be configured accordingly.\n"
+            f"- `{ctx.prefix}addperm` for setting up Permission Categories on your server\n",
             inline=False,
         )
         await ctx.send(embed=embed)

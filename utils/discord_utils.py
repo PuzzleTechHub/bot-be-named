@@ -142,6 +142,29 @@ async def find_category(
     return category
 
 
+def sort_channels_util(
+    channel_list: list,
+    prefixes: list = [
+        solved_constants.SOLVEDISH_PREFIX,
+        solved_constants.BACKSOLVED_PREFIX,
+        solved_constants.SOLVED_PREFIX,
+    ],
+) -> list:
+    """Sort channels according to some prefixes"""
+    channel_list_sorted = sorted(channel_list, key=lambda x: x.name)
+
+    channel_list_prefixes = []
+    for prefix in prefixes:
+        channel_list_prefixes += list(
+            filter(lambda x: x.name.startswith(prefix), channel_list_sorted)
+        )
+
+    unsolved = channel_list_sorted
+    unsolved = list(filter(lambda x: x not in channel_list_prefixes, unsolved))
+
+    return unsolved + channel_list_prefixes
+
+
 async def find_role(
     ctx: commands.Context, role_name: Union[nextcord.Role, str]
 ) -> nextcord.Role:
