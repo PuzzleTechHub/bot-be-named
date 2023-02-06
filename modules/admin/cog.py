@@ -1,7 +1,6 @@
 import nextcord
 from nextcord.ext import commands
 from nextcord.ext.commands.core import command
-import psycopg2
 from sqlalchemy.orm import Session
 import sqlalchemy
 from utils import discord_utils, logging_utils, command_predicates

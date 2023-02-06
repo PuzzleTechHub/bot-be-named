@@ -6,7 +6,6 @@ import constants
 from nextcord.ext import commands
 import nextcord
 import gspread
-import database
 from sqlalchemy.sql.expression import insert
 from sqlalchemy.orm import Session
 import asyncio
