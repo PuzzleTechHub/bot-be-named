@@ -266,7 +266,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         embed = discord_utils.create_embed()
 
         return await sheet_utils.chancrabgeneric(
-            self.gspread_client, ctx, chan_name, *args
+            self.gspread_client, ctx, chan_name, "chan", *args
         )
 
     @command_predicates.is_solver()
@@ -289,7 +289,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         embed = discord_utils.create_embed()
 
         return await sheet_utils.metacrabgeneric(
-            self.gspread_client, ctx, chan_name, *args
+            self.gspread_client, ctx, chan_name, "chan", *args
         )
 
     @command_predicates.is_solver()
@@ -436,7 +436,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @command_predicates.is_solver()
     @commands.command(name="downloadsheet", aliases=["savesheet"])
     async def downloadsheet(self, ctx, sheet_url=None):
-        """Download  the channel/category's currently tethered sheet. You can supply a URL or it will
+        """Download the channel/category's currently tethered sheet. You can supply a URL or it will
         use the currently tethered sheet.
 
         Permission Category : Solver Roles only.

@@ -21,7 +21,7 @@ async def createchannelgeneric(
     """Command to create channel in same category with given name
     Arguments:
         - guild (nextcord.Guild): the guild the channel is being created in
-        - category (nextcord.CategoryChannel): the category the channel is being created in
+        - category (nextcord.TextChannel): the category the channel is being created in
         - name (str): the name for the channel
     Returns:
         - channel (nextcord.TextChannel): The created channel, or none if the bot does not have sufficient perms.
@@ -33,6 +33,28 @@ async def createchannelgeneric(
         return None
 
     return channel
+
+
+async def createthreadgeneric(
+    message: nextcord.Message,
+    chan_or_forum: Union[nextcord.TextChannel, nextcord.ForumChannel],
+    name: str,
+) -> nextcord.Thread:
+    """Command to create thread in same channel with given name
+    Arguments:
+        - guild (nextcord.Guild): the guild the channel is being created in
+        - category_or_forum (nextcord.CategoryChannel or nextcord.ForumChannel): the category or forum the channel is being created in
+        - name (str): the name for the channel
+    Returns:
+        - thread (nextcord.Thread): The created thread, or none if the bot does not have sufficient perms.
+    """
+    try:
+        # create channel
+        thread = await chan_or_forum.create_thread(name=name, message=message)
+    except nextcord.Forbidden:
+        return None
+
+    return thread
 
 
 async def createvoicechannelgeneric(

@@ -1,7 +1,7 @@
 from http.client import FORBIDDEN
 from discord import Forbidden
 import googleapiclient
-from modules.sheets import sheets_constants, sheet_utils
+from modules.sheets import sheets_constants
 from utils import discord_utils
 import constants
 from nextcord.ext import commands
@@ -67,8 +67,8 @@ async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = "")
 
     curr_chan = ctx.message.channel
     curr_cat = ctx.message.channel.category
-    curr_sheet_link, newsheet = await sheet_utils.sheetcreatetabgeneric(
-        gspread_client, ctx, curr_chan, curr_cat, tab_name
+    curr_sheet_link, newsheet = await sheetcreatetabgeneric(
+        gspread_client, ctx, curr_chan, curr_cat, tab_name, "Template"
     )
 
     pin_flag = False
@@ -100,10 +100,14 @@ async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = "")
     return curr_sheet_link, newsheet
 
 
-async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
+async def metacrabgeneric(
+    gspread_client, ctx, chan_name: str, chan_or_thread: str, *args
+):
     embed = discord_utils.create_embed()
     # Cannot make a new channel if the category is full
-    if discord_utils.category_is_full(ctx.channel.category):
+    if chan_or_thread == "chan" and discord_utils.category_is_full(
+        ctx.channel.category
+    ):
         embed.add_field(
             name=f"{constants.FAILED}!",
             value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
@@ -115,8 +119,13 @@ async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
     text_to_pin = " ".join(args)
     tab_name = chan_name.replace("#", "").replace("-", " ")
 
-    curr_sheet_link, newsheet = await sheet_utils.sheetcreatetabmeta(
-        gspread_client, ctx, ctx.channel, ctx.channel.category, tab_name
+    curr_sheet_link, newsheet = await sheetcreatetabgeneric(
+        gspread_client,
+        ctx,
+        ctx.channel,
+        ctx.channel.category,
+        tab_name,
+        "Meta Template",
     )
 
     # Error, already being handled at the generic function
@@ -127,9 +136,15 @@ async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
     final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
 
     # new channel created (or None)
-    new_chan = await discord_utils.createchannelgeneric(
-        ctx.guild, ctx.channel.category, chan_name
-    )
+    if chan_or_thread == "chan":
+        new_chan = await discord_utils.createchannelgeneric(
+            ctx.guild, ctx.channel.category, chan_name
+        )
+    elif chan_or_thread == "thread":
+        new_chan = await discord_utils.createthreadgeneric(
+            ctx.message, ctx.channel, chan_name
+        )
+
     # Error creating channel
     if not new_chan:
         embed = discord_utils.create_embed()
@@ -166,7 +181,8 @@ async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
         else:
             await msg.add_reaction(EMOJIS[":pushpin:"])
 
-    await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
+    if chan_or_thread == "chan":
+        await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
 
     embed = discord_utils.create_embed()
     embed.add_field(
@@ -180,10 +196,14 @@ async def metacrabgeneric(gspread_client, ctx, chan_name: str, *args):
     return curr_sheet_link, newsheet, new_chan
 
 
-async def chancrabgeneric(gspread_client, ctx, chan_name: str, *args):
+async def chancrabgeneric(
+    gspread_client, ctx, chan_name: str, chan_or_thread: str, *args
+):
     embed = discord_utils.create_embed()
     # Cannot make a new channel if the category is full
-    if discord_utils.category_is_full(ctx.channel.category):
+    if chan_or_thread == "chan" and discord_utils.category_is_full(
+        ctx.channel.category
+    ):
         embed.add_field(
             name=f"{constants.FAILED}!",
             value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
@@ -195,8 +215,8 @@ async def chancrabgeneric(gspread_client, ctx, chan_name: str, *args):
     text_to_pin = " ".join(args)
     tab_name = chan_name.replace("#", "").replace("-", " ")
 
-    curr_sheet_link, newsheet = await sheet_utils.sheetcreatetabgeneric(
-        gspread_client, ctx, ctx.channel, ctx.channel.category, tab_name
+    curr_sheet_link, newsheet = await sheetcreatetabgeneric(
+        gspread_client, ctx, ctx.channel, ctx.channel.category, tab_name, "Template"
     )
 
     # Error, already being handled at the generic function
@@ -207,9 +227,15 @@ async def chancrabgeneric(gspread_client, ctx, chan_name: str, *args):
     final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
 
     # new channel created (or None)
-    new_chan = await discord_utils.createchannelgeneric(
-        ctx.guild, ctx.channel.category, chan_name
-    )
+    if chan_or_thread == "chan":
+        new_chan = await discord_utils.createchannelgeneric(
+            ctx.guild, ctx.channel.category, chan_name
+        )
+    elif chan_or_thread == "thread":
+        new_chan = await discord_utils.createthreadgeneric(
+            ctx.message, ctx.channel, chan_name
+        )
+
     # Error creating channel
     if not new_chan:
         embed = discord_utils.create_embed()
@@ -258,7 +284,8 @@ async def chancrabgeneric(gspread_client, ctx, chan_name: str, *args):
         else:
             await msg.add_reaction(EMOJIS[":pushpin:"])
 
-    await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
+    if chan_or_thread == "chan":
+        await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
 
     embed = discord_utils.create_embed()
     embed.add_field(
@@ -327,7 +354,9 @@ def get_sheet_from_key_or_link(
         return None
 
 
-async def sheetcreatetabgeneric(gspread_client, ctx, curr_chan, curr_cat, tab_name):
+async def sheetcreatetabgeneric(
+    gspread_client, ctx, curr_chan, curr_cat, tab_name, template_or_meta
+):
     """Actually creates the sheet and handles errors"""
     embed = discord_utils.create_embed()
     curr_sheet_link = None
@@ -348,12 +377,12 @@ async def sheetcreatetabgeneric(gspread_client, ctx, curr_chan, curr_cat, tab_na
         await ctx.send(embed=embed)
         return curr_sheet_link, newsheet
 
-    # Make sure the template tab exists on the sheet.
+    # Make sure the template/metatemplate tab exists on the sheet.
     template_index = 0
     try:
         curr_sheet = gspread_client.open_by_url(curr_sheet_link)
-        template_id = curr_sheet.worksheet("Template").id
-        template_index = curr_sheet.worksheet("Template").index
+        template_id = curr_sheet.worksheet(template_or_meta).id
+        template_index = curr_sheet.worksheet(template_or_meta).index
     # Error when we can't open the curr sheet link
     except gspread.exceptions.APIError:
         embed = discord_utils.create_embed()
@@ -370,7 +399,7 @@ async def sheetcreatetabgeneric(gspread_client, ctx, curr_chan, curr_cat, tab_na
         embed = discord_utils.create_embed()
         embed.add_field(
             name=f"{constants.FAILED}",
-            value=f"The [sheet]({curr_sheet_link}) has no tab named 'Template'. "
+            value=f"The [sheet]({curr_sheet_link}) has no tab named '{template_or_meta}'. "
             f"Did you forget to add one?",
             inline=False,
         )
@@ -393,107 +422,25 @@ async def sheetcreatetabgeneric(gspread_client, ctx, curr_chan, curr_cat, tab_na
         # If the tab isn't found, that's good! We will create one.
         pass
 
-    # Try to duplicate the template tab and rename it to the given name
+    # Try to duplicate the template/meta tab and rename it to the given name
     try:
-        # Index of template+2 is hardcoded for Team Arithmancy server
+        # Index of template+2 (for template) and template+1 (for meta) is hardcoded for The Mathemagicians server
+
+        if template_or_meta == "Template":
+            i = 2
+        else:
+            i = 1
+
         newsheet = curr_sheet.duplicate_sheet(
             source_sheet_id=template_id,
             new_sheet_name=tab_name,
-            insert_sheet_index=template_index + 2,
+            insert_sheet_index=template_index + i,
         )
     except gspread.exceptions.APIError:
         embed = discord_utils.create_embed()
         embed.add_field(
             name=f"{constants.FAILED}",
-            value=f"Could not duplicate 'Template' tab in the "
-            f"[Google sheet at link]({curr_sheet_link}). "
-            f"Is the permission set up with 'Anyone with link can edit'?",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-        return curr_sheet_link, None
-
-    return curr_sheet_link, newsheet
-
-
-async def sheetcreatetabmeta(gspread_client, ctx, curr_chan, curr_cat, tab_name):
-    """Actually creates the meta sheet and handles errors"""
-    embed = discord_utils.create_embed()
-    curr_sheet_link = None
-    newsheet = None
-
-    tether_db_result, tether_type = findsheettether(str(curr_cat.id), str(curr_chan.id))
-
-    if tether_db_result is not None:
-        curr_sheet_link = tether_db_result.sheet_link
-    else:
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.FAILED}",
-            value=f"The category **{curr_cat.name}** nor the channel **{curr_chan.name}** are not "
-            f"tethered to any Google sheet.",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-        return curr_sheet_link, newsheet
-
-    # Make sure the template tab exists on the sheet.
-    try:
-        curr_sheet = gspread_client.open_by_url(curr_sheet_link)
-        template_id = curr_sheet.worksheet("Meta Template").id
-        template_index = curr_sheet.worksheet("Meta Template").index
-    # Error when we can't open the curr sheet link
-    except gspread.exceptions.APIError:
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.FAILED}",
-            value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
-            f"Did the permissions change?",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-        return curr_sheet_link, newsheet
-    # Error when the sheet has no template tab
-    except gspread.exceptions.WorksheetNotFound:
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.FAILED}",
-            value=f"The [sheet]({curr_sheet_link}) has no tab named 'Meta Template'. "
-            f"Did you forget to add one?",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-        return curr_sheet_link, newsheet
-    # Make sure tab_name does not exist
-    try:
-        curr_sheet.worksheet(tab_name)
-        # If there is a tab with the given name, that's an error!
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.FAILED}",
-            value=f"The [Google sheet at link]({curr_sheet_link}) already has a tab named "
-            f"**{tab_name}**. Cannot create a tab with same name.",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-        return curr_sheet_link, newsheet
-    except gspread.exceptions.WorksheetNotFound:
-        # If the tab isn't found, that's good! We will create one.
-        pass
-
-    # Try to duplicate the template tab and rename it to the given name
-    try:
-        # Index of 4 is hardcoded for Team Arithmancy server
-        newsheet = curr_sheet.duplicate_sheet(
-            source_sheet_id=template_id,
-            new_sheet_name=tab_name,
-            insert_sheet_index=template_index + 1,
-        )
-    except gspread.exceptions.APIError:
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.FAILED}",
-            value=f"Could not duplicate 'Meta Template' tab in the "
+            value=f"Could not duplicate '{template_or_meta}' tab in the "
             f"[Google sheet at link]({curr_sheet_link}). "
             f"Is the permission set up with 'Anyone with link can edit'?",
             inline=False,

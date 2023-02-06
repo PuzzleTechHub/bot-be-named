@@ -506,11 +506,98 @@ class LionCog(commands.Cog, name="Lion"):
 
         if url is not None:
             curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
-                self.gspread_client, ctx, chan_name, url
+                self.gspread_client, ctx, chan_name, "chan", url
             )
         else:
             curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
-                self.gspread_client, ctx, chan_name
+                self.gspread_client, ctx, chan_name, "chan"
+            )
+
+        if curr_sheet_link is None or newsheet is None or new_chan is None:
+            return
+
+        await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
+
+    @command_predicates.is_solver()
+    @commands.command(name="metalion", aliases=["metachanlion"])
+    async def metalion(self, ctx, chan_name: str, url: str = None):
+        """Creates a new tab and a new channel for a new metapuzzle and then updates the info in the sheet accordingly.
+
+        Requires that the sheet has Overview and Meta Template tabs
+
+        Permission Category : Verified Roles only.
+        Usage: ~chanlion PuzzleName
+        Usage: ~chanlion PuzzleName linktopuzzle
+        """
+        logging_utils.log_command("metalion", ctx.guild, ctx.channel, ctx.author)
+
+        curr_sheet_link, newsheet, new_chan = None, None, None
+
+        if url is not None:
+            curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
+                self.gspread_client, ctx, chan_name, "chan", url
+            )
+        else:
+            curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
+                self.gspread_client, ctx, chan_name, "chan"
+            )
+
+        if curr_sheet_link is None or newsheet is None or new_chan is None:
+            return
+
+        await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
+
+    @command_predicates.is_solver()
+    @commands.command(name="threadlion")
+    async def threadlion(self, ctx, chan_name: str, url=None):
+        """Creates a new tab and a new thread for a new feeder puzzle and then updates the info in the sheet accordingly.
+
+        Requires that the sheet has Overview and Template tabs
+
+        Permission Category : Verified Roles only.
+        Usage: ~threadlion PuzzleName
+        Usage: ~threadlion PuzzleName linktopuzzle
+        """
+        logging_utils.log_command("threadlion", ctx.guild, ctx.channel, ctx.author)
+
+        curr_sheet_link, newsheet, new_chan = None, None, None
+
+        if url is not None:
+            curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
+                self.gspread_client, ctx, chan_name, "thread", url
+            )
+        else:
+            curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
+                self.gspread_client, ctx, chan_name, "thread"
+            )
+
+        if curr_sheet_link is None or newsheet is None or new_chan is None:
+            return
+
+        await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
+
+    @command_predicates.is_solver()
+    @commands.command(name="metathreadlion")
+    async def metathreadlion(self, ctx, chan_name: str, url: str = None):
+        """Creates a new tab and a new thread for a new metapuzzle and then updates the info in the sheet accordingly.
+
+        Requires that the sheet has Overview and Meta Template tabs
+
+        Permission Category : Verified Roles only.
+        Usage: ~chanlion PuzzleName
+        Usage: ~chanlion PuzzleName linktopuzzle
+        """
+        logging_utils.log_command("metathreadlion", ctx.guild, ctx.channel, ctx.author)
+
+        curr_sheet_link, newsheet, new_chan = None, None, None
+
+        if url is not None:
+            curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
+                self.gspread_client, ctx, chan_name, "thread", url
+            )
+        else:
+            curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
+                self.gspread_client, ctx, chan_name, "thread"
             )
 
         if curr_sheet_link is None or newsheet is None or new_chan is None:
@@ -541,35 +628,6 @@ class LionCog(commands.Cog, name="Lion"):
         await self.puzzlelion(
             ctx, tab_name, url, curr_sheet_link, newsheet, ctx.channel
         )
-
-    @command_predicates.is_solver()
-    @commands.command(name="metalion")
-    async def metalion(self, ctx, chan_name: str, url: str = None):
-        """Creates a new tab and a new channel for a new metapuzzle and then updates the info in the sheet accordingly.
-
-        Requires that the sheet has Overview and Meta Template tabs
-
-        Permission Category : Verified Roles only.
-        Usage: ~chanlion PuzzleName
-        Usage: ~chanlion PuzzleName linktopuzzle
-        """
-        logging_utils.log_command("metalion", ctx.guild, ctx.channel, ctx.author)
-
-        curr_sheet_link, newsheet, new_chan = None, None, None
-
-        if url is not None:
-            curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
-                self.gspread_client, ctx, chan_name, url
-            )
-        else:
-            curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
-                self.gspread_client, ctx, chan_name
-            )
-
-        if curr_sheet_link is None or newsheet is None or new_chan is None:
-            return
-
-        await self.puzzlelion(ctx, chan_name, url, curr_sheet_link, newsheet, new_chan)
 
     @command_predicates.is_solver()
     @commands.command(name="metasheetlion")
