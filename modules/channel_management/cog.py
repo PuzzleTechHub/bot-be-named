@@ -5,6 +5,7 @@ import constants
 import nextcord
 from typing import Union
 import asyncio
+from modules.solved import solved_constants
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
@@ -577,7 +578,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             await ctx.send(embed=embed)
             return
 
-        channel_list = discord_utils.sort_channels_util(category.text_channels)
+        channel_list = self.sort_channels(category.text_channels)
 
         start_embed = discord_utils.create_embed()
         start_embed.add_field(
@@ -610,6 +611,29 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             value=f"Sorted the channels in `{category.name}`!",
         )
         await ctx.send(embed=embed)
+
+    def sort_channels(
+        self,
+        channel_list: list,
+        prefixes: list = [
+            solved_constants.SOLVEDISH_PREFIX,
+            solved_constants.BACKSOLVED_PREFIX,
+            solved_constants.SOLVED_PREFIX,
+        ],
+    ) -> list:
+        """Sort channels according to some prefixes"""
+        channel_list_sorted = sorted(channel_list, key=lambda x: x.name)
+
+        channel_list_prefixes = []
+        for prefix in prefixes:
+            channel_list_prefixes += list(
+                filter(lambda x: x.name.startswith(prefix), channel_list_sorted)
+            )
+
+        unsolved = channel_list_sorted
+        unsolved = list(filter(lambda x: x not in channel_list_prefixes, unsolved))
+
+        return unsolved + channel_list_prefixes
 
     @command_predicates.is_verified()
     @commands.command(name="renamecat", aliases=["renamecategory"])

@@ -40,6 +40,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             message = await ctx.fetch_message(ctx.message.reference.message_id)
 
         embed_or_none = await discord_utils.pin_message(message)
+
         # Error pinning, send error message to user
         if embed_or_none is not None:
             await ctx.send(embed=embed_or_none)

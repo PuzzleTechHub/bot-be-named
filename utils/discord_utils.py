@@ -3,7 +3,6 @@ from nextcord.ext import commands
 from nextcord.ext.commands.errors import ChannelNotFound
 from typing import List, Tuple, Union
 import constants
-from modules.solved import solved_constants
 
 
 def category_is_full(category: nextcord.CategoryChannel) -> bool:
@@ -164,29 +163,6 @@ async def find_category(
     return category
 
 
-def sort_channels_util(
-    channel_list: list,
-    prefixes: list = [
-        solved_constants.SOLVEDISH_PREFIX,
-        solved_constants.BACKSOLVED_PREFIX,
-        solved_constants.SOLVED_PREFIX,
-    ],
-) -> list:
-    """Sort channels according to some prefixes"""
-    channel_list_sorted = sorted(channel_list, key=lambda x: x.name)
-
-    channel_list_prefixes = []
-    for prefix in prefixes:
-        channel_list_prefixes += list(
-            filter(lambda x: x.name.startswith(prefix), channel_list_sorted)
-        )
-
-    unsolved = channel_list_sorted
-    unsolved = list(filter(lambda x: x not in channel_list_prefixes, unsolved))
-
-    return unsolved + channel_list_prefixes
-
-
 async def find_role(
     ctx: commands.Context, role_name: Union[nextcord.Role, str]
 ) -> nextcord.Role:
@@ -284,12 +260,18 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
     Returns
         - embed_list (List[nextcord.Embed]):
     """
-    if embed.title == nextcord.Embed.Empty:
-        embed.title = ""
-    EMBED_CHARACTER_LIMIT = 2000
-    FIELD_CHARACTER_LIMIT = 1024
+    if embed.title is None:
+        embed_title = ""
+    else:
+        embed_title = embed.title
+
+    EMBED_CHARACTER_LIMIT = 2000  # Actual limit is 2000.
+    FIELD_CHARACTER_LIMIT = 1000  # Actual limit is 1000.
     embed_list = []
-    character_count = len(embed.title) + len(embed.description)
+
+    character_count = len(embed_title) + (
+        0 if (embed.description == None) else len(embed.description)
+    )
     # If the title + description exceeds the character limit, we must break up the description into smaller parts.
     if character_count > EMBED_CHARACTER_LIMIT:
         print(f"Title and description are too long with {character_count} characters")
@@ -298,18 +280,18 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
         while description != "":
             embed_list.append(
                 nextcord.Embed(
-                    title=embed.title + " (continued)"
-                    if len(embed_list) > 0
-                    else embed.title,
+                    title=embed_title + " (continued)"
+                    if len(embed_title) > 0
+                    else embed_title,
                     color=embed.color,
                 )
             )
             # Find the point that is closest to the cutoff but with a space.
             cutoff_point = description[
-                : (EMBED_CHARACTER_LIMIT - len(embed.title))
+                : (EMBED_CHARACTER_LIMIT - len(embed_title))
             ].rfind(" ")
             if cutoff_point == -1:
-                cutoff_point = EMBED_CHARACTER_LIMIT - len(embed.title) - 1
+                cutoff_point = EMBED_CHARACTER_LIMIT - len(embed_title) - 1
             embed_list[-1].description = description[: cutoff_point + 1]
             description = description[cutoff_point + 1 :]
             characters_remaining -= cutoff_point
@@ -317,7 +299,7 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
     else:
         embed_list.append(
             nextcord.Embed(
-                title=embed.title, description=embed.description, color=embed.color
+                title=embed_title, description=embed.description, color=embed.color
             )
         )
     character_count = len(embed_list[-1].title) + len(embed_list[-1].description)
@@ -362,7 +344,7 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
                 # We just filled the entire embed up, so now we need to make a new one
                 embed_list.append(
                     nextcord.Embed(
-                        title=embed.title + " (continued)", color=embed.color
+                        title=embed_title + " (continued)", color=embed.color
                     )
                 )
                 character_count = len(embed_list[-1].title)
@@ -385,7 +367,7 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
                 inline=False,
             )
             embed_list.append(
-                nextcord.Embed(title=embed.title + " (continued)", color=embed.color)
+                nextcord.Embed(title=embed_title + " (continued)", color=embed.color)
             )
             field_description = field_description[cutoff_point + 1 :]
             character_count = len(embed_list[-1].title) + len(field.name)
