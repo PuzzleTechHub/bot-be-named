@@ -343,7 +343,10 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
             rolestext = f"{', '.join([role.mention for role in roles_sorted])}"
             roles.sort(key=lambda x: x.position, reverse=True)
             embed.add_field(name=f"Roles in {ctx.guild.name}", value=rolestext)
-            await ctx.send(embed=embed)
+
+            embeds = discord_utils.split_embed(embed)
+            for embed in embeds:
+                await ctx.send(embed=embed)
             return
 
         role_to_list = await discord_utils.find_role(ctx, rolename)
@@ -365,7 +368,9 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
             value=allusers,
             inline=False,
         )
-        await ctx.send(embed=embed)
+        embeds = discord_utils.split_embed(embed)
+        for embed in embeds:
+            await ctx.send(embed=embed)
 
     @commands.command(name="unreactrole", aliases=[])
     async def unreactrole(self, ctx, *args: Union[nextcord.Role, str]):
