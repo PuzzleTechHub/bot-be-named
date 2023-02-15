@@ -21,7 +21,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         archive_utils.reset_archive_dir()
 
     async def archive_one_channel(
-        self, channel: nextcord.TextChannel
+        self, channel: Union[nextcord.TextChannel, nextcord.Thread]
     ) -> Tuple[nextcord.File, int, nextcord.File, int]:
         """Download a channel's history"""
         # Write the chat log. Replace attachments with their filename (for easy reference)
@@ -130,7 +130,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         return file, embed
 
     @command_predicates.is_verified()
-    @commands.command(name="archivechannel", aliases=["archivechan"])
+    @commands.command(name="archivechannel", aliases=["archivechan", "archivethread"])
     async def archivechannel(self, ctx, *args: Union[nextcord.TextChannel, str]):
         """Command to download channel's history
 
@@ -162,12 +162,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 if isinstance(channelname, nextcord.TextChannel):
                     channel = channelname
                 else:
-                    try:
-                        # Convert channel from string to nextcord.TextChannel
-                        channel = await commands.TextChannelConverter().convert(
-                            ctx, channelname
-                        )
-                    except ChannelNotFound:
+                    channel = await discord_utils.find_chan_or_thread(ctx, channelname)
+                    if channel is None:
                         embed.add_field(
                             name="ERROR: Cannot find channel",
                             value=f"Sorry, I cannot find a channel with name {channelname}. Try mentioning the channel (e.g. `#{channelname}`)",
@@ -175,7 +171,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         )
                         await ctx.send(embed=embed)
                         return
-                    if not channel.type.name == "text":
+                    if not (
+                        channel.type.name in ["text", "public_thread", "private_thread"]
+                    ):
                         embed.add_field(
                             name="ERROR: Cannot archive non-text channels",
                             value=f"Sorry! I can only archive text channels, but "

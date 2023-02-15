@@ -189,11 +189,8 @@ class MiscCog(commands.Cog, name="Misc"):
         message = " ".join(args)
         guild = ctx.message.guild
 
-        try:
-            channel = await commands.TextChannelConverter().convert(
-                ctx, channel_id_or_name
-            )
-        except ValueError:
+        channel = await discord_utils.find_chan_or_thread(ctx, channel_id_or_name)
+        if channel is None:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Error! The channel `{channel_id_or_name}` was not found",
@@ -238,11 +235,8 @@ class MiscCog(commands.Cog, name="Misc"):
 
         message = " ".join(args)
 
-        try:
-            channel = await commands.TextChannelConverter().convert(
-                ctx, channel_id_or_name
-            )
-        except ValueError:
+        channel = await discord_utils.find_chan_or_thread(ctx, channel_id_or_name)
+        if channel is None:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Error! The channel `{channel_id_or_name}` was not found",

@@ -1,6 +1,6 @@
 import nextcord
 from nextcord.ext import commands
-from nextcord.ext.commands.errors import ChannelNotFound
+from nextcord.ext.commands.errors import ChannelNotFound, ThreadNotFound
 from typing import List, Tuple, Union
 import constants
 
@@ -161,6 +161,33 @@ async def find_category(
                     except ChannelNotFound:
                         category = None
     return category
+
+
+async def find_chan_or_thread(
+    ctx: commands.Context, chan_name: Union[nextcord.TextChannel, nextcord.Thread, str]
+) -> Union[nextcord.TextChannel, nextcord.Thread]:
+    """Convert the name to a nextcord Channel/Thread
+    Arguments:
+        - ctx (nextcord.ext.commands.Context): The command's context
+        - chan_name (str): The name of the role
+    Returns:
+        - chan_or_thread (nextcord.TextChannel): the channel or thread or None if not found"""
+
+    if (
+        isinstance(chan_name, nextcord.TextChannel)
+        or isinstance(chan_name, nextcord.Thread)
+        or chan_name is None
+    ):
+        return chan_name
+    try:
+        chan_or_thread = await commands.TextChannelConverter().convert(ctx, chan_name)
+        return chan_or_thread
+    except ChannelNotFound:
+        try:
+            chan_or_thread = await commands.ThreadConverter().convert(ctx, chan_name)
+            return chan_or_thread
+        except ThreadNotFound:
+            return None
 
 
 async def find_role(

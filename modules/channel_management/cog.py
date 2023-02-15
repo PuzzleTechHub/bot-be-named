@@ -122,18 +122,20 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="renamechan", aliases=["renamechannel"])
+    @commands.command(name="renamechan", aliases=["renamechannel", "renamethread"])
     async def renamechannel(
         self,
         ctx,
-        chan_a: Union[nextcord.TextChannel, str],
-        chan_b: Union[nextcord.TextChannel, str] = "",
+        chan_a: Union[nextcord.TextChannel, nextcord.Thread, str],
+        chan_b: Union[nextcord.TextChannel, nextcord.Thread, str] = "",
     ):
-        """Changes current channel name to whatever is asked
+        """Changes current channel name to whatever is asked.
 
         Permission Category : Verified Roles only.
         Usage: `~renamechannel newname` (Renames current channel)
         Usage: `~renamechan #old-chan newname`
+
+        Can rename threads as well.
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes.
         Those channels will have to be renamed manually, or wait for the full 10 mins.
@@ -149,14 +151,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             old_channel_name = chan_a
             new_channel_name = chan_b
 
-        old_channel = None
-        if isinstance(old_channel_name, nextcord.TextChannel):
-            old_channel = old_channel_name
-        else:
-            old_channel = await commands.TextChannelConverter().convert(
-                ctx, old_channel_name
-            )
-
+        old_channel = await discord_utils.find_chan_or_thread(ctx, old_channel_name)
         if old_channel is None:
             embed.add_field(
                 name=f"{constants.FAILED}!",
@@ -187,6 +182,34 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             value=f"Renamed `{old_channel_name}` to `{new_channel_name}`: {ctx.channel.mention}!",
             inline=False,
         )
+        await ctx.send(embed=embed)
+
+    @command_predicates.is_verified()
+    @commands.command(name="makethread", aliases=["createthread"])
+    async def createthread(self, ctx, name: str):
+        """Command to create thread in same category with given name
+
+        Permission Category : Verified Roles only.
+        Usage: `~createthread new-thread-name`
+        """
+        # log command in console
+        logging_utils.log_command("createthread", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        channel = await discord_utils.createthreadgeneric(
+            ctx.message, ctx.channel, name
+        )
+        # Send status (success or fail)
+        if channel:
+            embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value=f"Created channel {channel.mention} in `{channel.category.name}`!",
+            )
+        else:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+            )
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
@@ -260,13 +283,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             old_channel_name = chan_a
             new_channel_name = chan_b
 
-        old_channel = None
-        if isinstance(old_channel_name, nextcord.TextChannel):
-            old_channel = old_channel_name
-        else:
-            old_channel = await commands.TextChannelConverter().convert(
-                ctx, old_channel_name
-            )
+        old_channel = await discord_utils.find_chan_or_thread(ctx, old_channel_name)
 
         if old_channel is None:
             embed.add_field(
