@@ -536,7 +536,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     if chan not in chan_cat_threads_id:
                         to_delete.append((serv, chan))
 
-        print("Server not in bot for these channels... probably testing version")
+        print(
+            "Server not in bot for these channels... Probably running the test version of the bot"
+        )
         print(list(not_in_server))
 
         print()

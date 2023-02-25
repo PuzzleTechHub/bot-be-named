@@ -32,7 +32,6 @@ class LionCog(commands.Cog, name="Lion"):
 
     async def findchanidcell(self, ctx, sheet_link):
         """Find the cell with the discord channel id based on lion overview"""
-        logging_utils.log_command("findchanidcell", ctx.guild, ctx.channel, ctx.author)
         curr_chan_id = ctx.channel.id
         curr_sheet = None
         overview = None

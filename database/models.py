@@ -3,9 +3,15 @@ from sqlalchemy import Column, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.sqltypes import BIGINT, Boolean, String
 import os
+import re
 
-print(os.getenv("POSTGRES_DB_URL"))
-DATABASE_ENGINE = create_engine(os.getenv("POSTGRES_DB_URL"), echo=False, future=True)
+# Heroku uses postgres:// everywhere but it's deprecated by SQLAlchemy. Ideally just edit heroku settings to use postgressql:// insteas
+uri = os.getenv("DATABASE_URL")
+if uri and uri.startswith("postgres://"):
+    uri = uri.replace("postgres://", "postgresql://", 1)
+
+print(uri)
+DATABASE_ENGINE = create_engine(uri, echo=False, future=True)
 Base = declarative_base()
 
 
