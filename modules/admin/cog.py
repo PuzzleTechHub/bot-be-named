@@ -117,7 +117,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 database.TESTERS[ctx.guild.id] = [role_to_assign.id]
 
         embed.add_field(
-            name=constants.SUCCESS,
+            name=f"{constants.SUCCESS}",
             value=f"Added the role {role_to_assign.mention} for this server set to `{role_permissions}`",
             inline=False,
         )
@@ -376,6 +376,47 @@ class AdminCog(commands.Cog, name="Admin"):
             )
         await ctx.send(embed=embed)
 
+    @command_predicates.is_owner()
+    @commands.command(
+        name="quitguild",
+    )
+    async def quitguild(self, ctx, guild_name: Union[nextcord.CategoryChannel, str]):
+        """Quit a guild.
+
+        Permission Category : Bot Owner Roles only.
+        Usage: `~quitguild "Guildname"`
+        """
+        logging_utils.log_command("quitguild", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        guild = await discord_utils.find_guild(ctx, guild_name)
+
+        if guild is None:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"There is no guild named `{guild_name}`. Please double check the spelling.",
+            )
+            await ctx.send(embed=embed)
+            return
+
+        try:
+            await guild.leave()
+
+        except nextcord.HTTPException:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Could not leave guild `{guild_name}`",
+            )
+            await ctx.send(embed=embed)
+            return
+
+        embed.add_field(
+            name=f"{constants.SUCCESS}",
+            value=f"Successfully left guild `{guild_name}`",
+            inline=False,
+        )
+        await ctx.send(embed=embed)
+
     @command_predicates.is_owner_or_admin()
     @commands.command(name="setprefix")
     async def setprefix(self, ctx, prefix: str):
@@ -394,7 +435,7 @@ class AdminCog(commands.Cog, name="Admin"):
             session.commit()
         database.PREFIXES[ctx.message.guild.id] = prefix
         embed.add_field(
-            name=constants.SUCCESS,
+            name=f"{constants.SUCCESS}",
             value=f"Prefix for this server set to {prefix}",
             inline=False,
         )
