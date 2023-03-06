@@ -37,6 +37,12 @@ class AdminCog(commands.Cog, name="Admin"):
 
         The permission categories available are - Verified, Trusted, Solver, Tester.
 
+        Generally,
+        Solver - All "regular" solving and sheet functions
+        Verified - All channel management functions + some archive functions
+        Trusted - Can edit customcommands, and use any role commands
+        Tester - Used internally
+
         Permission Category : Admin or Bot Owner Roles only.
         Usage: `~addperm Verified @VerifiedRoleName`
         Usage: `~addperm Trusted @everyone`

@@ -231,12 +231,12 @@ class ArchiveCog(commands.Cog, name="Archive"):
             # Clean up the archive dir
             archive_utils.reset_archive_dir()
 
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_verified()
     @commands.command(name="archivecategory", aliases=["archivecat"])
     async def archivecategory(self, ctx, *args: str):
         """Command to download the history of every text channel in the category
 
-        Permission Category : Admin or Bot Owner Roles only.
+        Permission Category : Verified Roles only.
         Usage: `~archivecategory "Category name"`
         """
         logging_utils.log_command("archivecategory", ctx.guild, ctx.channel, ctx.author)

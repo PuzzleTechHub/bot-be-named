@@ -84,7 +84,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         Also see ~sheetlion and ~displaytether.
 
-        Permission Category : Verified Roles only.
+        Permission Category : Solver Roles only.
 
         Usage: ~gettablion
         """
@@ -137,7 +137,7 @@ class LionCog(commands.Cog, name="Lion"):
     async def solvedlion(self, ctx, answer: str = None):
         """Sets the puzzle to solved and updates the sheet and channel name accordingly
 
-        Permission Category : Verified Roles only.
+        Permission Category : Solver Roles only.
         Usage: ~solvedlion
         Usage: ~solvedlion "answer"
         """
@@ -148,7 +148,7 @@ class LionCog(commands.Cog, name="Lion"):
     async def backsolvedlion(self, ctx, answer: str = None):
         """Sets the puzzle to backsolved and updates the sheet and channel name accordingly
 
-        Permission Category : Verified Roles only.
+        Permission Category : Solver Roles only.
         Usage: ~backsolvedlion
         Usage: ~backsolvedlion "answer"
         """
@@ -159,7 +159,7 @@ class LionCog(commands.Cog, name="Lion"):
     async def solvedishlion(self, ctx):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly
 
-        Permission Category : Verified Roles only.
+        Permission Category : Solver Roles only.
         Usage: ~solvedishlion
         """
         await self.statuslion(ctx, "solvedish")
@@ -169,7 +169,7 @@ class LionCog(commands.Cog, name="Lion"):
     async def unsolvedlion(self, ctx):
         """Sets the puzzle to in progress and updates the sheet and channel name accordingly
 
-        Permission Category : Verified Roles only.
+        Permission Category : Solver Roles only.
         Usage: ~unsolvedlion
         """
         await self.statuslion(ctx, "inprogress")
@@ -181,7 +181,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         For statuses solved, postsolved, and backsolved, users have the option to add an answer
 
-        Permission Category : Verified Roles only.
+        Permission Category : Solver Roles only.
         Usage: ~statuslion status
         Usage: ~statuslion solved "answer"
         """
@@ -494,7 +494,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         Requires that the sheet has Overview and Template tabs
 
-        Permission Category : Verified Roles only.
+        Permission Category : Solver Roles only.
         Usage: ~chanlion PuzzleName
         Usage: ~chanlion PuzzleName linktopuzzle
         """
@@ -523,7 +523,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         Requires that the sheet has Overview and Meta Template tabs
 
-        Permission Category : Verified Roles only.
+        Permission Category : Solver Roles only.
         Usage: ~chanlion PuzzleName
         Usage: ~chanlion PuzzleName linktopuzzle
         """
@@ -552,7 +552,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         Requires that the sheet has Overview and Template tabs
 
-        Permission Category : Verified Roles only.
+        Permission Category : Solver Roles only.
         Usage: ~threadlion PuzzleName
         Usage: ~threadlion PuzzleName linktopuzzle
         """
@@ -581,7 +581,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         Requires that the sheet has Overview and Meta Template tabs
 
-        Permission Category : Verified Roles only.
+        Permission Category : Solver Roles only.
         Usage: ~chanlion PuzzleName
         Usage: ~chanlion PuzzleName linktopuzzle
         """
@@ -610,7 +610,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         Requires that the sheet has Overview and Template tabs
 
-        Permission Category : Verified Roles only.
+        Permission Category : Solver Roles only.
         Usage: ~chanlion PuzzleName
         Usage: ~chanlion PuzzleName linktopuzzle
         """
@@ -634,7 +634,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         Requires that the sheet has Overview and Meta Template tabs
 
-        Permission Category : Verified Roles only.
+        Permission Category : Solver Roles only.
         Usage: ~chanlion PuzzleName
         Usage: ~chanlion PuzzleName linktopuzzle
         """
