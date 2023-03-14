@@ -382,7 +382,7 @@ class AdminCog(commands.Cog, name="Admin"):
             )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_owner()
+    @command_predicates.is_bot_owner()
     @commands.command(
         name="quitguild",
     )

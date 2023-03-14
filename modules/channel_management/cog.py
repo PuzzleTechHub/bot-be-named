@@ -1069,7 +1069,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             "rmcategory",
         ],
     )
-    @command_predicates.is_owner()
+    @command_predicates.is_guild_owner()
     async def deletecategory(self, ctx, cat_name: str = ""):
         """Delete a category in the server. Requires emoji confirmation
 

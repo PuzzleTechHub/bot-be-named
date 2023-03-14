@@ -3,16 +3,35 @@ import database
 
 
 def is_owner_or_admin():
+    """
+    Is bot owner, or an admin.
+    """
+
     async def predicate(ctx):
         if ctx.message.guild is None:
             return False
-        is_owner = await ctx.bot.is_owner(ctx.author)
-        return is_owner or ctx.message.author.guild_permissions.administrator
+        is_bot_owner = await ctx.bot.is_owner(ctx.author)
+        return is_bot_owner or ctx.message.author.guild_permissions.administrator
 
     return commands.check(predicate)
 
 
-def is_owner():
+def is_bot_owner():
+    """
+    Is bot owner.
+    """
+
+    async def predicate(ctx):
+        return await ctx.bot.is_owner(ctx.author)
+
+    return commands.check(predicate)
+
+
+def is_guild_owner():
+    """
+    Is guild owner.
+    """
+
     async def predicate(ctx):
         if ctx.message.guild is None:
             return False
