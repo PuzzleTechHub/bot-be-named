@@ -291,16 +291,17 @@ class AdminCog(commands.Cog, name="Admin"):
     @command_predicates.is_bot_owner()
     @commands.command(
         name="commonmemberguilds",
+        aliases=["commonguild", "guildcommon"],
     )
     async def commonmemberguilds(
         self,
         ctx,
-        guild_1: Union[nextcord.CategoryChannel, str],
-        guild_2: Union[nextcord.CategoryChannel, str],
+        guild_1: Union[nextcord.Guild, str],
+        guild_2: Union[nextcord.Guild, str],
     ):
         """List all users in common between 2 guilds that the bot is in.
 
-        Permission Category : Admin or Bot Owner Roles only.
+        Permission Category : Bot Owner Roles only.
         See also : `~lsguilds`
         Usage: `~commonmemberguilds "Guild1" "Guild2"`
         """
@@ -353,13 +354,51 @@ class AdminCog(commands.Cog, name="Admin"):
 
     @command_predicates.is_bot_owner()
     @commands.command(
+        name="guildowner",
+        aliases=["ownerguild"],
+    )
+    async def guildowner(
+        self,
+        ctx,
+        guild_name: Union[nextcord.Guild, str],
+    ):
+        """Mentions the guild owner for a specific guild the bot is in.
+
+        Note - This command is planned to be used extremely sparingly and for important (usually notification related) reasons only.
+
+        Permission Category : Bot Owner Roles only.
+        Usage: `~guildowner "Guild1"`
+        """
+        logging_utils.log_command("guildowner", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        guild = await discord_utils.find_guild(ctx, guild_name)
+
+        if guild is None:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"There is no guild named `{guild_name}`. Please double check the spelling.",
+            )
+            await ctx.send(embed=embed)
+            return
+
+        owner = guild.owner
+        embed.add_field(
+            name=f"Guild owner : ",
+            value=f"Guild owner for `{guild}` : {owner.mention}",
+            inline=False,
+        )
+        await ctx.send(embed=embed)
+
+    @command_predicates.is_bot_owner()
+    @commands.command(
         name="lsguilds",
         aliases=["listguilds"],
     )
     async def lsguilds(self, ctx):
         """List all guilds that the bot is in.
 
-        Permission Category : Admin or Bot Owner Roles only.
+        Permission Category : Bot Owner Roles only.
         Usage: `~lsguilds`
         """
         logging_utils.log_command("lsguilds", ctx.guild, ctx.channel, ctx.author)
@@ -368,10 +407,10 @@ class AdminCog(commands.Cog, name="Admin"):
         guilds = ctx.bot.guilds
 
         if len(guilds) > 0:
+            guilds_string = " ".join(["`" + guild.name + "` - \n" for guild in guilds])
             embed.add_field(
-                name=f"Guilds for {ctx.bot.user.name}",
-                value=f"Guilds for {ctx.bot.user.mention}\n"
-                f"{' '.join(['`'+guild.name+'` - ' for guild in guilds])}",
+                name=f"Guilds for {ctx.bot.user.name} = {len(guilds)}",
+                value=f"Guilds for {ctx.bot.user.mention}\n" f"{guilds_string}",
                 inline=False,
             )
         else:
@@ -386,7 +425,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(
         name="quitguild",
     )
-    async def quitguild(self, ctx, guild_name: Union[nextcord.CategoryChannel, str]):
+    async def quitguild(self, ctx, guild_name: Union[nextcord.Guild, str]):
         """Quit a guild.
 
         Permission Category : Bot Owner Roles only.
