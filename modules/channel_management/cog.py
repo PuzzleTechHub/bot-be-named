@@ -1172,7 +1172,9 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         except asyncio.TimeoutError:
             final_embed.add_field(name="Canceled", value="The operation was cancelled.")
         finally:
-            await ctx.send(embed=final_embed)
+            embeds = discord_utils.split_embed(final_embed)
+            for e in embeds:
+                await ctx.send(embed=e)
 
 
 def setup(bot):
