@@ -1120,7 +1120,10 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             name=f"Channels to delete", value=f"{chr(10).join(channels)}", inline=False
         )
 
-        emb = await ctx.send(embed=embed)
+        embeds = discord_utils.split_embed(embed)
+        for e in embeds:
+            emb = await ctx.send(embed=e)
+
         await emb.add_reaction(confirm_emoji)
         await emb.add_reaction(cancel_emoji)
 

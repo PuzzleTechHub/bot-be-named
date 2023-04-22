@@ -169,9 +169,9 @@ async def metacrabgeneric(
         await new_chan.send(embed=embed_or_none)
 
     if text_to_pin:
-        embed = discord_utils.create_embed()
-        embed.description = text_to_pin
-        msg = await new_chan.send(embed=embed)
+        embed2 = discord_utils.create_embed()
+        embed2.description = text_to_pin
+        msg = await new_chan.send(embed=embed2)
         # Pin message in the new channel
         embed_or_none = await discord_utils.pin_message(msg)
 
