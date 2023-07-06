@@ -76,13 +76,18 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         for unclean_username in args:
             if isinstance(unclean_username, nextcord.Member):
                 user = unclean_username
-            else:
-                embed.add_field(
-                    name="Error Finding User!",
-                    value=f"Could not find user `{unclean_username}`. Did you ping them? Raw usernames needs to be exact.",
-                    inline=False,
-                )
-                continue
+            elif isinstance(unclean_username, str):
+                user_found = await discord_utils.find_user(ctx, unclean_username)
+                if user_found != None:
+                    user = user_found
+                else:
+                    embed.add_field(
+                        name="Error Finding User!",
+                        value=f"Could not find user `{unclean_username}`. Did you ping them? Raw usernames needs to be exact.",
+                        inline=False,
+                    )
+                    continue
+
             # Assign the role
             if role_to_assign in user.roles:
                 embed.add_field(
@@ -159,13 +164,17 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         for unclean_username in args:
             if isinstance(unclean_username, nextcord.Member):
                 user = unclean_username
-            else:
-                embed.add_field(
-                    name="Error Finding User!",
-                    value=f"Could not find user `{unclean_username}`. Perhaps check your spelling or try mentioning the user instead.",
-                    inline=False,
-                )
-                continue
+            elif isinstance(unclean_username, str):
+                user_found = await discord_utils.find_user(ctx, unclean_username)
+                if user_found != None:
+                    user = user_found
+                else:
+                    embed.add_field(
+                        name="Error Finding User!",
+                        value=f"Could not find user `{unclean_username}`. Did you ping them? Raw usernames needs to be exact.",
+                        inline=False,
+                    )
+                    continue
 
             # Unassign the role
             try:

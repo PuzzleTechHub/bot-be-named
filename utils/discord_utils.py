@@ -224,6 +224,10 @@ async def find_user(
     for user in guild_users:
         if user.name.lower() == user_name.lower():
             return user
+        real_display_name = user.display_name.split("#")[0]
+        # Because display_name for user_name is user_name#0 (as of nextcord 2.5)
+        if real_display_name.lower() == user_name.lower():
+            return user
     return None
 
 
