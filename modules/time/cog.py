@@ -1,8 +1,6 @@
-import nextcord
 import geopy
 import datetime
 import os
-import pytz
 import constants
 
 from modules.time import time_utils
@@ -103,6 +101,7 @@ class TimeCog(commands.Cog, name="Time"):
         except AttributeError:
             pass
         return tz
+
 
 def format_time(time):
     """Rearrange time str. Comes in as YYYY-MM-DD HH:MM, change to MM-DD-YYYY HH:MM"""

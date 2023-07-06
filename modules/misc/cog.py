@@ -1,7 +1,7 @@
 import nextcord
 import os
 from nextcord.ext import commands
-from emoji import UNICODE_EMOJI
+from emoji import EMOJI_DATA
 from typing import Union
 import constants
 from utils import discord_utils, logging_utils, command_predicates
@@ -49,7 +49,7 @@ class MiscCog(commands.Cog, name="Misc"):
             emoji = emojiname
             hasurl = True
         # default emoji
-        elif isinstance(emojiname, str) and emojiname in UNICODE_EMOJI:
+        elif isinstance(emojiname, str) and emojiname in EMOJI_DATA:
             emoji = emojiname
             hasurl = False
         elif emojiname[0] == ":" and emojiname[-1] == ":":

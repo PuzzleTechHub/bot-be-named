@@ -3,7 +3,6 @@ from sqlalchemy import Column, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.sqltypes import BIGINT, Boolean, String
 import os
-import re
 
 # Heroku uses postgres:// everywhere but it's deprecated by SQLAlchemy. Ideally just edit heroku settings to use postgressql:// insteas
 uri = os.getenv("DATABASE_URL")

@@ -9,7 +9,8 @@ import database
 from sqlalchemy.sql.expression import insert
 from sqlalchemy.orm import Session
 from typing import Union
-from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
+import emoji
+
 
 #########################
 # SHEET UTILS FUNCTIONS #
@@ -90,7 +91,7 @@ async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = "")
         if embed_or_none is not None:
             await ctx.send(embed=embed_or_none)
         else:
-            await msg.add_reaction(EMOJIS[":pushpin:"])
+            await msg.add_reaction(emoji.emojize(":pushpin:"))
 
     return curr_sheet_link, newsheet
 
@@ -174,7 +175,7 @@ async def metacrabgeneric(
         if embed_or_none is not None:
             await ctx.send(embed=embed_or_none)
         else:
-            await msg.add_reaction(EMOJIS[":pushpin:"])
+            await msg.add_reaction(emoji.emojize(":pushpin:"))
 
     if chan_or_thread == "chan":
         await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
@@ -277,7 +278,7 @@ async def chancrabgeneric(
         if embed_or_none is not None:
             await ctx.send(embed=embed_or_none)
         else:
-            await msg.add_reaction(EMOJIS[":pushpin:"])
+            await msg.add_reaction(emoji.emojize(":pushpin:"))
 
     if chan_or_thread == "chan":
         await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")

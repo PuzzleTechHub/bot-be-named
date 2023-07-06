@@ -1,4 +1,3 @@
-from nextcord import embeds
 from nextcord.ext import commands
 from utils import discord_utils, logging_utils, command_predicates
 import constants

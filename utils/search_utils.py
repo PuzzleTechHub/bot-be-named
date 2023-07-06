@@ -1,8 +1,6 @@
 # from  https://github.com/Moonrise55/Mbot/blob/f4e19df1df9fa4ef1a7730e63aa8009894aa304c/utils/paginator.py#L8
 
-import nextcord
 import asyncio
-
 
 # set up pagination of results
 

@@ -3,7 +3,7 @@ import nextcord
 from nextcord.ext import commands
 import aiohttp
 import io
-from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
+import emoji
 
 import constants
 from utils import discord_utils, logging_utils, command_predicates
@@ -45,8 +45,8 @@ class DiscordCog(commands.Cog, name="Discord"):
         if embed_or_none is not None:
             await ctx.send(embed=embed_or_none)
         else:
-            await message.add_reaction(EMOJIS[":pushpin:"])
-            await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
+            await message.add_reaction(emoji.emojize(":pushpin:"))
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
 
         try:
             if to_delete.lower()[0:3] == "del":
@@ -73,8 +73,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         if embed_or_none is not None:
             await ctx.send(embed=embed_or_none)
         else:
-            await ctx.message.add_reaction(EMOJIS[":pushpin:"])
-            # await ctx.message.add_reaction(EMOJIS[':white_check_mark:'])
+            await ctx.message.add_reaction(emoji.emojize(":pushpin:"))
 
     @commands.command(name="unpin")
     async def unpin(self, ctx, num_to_unpin: int = 1):
@@ -123,7 +122,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         for pin in messages_to_unpin:
             try:
                 await pin.unpin()
-                await pin.remove_reaction(EMOJIS[":pushpin:"], ctx.me)
+                await pin.remove_reaction(emoji.emojize(":pushpin:"), ctx.me)
                 strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
                 i = i + 1
             except nextcord.Forbidden:
@@ -142,7 +141,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             inline=False,
         )
         await ctx.send(embed=embed)
-        await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
+        await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
 
     @commands.command(name="lspin", aliases=["lspins", "listpin", "listpins"])
     async def listpin(self, ctx):

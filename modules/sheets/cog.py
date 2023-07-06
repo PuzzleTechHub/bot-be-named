@@ -6,16 +6,12 @@ from nextcord.ext import commands
 from nextcord.ext.tasks import loop
 import nextcord
 import os
-import gspread
 import httplib2
 from googleapiclient import discovery
 import database
-from sqlalchemy.sql.expression import insert
 from sqlalchemy.orm import Session
 import asyncio
 import shutil
-from typing import Union
-from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 
 
 class SheetsCog(commands.Cog, name="Sheets"):

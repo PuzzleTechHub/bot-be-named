@@ -1,6 +1,5 @@
 import nextcord
 from nextcord.ext import commands
-from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
 from typing import Union
 import constants
 from utils import discord_utils, logging_utils, command_predicates

@@ -1,7 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 from nextcord.ext.commands.errors import ChannelNotFound, ThreadNotFound
-from typing import List, Tuple, Union
+from typing import List, Union
 import constants
 
 

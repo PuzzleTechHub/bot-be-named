@@ -1,16 +1,13 @@
 from utils import discord_utils, google_utils, logging_utils, command_predicates
 from modules.sheets import sheets_constants, sheet_utils
-from modules.sheets import cog
-from modules import sheets
 import constants
 from nextcord.ext import commands
 import nextcord
 import gspread
 from sqlalchemy.sql.expression import insert
-from sqlalchemy.orm import Session
 import asyncio
 from typing import Union
-from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
+import emoji
 
 
 class LionCog(commands.Cog, name="Lion"):
@@ -286,7 +283,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
         if status == curr_status:
-            await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
             return
 
         add_prefix = status_info.get("prefix")
@@ -294,7 +291,7 @@ class LionCog(commands.Cog, name="Lion"):
         tab_name = overview.acell(puzz_name_col + str(row_to_find)).value
 
         if not add_prefix and not past_prefix:
-            await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
         elif past_prefix and not add_prefix:
             await channel.edit(name=tab_name)
             embed.add_field(
@@ -302,7 +299,7 @@ class LionCog(commands.Cog, name="Lion"):
                 value=f"Channel renamed to {channel.mention}",
                 inline=False,
             )
-            await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
         else:
             await channel.edit(name=status + " " + tab_name)
             embed.add_field(
@@ -310,7 +307,7 @@ class LionCog(commands.Cog, name="Lion"):
                 value=f"Channel renamed to {channel.mention}",
                 inline=False,
             )
-            await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
 
         await ctx.send(embed=embed)
 
@@ -485,7 +482,7 @@ class LionCog(commands.Cog, name="Lion"):
         if url:
             newsheet.update_acell("B1", url)
 
-        await ctx.message.add_reaction(EMOJIS[":white_check_mark:"])
+        await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
 
     @command_predicates.is_solver()
     @commands.command(name="chanlion")
@@ -664,7 +661,7 @@ class LionCog(commands.Cog, name="Lion"):
         msg = await ctx.send(embed=embed)
         # Pin message to the new channel
         embed_or_none = await discord_utils.pin_message(msg)
-        await msg.add_reaction(EMOJIS[":pushpin:"])
+        await msg.add_reaction(emoji.emojize(":pushpin:"))
 
         if embed_or_none is not None:
             await ctx.send(embed=embed_or_none)
