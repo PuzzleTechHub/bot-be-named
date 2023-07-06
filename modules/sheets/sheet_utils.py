@@ -1,20 +1,15 @@
 from http.client import FORBIDDEN
-from discord import Forbidden
 import googleapiclient
 from modules.sheets import sheets_constants
 from utils import discord_utils
 import constants
-from nextcord.ext import commands
 import nextcord
 import gspread
-from googleapiclient import discovery
 import database
 from sqlalchemy.sql.expression import insert
 from sqlalchemy.orm import Session
 from typing import Union
 from emoji import EMOJI_ALIAS_UNICODE_ENGLISH as EMOJIS
-
-from utils.google_utils import GSPREAD_CLIENT
 
 #########################
 # SHEET UTILS FUNCTIONS #
