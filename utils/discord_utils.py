@@ -29,9 +29,6 @@ async def is_thread(
         - True if channel is a News thread (???? Maybe it's every thread in a ForumChannel)
         - False otherwise
     """
-    print(channel)
-    print(channel.type)
-
     if isinstance(channel, str):
         channel = await find_chan_or_thread(ctx, channel)
 
