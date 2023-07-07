@@ -169,7 +169,6 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
     async def lscustomcommands(self, ctx):
         """List custom commands in the server
 
-        Permission Category : Verified Roles only.
         Usage: `~listccommands`
         """
         logging_utils.log_command(

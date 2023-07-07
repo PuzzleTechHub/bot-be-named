@@ -205,6 +205,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         await ctx.send(embed=embed)
 
+    @command_predicates.is_verified()
     @commands.command(name="catstats")
     async def catstats(self, ctx, cat_name: str = ""):
         """Get category stats
@@ -246,7 +247,6 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def listemoji(self, ctx):
         """List all emojis in a server
 
-        Permission Category : Verified Roles only.
         Usage: `~listemojis`
         """
         logging_utils.log_command("listemoji", ctx.guild, ctx.channel, ctx.author)
