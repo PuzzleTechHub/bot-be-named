@@ -384,7 +384,7 @@ class AdminCog(commands.Cog, name="Admin"):
         owner = guild.owner
         embed.add_field(
             name=f"Guild owner : ",
-            value=f"Guild owner for `{guild}` : {owner.mention}",
+            value=f"Guild owner for `{guild}` : {owner.mention} : `{owner.display_name}` : `{owner.name}`",
             inline=False,
         )
         await ctx.send(embed=embed)

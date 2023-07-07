@@ -521,8 +521,8 @@ class LionCog(commands.Cog, name="Lion"):
         Requires that the sheet has Overview and Meta Template tabs
 
         Permission Category : Solver Roles only.
-        Usage: ~chanlion PuzzleName
-        Usage: ~chanlion PuzzleName linktopuzzle
+        Usage: ~metalion PuzzleName
+        Usage: ~metalion PuzzleName linktopuzzle
         """
         logging_utils.log_command("metalion", ctx.guild, ctx.channel, ctx.author)
 
@@ -579,8 +579,8 @@ class LionCog(commands.Cog, name="Lion"):
         Requires that the sheet has Overview and Meta Template tabs
 
         Permission Category : Solver Roles only.
-        Usage: ~chanlion PuzzleName
-        Usage: ~chanlion PuzzleName linktopuzzle
+        Usage: ~metathreadlion PuzzleName
+        Usage: ~metathreadlion PuzzleName linktopuzzle
         """
         logging_utils.log_command("metathreadlion", ctx.guild, ctx.channel, ctx.author)
 
@@ -608,8 +608,8 @@ class LionCog(commands.Cog, name="Lion"):
         Requires that the sheet has Overview and Template tabs
 
         Permission Category : Solver Roles only.
-        Usage: ~chanlion PuzzleName
-        Usage: ~chanlion PuzzleName linktopuzzle
+        Usage: ~sheetlion PuzzleName
+        Usage: ~sheetlion PuzzleName linktopuzzle
         """
         logging_utils.log_command("sheetlion", ctx.guild, ctx.channel, ctx.author)
 
@@ -632,8 +632,8 @@ class LionCog(commands.Cog, name="Lion"):
         Requires that the sheet has Overview and Meta Template tabs
 
         Permission Category : Solver Roles only.
-        Usage: ~chanlion PuzzleName
-        Usage: ~chanlion PuzzleName linktopuzzle
+        Usage: ~metasheetlion PuzzleName
+        Usage: ~metasheetlion PuzzleName linktopuzzle
         """
         logging_utils.log_command("metasheetlion", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
