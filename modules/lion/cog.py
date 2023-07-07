@@ -316,6 +316,7 @@ class LionCog(commands.Cog, name="Lion"):
     async def mtalion(self, ctx, archive_name: str = None):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
+        If called from thread (instead of channel), closes the thread instead of moving channel.
 
         Also moves the tab to the end of the list of tabs on the Google Sheet.
 
@@ -366,6 +367,28 @@ class LionCog(commands.Cog, name="Lion"):
             inline=False,
         )
 
+        # Handling if mtalion is called from a thread
+        if await discord_utils.is_thread(ctx, ctx.channel):
+            # Checking if thread can be archived by the bot
+            try:
+                await ctx.channel.edit(archived=True)
+            except nextcord.Forbidden:
+                embed.add_field(
+                    name=f"{constants.FAILED}!",
+                    value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                )
+                await ctx.send(embed=embed)
+                return
+            embed.add_field(
+                name=f"{constants.SUCCESS}!",
+                value=f"Archived {ctx.channel.mention} thread",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            await ctx.channel.edit(archived=True)
+            return
+
+        # Otherwise mtalion is called from a regular channel
         archive_category = None
         if archive_name is None:
             # Find category with same name + Archive (or select combinations)

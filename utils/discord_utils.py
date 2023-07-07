@@ -14,6 +14,40 @@ def category_is_full(category: nextcord.CategoryChannel) -> bool:
     return len(category.channels) >= 50
 
 
+async def is_thread(
+    ctx: commands.Context, channel: Union[nextcord.Thread, nextcord.TextChannel, str]
+) -> bool:
+    """Checks if a given channel is a Thread or not.
+
+    Arguments -
+        - channel (nextcord.TextChannel or nextcord.Thread): The channel or thread which we are checking.
+        - ctx (nextcord.ext.commands.Context): The command's context
+
+    Returns -
+        - True if channel is a Public thread (Thread in a channel that follows regular channel settings)
+        - True if channel is a Private thread (Thread in a channel that's restricted to some people)
+        - True if channel is a News thread (???? Maybe it's every thread in a ForumChannel)
+        - False otherwise
+    """
+    print(channel)
+    print(channel.type)
+
+    if isinstance(channel, str):
+        channel = await find_chan_or_thread(ctx, channel)
+
+    if channel is None:
+        return False
+
+    if channel.type in {
+        nextcord.ChannelType.news_thread,
+        nextcord.ChannelType.public_thread,
+        nextcord.ChannelType.private_thread,
+    }:
+        return True
+
+    return False
+
+
 async def createchannelgeneric(
     guild: nextcord.Guild, category: nextcord.CategoryChannel, name: str
 ) -> nextcord.TextChannel:

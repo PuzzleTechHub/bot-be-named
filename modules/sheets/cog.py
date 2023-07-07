@@ -155,11 +155,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         curr_chan_id = str(ctx.message.channel.id)
 
         curr_thread_id = None
-        if curr_chan.type in {
-            nextcord.ChannelType.news_thread,
-            nextcord.ChannelType.public_thread,
-            nextcord.ChannelType.private_thread,
-        }:
+        if await discord_utils.is_thread(ctx, curr_chan):
             curr_thread_id = ctx.message.channel.id
             curr_chan_id = ctx.message.channel.parent.id
 
@@ -307,11 +303,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         curr_chan_id = str(ctx.message.channel.id)
 
         curr_thread_id = None
-        if curr_chan.type in {
-            nextcord.ChannelType.news_thread,
-            nextcord.ChannelType.public_thread,
-            nextcord.ChannelType.private_thread,
-        }:
+        if await discord_utils.is_thread(ctx, curr_chan):
             curr_thread_id = ctx.message.channel.id
             curr_chan_id = ctx.message.channel.parent.id
 
