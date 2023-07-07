@@ -40,7 +40,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         For any Google sheets commands, a tether to either category or channel (See `~chantether`) is necessary.
 
-        See also `~sheettab`.
+        See also `~sheetcrab` and `~sheetlion`.
 
         Permission Category : Solver Roles only.
         Usage : `~tether SheetLink`
@@ -89,7 +89,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         For any Google sheets commands, a tether to either category (See `~tether`) or channel is necessary.
 
-        See also `~sheettab`.
+        See also `~sheetcrab` and `~sheetlion`.
 
         Permission Category : Solver Roles only.
         Usage : `~chantether SheetLink`
@@ -127,21 +127,18 @@ class SheetsCog(commands.Cog, name="Sheets"):
         name="removetether",
         aliases=[
             "deletetether",
+            "untether",
             "removesheettether",
             "deltether",
             "removetetherlion",
             "deltetherlion",
-            "unhunt",
-            "huntnt",
-            "unhuntlion",
-            "huntntlion",
         ],
     )
     async def removesheettether(self, ctx):
         """Remove the Category or Channel tethering to the sheet.
 
         If a channel tether and a category tether both exist, the channel tether will always be removed first.
-        See also `~addtether` and `~sheettab`.
+        See also `~tether` and `~sheetcrab` and `~sheetlion`.
 
         Permission Category : Solver Roles only.
         Usage : `~removetether`
@@ -398,7 +395,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
 
         Permission Category : Solver Roles only.
-        Usage : `~sheettab TabName`
+        Usage : `~sheetmetatab TabName`
         """
         logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
