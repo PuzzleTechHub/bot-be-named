@@ -328,7 +328,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         # Clean up the archive dir
         archive_utils.reset_archive_dir()
 
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_bot_owner_or_admin()
     @commands.command(name="archiveserver")
     async def archiveserver(self, ctx):
         """Command to archive every text channel in the server. WARNING: This command will take *very*

@@ -13,7 +13,7 @@ class ErrorLogCog(commands.Cog):
         self.bot = bot
 
     @commands.command(name="errorlog")
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_bot_owner_or_admin()
     async def errorlog(self, ctx, num_lines: int = 50):
         """Shows errors in reverse chronological order
 

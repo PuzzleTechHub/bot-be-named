@@ -1003,7 +1003,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         await ctx.send(embed=embed)
 
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_bot_owner_or_admin()
     @commands.command(
         name="listcat",
         aliases=["lscategories", "listcats", "lscats", "listcategories", "lscat"],
@@ -1068,7 +1068,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             "rmcategory",
         ],
     )
-    @command_predicates.is_guild_owner()
+    @command_predicates.is_admin()
     async def deletecategory(self, ctx, cat_name: str = ""):
         """Delete a category in the server. Requires emoji confirmation
 

@@ -292,7 +292,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                 return
         await ctx.send(embed=embed)
 
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_bot_owner_or_admin()
     @commands.command(name="deleterole")
     async def deleterole(self, ctx, rolename: Union[nextcord.Role, str]):
         """Delete a role from the server

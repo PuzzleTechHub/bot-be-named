@@ -19,7 +19,7 @@ class AdminCog(commands.Cog, name="Admin"):
     # PERMISSION CATEGORY COMMANDS #
     ################################
 
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_bot_owner_or_admin()
     @commands.command(
         name="addperm",
         aliases=["addverifieds", "addverified", "addperms"],
@@ -128,7 +128,7 @@ class AdminCog(commands.Cog, name="Admin"):
         )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_bot_owner_or_admin()
     @commands.command(
         name="listperm",
         aliases=[
@@ -182,7 +182,7 @@ class AdminCog(commands.Cog, name="Admin"):
             )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_bot_owner_or_admin()
     @commands.command(
         name="removeperm",
         aliases=[
@@ -461,7 +461,7 @@ class AdminCog(commands.Cog, name="Admin"):
         )
         await ctx.send(embed=embed)
 
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_bot_owner_or_admin()
     @commands.command(name="setprefix")
     async def setprefix(self, ctx, prefix: str):
         """Sets the bot prefix for the server.
@@ -489,7 +489,7 @@ class AdminCog(commands.Cog, name="Admin"):
     # BOT CACHE COMMANDS #
     ######################
 
-    @command_predicates.is_owner_or_admin()
+    @command_predicates.is_bot_owner_or_admin()
     @commands.command(
         name="reloaddatabasecache", aliases=["reloaddbcache", "dbcachereload"]
     )

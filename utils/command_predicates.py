@@ -2,7 +2,7 @@ from nextcord.ext import commands
 import database
 
 
-def is_owner_or_admin():
+def is_bot_owner_or_admin():
     """
     Is bot owner, or an admin.
     """
@@ -12,6 +12,19 @@ def is_owner_or_admin():
             return False
         is_bot_owner = await ctx.bot.is_owner(ctx.author)
         return is_bot_owner or ctx.message.author.guild_permissions.administrator
+
+    return commands.check(predicate)
+
+
+def is_admin():
+    """
+    Is an admin on the server.
+    """
+
+    async def predicate(ctx):
+        if ctx.message.guild is None:
+            return False
+        return ctx.message.author.guild_permissions.administrator
 
     return commands.check(predicate)
 
