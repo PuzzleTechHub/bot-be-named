@@ -158,6 +158,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         Permission Category : Solver Roles only.
         Usage: ~solvedishlion
+        Usage: ~solvedishlion "answer"
         """
         await self.statuslion(ctx, "solvedish", answer)
 
@@ -176,11 +177,16 @@ class LionCog(commands.Cog, name="Lion"):
     async def statuslion(self, ctx, status: str, answer: str = None):
         """Adds a status to the puzzle and updates the sheet and channel name accordingly
 
-        For statuses solved, postsolved, and backsolved, users have the option to add an answer
+        You may pick one of [solved, solvedish, backsolved, postsolved, unstarted, unsolvable, stuck, abandoned, in progress] as statuses.
+        Alternatively, you can give a custom status.
+
+        For statuses [solved, solvedish, postsolved, backsolved, custom] users have the option to add an answer
+        For statuses  [solved, solvedish, backsolved, postsolved, custom] the channel name gets updated
 
         Permission Category : Solver Roles only.
         Usage: ~statuslion status
         Usage: ~statuslion solved "answer"
+        Usage: ~statuslion "custom-update-string" "answer"
         """
         logging_utils.log_command("statuslion", ctx.guild, ctx.channel, ctx.author)
         channel = ctx.message.channel
