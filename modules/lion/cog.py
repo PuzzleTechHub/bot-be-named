@@ -153,23 +153,23 @@ class LionCog(commands.Cog, name="Lion"):
 
     @command_predicates.is_solver()
     @commands.command(name="solvedishlion")
-    async def solvedishlion(self, ctx):
+    async def solvedishlion(self, ctx, answer: str = None):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly
 
         Permission Category : Solver Roles only.
         Usage: ~solvedishlion
         """
-        await self.statuslion(ctx, "solvedish")
+        await self.statuslion(ctx, "solvedish", answer)
 
     @command_predicates.is_solver()
     @commands.command(name="unsolvedlion", aliases=["unlion"])
-    async def unsolvedlion(self, ctx):
+    async def unsolvedlion(self, ctx, answer: str = None):
         """Sets the puzzle to in progress and updates the sheet and channel name accordingly
 
         Permission Category : Solver Roles only.
         Usage: ~unsolvedlion
         """
-        await self.statuslion(ctx, "inprogress")
+        await self.statuslion(ctx, "inprogress", answer)
 
     @command_predicates.is_solver()
     @commands.command(name="statuslion", aliases=["statlion", "stat", "puzzstatus"])
@@ -190,15 +190,9 @@ class LionCog(commands.Cog, name="Lion"):
 
         status_info = sheets_constants.status_dict.get(status)
 
+        # If something other than known strings (Custom status)
         if status_info is None:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value="Invalid status. Please double check the spelling of the status.",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return
+            status_info = sheets_constants.status_dict.get("None")
 
         result, _ = sheet_utils.findsheettether(
             str(ctx.message.channel.category_id), str(ctx.message.channel.id)
@@ -242,6 +236,9 @@ class LionCog(commands.Cog, name="Lion"):
 
         curr_status = overview.acell(status_col + str(row_to_find)).value
         curr_stat_info = sheets_constants.status_dict.get(curr_status)
+
+        if curr_stat_info is None:
+            curr_stat_info = sheets_constants.status_dict.get("None")
 
         overview.update_acell(status_col + str(row_to_find), status)
 

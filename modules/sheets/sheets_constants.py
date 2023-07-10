@@ -22,4 +22,5 @@ status_dict = {
     "Stuck": {"color": [255, 255, 135], "update_ans": False, "prefix": False},
     "Abandoned": {"color": [102, 102, 102], "update_ans": False, "prefix": False},
     "In Progress": {"color": [230, 145, 56], "update_ans": False, "prefix": False},
+    "None": {"color": [230, 145, 56], "update_ans": True, "prefix": True},
 }
