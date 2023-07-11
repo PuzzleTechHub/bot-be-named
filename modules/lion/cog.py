@@ -102,11 +102,8 @@ class LionCog(commands.Cog, name="Lion"):
             return
 
         curr_sheet_link = result.sheet_link
-
         chan_cell, overview = None, None
-
         chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
-
         if chan_cell is None or overview is None:
             return
 
@@ -200,6 +197,7 @@ class LionCog(commands.Cog, name="Lion"):
         if status_info is None:
             status_info = sheets_constants.status_dict.get("None")
 
+        # Find tethered sheet
         result, _ = sheet_utils.findsheettether(
             str(ctx.message.channel.category_id), str(ctx.message.channel.id)
         )
@@ -215,12 +213,10 @@ class LionCog(commands.Cog, name="Lion"):
             await ctx.send(embed=embed)
             return
 
+        # No such cell
         curr_sheet_link = result.sheet_link
-
         chan_cell, overview = None, None
-
         chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
-
         curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
 
         if chan_cell is None or overview is None:

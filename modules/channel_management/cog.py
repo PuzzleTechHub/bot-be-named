@@ -45,7 +45,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 name=f"{constants.FAILED}!",
                 value=f"Could not find category `{category_name}`",
             )
-            # reply to user
             await ctx.send(embed=embed)
             return
 
@@ -100,7 +99,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                     value=f"Forbidden! Have you checked if the bot has the required permisisons?",
                     inline=False,
                 )
-                # reply to user
                 await ctx.send(embed=embed)
                 return
 
@@ -156,7 +154,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 name=f"{constants.FAILED}!",
                 value=f"Channel `{old_channel_name}` was not found.",
             )
-            # reply to user
             await ctx.send(embed=embed)
             return
 
@@ -172,7 +169,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
             )
-            # reply to user
             await ctx.send(embed=embed)
             return
 
@@ -289,7 +285,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 name=f"{constants.FAILED}!",
                 value=f"Channel `{old_channel_name}` was not found.",
             )
-            # reply to user
             await ctx.send(embed=embed)
             return
 
@@ -302,7 +297,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                         name=f"{constants.FAILED}!",
                         value=f"Role/User `{origRoleorUser}` does not exist. Please use @ to tag them.",
                     )
-                    # reply to user
                     await ctx.send(embed=embed)
                     return
                 else:
@@ -349,7 +343,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 value=f"Category `{category.name}` is already full, max limit is 50 channels.",
                 inline=False,
             )
-            # reply to user
             await ctx.send(embed=embed)
             return
 
@@ -365,7 +358,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
                 inline=False,
             )
-            # reply to user
             await ctx.send(embed=embed)
             return
 
@@ -402,11 +394,8 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                         value=f"Forbidden! Have you checked if the bot has the required permisisons?",
                         inline=False,
                     )
-                    # reply to user
                     await ctx.send(embed=embed)
                     return
-
-        # reply to user
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
@@ -536,7 +525,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 value=f"User {calling_user.mention} needs to be in a Voice Channel to use `~renamevc`!",
                 inline=False,
             )
-            # reply to user
             await ctx.send(embed=embed)
             return
 
@@ -548,7 +536,6 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
             )
-            # reply to user
             await ctx.send(embed=embed)
             return
         embed.add_field(

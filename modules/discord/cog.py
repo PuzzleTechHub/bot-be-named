@@ -243,6 +243,52 @@ class DiscordCog(commands.Cog, name="Discord"):
     # EMOJI COMMANDS #
     ##################
 
+    @commands.command(
+        name="listreacts",
+        aliases=[
+            "lsreacts",
+            "listreact",
+            "lsreact",
+            "listreactions",
+            "lsreactions",
+            "listreaction",
+            "lsreaction",
+        ],
+    )
+    async def listreacts(self, ctx):
+        """List all reactions made to a given message
+
+        Usage: `~listreacts` (as a reply to a message)
+        """
+        logging_utils.log_command("listreacts", ctx.guild, ctx.channel, ctx.author)
+
+        if not ctx.message.reference:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Command `~listreacts` can only be called as a reply to another message.",
+            )
+            await ctx.send(embed=embed)
+            return
+        else:
+            message = await ctx.fetch_message(ctx.message.reference.message_id)
+
+        embed_message = ""
+        for reaction in message.reactions:
+            embed_message = (
+                embed_message
+                + "\n"
+                + f" {reaction.emoji} : {' - '.join([user.mention for user in await reaction.users().flatten()])}"
+            )
+
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"Reactions to message = {len(message.reactions)}",
+            value=embed_message,
+        )
+        embeds = discord_utils.split_embed(embed)
+        for e in embeds:
+            emb = await ctx.send(embed=e)
+
     @commands.command(name="listemoji", aliases=["lsemoji", "listemojis", "lsemojis"])
     async def listemoji(self, ctx):
         """List all emojis in a server
@@ -253,9 +299,11 @@ class DiscordCog(commands.Cog, name="Discord"):
         embed = discord_utils.create_embed()
         embed.add_field(
             name=f"Emoji in {ctx.guild.name}",
-            value=f"{chr(10).join([f'{emoji} {emoji.name} {emoji.id}' for emoji in ctx.guild.emojis])}",
+            value=f"{chr(10).join([f'{emoji} - {emoji.name} - {emoji.id}' for emoji in ctx.guild.emojis])}",
         )
-        await ctx.send(embed=embed)
+        embeds = discord_utils.split_embed(embed)
+        for e in embeds:
+            emb = await ctx.send(embed=e)
 
     @command_predicates.is_verified()
     @commands.command(name="steal")
