@@ -277,7 +277,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             embed_message = (
                 embed_message
                 + "\n"
-                + f" {reaction.emoji} : {' - '.join([user.mention for user in await reaction.users().flatten()])}"
+                + f" {reaction.emoji} - {' : '.join([user.mention for user in await reaction.users().flatten()])}"
             )
 
         embed = discord_utils.create_embed()
