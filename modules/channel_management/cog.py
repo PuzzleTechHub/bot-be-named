@@ -211,28 +211,56 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     @commands.command(
         name="createchan", aliases=["makechannel", "makechan", "createchannel"]
     )
-    async def createchannel(self, ctx, name: str):
-        """Command to create channel in same category with given name
+    async def createchannel(
+        self, ctx, name: str, category_arg: Union[nextcord.CategoryChannel, str] = ""
+    ):
+        """Command to create channel in a given category. If given no category name, it defaults to current category.
 
         Permission Category : Verified Roles only.
-        Usage: `~createchannel new-channel-name`
+        Usage: `~createchannel new-channel-name` (creates new-channel-name in the category it's called from)
+        Usage: `~createchannel new-channel-name "Category Name"`
         """
         # log command in console
         logging_utils.log_command("createchannel", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
+        if category_arg == "":
+            category = ctx.channel.category
+        else:
+            category = category_arg
+
+        category = await discord_utils.find_category(ctx, category)
+
+        if category is None:
+            if category_arg != "":
+                embed.add_field(
+                    name="ERROR: Cannot find category",
+                    value=f"Sorry, I cannot find a category with name {category_arg}. "
+                    f"Please make sure the spelling and capitalization are correct!",
+                    inline=False,
+                )
+                await ctx.send(embed=embed)
+                return
+            else:
+                embed.add_field(
+                    name="ERROR: Cannot find category",
+                    value=f"Sorry, I cannot find the category for the channel {ctx.channel.mention}. "
+                    f"Are you sure you are in a category?",
+                    inline=False,
+                )
+                await ctx.send(embed=embed)
+                return
+
         # Category channel limit
-        if discord_utils.category_is_full(ctx.channel.category):
+        if discord_utils.category_is_full(category):
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
+                value=f"Category `{category.name}` is already full, max limit is 50 channels.",
             )
             await ctx.send(embed=embed)
             return None
 
-        channel = await discord_utils.createchannelgeneric(
-            ctx.guild, ctx.channel.category, name
-        )
+        channel = await discord_utils.createchannelgeneric(ctx.guild, category, name)
         # Send status (success or fail)
         if channel:
             embed.add_field(
