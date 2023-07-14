@@ -49,6 +49,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
         role_to_assign = await discord_utils.find_role(ctx, rolename)
 
+        is_new_role = False
         # Cannot find the role, so we'll make one
         if role_to_assign is None:
             try:
@@ -59,6 +60,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                     value=f"Could not find role `{rolename}`, so I created it.",
                     inline=False,
                 )
+                is_new_role = True
             except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
@@ -71,6 +73,27 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
         if len(args) > 0 and args[0] == "here":
             args = ctx.channel.members
+
+        # ctx.guild.roles = [@everyone, @bots, @mods, etc] (bottom to top)
+        # all_guild_roles_ranks = {@everyone : 0, @bots : 1, @mods : 2...}
+        all_guild_roles_ranks = {k: v for v, k in enumerate(ctx.guild.roles)}
+        max_rank_author_roles = max(
+            [all_guild_roles_ranks[role] for role in ctx.message.author.roles]
+        )
+
+        # Role to be assigned is higher than user's current roles.
+        if (
+            max_rank_author_roles < all_guild_roles_ranks[role_to_assign]
+            and not is_new_role
+        ):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Not allowed! The role you're assigning ({role_to_assign.mention}) is higher than any of your current roles!"
+                f"\nPlease contact a server admin to reorder server roles first.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
 
         users_with_role_list = []
         for unclean_username in args:
@@ -135,7 +158,8 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
 
         Permission Category : Trusted Roles only.
         Usage: `~unassignrole @RoleName @User1 @User2`
-        Usage: `~unassignrole "RoleName" @User1`
+        Usage: `~unassignrole @RoleName here (Everyone who can see this channel, including BBN)`
+        Usage: `~unassignrole "RoleName" "User 1"`
         """
         logging_utils.log_command("unassignrole", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -151,10 +175,31 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
             await ctx.send(embed=embed)
             return
 
+        if len(args) > 0 and args[0] == "here":
+            args = ctx.channel.members
+
         if len(args) < 1:
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"No users provided! You must give at least one user to unassign.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
+        # ctx.guild.roles = [@everyone, @bots, @mods, etc] (bottom to top)
+        # all_guild_roles_ranks = {@everyone : 0, @bots : 1, @mods : 2...}
+        all_guild_roles_ranks = {k: v for v, k in enumerate(ctx.guild.roles)}
+        max_rank_author_roles = max(
+            [all_guild_roles_ranks[role] for role in ctx.message.author.roles]
+        )
+
+        # Role to be unassigned is higher than user's current roles.
+        if max_rank_author_roles < all_guild_roles_ranks[role_to_unassign]:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Not allowed! The role you're assigning ({role_to_unassign.mention}) is higher than any of your current roles!"
+                f"\nPlease contact a server admin to reorder server roles first.",
                 inline=False,
             )
             await ctx.send(embed=embed)

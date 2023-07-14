@@ -391,7 +391,11 @@ class DiscordCog(commands.Cog, name="Discord"):
             value=f"{msg}",
             inline=False,
         )
-        await ctx.send(embed=embed)
+
+        embeds = discord_utils.split_embed(embed)
+        for embed in embeds:
+            await ctx.send(embed=embed)
+        return
 
 
 def setup(bot):
