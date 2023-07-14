@@ -28,6 +28,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         The role created is always mentionable by all users.
 
         Note that if the role is not already created, it cannot share name with a user. Use `~clonerole` or manually to create the role first.
+        If not creating a new role, does not work for assigning role higher than all your current roles (in server role list).
 
         Permission Category : Trusted Roles only.
         Usage: `~assignrole "RoleName" "User3" "User2"`
@@ -155,6 +156,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
     ):
         """Unassigns a role from a list of users.
         To not ping them, you may name the role or the users (nick or username) instead. Mentioning either is also guaranteed to work.
+        Does not work for unassigning role higher than all your current roles (in server role list).
 
         Permission Category : Trusted Roles only.
         Usage: `~unassignrole @RoleName @User1 @User2`
