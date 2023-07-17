@@ -14,4 +14,4 @@ psycopg2-binary==2.9.6
 pytest==7.4.0
 python-dotenv==1.0.0
 pytz==2023.3
-SQLAlchemy==2.0.18
+SQLAlchemy==2.0.19
