@@ -200,7 +200,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         if max_rank_author_roles < all_guild_roles_ranks[role_to_unassign]:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Not allowed! The role you're assigning ({role_to_unassign.mention}) is higher than any of your current roles!"
+                value=f"Not allowed! The role you're unassigning ({role_to_unassign.mention}) is higher than any of your current roles!"
                 f"\nPlease contact a server admin to reorder server roles first.",
                 inline=False,
             )
