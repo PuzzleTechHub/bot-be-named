@@ -191,124 +191,138 @@ class LionCog(commands.Cog, name="Lion"):
         if status == "Inprogress":
             status = "In Progress"
 
-        status_info = sheets_constants.status_dict.get(status)
-
-        # If something other than known strings (Custom status)
-        if status_info is None:
-            status_info = sheets_constants.status_dict.get("None")
-
-        # Find tethered sheet
-        result, _ = sheet_utils.findsheettether(
-            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
-        )
-
-        if result is None:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
-                f"are tethered to any Google sheet.",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return
-
-        # No such cell
-        curr_sheet_link = result.sheet_link
-        chan_cell, overview = None, None
-        chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
-        curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
-
-        if chan_cell is None or overview is None:
-            return
-
-        row_to_find = chan_cell.row
-
-        tab_id = overview.acell("B" + str(row_to_find)).value
-
-        puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
-
-        if answer and status_info.get("update_ans"):
-            puzzle_tab.update("B3", answer.upper())
-        elif not status_info.get("update_ans"):
-            puzzle_tab.update("B3", "")
-
-        status_col = overview.acell("B1").value
-        puzz_name_col = overview.acell("A1").value
-
-        curr_status = overview.acell(status_col + str(row_to_find)).value
-        curr_stat_info = sheets_constants.status_dict.get(curr_status)
-
-        if curr_stat_info is None:
-            curr_stat_info = sheets_constants.status_dict.get("None")
-
-        overview.update_acell(status_col + str(row_to_find), status)
-
-        color = status_info.get("color")
-
-        body = {
-            "requests": [
-                {
-                    "updateSheetProperties": {
-                        "properties": {
-                            "sheetId": tab_id,
-                            "tabColor": {
-                                "red": color[0] / 255,
-                                "green": color[1] / 255,
-                                "blue": color[2] / 255,
-                            },
-                        },
-                        "fields": "tabColor",
-                    }
-                }
-            ]
-        }
-
-        embed = discord_utils.create_embed()
         try:
-            curr_sheet.batch_update(body)
-        except gspread.exceptions.APIError:
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value="Could not update the sheet.",
-                inline=False,
+            status_info = sheets_constants.status_dict.get(status)
+
+            # If something other than known strings (Custom status)
+            if status_info is None:
+                status_info = sheets_constants.status_dict.get("None")
+
+            # Find tethered sheet
+            result, _ = sheet_utils.findsheettether(
+                str(ctx.message.channel.category_id), str(ctx.message.channel.id)
             )
-            return
 
-        embed.add_field(
-            name=f"{constants.SUCCESS}",
-            value="The sheet was successfully updated.",
-            inline=False,
-        )
+            if result is None:
+                embed = discord_utils.create_embed()
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
+                    f"are tethered to any Google sheet.",
+                    inline=False,
+                )
+                await ctx.send(embed=embed)
+                return
 
-        if status == curr_status:
-            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
-            return
+            # No such cell
+            curr_sheet_link = result.sheet_link
+            chan_cell, overview = None, None
+            chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
+            curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
 
-        add_prefix = status_info.get("prefix")
-        past_prefix = curr_stat_info.get("prefix")
-        tab_name = overview.acell(puzz_name_col + str(row_to_find)).value
+            if chan_cell is None or overview is None:
+                return
 
-        if not add_prefix and not past_prefix:
-            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
-        elif past_prefix and not add_prefix:
-            await channel.edit(name=tab_name)
+            row_to_find = chan_cell.row
+
+            tab_id = overview.acell("B" + str(row_to_find)).value
+
+            puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
+
+            if answer and status_info.get("update_ans"):
+                puzzle_tab.update("B3", answer.upper())
+            elif not status_info.get("update_ans"):
+                puzzle_tab.update("B3", "")
+
+            status_col = overview.acell("B1").value
+            puzz_name_col = overview.acell("A1").value
+
+            curr_status = overview.acell(status_col + str(row_to_find)).value
+            curr_stat_info = sheets_constants.status_dict.get(curr_status)
+
+            if curr_stat_info is None:
+                curr_stat_info = sheets_constants.status_dict.get("None")
+
+            overview.update_acell(status_col + str(row_to_find), status)
+
+            color = status_info.get("color")
+
+            body = {
+                "requests": [
+                    {
+                        "updateSheetProperties": {
+                            "properties": {
+                                "sheetId": tab_id,
+                                "tabColor": {
+                                    "red": color[0] / 255,
+                                    "green": color[1] / 255,
+                                    "blue": color[2] / 255,
+                                },
+                            },
+                            "fields": "tabColor",
+                        }
+                    }
+                ]
+            }
+
+            embed = discord_utils.create_embed()
+            try:
+                curr_sheet.batch_update(body)
+            except gspread.exceptions.APIError:
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value="Could not update the sheet.",
+                    inline=False,
+                )
+                return
+
             embed.add_field(
                 name=f"{constants.SUCCESS}",
-                value=f"Channel renamed to {channel.mention}",
+                value="The sheet was successfully updated.",
                 inline=False,
             )
-            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
-        else:
-            await channel.edit(name=status + " " + tab_name)
-            embed.add_field(
-                name=f"{constants.SUCCESS}",
-                value=f"Channel renamed to {channel.mention}",
-                inline=False,
-            )
-            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
 
-        await ctx.send(embed=embed)
+            if status == curr_status:
+                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+                return
+
+            add_prefix = status_info.get("prefix")
+            past_prefix = curr_stat_info.get("prefix")
+            tab_name = overview.acell(puzz_name_col + str(row_to_find)).value
+
+            if not add_prefix and not past_prefix:
+                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+            elif past_prefix and not add_prefix:
+                await channel.edit(name=tab_name)
+                embed.add_field(
+                    name=f"{constants.SUCCESS}",
+                    value=f"Channel renamed to {channel.mention}",
+                    inline=False,
+                )
+                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+            else:
+                await channel.edit(name=status + " " + tab_name)
+                embed.add_field(
+                    name=f"{constants.SUCCESS}",
+                    value=f"Channel renamed to {channel.mention}",
+                    inline=False,
+                )
+                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+
+            await ctx.send(embed=embed)
+
+        except gspread.exceptions.APIError as e:
+            print(f"GSHEETS API ERROR - {e}")
+            if hasattr(e, "response"):
+                error_json = e.response.json()
+                error_message = error_json.get("error", {}).get("message")
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"Unknown GSheets API Error - `{error_message}`",
+                    inline=False,
+                )
+                await ctx.send(embed=embed)
+                return
 
     @command_predicates.is_solver()
     @commands.command(name="mtalion", aliases=["movetoarchivelion", "archivelion"])
@@ -463,48 +477,62 @@ class LionCog(commands.Cog, name="Lion"):
         self, ctx, chan_name, url, curr_sheet_link, newsheet, new_chan
     ):
         """Does the final touches on the sheet after creating a puzzle"""
-        sheet = self.gspread_client.open_by_url(curr_sheet_link)
-        overview = None
         try:
-            overview = sheet.worksheet("Overview")
-        # Error when the sheet has no Overview tab
-        except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"The [sheet]({curr_sheet_link}) has no tab named 'Overview'. "
-                f"Did you forget to add one?",
-                inline=False,
+
+            sheet = self.gspread_client.open_by_url(curr_sheet_link)
+            overview = None
+            try:
+                overview = sheet.worksheet("Overview")
+            # Error when the sheet has no Overview tab
+            except gspread.exceptions.WorksheetNotFound:
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"The [sheet]({curr_sheet_link}) has no tab named 'Overview'. "
+                    f"Did you forget to add one?",
+                    inline=False,
+                )
+                await ctx.send(embed=embed)
+                return
+
+            first_empty = self.firstemptyrow(overview)
+
+            puzz_name_col = overview.acell("A1").value
+            answer_col = overview.acell("A2").value
+            status_col = overview.acell("B1").value
+            final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
+
+            overview.update_acell(
+                puzz_name_col + str(first_empty),
+                f'=HYPERLINK("{final_sheet_link}", "{chan_name}")',
             )
-            await ctx.send(embed=embed)
-            return
 
-        first_empty = self.firstemptyrow(overview)
+            overview.update_acell("A" + str(first_empty), str(new_chan.id))
+            overview.update_acell("B" + str(first_empty), str(newsheet.id))
+            overview.update_acell(status_col + str(first_empty), "Unstarted")
+            chan_name_for_sheet_ref = chan_name.replace("'", "''")
+            overview.update_acell(
+                answer_col + str(first_empty), f"='{chan_name_for_sheet_ref}'!B3"
+            )
 
-        puzz_name_col = overview.acell("A1").value
-        answer_col = overview.acell("A2").value
-        status_col = overview.acell("B1").value
-        final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
+            newsheet.update_acell("A1", chan_name)
 
-        overview.update_acell(
-            puzz_name_col + str(first_empty),
-            f'=HYPERLINK("{final_sheet_link}", "{chan_name}")',
-        )
+            if url:
+                newsheet.update_acell("B1", url)
 
-        overview.update_acell("A" + str(first_empty), str(new_chan.id))
-        overview.update_acell("B" + str(first_empty), str(newsheet.id))
-        overview.update_acell(status_col + str(first_empty), "Unstarted")
-        chan_name_for_sheet_ref = chan_name.replace("'", "''")
-        overview.update_acell(
-            answer_col + str(first_empty), f"='{chan_name_for_sheet_ref}'!B3"
-        )
-
-        newsheet.update_acell("A1", chan_name)
-
-        if url:
-            newsheet.update_acell("B1", url)
-
-        await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+        except gspread.exceptions.APIError as e:
+            print(f"GSHEETS API ERROR - {e}")
+            if hasattr(e, "response"):
+                error_json = e.response.json()
+                error_message = error_json.get("error", {}).get("message")
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"Unknown GSheets API Error - `{error_message}`",
+                    inline=False,
+                )
+                await ctx.send(embed=embed)
+                return
 
     @command_predicates.is_solver()
     @commands.command(name="chanlion")

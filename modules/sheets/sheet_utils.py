@@ -360,88 +360,101 @@ async def sheetcreatetabgeneric(
 
     tether_db_result, tether_type = findsheettether(str(curr_cat.id), str(curr_chan.id))
 
-    if tether_db_result is not None:
-        curr_sheet_link = tether_db_result.sheet_link
-    else:
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.FAILED}",
-            value=f"The category **{curr_cat.name}** nor the channel **{curr_chan.name}** are not "
-            f"tethered to any Google sheet.",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-        return curr_sheet_link, newsheet
-
-    # Make sure the template/metatemplate tab exists on the sheet.
-    template_index = 0
     try:
-        curr_sheet = gspread_client.open_by_url(curr_sheet_link)
-        template_id = curr_sheet.worksheet(template_or_meta).id
-        template_index = curr_sheet.worksheet(template_or_meta).index
-    # Error when we can't open the curr sheet link
-    except gspread.exceptions.APIError:
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.FAILED}",
-            value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
-            f"Did the permissions change?",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-        return curr_sheet_link, newsheet
-    # Error when the sheet has no template tab
-    except gspread.exceptions.WorksheetNotFound:
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.FAILED}",
-            value=f"The [sheet]({curr_sheet_link}) has no tab named '{template_or_meta}'. "
-            f"Did you forget to add one?",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-        return curr_sheet_link, newsheet
-    # Make sure tab_name does not exist
-    try:
-        curr_sheet.worksheet(tab_name)
-        # If there is a tab with the given name, that's an error!
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.FAILED}",
-            value=f"The [Google sheet at link]({curr_sheet_link}) already has a tab named "
-            f"**{tab_name}**. Cannot create a tab with same name.",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-        return curr_sheet_link, newsheet
-    except gspread.exceptions.WorksheetNotFound:
-        # If the tab isn't found, that's good! We will create one.
-        pass
-
-    # Try to duplicate the template/meta tab and rename it to the given name
-    try:
-        # Index of template+2 (for template) and template+1 (for meta) is hardcoded for The Mathemagicians server
-
-        if template_or_meta == "Template":
-            i = 2
+        if tether_db_result is not None:
+            curr_sheet_link = tether_db_result.sheet_link
         else:
-            i = 1
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The category **{curr_cat.name}** nor the channel **{curr_chan.name}** are not "
+                f"tethered to any Google sheet.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
 
-        newsheet = curr_sheet.duplicate_sheet(
-            source_sheet_id=template_id,
-            new_sheet_name=tab_name,
-            insert_sheet_index=template_index + i,
-        )
-    except gspread.exceptions.APIError:
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.FAILED}",
-            value=f"Could not duplicate '{template_or_meta}' tab in the "
-            f"[Google sheet at link]({curr_sheet_link}). "
-            f"Is the permission set up with 'Anyone with link can edit'?",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
-        return curr_sheet_link, None
+        # Make sure the template/metatemplate tab exists on the sheet.
+        template_index = 0
+        try:
+            curr_sheet = gspread_client.open_by_url(curr_sheet_link)
+            template_id = curr_sheet.worksheet(template_or_meta).id
+            template_index = curr_sheet.worksheet(template_or_meta).index
+        # Error when we can't open the curr sheet link
+        except gspread.exceptions.APIError:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
+                f"Did the permissions change?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+        # Error when the sheet has no template tab
+        except gspread.exceptions.WorksheetNotFound:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The [sheet]({curr_sheet_link}) has no tab named '{template_or_meta}'. "
+                f"Did you forget to add one?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+        # Make sure tab_name does not exist
+        try:
+            curr_sheet.worksheet(tab_name)
+            # If there is a tab with the given name, that's an error!
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The [Google sheet at link]({curr_sheet_link}) already has a tab named "
+                f"**{tab_name}**. Cannot create a tab with same name.",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return curr_sheet_link, newsheet
+        except gspread.exceptions.WorksheetNotFound:
+            # If the tab isn't found, that's good! We will create one.
+            pass
 
-    return curr_sheet_link, newsheet
+        # Try to duplicate the template/meta tab and rename it to the given name
+        try:
+            # Index of template+2 (for template) and template+1 (for meta) is hardcoded for The Mathemagicians server
+            if template_or_meta == "Template":
+                i = 2
+            else:
+                i = 1
+
+            newsheet = curr_sheet.duplicate_sheet(
+                source_sheet_id=template_id,
+                new_sheet_name=tab_name,
+                insert_sheet_index=template_index + i,
+            )
+        except gspread.exceptions.APIError:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Could not duplicate '{template_or_meta}' tab in the "
+                f"[Google sheet at link]({curr_sheet_link}). "
+                f"Is the permission set up with 'Anyone with link can edit'?",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return curr_sheet_link, None
+
+        return curr_sheet_link, newsheet
+
+    except gspread.exceptions.APIError as e:
+        print(f"GSHEETS API ERROR - {e}")
+        if hasattr(e, "response"):
+            error_json = e.response.json()
+            error_message = error_json.get("error", {}).get("message")
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Unknown GSheets API Error - `{error_message}`",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
