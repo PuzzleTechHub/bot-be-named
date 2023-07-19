@@ -126,76 +126,79 @@ def main():
         command_prefix = get_prefix(client, message)
 
         if message.clean_content.startswith(command_prefix):
-            # If the command is a default one, just run it.
-            command_name = message.clean_content.split()[0][
-                len(command_prefix) :
-            ].lower()
-            if command_name in constants.DEFAULT_COMMANDS:
-                await client.process_commands(message)
-            # Don't use custom commands for DMs also I think this fixes a bug which gets an error when someone
-            # uses a command right as the box is starting up.
-            elif (
-                message.guild is not None
-                and message.guild.id in database.CUSTOM_COMMANDS
-            ):
-                command_return = None
-                # check if custom command is in cache for that server
-                if command_name in [
-                    command.lower()
-                    for command in database.CUSTOM_COMMANDS[message.guild.id].keys()
-                ]:
-                    command_return = database.CUSTOM_COMMANDS[message.guild.id][
-                        command_name
-                    ][0]
+            try:
+                # If the command is a default one, just run it.
+                command_name = message.clean_content.split()[0][
+                    len(command_prefix) :
+                ].lower()
+                if command_name in constants.DEFAULT_COMMANDS:
+                    await client.process_commands(message)
+                # Don't use custom commands for DMs also I think this fixes a bug which gets an error when someone
+                # uses a command right as the box is starting up.
+                elif (
+                    message.guild is not None
+                    and message.guild.id in database.CUSTOM_COMMANDS
+                ):
+                    command_return = None
+                    # check if custom command is in cache for that server
+                    if command_name in [
+                        command.lower()
+                        for command in database.CUSTOM_COMMANDS[message.guild.id].keys()
+                    ]:
+                        command_return = database.CUSTOM_COMMANDS[message.guild.id][
+                            command_name
+                        ][0]
 
-                # Command found in cache
-                if command_return is not None:
-                    # Image, so we use normal text.
-                    if database.CUSTOM_COMMANDS[message.guild.id][command_name][1]:
-                        await message.channel.send(command_return)
-                    # Non-Image, so use embed.
-                    else:
-                        embed = nextcord.Embed(
-                            description=command_return, color=constants.EMBED_COLOR
-                        )
-                        await message.channel.send(embed=embed)
-                    return
+                    # Command found in cache
+                    if command_return is not None:
+                        # Image, so we use normal text.
+                        if database.CUSTOM_COMMANDS[message.guild.id][command_name][1]:
+                            await message.channel.send(command_return)
+                        # Non-Image, so use embed.
+                        else:
+                            embed = nextcord.Embed(
+                                description=command_return, color=constants.EMBED_COLOR
+                            )
+                            await message.channel.send(embed=embed)
+                        return
 
-                # The custom command is not in the cache
-                # Query the DB to see if we have a command with that name
-                with Session(database.DATABASE_ENGINE) as session:
-                    # Checking for this server
-                    result = (
-                        session.query(database.CustomCommands)
-                        .filter_by(
-                            server_id_command=f"{message.guild.id} {command_name}"
-                        )
-                        .first()
-                    )
-                    # Check for global custom commands
-                    if result is None:
+                    # The custom command is not in the cache
+                    # Query the DB to see if we have a command with that name
+                    with Session(database.DATABASE_ENGINE) as session:
+                        # Checking for this server
                         result = (
                             session.query(database.CustomCommands)
                             .filter_by(
-                                server_id_command=f"{constants.DB_GLOBAL} {command_name}"
+                                server_id_command=f"{message.guild.id} {command_name}"
                             )
                             .first()
                         )
-                    if result is not None:
-                        if result.image:
-                            await message.channel.send(result.command_return)
-                            return
-                        else:
-                            embed = nextcord.Embed(
-                                description=result.command_return,
-                                color=constants.EMBED_COLOR,
+                        # Check for global custom commands
+                        if result is None:
+                            result = (
+                                session.query(database.CustomCommands)
+                                .filter_by(
+                                    server_id_command=f"{constants.DB_GLOBAL} {command_name}"
+                                )
+                                .first()
                             )
-                            await message.channel.send(embed=embed)
-                        # Adds to cache. NOTE - This adds to cache even if local or global
-                        database.CUSTOM_COMMANDS[message.guild.id][command_name] = (
-                            result.command_return,
-                            result.image,
-                        )
+                        if result is not None:
+                            if result.image:
+                                await message.channel.send(result.command_return)
+                                return
+                            else:
+                                embed = nextcord.Embed(
+                                    description=result.command_return,
+                                    color=constants.EMBED_COLOR,
+                                )
+                                await message.channel.send(embed=embed)
+                            # Adds to cache. NOTE - This adds to cache even if local or global
+                            database.CUSTOM_COMMANDS[message.guild.id][command_name] = (
+                                result.command_return,
+                                result.image,
+                            )
+            except ConnectionResetError:
+                print("=== BOT HIT CONNECTION RESET ERROR. POTENTIAL CRASH? ===")
 
     client.run(os.getenv("DISCORD_TOKEN"))
 
