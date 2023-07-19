@@ -11,7 +11,7 @@ def __fix_tz(text: str) -> str:
         "IST": "+0530",  # Indian Standard Time
     }
     for timezone, offset in replacements.items():
-        text = re.sub(fr"\b{timezone}\b", offset, text, flags=re.IGNORECASE)
+        text = re.sub(rf"\b{timezone}\b", offset, text, flags=re.IGNORECASE)
     return text
 
 
@@ -47,5 +47,4 @@ def parse_date(
 
 def replace_offset(text: str) -> str:
     """Overrides the offset for better timezones"""
-    # print(text)
     return text.replace("UTC\+05:30", "IST").replace("UTC\+01:00", "BST")

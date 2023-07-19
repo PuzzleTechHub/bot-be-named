@@ -36,16 +36,21 @@ class LionCog(commands.Cog, name="Lion"):
             curr_sheet = self.gspread_client.open_by_url(sheet_link)
             overview = curr_sheet.worksheet("Overview")
         # Error when we can't open the curr sheet link
-        except gspread.exceptions.APIError:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"I'm unable to open the tethered [sheet]({sheet_link}). "
-                f"Did the permissions change?",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return
+        except gspread.exceptions.APIError as e:
+            error_json = e.response.json()
+            error_status = error_json.get("error", {}).get("status")
+            if error_status == "PERMISSION_DENIED":
+                embed = discord_utils.create_embed()
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"I'm unable to open the tethered [sheet]({sheet_link}). "
+                    f"Did the permissions change?",
+                    inline=False,
+                )
+                await ctx.send(embed=embed)
+                return
+            else:
+                raise e
         # Error when the sheet has no template tab
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
@@ -268,13 +273,17 @@ class LionCog(commands.Cog, name="Lion"):
             embed = discord_utils.create_embed()
             try:
                 curr_sheet.batch_update(body)
-            except gspread.exceptions.APIError:
-                embed.add_field(
-                    name=f"{constants.FAILED}",
-                    value="Could not update the sheet.",
-                    inline=False,
-                )
-                return
+            except gspread.exceptions.APIError as e:
+                error_json = e.response.json()
+                error_status = error_json.get("error", {}).get("status")
+                if error_status == "PERMISSION_DENIED":
+                    embed.add_field(
+                        name=f"{constants.FAILED}",
+                        value="Could not update the sheet.",
+                        inline=False,
+                    )
+                else:
+                    raise e
 
             embed.add_field(
                 name=f"{constants.SUCCESS}",
@@ -312,7 +321,7 @@ class LionCog(commands.Cog, name="Lion"):
             await ctx.send(embed=embed)
 
         except gspread.exceptions.APIError as e:
-            print(f"GSHEETS API ERROR - {e}")
+            print(f"=== GSHEETS API ERROR - {e} ===")
             if hasattr(e, "response"):
                 error_json = e.response.json()
                 error_message = error_json.get("error", {}).get("message")
@@ -522,7 +531,7 @@ class LionCog(commands.Cog, name="Lion"):
 
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
         except gspread.exceptions.APIError as e:
-            print(f"GSHEETS API ERROR - {e}")
+            print(f"=== GSHEETS API ERROR - {e} ===")
             if hasattr(e, "response"):
                 error_json = e.response.json()
                 error_message = error_json.get("error", {}).get("message")
@@ -751,16 +760,21 @@ class LionCog(commands.Cog, name="Lion"):
             curr_sheet = self.gspread_client.open_by_url(curr_link)
             template_id = curr_sheet.worksheet("Template").id
         # Error when we can't open the curr sheet link
-        except gspread.exceptions.APIError:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"I'm unable to open the tethered [sheet]({curr_link}). "
-                f"Did the permissions change?",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return None
+        except gspread.exceptions.APIError as e:
+            error_json = e.response.json()
+            error_status = error_json.get("error", {}).get("status")
+            if error_status == "PERMISSION_DENIED":
+                embed = discord_utils.create_embed()
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"I'm unable to open the tethered [sheet]({curr_link}). "
+                    f"Did the permissions change?",
+                    inline=False,
+                )
+                await ctx.send(embed=embed)
+                return None
+            else:
+                raise e
         # Error when the sheet has no template tab
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()

@@ -381,16 +381,21 @@ async def sheetcreatetabgeneric(
             template_id = curr_sheet.worksheet(template_or_meta).id
             template_index = curr_sheet.worksheet(template_or_meta).index
         # Error when we can't open the curr sheet link
-        except gspread.exceptions.APIError:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
-                f"Did the permissions change?",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return curr_sheet_link, newsheet
+        except gspread.exceptions.APIError as e:
+            error_json = e.response.json()
+            error_status = error_json.get("error", {}).get("status")
+            if error_status == "PERMISSION_DENIED":
+                embed = discord_utils.create_embed()
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
+                    f"Did the permissions change?",
+                    inline=False,
+                )
+                await ctx.send(embed=embed)
+                return curr_sheet_link, newsheet
+            else:
+                raise e
         # Error when the sheet has no template tab
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
@@ -432,22 +437,26 @@ async def sheetcreatetabgeneric(
                 new_sheet_name=tab_name,
                 insert_sheet_index=template_index + i,
             )
-        except gspread.exceptions.APIError:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Could not duplicate '{template_or_meta}' tab in the "
-                f"[Google sheet at link]({curr_sheet_link}). "
-                f"Is the permission set up with 'Anyone with link can edit'?",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return curr_sheet_link, None
-
+        except gspread.exceptions.APIError as e:
+            error_json = e.response.json()
+            error_status = error_json.get("error", {}).get("status")
+            if error_status == "PERMISSION_DENIED":
+                embed = discord_utils.create_embed()
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"Could not duplicate '{template_or_meta}' tab in the "
+                    f"[Google sheet at link]({curr_sheet_link}). "
+                    f"Is the permission set up with 'Anyone with link can edit'?",
+                    inline=False,
+                )
+                await ctx.send(embed=embed)
+                return curr_sheet_link, None
+            else:
+                raise e
         return curr_sheet_link, newsheet
 
     except gspread.exceptions.APIError as e:
-        print(f"GSHEETS API ERROR - {e}")
+        print(f"=== GSHEETS API ERROR - {e} ===")
         if hasattr(e, "response"):
             error_json = e.response.json()
             error_message = error_json.get("error", {}).get("message")

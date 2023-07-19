@@ -30,7 +30,6 @@ class ArchiveCog(commands.Cog, name="Archive"):
         )
         with open(text_log_path, "w") as f:
             async for msg in channel.history(limit=None, oldest_first=True):
-                # print(f"{msg.created_at} - {msg.author.display_name.rjust(25, ' ')}: {msg.clean_content}")
                 f.write(
                     f"[ {msg.created_at.strftime('%m-%d-%Y, %H:%M:%S')} ] "
                     f"{msg.author.display_name.rjust(25, ' ')}: "
@@ -153,7 +152,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 msg = await ctx.send(embed=archive_utils.get_delay_embed())
             # LOCK EVERYTHING
             async with self.lock:
-                # If we printed a message about being delayed bc of lock, we can delete that now.
+                # If we sent a message about being delayed bc of lock, we can delete that now.
                 if msg:
                     await msg.delete()
                     msg = None
