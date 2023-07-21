@@ -91,7 +91,7 @@ class TimeCog(commands.Cog, name="Time"):
 
         await ctx.send(embed=embed)
 
-    def get_tz(self, location: str) -> dict:
+    async def get_tz(self, location: str) -> dict:
         """Get timezone from a given string"""
         tz = None
         try:
@@ -103,13 +103,13 @@ class TimeCog(commands.Cog, name="Time"):
         return tz
 
 
-def format_time(time):
+async def format_time(time):
     """Rearrange time str. Comes in as YYYY-MM-DD HH:MM, change to MM-DD-YYYY HH:MM"""
     date = datetime.datetime.strptime(time, "%Y-%m-%d %H:%M")
     return date.strftime("%B %d, %H:%M")
 
 
-def format_gmt_offset(timezone_dict):
+async def format_gmt_offset(timezone_dict):
     """Find GMT offset (include dst if applicable)"""
     raw_offset = timezone_dict["gmtOffset"]
     dst_offset = timezone_dict["dstOffset"]

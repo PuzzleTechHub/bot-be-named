@@ -4,18 +4,18 @@ import dateparser
 import re
 
 
-def __fix_tz(text: str) -> str:
+async def __fix_tz(text: str) -> str:
     """Overrides certain timezones with more relevant ones"""
     replacements = {
         "BST": "+0100",  # British Summer Time
         "IST": "+0530",  # Indian Standard Time
     }
     for timezone, offset in replacements.items():
-        text = re.sub(fr"\b{timezone}\b", offset, text, flags=re.IGNORECASE)
+        text = re.sub(rf"\b{timezone}\b", offset, text, flags=re.IGNORECASE)
     return text
 
 
-def parse_date(
+async def parse_date(
     date_str: Optional[str] = None,
     from_tz: Optional[str] = None,
     to_tz: Optional[str] = None,
@@ -45,18 +45,18 @@ def parse_date(
     return date
 
 
-def replace_offset(text: str) -> str:
+async def replace_offset(text: str) -> str:
     """Overrides the offset for better timezones"""
     return text.replace("UTC\+05:30", "IST").replace("UTC\+01:00", "BST")
 
 
-def format_time(time):
+async def format_time(time):
     """Rearrange time str. Comes in as YYYY-MM-DD HH:MM, change to MM-DD-YYYY HH:MM"""
     date = datetime.strptime(time, "%Y-%m-%d %H:%M")
     return date.strftime("%B %d, %H:%M")
 
 
-def format_gmt_offset(timezone_dict):
+async def format_gmt_offset(timezone_dict):
     """Find GMT offset (include dst if applicable)"""
     raw_offset = timezone_dict["gmtOffset"]
     dst_offset = timezone_dict["dstOffset"]

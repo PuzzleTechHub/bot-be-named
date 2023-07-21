@@ -4,7 +4,7 @@ import dateparser
 import re
 
 
-def __fix_tz(text: str) -> str:
+async def __fix_tz(text: str) -> str:
     """Overrides certain timezones with more relevant ones"""
     replacements = {
         "BST": "+0100",  # British Summer Time
@@ -15,7 +15,7 @@ def __fix_tz(text: str) -> str:
     return text
 
 
-def parse_date(
+async def parse_date(
     date_str: Optional[str] = None,
     from_tz: Optional[str] = None,
     to_tz: Optional[str] = None,
@@ -45,6 +45,6 @@ def parse_date(
     return date
 
 
-def replace_offset(text: str) -> str:
+async def replace_offset(text: str) -> str:
     """Overrides the offset for better timezones"""
     return text.replace("UTC\+05:30", "IST").replace("UTC\+01:00", "BST")

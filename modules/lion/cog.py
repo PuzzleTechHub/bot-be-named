@@ -127,7 +127,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
         await ctx.send(embed=embed)
 
-    def firstemptyrow(self, worksheet):
+    async def firstemptyrow(self, worksheet):
         """Finds the first empty row in a worksheet"""
         return len(worksheet.get_values()) + 1
 
@@ -195,6 +195,7 @@ class LionCog(commands.Cog, name="Lion"):
         status = status.capitalize()
         if status == "Inprogress":
             status = "In Progress"
+        embed = discord_utils.create_embed()
 
         try:
             status_info = sheets_constants.status_dict.get(status)
@@ -270,7 +271,6 @@ class LionCog(commands.Cog, name="Lion"):
                 ]
             }
 
-            embed = discord_utils.create_embed()
             try:
                 curr_sheet.batch_update(body)
             except gspread.exceptions.APIError as e:

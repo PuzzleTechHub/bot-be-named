@@ -643,7 +643,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         )
         await ctx.send(embed=embed)
 
-    def sort_channels(
+    async def sort_channels(
         self,
         channel_list: list,
         prefixes: list = [
@@ -1142,7 +1142,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         await emb.add_reaction(cancel_emoji)
 
         # check that the reaction is the correct one and that the correct user reacted
-        def chk(reaction, user):
+        def check_correct_react(reaction, user):
             return (
                 reaction.message.id == emb.id
                 and (reaction.emoji == confirm_emoji or reaction.emoji == cancel_emoji)
@@ -1153,7 +1153,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
 
         try:
             react, _ = await self.bot.wait_for(
-                event="reaction_add", check=chk, timeout=15
+                event="reaction_add", check=check_correct_react, timeout=15
             )
             # delete category
             if react.emoji == confirm_emoji:
