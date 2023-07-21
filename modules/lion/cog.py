@@ -195,6 +195,7 @@ class LionCog(commands.Cog, name="Lion"):
         status = status.capitalize()
         if status == "Inprogress":
             status = "In Progress"
+        embed = discord_utils.create_embed()
 
         try:
             status_info = sheets_constants.status_dict.get(status)
@@ -209,7 +210,6 @@ class LionCog(commands.Cog, name="Lion"):
             )
 
             if result is None:
-                embed = discord_utils.create_embed()
                 embed.add_field(
                     name=f"{constants.FAILED}",
                     value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
@@ -270,7 +270,6 @@ class LionCog(commands.Cog, name="Lion"):
                 ]
             }
 
-            embed = discord_utils.create_embed()
             try:
                 curr_sheet.batch_update(body)
             except gspread.exceptions.APIError as e:
