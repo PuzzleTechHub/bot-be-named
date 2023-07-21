@@ -18,7 +18,7 @@ class SolvedCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def add_prefix(self, channel, prefix: str):
+    def add_prefix(self, channel, prefix: str):
         """Adds prefix to channel name"""
         # create prefix checking object
         p = Prefix(channel, prefix)
@@ -41,7 +41,7 @@ class SolvedCog(commands.Cog):
             new_channel_name = p.add_prefix()
         return new_channel_name
 
-    async def remove_prefix(self, channel, prefix: str) -> str:
+    def remove_prefix(self, channel, prefix: str) -> str:
         """Remove prefix from channel name"""
         # create prefix checking object
         p = Prefix(channel, prefix)

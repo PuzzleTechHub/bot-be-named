@@ -33,7 +33,7 @@ class Pages:
             "\u274C",  # stop
         ]
 
-    async def extractData(self):
+    def extractData(self):
         final = []
         finalend = []
         start = (self.page - 1) * self.numsol

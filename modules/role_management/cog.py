@@ -497,10 +497,10 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
                 member_but_not_reactor = member_but_not_reactor + [name]
 
         all_reactor_but_not_member = (
-            f"{' : '.join([user.mention for user in reactor_but_not_member])}"
+            f"{', '.join([user.mention for user in reactor_but_not_member])}"
         )
         all_member_but_not_reactor = (
-            f"{' : '.join([user.mention for user in member_but_not_reactor])}"
+            f"{', '.join([user.mention for user in member_but_not_reactor])}"
         )
 
         embed.add_field(

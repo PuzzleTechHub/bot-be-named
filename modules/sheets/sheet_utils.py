@@ -17,7 +17,7 @@ import emoji
 #########################
 
 
-async def addsheettethergeneric(
+def addsheettethergeneric(
     gspread_client,
     sheet_key_or_link: str,
     curr_guild: nextcord.Guild,
@@ -295,9 +295,7 @@ async def chancrabgeneric(
     return curr_sheet_link, newsheet, new_chan
 
 
-async def findsheettether(
-    curr_cat_id: int, curr_chan_id: int, curr_thread_id: int = None
-):
+def findsheettether(curr_cat_id: int, curr_chan_id: int, curr_thread_id: int = None):
     """For finding the appropriate sheet tethering for a given category or channel"""
     result = None
     tether_type = None
@@ -330,7 +328,7 @@ async def findsheettether(
     return result, tether_type
 
 
-async def get_sheet_from_key_or_link(
+def get_sheet_from_key_or_link(
     gspread_client, sheet_key_or_link: str
 ) -> gspread.Spreadsheet:
     """Takes in a string, which could be a google sheet key or URL"""

@@ -19,7 +19,7 @@ JSON_PARAMS = [
 ]
 
 
-async def create_gspread_client() -> gspread.Client:
+def create_gspread_client() -> gspread.Client:
     """
     Create the client to be able to access google drive (sheets)
     """
@@ -27,7 +27,7 @@ async def create_gspread_client() -> gspread.Client:
     return gspread.authorize(creds)
 
 
-async def get_gdrive_credentials() -> ServiceAccountCredentials:
+def get_gdrive_credentials() -> ServiceAccountCredentials:
     """
     Get google drive credentials
     """
@@ -50,7 +50,7 @@ async def get_gdrive_credentials() -> ServiceAccountCredentials:
     return creds
 
 
-async def get_dataframe_from_gsheet(
+def get_dataframe_from_gsheet(
     sheet: gspread.Spreadsheet, columns: list
 ) -> pd.DataFrame:
     """
@@ -63,14 +63,12 @@ async def get_dataframe_from_gsheet(
     return pd.DataFrame(sheet.get_all_values()[1:], columns=columns)
 
 
-async def update_sheet_from_df(sheet: gspread.Spreadsheet, df: pd.DataFrame) -> None:
+def update_sheet_from_df(sheet: gspread.Spreadsheet, df: pd.DataFrame) -> None:
     """Dump the current dataframe onto the google sheet"""
     sheet.update([df.columns.values.tolist()] + df.values.tolist())
 
 
-async def get_sheet_link(
-    sheet: gspread.Spreadsheet, tab: gspread.Worksheet = None
-) -> str:
+def get_sheet_link(sheet: gspread.Spreadsheet, tab: gspread.Worksheet = None) -> str:
     """Get the URL for a Google sheet. Optionally add a specific tab"""
     if tab:
         # Ensure the tab belongs to the sheet

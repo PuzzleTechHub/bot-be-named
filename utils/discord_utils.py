@@ -5,7 +5,7 @@ from typing import List, Union
 import constants
 
 
-async def category_is_full(category: nextcord.CategoryChannel) -> bool:
+def category_is_full(category: nextcord.CategoryChannel) -> bool:
     """Determines whether a category is full (has 50 channels)
     Arguments:
         - category (nextcord.CategoryChannel)
@@ -107,7 +107,7 @@ async def createvoicechannelgeneric(
     return channel
 
 
-async def create_embed() -> nextcord.Embed:
+def create_embed() -> nextcord.Embed:
     """
     Create an empty discord embed with color.
     :return: (nextcord.Embed)
@@ -115,7 +115,7 @@ async def create_embed() -> nextcord.Embed:
     return nextcord.Embed(description="", color=constants.EMBED_COLOR)
 
 
-async def create_no_argument_embed(arg_name: str = "argument") -> nextcord.Embed:
+def create_no_argument_embed(arg_name: str = "argument") -> nextcord.Embed:
     """
     Create an embed which alerts the user they need to supply an argument
     :param arg_name: (str) The type of argument needed (e.g. channel)
@@ -304,9 +304,7 @@ async def pin_message(message: nextcord.Message) -> nextcord.Embed:
     return None
 
 
-async def populate_embed(
-    names: list, values: list, inline: bool = False
-) -> nextcord.Embed:
+def populate_embed(names: list, values: list, inline: bool = False) -> nextcord.Embed:
     """Populate an embed with a list of names and values"""
     assert len(names) == len(
         values
@@ -317,7 +315,7 @@ async def populate_embed(
     return embed
 
 
-async def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
+def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
     """Splits embeds that are too long (discord character limit)
     Arguments:
         - embed (nextcord.Embed)
