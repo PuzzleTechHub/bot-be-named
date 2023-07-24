@@ -1,13 +1,14 @@
-from utils import discord_utils, google_utils, logging_utils, command_predicates
-from modules.sheets import sheets_constants, sheet_utils
 import constants
-from nextcord.ext import commands
 import nextcord
 import gspread
-from sqlalchemy.sql.expression import insert
 import asyncio
-from typing import Union
 import emoji
+from nextcord.ext import commands
+from sqlalchemy.sql.expression import insert
+from typing import Union
+from utils import discord_utils, google_utils, logging_utils, command_predicates
+from modules.sheets import sheets_constants, sheet_utils
+from modules.solved import solved_utils
 
 
 class LionCog(commands.Cog, name="Lion"):
@@ -183,7 +184,7 @@ class LionCog(commands.Cog, name="Lion"):
         Alternatively, you can give a custom status.
 
         For statuses [solved, solvedish, postsolved, backsolved, custom] users have the option to add an answer
-        For statuses  [solved, solvedish, backsolved, postsolved, custom] the channel name gets updated
+        For statuses  [solved, solvedish, backsolved, postsolved] the channel name gets updated
 
         Permission Category : Solver Roles only.
         Usage: ~statuslion status
@@ -191,7 +192,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~statuslion "custom-update-string" "answer"
         """
         logging_utils.log_command("statuslion", ctx.guild, ctx.channel, ctx.author)
-        channel = ctx.message.channel
         status = status.capitalize()
         if status == "Inprogress":
             status = "In Progress"
@@ -219,7 +219,6 @@ class LionCog(commands.Cog, name="Lion"):
                 await ctx.send(embed=embed)
                 return
 
-            # No such cell
             curr_sheet_link = result.sheet_link
             chan_cell, overview = None, None
             chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
@@ -231,7 +230,6 @@ class LionCog(commands.Cog, name="Lion"):
             row_to_find = chan_cell.row
 
             tab_id = overview.acell("B" + str(row_to_find)).value
-
             puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
 
             if answer and status_info.get("update_ans"):
@@ -240,7 +238,6 @@ class LionCog(commands.Cog, name="Lion"):
                 puzzle_tab.update("B3", "")
 
             status_col = overview.acell("B1").value
-            puzz_name_col = overview.acell("A1").value
 
             curr_status = overview.acell(status_col + str(row_to_find)).value
             curr_stat_info = sheets_constants.status_dict.get(curr_status)
@@ -290,33 +287,24 @@ class LionCog(commands.Cog, name="Lion"):
                 inline=False,
             )
 
+            add_prefix = status_info.get("prefix")
+            past_prefix = curr_stat_info.get("prefix")
+
             if status == curr_status:
                 await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
                 return
 
-            add_prefix = status_info.get("prefix")
-            past_prefix = curr_stat_info.get("prefix")
-            tab_name = overview.acell(puzz_name_col + str(row_to_find)).value
+            if add_prefix:
+                prefix_name = status_info.get("prefix_name")
 
-            if not add_prefix and not past_prefix:
-                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
-            elif past_prefix and not add_prefix:
-                await channel.edit(name=tab_name)
-                embed.add_field(
-                    name=f"{constants.SUCCESS}",
-                    value=f"Channel renamed to {channel.mention}",
-                    inline=False,
-                )
-                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
-            else:
-                await channel.edit(name=status + " " + tab_name)
-                embed.add_field(
-                    name=f"{constants.SUCCESS}",
-                    value=f"Channel renamed to {channel.mention}",
-                    inline=False,
-                )
-                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+            if past_prefix and not add_prefix:
+                new_embed = await solved_utils.status_remove(ctx)
+                embed = discord_utils.merge_embed(embed, new_embed)
+            if add_prefix:
+                new_embed = await solved_utils.status_channel(ctx, prefix_name)
+                embed = discord_utils.merge_embed(embed, new_embed)
 
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
             await ctx.send(embed=embed)
 
         except gspread.exceptions.APIError as e:

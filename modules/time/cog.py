@@ -37,7 +37,7 @@ class TimeCog(commands.Cog, name="Time"):
         if user_time is None:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Is {' '.join(args)} a valid time?",
+                value=f"Is {' '.join(args)} a valid time? We want a timezone too!",
                 inline=False,
             )
             await ctx.send(embed=embed)
@@ -74,7 +74,7 @@ class TimeCog(commands.Cog, name="Time"):
         if timezone_dict is None:
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value=f"Cannot find {location}!",
+                value=f"Cannot find location `{location}`!",
                 inline=False,
             )
             await ctx.send(embed=embed)

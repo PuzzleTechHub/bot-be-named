@@ -4,7 +4,7 @@ import constants
 import nextcord
 from typing import Union
 import asyncio
-from modules.solved import solved_constants
+from modules.sheets import sheets_constants
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
@@ -646,14 +646,11 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     def sort_channels(
         self,
         channel_list: list,
-        prefixes: list = [
-            solved_constants.SOLVEDISH_PREFIX,
-            solved_constants.BACKSOLVED_PREFIX,
-            solved_constants.SOLVED_PREFIX,
-        ],
+        prefixes: list = sheets_constants.solved_prefixes,
     ) -> list:
         """Sort channels according to some prefixes"""
         channel_list_sorted = sorted(channel_list, key=lambda x: x.name)
+        prefixes = [x + "-" for x in prefixes]
 
         channel_list_prefixes = []
         for prefix in prefixes:

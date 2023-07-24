@@ -115,6 +115,20 @@ def create_embed() -> nextcord.Embed:
     return nextcord.Embed(description="", color=constants.EMBED_COLOR)
 
 
+def merge_embed(orig: nextcord.Embed, to_merge: nextcord.Embed) -> nextcord.Embed:
+    """
+    Takes two discord embeds, and adds all fields in latter to former
+    :return: (nextcord.Embed)
+    """
+    for field in to_merge.fields:
+        orig.add_field(
+            name=field.name,
+            value=field.value,
+            inline=field.inline,
+        )
+    return orig
+
+
 def create_no_argument_embed(arg_name: str = "argument") -> nextcord.Embed:
     """
     Create an embed which alerts the user they need to supply an argument

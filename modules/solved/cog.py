@@ -2,8 +2,8 @@ import nextcord
 
 import constants
 from nextcord.ext import commands
-from modules.solved.prefix import Prefix
-from modules.solved import solved_constants
+from modules.sheets import sheets_constants
+from modules.solved import solved_utils
 from utils import discord_utils, logging_utils, command_predicates
 
 # Note: It's awkward but right now the solved constants have a hyphen at the end
@@ -18,40 +18,6 @@ class SolvedCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    def add_prefix(self, channel, prefix: str):
-        """Adds prefix to channel name"""
-        # create prefix checking object
-        p = Prefix(channel, prefix)
-        new_channel_name = None
-        # check if already solved
-        if not p.has_prefix():
-            # Abusing p notation here
-            # Remove other prefixes that might be present
-            # e.g. ~backsolved on solved-channel should remove solved- and add backsolved-
-            for other_prefix in [
-                op for op in solved_constants.PREFIXES if op != prefix
-            ]:
-                p = Prefix(channel, other_prefix)
-                if p.has_prefix():
-                    new_channel_name = p.remove_prefix()
-            if new_channel_name is None:
-                p = Prefix(channel, prefix)
-            else:
-                p = Prefix(new_channel_name, prefix)
-            new_channel_name = p.add_prefix()
-        return new_channel_name
-
-    def remove_prefix(self, channel, prefix: str) -> str:
-        """Remove prefix from channel name"""
-        # create prefix checking object
-        p = Prefix(channel, prefix)
-        new_channel_name = None
-        # check if already solved
-        if p.has_prefix():
-            # edit channel name to remove prefix
-            new_channel_name = p.remove_prefix()
-        return new_channel_name
-
     @command_predicates.is_solver()
     @commands.command(name="solved")
     async def solved(self, ctx: commands.Context):
@@ -62,32 +28,9 @@ class SolvedCog(commands.Cog):
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
-        # log command in console
-        logging_utils.log_command("solved", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        new_channel_name = self.add_prefix(ctx.channel, solved_constants.SOLVED_PREFIX)
-        if new_channel_name:
-            try:
-                await ctx.channel.edit(name=new_channel_name)
-            except nextcord.Forbidden:
-                embed.add_field(
-                    name=f"{constants.FAILED}!",
-                    value=f"Unable to prepend `solved` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?",
-                )
-                await ctx.send(embed=embed)
-                return
-            embed.add_field(
-                name=f"{constants.SUCCESS}!",
-                value=f"Marking {ctx.channel.mention} as {solved_constants.SOLVED_PREFIX[:-1]}!",
-                inline=False,
-            )
-        else:
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value=f"Channel already marked as {solved_constants.SOLVED_PREFIX[:-1]}!",
-                inline=False,
-            )
+        status = "Solved"
+        status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
+        embed = await solved_utils.status_channel(ctx, status_prefix)
         await ctx.send(embed=embed)
 
     @command_predicates.is_solver()
@@ -100,28 +43,9 @@ class SolvedCog(commands.Cog):
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
-        # log command in console
-        logging_utils.log_command("solvedish", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        channel = ctx.message.channel
-        new_channel_name = self.add_prefix(
-            ctx.message.channel, solved_constants.SOLVEDISH_PREFIX
-        )
-        if new_channel_name:
-            await channel.edit(name=new_channel_name)
-            embed.add_field(
-                name=f"{constants.SUCCESS}!",
-                value=f"Marking {channel.mention} as {solved_constants.SOLVEDISH_PREFIX[:-1]}!",
-                inline=False,
-            )
-        else:
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value=f"Channel already marked as {solved_constants.SOLVEDISH_PREFIX[:-1]}!",
-                inline=False,
-            )
-        await channel.edit(name=new_channel_name)
+        status = "Solvedish"
+        status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
+        embed = await solved_utils.status_channel(ctx, status_prefix)
         await ctx.send(embed=embed)
 
     @command_predicates.is_solver()
@@ -134,25 +58,9 @@ class SolvedCog(commands.Cog):
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
-        # log command in console
-        logging_utils.log_command("backsolved", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        channel = ctx.message.channel
-        new_channel_name = self.add_prefix(channel, solved_constants.BACKSOLVED_PREFIX)
-        if new_channel_name:
-            await channel.edit(name=new_channel_name)
-            embed.add_field(
-                name=f"{constants.SUCCESS}",
-                value=f"Marking {channel.mention} as {solved_constants.BACKSOLVED_PREFIX[:-1]}!",
-                inline=False,
-            )
-        else:
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Channel already marked as {solved_constants.BACKSOLVED_PREFIX[:-1]}!",
-                inline=False,
-            )
+        status = "Backsolved"
+        status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
+        embed = await solved_utils.status_channel(ctx, status_prefix)
         await ctx.send(embed=embed)
 
     @command_predicates.is_solver()
@@ -167,25 +75,7 @@ class SolvedCog(commands.Cog):
         """
         # log command in console
         logging_utils.log_command("unsolved", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        channel = ctx.message.channel
-        for prefix in solved_constants.PREFIXES:
-            new_channel_name = self.remove_prefix(ctx.message.channel, prefix)
-            if new_channel_name:
-                await channel.edit(name=new_channel_name)
-                embed.add_field(
-                    name=f"{constants.SUCCESS}!",
-                    value=f"Marking {channel.mention} as un{prefix[:-1]}!",
-                    inline=False,
-                )
-                await ctx.send(embed=embed)
-                return
-        embed.add_field(
-            name=f"{constants.FAILED}!",
-            value=f"Channel is not marked as {solved_constants.SOLVED_PREFIX[:-1]}!",
-            inline=False,
-        )
+        embed = await solved_utils.status_remove(ctx)
         await ctx.send(embed=embed)
 
     @command_predicates.is_solver()
