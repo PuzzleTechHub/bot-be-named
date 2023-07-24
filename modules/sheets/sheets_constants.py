@@ -38,15 +38,38 @@ status_dict = {
         "prefix": True,
         "prefix_name": "postsolved",
     },
-    "Unstarted": {"color": [217, 217, 217], "update_ans": False, "prefix": False},
-    "Unsolvable": {"color": [102, 102, 102], "update_ans": False, "prefix": False},
-    "Stuck": {"color": [255, 255, 135], "update_ans": False, "prefix": False},
-    "Abandoned": {"color": [102, 102, 102], "update_ans": False, "prefix": False},
-    "In Progress": {"color": [230, 145, 56], "update_ans": False, "prefix": False},
-    "None": {"color": [230, 145, 56], "update_ans": True, "prefix": False},
+    "Unstarted": {
+        "color": [217, 217, 217],
+        "update_ans": False,
+        "prefix": False,
+    },
+    "Unsolvable": {
+        "color": [102, 102, 102],
+        "update_ans": False,
+        "prefix": False,
+    },
+    "Stuck": {
+        "color": [255, 255, 135],
+        "update_ans": False,
+        "prefix": False,
+    },
+    "Abandoned": {
+        "color": [102, 102, 102],
+        "update_ans": False,
+        "prefix": False,
+    },
+    "In Progress": {
+        "color": [230, 145, 56],
+        "update_ans": False,
+        "prefix": False,
+    },
+    "None": {
+        "color": [230, 145, 56],
+        "update_ans": True,
+        "prefix": False,
+    },
 }
 
 # ["solved","solvedish","backsolved"...]
-solved_prefixes = [
-    y for y in [status_dict[x].get("prefix_name") for x in status_dict] if y is not None
-]
+solved_prefixes = [status_dict[x].get("prefix_name") for x in status_dict]
+solved_prefixes = [y for y in solved_prefixes if y is not None]

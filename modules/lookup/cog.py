@@ -138,7 +138,6 @@ class LookupCog(commands.Cog, name="Lookup"):
         ]
     )
     async def nutrimatic(self, ctx, *, query=None):
-
         if not query:
             await ctx.send('Example regex: `!nut "<asympote_>"`')
             return

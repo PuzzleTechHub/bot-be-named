@@ -6,9 +6,6 @@ from modules.sheets import sheets_constants
 from modules.solved import solved_utils
 from utils import discord_utils, logging_utils, command_predicates
 
-# Note: It's awkward but right now the solved constants have a hyphen at the end
-# Which is why we have [:-1] for all the prefixes. We don't want to have that prefix
-# Sent to the users, but we do need it for prepending to the channel.
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot

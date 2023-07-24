@@ -11,7 +11,7 @@ def __fix_tz(text: str) -> str:
         "IST": "+0530",  # Indian Standard Time
     }
     for timezone, offset in replacements.items():
-        text = re.sub(fr"\b{timezone}\b", offset, text, flags=re.IGNORECASE)
+        text = re.sub(rf"\b{timezone}\b", offset, text, flags=re.IGNORECASE)
     return text
 
 
