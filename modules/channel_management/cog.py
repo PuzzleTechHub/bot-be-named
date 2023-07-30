@@ -260,6 +260,15 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             )
             await ctx.send(embed=embed)
             return None
+        # Server channel limit
+        if discord_utils.server_is_full(category.guild):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Category `{category.guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
+            )
+            # reply to user
+            await ctx.send(embed=embed)
+            return None
 
         channel = await discord_utils.createchannelgeneric(ctx.guild, category, name)
         # Send status (success or fail)
@@ -366,12 +375,22 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         guild = old_channel.guild
         category = old_channel.category
 
+        # Category limit
         if discord_utils.category_is_full(category):
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Category `{category.name}` is already full, max limit is 50 channels.",
                 inline=False,
             )
+            await ctx.send(embed=embed)
+            return
+        # Server channel limit
+        if discord_utils.server_is_full(guild):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Category `{guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
+            )
+            # reply to user
             await ctx.send(embed=embed)
             return
 

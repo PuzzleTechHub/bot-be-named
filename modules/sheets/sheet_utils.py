@@ -101,16 +101,23 @@ async def metacrabgeneric(
 ):
     embed = discord_utils.create_embed()
     # Cannot make a new channel if the category is full
-    if chan_or_thread == "chan" and discord_utils.category_is_full(
-        ctx.channel.category
-    ):
-        embed.add_field(
-            name=f"{constants.FAILED}!",
-            value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
-        )
-        # reply to user
-        await ctx.send(embed=embed)
-        return None, None, None
+    if chan_or_thread == "chan":
+        if discord_utils.category_is_full(ctx.channel.category):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
+            )
+            # reply to user
+            await ctx.send(embed=embed)
+            return None, None, None
+        if discord_utils.server_is_full(ctx.channel.guild):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Guild `{ctx.channel.guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
+            )
+            # reply to user
+            await ctx.send(embed=embed)
+            return None, None, None
 
     text_to_pin = " ".join(args)
     tab_name = chan_name.replace("#", "").replace("-", " ")
@@ -197,16 +204,23 @@ async def chancrabgeneric(
 ):
     embed = discord_utils.create_embed()
     # Cannot make a new channel if the category is full
-    if chan_or_thread == "chan" and discord_utils.category_is_full(
-        ctx.channel.category
-    ):
-        embed.add_field(
-            name=f"{constants.FAILED}!",
-            value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
-        )
-        # reply to user
-        await ctx.send(embed=embed)
-        return None, None, None
+    if chan_or_thread == "chan":
+        if discord_utils.category_is_full(ctx.channel.category):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
+            )
+            # reply to user
+            await ctx.send(embed=embed)
+            return None, None, None
+        if discord_utils.server_is_full(ctx.channel.guild):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Guild `{ctx.channel.guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
+            )
+            # reply to user
+            await ctx.send(embed=embed)
+            return None, None, None
 
     text_to_pin = " ".join(args)
     tab_name = chan_name.replace("#", "").replace("-", " ")

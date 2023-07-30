@@ -91,7 +91,6 @@ class MiscCog(commands.Cog, name="Misc"):
         logging_utils.log_command("about", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        emoji = None
         owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
 
         embed.add_field(

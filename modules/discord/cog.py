@@ -186,6 +186,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         embed = discord_utils.create_embed()
 
         guild = ctx.guild
+
         embed.add_field(name="Members", value=f"{guild.member_count}", inline=False)
         embed.add_field(name="Roles", value=f"{len(guild.roles)}", inline=False)
         embed.add_field(
@@ -193,6 +194,12 @@ class DiscordCog(commands.Cog, name="Discord"):
             value=f"{len(guild.emojis)} ({guild.emoji_limit})",
             inline=False,
         )
+        embed.add_field(
+            name="Categories/Channels/VCs (limit)",
+            value=f"{len(guild.channels)} (500)",
+            inline=False,
+        )
+
         embed.add_field(
             name="Categories", value=f"{len(guild.categories)}", inline=False
         )

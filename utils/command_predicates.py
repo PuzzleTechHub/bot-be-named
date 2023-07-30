@@ -2,16 +2,13 @@ from nextcord.ext import commands
 import database
 
 
-def is_bot_owner_or_admin():
+def is_bot_owner():
     """
-    Is bot owner, or an admin.
+    Is bot owner.
     """
 
     async def predicate(ctx):
-        if ctx.message.guild is None:
-            return False
-        is_bot_owner = await ctx.bot.is_owner(ctx.author)
-        return is_bot_owner or ctx.message.author.guild_permissions.administrator
+        return await ctx.bot.is_owner(ctx.author)
 
     return commands.check(predicate)
 
@@ -29,13 +26,16 @@ def is_admin():
     return commands.check(predicate)
 
 
-def is_bot_owner():
+def is_bot_owner_or_admin():
     """
-    Is bot owner.
+    Is bot owner, or an admin.
     """
 
     async def predicate(ctx):
-        return await ctx.bot.is_owner(ctx.author)
+        is_bot_owner = await ctx.bot.is_owner(ctx.author)
+        if ctx.message.guild is None:
+            return False
+        return is_bot_owner or ctx.message.author.guild_permissions.administrator
 
     return commands.check(predicate)
 
@@ -105,6 +105,24 @@ def is_trusted():
     async def predicate(ctx):
         if ctx.message.guild is None:
             return False
+        if ctx.guild.id in database.TRUSTEDS:
+            for role in ctx.author.roles:
+                role_id = role.id
+                if role_id in database.TRUSTEDS[ctx.guild.id]:
+                    return True
+            return False
+
+    return commands.check(predicate)
+
+
+def is_trusted_or_bot_owner():
+    async def predicate(ctx):
+        if ctx.message.guild is None:
+            return False
+
+        if await ctx.bot.is_owner(ctx.author):
+            return True
+
         if ctx.guild.id in database.TRUSTEDS:
             for role in ctx.author.roles:
                 role_id = role.id

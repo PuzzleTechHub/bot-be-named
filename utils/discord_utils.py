@@ -14,8 +14,19 @@ def category_is_full(category: nextcord.CategoryChannel) -> bool:
     Arguments:
         - category (nextcord.CategoryChannel)
     Returns:
-        - bool"""
+        - bool
+    """
     return len(category.channels) >= 50
+
+
+def server_is_full(guild: nextcord.Guild) -> bool:
+    """Determines whether a guild is full (has 500 channels + Voice chats + categories)
+    Arguments:
+        - category (nextcord.CategoryChannel)
+    Returns:
+        - bool
+    """
+    return len(guild.channels) >= 500
 
 
 async def is_thread(
@@ -69,6 +80,10 @@ async def createchannelgeneric(
         # create channel
         channel = await guild.create_text_channel(name, category=category)
     except nextcord.Forbidden:
+        # not allowed
+        return None
+    except nextcord.errors.HTTPException:
+        # channel limit
         return None
 
     return channel
