@@ -192,7 +192,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         logging_utils.log_command("createthread", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        if discord_utils.is_thread(ctx.channel):
+        if await discord_utils.is_thread(ctx.channel):
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value=f"Invalid! You cannot make a thread from inside another thread!",
@@ -201,7 +201,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
             return
 
         channel = await discord_utils.createthreadgeneric(
-            ctx.message, ctx.channel, name
+            ctx, ctx.message, ctx.channel, name
         )
         # Send status (success or fail)
         if channel:

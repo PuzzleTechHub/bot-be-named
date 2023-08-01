@@ -126,7 +126,7 @@ async def chancrabgeneric(
 
     tab_name = chan_name.replace("#", "").replace("-", " ")
 
-    if chan_or_thread == "thread" and discord_utils.is_thread(ctx.channel):
+    if chan_or_thread == "thread" and await discord_utils.is_thread(ctx, ctx.channel):
         embed.add_field(
             name=f"{constants.FAILED}!",
             value=f"Invalid! You cannot make a thread from inside another thread!",
@@ -152,7 +152,7 @@ async def chancrabgeneric(
         )
     elif chan_or_thread == "thread":
         new_chan = await discord_utils.createthreadgeneric(
-            ctx.message, ctx.channel, chan_name
+            ctx, ctx.message, ctx.channel, chan_name
         )
 
     # Error creating channel

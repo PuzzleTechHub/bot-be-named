@@ -90,6 +90,7 @@ async def createchannelgeneric(
 
 
 async def createthreadgeneric(
+    ctx: commands.Context,
     message: nextcord.Message,
     chan_or_forum: Union[nextcord.TextChannel, nextcord.ForumChannel],
     name: str,
@@ -102,7 +103,7 @@ async def createthreadgeneric(
     Returns:
         - thread (nextcord.Thread): The created thread, or none if the bot does not have sufficient perms.
     """
-    if is_thread(chan_or_forum):
+    if is_thread(ctx, chan_or_forum):
         return None
     try:
         # create channel
