@@ -547,11 +547,20 @@ class LionCog(commands.Cog, name="Lion"):
 
         if url is not None:
             curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
-                self.gspread_client, ctx, chan_name, "chan", url
+                self.gspread_client,
+                ctx,
+                chan_name,
+                chan_or_thread="chan",
+                is_meta=False,
+                args=url,
             )
         else:
             curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
-                self.gspread_client, ctx, chan_name, "chan"
+                self.gspread_client,
+                ctx,
+                chan_name,
+                chan_or_thread="chan",
+                is_meta=False,
             )
 
         if curr_sheet_link is None or newsheet is None or new_chan is None:
@@ -575,12 +584,17 @@ class LionCog(commands.Cog, name="Lion"):
         curr_sheet_link, newsheet, new_chan = None, None, None
 
         if url is not None:
-            curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
-                self.gspread_client, ctx, chan_name, "chan", url
+            curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
+                self.gspread_client,
+                ctx,
+                chan_name,
+                chan_or_thread="chan",
+                is_meta=True,
+                args=url,
             )
         else:
-            curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
-                self.gspread_client, ctx, chan_name, "chan"
+            curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
+                self.gspread_client, ctx, chan_name, chan_or_thread="chan", is_meta=True
             )
 
         if curr_sheet_link is None or newsheet is None or new_chan is None:
@@ -605,11 +619,20 @@ class LionCog(commands.Cog, name="Lion"):
 
         if url is not None:
             curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
-                self.gspread_client, ctx, chan_name, "thread", url
+                self.gspread_client,
+                ctx,
+                chan_name,
+                chan_or_thread="thread",
+                is_meta=False,
+                args=url,
             )
         else:
             curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
-                self.gspread_client, ctx, chan_name, "thread"
+                self.gspread_client,
+                ctx,
+                chan_name,
+                chan_or_thread="thread",
+                is_meta=False,
             )
 
         if curr_sheet_link is None or newsheet is None or new_chan is None:
@@ -633,12 +656,21 @@ class LionCog(commands.Cog, name="Lion"):
         curr_sheet_link, newsheet, new_chan = None, None, None
 
         if url is not None:
-            curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
-                self.gspread_client, ctx, chan_name, "thread", url
+            curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
+                self.gspread_client,
+                ctx,
+                chan_name,
+                chan_or_thread="thread",
+                is_meta=True,
+                args=url,
             )
         else:
             curr_sheet_link, newsheet, new_chan = await sheet_utils.metacrabgeneric(
-                self.gspread_client, ctx, chan_name, "thread"
+                self.gspread_client,
+                ctx,
+                chan_name,
+                chan_or_thread="thread",
+                is_meta=True,
             )
 
         if curr_sheet_link is None or newsheet is None or new_chan is None:

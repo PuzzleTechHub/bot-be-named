@@ -96,8 +96,8 @@ async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = "")
     return curr_sheet_link, newsheet
 
 
-async def metacrabgeneric(
-    gspread_client, ctx, chan_name: str, chan_or_thread: str, *args
+async def chancrabgeneric(
+    gspread_client, ctx, chan_name: str, chan_or_thread: str, is_meta: bool, *args
 ):
     embed = discord_utils.create_embed()
     # Cannot make a new channel if the category is full
@@ -119,114 +119,24 @@ async def metacrabgeneric(
             await ctx.send(embed=embed)
             return None, None, None
 
+    if is_meta:
+        tab_type = "Meta Template"
+    else:
+        tab_type = "Template"
+
     text_to_pin = " ".join(args)
     tab_name = chan_name.replace("#", "").replace("-", " ")
 
-    curr_sheet_link, newsheet = await sheetcreatetabgeneric(
-        gspread_client,
-        ctx,
-        ctx.channel,
-        ctx.channel.category,
-        tab_name,
-        "Meta Template",
-    )
-
-    # Error, already being handled at the generic function
-    if not curr_sheet_link or not newsheet or not newsheet.id:
-        return None, None, None
-
-    # This link is customized for the newly made tab
-    final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
-
-    # new channel created (or None)
-    if chan_or_thread == "chan":
-        new_chan = await discord_utils.createchannelgeneric(
-            ctx.guild, ctx.channel.category, chan_name
-        )
-    elif chan_or_thread == "thread":
-        new_chan = await discord_utils.createthreadgeneric(
-            ctx.message, ctx.channel, chan_name
-        )
-
-    # Error creating channel
-    if not new_chan:
-        embed = discord_utils.create_embed()
+    if chan_or_thread == "thread" and discord_utils.is_thread(ctx.channel):
         embed.add_field(
             name=f"{constants.FAILED}!",
-            value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+            value=f"Invalid! You cannot make a thread from inside another thread!",
         )
         await ctx.send(embed=embed)
         return None, None, None
 
-    embed = discord_utils.create_embed()
-    embed.add_field(
-        name=f"{constants.SUCCESS}!",
-        value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
-        inline=False,
-    )
-    msg = await new_chan.send(embed=embed)
-    # Try to pin the message in new channel
-    embed_or_none = await discord_utils.pin_message(msg)
-    # Error pinning message
-    if embed_or_none is not None:
-        await new_chan.send(embed=embed_or_none)
-
-    if text_to_pin:
-        embed2 = discord_utils.create_embed()
-        embed2.description = text_to_pin
-        msg = await new_chan.send(embed=embed2)
-        # Pin message in the new channel
-        embed_or_none = await discord_utils.pin_message(msg)
-
-        # Error pinning message
-        if embed_or_none is not None:
-            await ctx.send(embed=embed_or_none)
-        else:
-            await msg.add_reaction(emoji.emojize(":pushpin:"))
-
-    if chan_or_thread == "chan":
-        await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
-
-    embed = discord_utils.create_embed()
-    embed.add_field(
-        name=f"{constants.SUCCESS}!",
-        value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
-        inline=False,
-    )
-    await ctx.send(embed=embed)
-
-    addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
-    return curr_sheet_link, newsheet, new_chan
-
-
-async def chancrabgeneric(
-    gspread_client, ctx, chan_name: str, chan_or_thread: str, *args
-):
-    embed = discord_utils.create_embed()
-    # Cannot make a new channel if the category is full
-    if chan_or_thread == "chan":
-        if discord_utils.category_is_full(ctx.channel.category):
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
-            )
-            # reply to user
-            await ctx.send(embed=embed)
-            return None, None, None
-        if discord_utils.server_is_full(ctx.channel.guild):
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value=f"Guild `{ctx.channel.guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
-            )
-            # reply to user
-            await ctx.send(embed=embed)
-            return None, None, None
-
-    text_to_pin = " ".join(args)
-    tab_name = chan_name.replace("#", "").replace("-", " ")
-
     curr_sheet_link, newsheet = await sheetcreatetabgeneric(
-        gspread_client, ctx, ctx.channel, ctx.channel.category, tab_name, "Template"
+        gspread_client, ctx, ctx.channel, ctx.channel.category, tab_name, tab_type
     )
 
     # Error, already being handled at the generic function
@@ -248,7 +158,6 @@ async def chancrabgeneric(
 
     # Error creating channel
     if not new_chan:
-        embed = discord_utils.create_embed()
         embed.add_field(
             name=f"{constants.FAILED}!",
             value=f"Forbidden! Have you checked if the bot has the required permisisons?",

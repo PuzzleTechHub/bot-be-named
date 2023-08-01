@@ -255,7 +255,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         embed = discord_utils.create_embed()
 
         return await sheet_utils.chancrabgeneric(
-            self.gspread_client, ctx, chan_name, "chan", *args
+            self.gspread_client, ctx, chan_name, "chan", is_meta=False, *args
         )
 
     @command_predicates.is_solver()
@@ -278,7 +278,12 @@ class SheetsCog(commands.Cog, name="Sheets"):
         embed = discord_utils.create_embed()
 
         return await sheet_utils.metacrabgeneric(
-            self.gspread_client, ctx, chan_name, "chan", *args
+            self.gspread_client,
+            ctx,
+            chan_name,
+            chan_or_thread="chan",
+            is_meta=True,
+            *args,
         )
 
     @command_predicates.is_solver()

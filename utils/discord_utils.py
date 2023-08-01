@@ -102,6 +102,8 @@ async def createthreadgeneric(
     Returns:
         - thread (nextcord.Thread): The created thread, or none if the bot does not have sufficient perms.
     """
+    if is_thread(chan_or_forum):
+        return None
     try:
         # create channel
         thread = await chan_or_forum.create_thread(name=name, message=message)

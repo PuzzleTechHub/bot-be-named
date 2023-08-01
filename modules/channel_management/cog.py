@@ -192,6 +192,14 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         logging_utils.log_command("createthread", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
+        if discord_utils.is_thread(ctx.channel):
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Invalid! You cannot make a thread from inside another thread!",
+            )
+            await ctx.send(embed=embed)
+            return
+
         channel = await discord_utils.createthreadgeneric(
             ctx.message, ctx.channel, name
         )
@@ -264,7 +272,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         if discord_utils.server_is_full(category.guild):
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Category `{category.guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
+                value=f"Guild `{category.guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
             )
             # reply to user
             await ctx.send(embed=embed)
@@ -388,7 +396,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
         if discord_utils.server_is_full(guild):
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Category `{guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
+                value=f"Guild `{guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
             )
             # reply to user
             await ctx.send(embed=embed)
