@@ -253,9 +253,15 @@ class SheetsCog(commands.Cog, name="Sheets"):
             "channelcreatetab", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
+        text_to_pin = " ".join(args)
 
         return await sheet_utils.chancrabgeneric(
-            self.gspread_client, ctx, chan_name, "chan", is_meta=False, *args
+            self.gspread_client,
+            ctx,
+            chan_name,
+            "chan",
+            is_meta=False,
+            text_to_pin=text_to_pin,
         )
 
     @command_predicates.is_solver()
@@ -276,6 +282,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             "channelcreatetab", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
+        text_to_pin = " ".join(args)
 
         return await sheet_utils.chancrabgeneric(
             self.gspread_client,
@@ -283,7 +290,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             chan_name,
             chan_or_thread="chan",
             is_meta=True,
-            *args,
+            text_to_pin=text_to_pin,
         )
 
     @command_predicates.is_solver()

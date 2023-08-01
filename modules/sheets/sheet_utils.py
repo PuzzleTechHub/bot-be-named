@@ -97,10 +97,10 @@ async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = "")
 
 
 async def chancrabgeneric(
-    gspread_client, ctx, chan_name: str, chan_or_thread: str, is_meta: bool, *args
+    gspread_client, ctx, chan_name: str, chan_or_thread: str, is_meta: bool, text_to_pin
 ):
     embed = discord_utils.create_embed()
-    # Cannot make a new channel if the category is full
+    # Cannot make a new channel if the category is full``
     if chan_or_thread == "chan":
         if discord_utils.category_is_full(ctx.channel.category):
             embed.add_field(
@@ -124,7 +124,6 @@ async def chancrabgeneric(
     else:
         tab_type = "Template"
 
-    text_to_pin = " ".join(args)
     tab_name = chan_name.replace("#", "").replace("-", " ")
 
     if chan_or_thread == "thread" and discord_utils.is_thread(ctx.channel):
@@ -190,7 +189,7 @@ async def chancrabgeneric(
     if embed_or_none is not None:
         await new_chan.send(embed=embed_or_none)
 
-    if text_to_pin:
+    if text_to_pin != "":
         embed = discord_utils.create_embed()
         embed.description = text_to_pin
         msg = await new_chan.send(embed=embed)
