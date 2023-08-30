@@ -46,8 +46,11 @@ class TimeCog(commands.Cog, name="Time"):
         unix_time = int(datetime.datetime.timestamp(user_time))
         embed.add_field(
             name=f"{' '.join(args)}",
-            value=f"<t:{unix_time}:f>\n"
-            f"`<t:{unix_time}:R>` - <t:{unix_time}:R>\n\n"
+            value=f"<t:{unix_time}:f> - `<t:{unix_time}:f>` - <t:{unix_time}:R>\n\n"
+            f"**Copyable format**\n"
+            f"```\n"
+            f"<t:{unix_time}:f> - `<t:{unix_time}:f>` - <t:{unix_time}:R>\n"
+            f"```\n"
             f"[Guide to format](https://discord.com/developers/docs/reference#message-formatting-formats)",
         )
         await ctx.send(embed=embed)
