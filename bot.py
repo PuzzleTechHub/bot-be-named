@@ -173,6 +173,7 @@ def main():
                         .first()
                     )
                     # Check for global custom commands
+                    # TODO - confirm global cc trigger works
                     if result is None:
                         result = (
                             session.query(database.CustomCommands)
