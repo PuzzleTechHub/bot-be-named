@@ -42,6 +42,11 @@ Bot-Be-Named is currently set up with our own configurations and environment var
 
 Note that you may use another Python installer (instead of Pip), Host (instead of Heroku) or Database (instead of Postgresql) but that will require you figuring out the required setup and configuation changes yourself.
 
+While only the above are necessary to run the code on Heroku, some OSes might require additional installations to also run locally. For example, on Ubuntu, you need - 
+```bash
+sudo apt-get install postgresql-client-common postgresql-client
+```
+
 ### Installation
 
 We recommend using [virtual environments](https://docs.python.org/3/tutorial/venv.html) to manage python packages for our repo. To clone the repo and install dependencies, run the following on the Command Line
