@@ -51,13 +51,6 @@ class SheetTethers(Base):
     sheet_link = Column(String)
 
 
-class SheetTemplates(Base):
-    __tablename__ = "sheet_templates"
-    server_id = Column(BIGINT, primary_key=True)
-    server_name = Column(String)
-    sheet_link = Column(String)
-
-
 class Prefixes(Base):
     __tablename__ = "prefixes"
     server_id = Column(BIGINT, primary_key=True)

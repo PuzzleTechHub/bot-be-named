@@ -308,7 +308,6 @@ class LionCog(commands.Cog, name="Lion"):
             await ctx.send(embed=embed)
 
         except gspread.exceptions.APIError as e:
-            print(f"=== GSHEETS API ERROR - {e} ===")
             if hasattr(e, "response"):
                 error_json = e.response.json()
                 error_message = error_json.get("error", {}).get("message")
@@ -518,7 +517,6 @@ class LionCog(commands.Cog, name="Lion"):
 
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
         except gspread.exceptions.APIError as e:
-            print(f"=== GSHEETS API ERROR - {e} ===")
             if hasattr(e, "response"):
                 error_json = e.response.json()
                 error_message = error_json.get("error", {}).get("message")

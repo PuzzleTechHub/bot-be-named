@@ -378,7 +378,6 @@ async def sheetcreatetabgeneric(
         return curr_sheet_link, newsheet
 
     except gspread.exceptions.APIError as e:
-        print(f"=== GSHEETS API ERROR - {e} ===")
         if hasattr(e, "response"):
             error_json = e.response.json()
             error_message = error_json.get("error", {}).get("message")

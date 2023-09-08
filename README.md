@@ -50,10 +50,10 @@ We recommend using [virtual environments](https://docs.python.org/3/tutorial/ven
 #Clone the bot locally
 git clone https://github.com/kevslinger/bot-be-named.git
 cd bot-be-named
-virtualenv venv -p=3.10 
 #Technically optional, but using virtualenv is usually a good idea
-pip install -r requirements.txt && pre-commit install
+virtualenv venv -p=3.10 
 #This installs all the python dependancies the bot needs
+pip install -r requirements.txt && pre-commit install
 ```
 
 The bot uses [Heroku Postgres](https://www.heroku.com/postgres) for storing data.
@@ -91,15 +91,14 @@ When deploying on heroku, any variables stored in .env locally cannot be pushed 
 
 - [Admin](./modules/admin) for administrator commands
 - [Archive](./modules/archive) for downloading channel/category/server contents into a Zip file
-- [Channel Management](./modules/channel_management) for cloning, creating, and moving channels - [Cipher Race](modules/cipher_race) Race against the clock decoding ciphers!
+- [Channel Management](./modules/channel_management) for cloning, creating, and moving channels 
 - [Custom Command](./modules/custom_command) for making custom commands in different servers
 - [Discord](modules/discord) for discord utility commands (e.g. roles, stats)
 - [Error Logging](./modules/error_logging) for printing error logs
 - [Help](./modules/help) is an updated help command which automatically pulls docstrings for `~help`
+- [Lion](./modules/lion) is the "Google Sheets-Discord" commands currently used in every Puzzle Hunt. Advanced version of [Sheets](./modules/sheets) and [Solved](./modules/solved) modules. 
 - [Lookup](./modules/lookup) for Searching the internet via google and wikipedia
 - [Misc](./modules/misc) for misc. random (fun) commands
-- [Music Race](./modules/music_race/) Help! Our tunes have been sawed apart and put back incorrectly!
-- [Perfect Pitch](./modules/perfect_pitch) Become a composer and write tunes in mp4
 - [Role Management](./modules/role_management) for managing roles and similar
 - [Sheets](./modules/sheets) for working with Google Sheets during puzzlehunts
 - [Solved](./modules/solved) for marking Discord Channels as solved, backsolved, solvedish etc.
