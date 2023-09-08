@@ -208,6 +208,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 name=f"{constants.FAILED}!",
                 value=f"No custom commands in `{guildid}`, why not use "
                 f"`{ctx.prefix}addcustomcommand` to create one?",
+                inline=False,
             )
 
         # Global commands: Guild id = -1
@@ -225,11 +226,13 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             embed.add_field(
                 name=f"Global Custom Commands",
                 value=custom_commands,
+                inline=False,
             )
         else:
             embed.add_field(
                 name=f"{constants.SUCCESS}!",
                 value=f"No global custom commands yet. Contact {owner.mention} to suggest one.",
+                inline=False,
             )
         await ctx.send(embed=embed)
 
