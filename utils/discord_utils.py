@@ -446,11 +446,18 @@ async def find_user(
         return user_name
     guild_users = ctx.guild.members
     for user in guild_users:
-        if user.name.lower() == user_name.lower():
+        # Not quite sure the difference between user.name and user.display_name, probably waiting on nextcord 3.0 to hash this
+        if user.name is not None and user.name.lower() == user_name.lower():
             return user
-        real_display_name = user.display_name.split("#")[0]
-        # Because display_name for user_name is user_name#0 (as of nextcord 2.5)
-        if real_display_name.lower() == user_name.lower():
+        if (
+            user.display_name is not None
+            and user.display_name.lower() == user_name.lower()
+        ):
+            return user
+        if (
+            user.global_name is not None
+            and user.global_name.lower() == user_name.lower()
+        ):
             return user
     return None
 
