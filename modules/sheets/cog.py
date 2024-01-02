@@ -2,9 +2,11 @@ import googleapiclient
 from utils import discord_utils, google_utils, logging_utils, command_predicates
 from modules.sheets import sheets_constants, sheet_utils
 import constants
+import nextcord
+from nextcord import TextChannel, CategoryChannel
 from nextcord.ext import commands
 from nextcord.ext.tasks import loop
-import nextcord
+
 import os
 import httplib2
 from googleapiclient import discovery
@@ -12,7 +14,7 @@ import database
 from sqlalchemy.orm import Session
 import asyncio
 import shutil
-
+from typing import Union,Literal
 
 class SheetsCog(commands.Cog, name="Sheets"):
     """Google Sheets management commands"""
@@ -30,111 +32,72 @@ class SheetsCog(commands.Cog, name="Sheets"):
         if not self.prune_tethers.is_running():
             self.prune_tethers.start()
 
-    @command_predicates.is_solver()
-    @commands.command(
-        name="addtether",
-        aliases=["editsheettether", "tether", "edittether", "addsheettether"],
-    )
-    async def addsheettether(self, ctx, sheet_key_or_link: str):
-        """Tethers a sheet to the current category.
-
-        For any Google sheets commands, a tether to either category or channel (See `~chantether`) is necessary.
-
-        See also `~sheetcrab` and `~sheetlion`.
-
-        Permission Category : Solver Roles only.
-        Usage : `~tether SheetLink`
+    def validate_sheet(self, sheet, required_tabs = ['Template','Meta Template','Overview']):
+        """Check the open sheet for required tabs
+        Returns None on success or an error message on failure
         """
-        logging_utils.log_command("addsheettether", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
+        
+        #check for specific tabs
+        for tab_name in required_tabs:
+            try:
+                template_id = sheet.worksheet(tab_name).id
+            except gspread.exceptions.WorksheetNotFound:
+                return f'The [sheet]({sheet.url}) has no "{tab_name}" tab.'
+        
+        #all good
+        return None
 
-        proposed_sheet = sheet_utils.set_sheet_generic(
-            self.gspread_client, sheet_key_or_link, ctx.guild, ctx.channel.category
-        )
+    @command_predicates.is_solver()
+    @commands.command(name='setsheet',aliases=['tether'])
+    async def set_sheet(self, ctx,
+        sheet_key_or_link : str,
+        what : Union[TextChannel, CategoryChannel, str] = 'channel'
+    ):
+        """Sets the sheet to use for the specified category or channel; use 'category' or 'channel' for the current"""
+        logging_utils.log_command('setsheet', ctx.guild, ctx.channel, ctx.author)
+        
+        if isinstance(what, str):
+            if what.startswith('cat'):
+                what = ctx.channel.category
+            elif what.startswith('chan'):
+                what = ctx.channel
+            else:
+                raise commands.BadArgument('Argument 2 must be channel or category name or "channel" or "category"')
 
-        if proposed_sheet:
-            embed.add_field(
-                name=f"{constants.SUCCESS}!",
-                value=f"The category **{ctx.channel.category.name}** is now tethered to the "
-                f"[Google sheet at link]({proposed_sheet.url})",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-        # If we can't open the sheet, send an error and return
+        #open the sheet
+        sheet = sheet_utils.open_by_url_or_key(self.gspread_client, sheet_key_or_link)
+
+        if sheet is None:
+            error = f'Unable to open the sheet "{sheet_key_or_link}". Did you forget to set "Anyone with the link can edit?"'
         else:
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value=f"Sorry, we can't find a sheet there. "
-                f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return
+            #check the sheet
+            error = self.validate_sheet(sheet)
+
+        if error is None:
+            #add to the database
+            sheet_utils.set_sheet_generic(sheet.url, ctx.guild, what)
+            status = constants.SUCCESS
+            message = f'The {whattype} {what.mention} is now tethered to [the given sheet]({proposed_sheet.url}).'
+        else:
+            status = constants.FAILED
+            message = f'Error: {error}'
+
+        #report results
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f'{status}!',value=message,inline=False)
+        await ctx.send(embed=embed)
+        return
+
 
     @command_predicates.is_solver()
     @commands.command(
-        name="chantether",
+        name='unsetsheet',
         aliases=[
-            "channeltether",
-            "editchantether",
-            "addchantether",
-            "addchannelsheettether",
-            "editthreadtether",
-            "addthreadtether",
-            "threadtether",
+            'removesheet','deletesheet','delsheet',
+            'untether','deletetether','deltether'
         ],
     )
-    async def addchannelsheettether(self, ctx, sheet_key_or_link: str):
-        """Tethers a sheet to the current channel/thread
-
-        For any Google sheets commands, a tether to either category (See `~tether`) or channel is necessary.
-
-        See also `~sheetcrab` and `~sheetlion`.
-
-        Permission Category : Solver Roles only.
-        Usage : `~chantether SheetLink`
-        """
-        logging_utils.log_command(
-            "addchannelsheettether", ctx.guild, ctx.channel, ctx.author
-        )
-        embed = discord_utils.create_embed()
-
-        proposed_sheet = sheet_utils.set_sheet_generic(
-            self.gspread_client, sheet_key_or_link, ctx.guild, ctx.channel
-        )
-
-        if proposed_sheet:
-            embed.add_field(
-                name=f"{constants.SUCCESS}",
-                value=f"The channel {ctx.channel.mention} is now tethered to the "
-                f"[Google sheet at link]({proposed_sheet.url})",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-        # If we can't open the sheet, send an error and return
-        else:
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value=f"Sorry, we can't find a sheet there. "
-                f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return
-
-    @command_predicates.is_solver()
-    @commands.command(
-        name="removetether",
-        aliases=[
-            "deletetether",
-            "untether",
-            "removesheettether",
-            "deltether",
-            "removetetherlion",
-            "deltetherlion",
-        ],
-    )
-    async def removesheettether(self, ctx):
+    async def unset_sheet(self, ctx):
         """Remove the Category or Channel tethering to the sheet.
 
         If a channel tether and a category tether both exist, the channel tether will always be removed first.
@@ -146,72 +109,37 @@ class SheetsCog(commands.Cog, name="Sheets"):
         logging_utils.log_command(
             "removesheettether", ctx.guild, ctx.channel, ctx.author
         )
-        embed = discord_utils.create_embed()
-
+        
         # Get category and channel information
-        curr_cat = ctx.message.channel.category.name
-        curr_cat_id = str(ctx.message.channel.category_id)
-        curr_chan = ctx.message.channel
-        curr_chan_id = str(ctx.message.channel.id)
+        channel = ctx.message.channel
+        category = channel.category
+        thread = None
+        thread_id = None
+        if await discord_utils.is_thread(ctx, channel):
+            thread = channel
+            thread_id = thread.id
+            channel = thread.parent
+        channel_id = channel.id
+        category_id = category.id
 
-        curr_thread_id = None
-        if await discord_utils.is_thread(ctx, curr_chan):
-            curr_thread_id = ctx.message.channel.id
-            curr_chan_id = ctx.message.channel.parent.id
-
-        curr_chan_or_cat_row, tether_type = sheet_utils.findsheettether(
-            curr_cat_id, curr_chan_id, curr_thread_id
-        )
-
-        # If the tethering exists, remove it from the sheet.
-        if curr_chan_or_cat_row is not None:
-            sheet_link = curr_chan_or_cat_row.sheet_link
-            with Session(database.DATABASE_ENGINE) as session:
-                session.query(database.SheetTethers).filter_by(
-                    channel_or_cat_id=curr_chan_or_cat_row.channel_or_cat_id
-                ).delete()
-                session.commit()
-            if tether_type == sheets_constants.THREAD and curr_thread_id is not None:
-                embed.add_field(
-                    name=f"{constants.SUCCESS}",
-                    value=f"{ctx.channel.mention}'s tether to [sheet]({sheet_link}) has been removed!",
-                    inline=False,
-                )
-            elif tether_type == sheets_constants.CHANNEL and curr_thread_id is not None:
-                embed.add_field(
-                    name=f"{constants.SUCCESS}",
-                    value=f"{ctx.channel.parent.mention}'s tether to [sheet]({sheet_link}) has been removed!",
-                    inline=False,
-                )
-            elif tether_type == sheets_constants.CHANNEL:
-                embed.add_field(
-                    name=f"{constants.SUCCESS}",
-                    value=f"{ctx.channel.mention}'s tether to [sheet]({sheet_link}) has been removed!",
-                    inline=False,
-                )
-            elif tether_type == sheets_constants.CATEGORY:
-                embed.add_field(
-                    name=f"{constants.SUCCESS}",
-                    value=f"The category **{ctx.channel.category}**'s tether to [sheet]({sheet_link}) has been removed!",
-                    inline=False,
-                )
-            # Else: Generic catch
-            else:
-                embed.add_field(
-                    name=f"{constants.SUCCESS}",
-                    value=f"The tether to [sheet]({sheet_link}) has been removed!",
-                    inline=False,
-                )
-            await ctx.send(embed=embed)
+        sheet_url, tether_type = sheet_utils.unset_sheet(category_id, channel_id, thread_id)
+        
+        status = constants.SUCCESS
+        if sheet_url is None:
+            status = constants.FAILED
+            message = f'No sheet tethered to category **{category}** or channel {channel.mention}.'
+        elif tether_type == sheets_constants.THREAD:
+            message = f'Thread {thread.mention} unlinked from [sheet]({sheet_url}).'
+        elif tether_type == sheets_constants.CHANNEL:
+            message = f'Channel {channel.mention} unlinked from [sheet]({sheet_url}).'
+        elif tether_type == sheets_constants.CATEGORY:
+            message = f'Category **{category}** unlinked from [sheet]({sheet_url}).'
         else:
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"The category **{curr_cat}** or the channel {curr_chan.mention} "
-                f"are not tethered to any Google sheet.",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return
+            message = f'Sheet removed from tethers database: {sheet_url}'
+        embed = discord_utils.create_embed()
+        embed.add_field(name=f"{status}", value=message, inline=False)
+        await ctx.send(embed=embed)
+
 
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(
