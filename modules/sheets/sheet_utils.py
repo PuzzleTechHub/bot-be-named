@@ -37,13 +37,13 @@ def open_by_url_or_key(
     except gspread.exceptions.APIError:
         return None
 
-def addsheettethergeneric(
+def set_sheet_generic(
     gspread_client,
     sheet_key_or_link: str,
     curr_guild: nextcord.Guild,
     curr_catorchan: Union[nextcord.CategoryChannel, nextcord.TextChannel],
 ) -> gspread.Spreadsheet:
-    """Add a sheet to the current channel"""
+    """Add a sheet to the current channel or category"""
     # We accept both sheet keys or full links
     proposed_sheet = open_by_url_or_key(gspread_client, sheet_key_or_link)
 
@@ -233,7 +233,7 @@ async def chancrabgeneric(
     )
     await ctx.send(embed=embed)
 
-    addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
+    set_sheet_generic(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
     return curr_sheet_link, newsheet, new_chan
 
 

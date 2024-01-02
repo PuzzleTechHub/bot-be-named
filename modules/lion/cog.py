@@ -943,7 +943,7 @@ class LionCog(commands.Cog, name="Lion"):
         if await self.validate_template(ctx, new_sheet.url) is None:
             return
 
-        proposed_sheet = sheet_utils.addsheettethergeneric(
+        proposed_sheet = sheet_utils.set_sheet_generic(
             self.gspread_client, new_sheet.url, ctx.guild, cat
         )
 
@@ -1119,7 +1119,7 @@ class LionCog(commands.Cog, name="Lion"):
         if await self.validate_template(ctx, sheet_key_or_link) is None:
             return
 
-        proposed_sheet = sheet_utils.addsheettethergeneric(
+        proposed_sheet = sheet_utils.set_sheet_generic(
             self.gspread_client, sheet_key_or_link, ctx.guild, ctx.channel.category
         )
 

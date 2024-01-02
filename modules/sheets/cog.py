@@ -48,7 +48,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         logging_utils.log_command("addsheettether", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        proposed_sheet = sheet_utils.addsheettethergeneric(
+        proposed_sheet = sheet_utils.set_sheet_generic(
             self.gspread_client, sheet_key_or_link, ctx.guild, ctx.channel.category
         )
 
@@ -99,7 +99,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         embed = discord_utils.create_embed()
 
-        proposed_sheet = sheet_utils.addsheettethergeneric(
+        proposed_sheet = sheet_utils.set_sheet_generic(
             self.gspread_client, sheet_key_or_link, ctx.guild, ctx.channel
         )
 
