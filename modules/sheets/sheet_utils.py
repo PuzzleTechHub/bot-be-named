@@ -16,6 +16,26 @@ import emoji
 # SHEET UTILS FUNCTIONS #
 #########################
 
+def open_by_url_or_key(
+    gspread_client, sheet_key_or_link: str
+) -> gspread.Spreadsheet:
+    """Takes in a string, which could be a google sheet key or URL"""
+    # Assume the str is a URL
+    try:
+        sheet = gspread_client.open_by_url(sheet_key_or_link)
+        return sheet
+    except gspread.exceptions.APIError:
+        return None
+    # Given str was not a link
+    except gspread.exceptions.NoValidUrlKeyFound:
+        pass
+    # Assume the str is a sheet key
+    try:
+        sheet = gspread_client.open_by_key(sheet_key_or_link)
+        return sheet
+    # Entity Not Found
+    except gspread.exceptions.APIError:
+        return None
 
 def addsheettethergeneric(
     gspread_client,
@@ -25,7 +45,7 @@ def addsheettethergeneric(
 ) -> gspread.Spreadsheet:
     """Add a sheet to the current channel"""
     # We accept both sheet keys or full links
-    proposed_sheet = get_sheet_from_key_or_link(gspread_client, sheet_key_or_link)
+    proposed_sheet = open_by_url_or_key(gspread_client, sheet_key_or_link)
 
     # If we can't open the sheet, send an error and return
     if not proposed_sheet:
@@ -250,26 +270,7 @@ def findsheettether(curr_cat_id: int, curr_chan_id: int, curr_thread_id: int = N
     return result, tether_type
 
 
-def get_sheet_from_key_or_link(
-    gspread_client, sheet_key_or_link: str
-) -> gspread.Spreadsheet:
-    """Takes in a string, which could be a google sheet key or URL"""
-    # Assume the str is a URL
-    try:
-        sheet = gspread_client.open_by_url(sheet_key_or_link)
-        return sheet
-    except gspread.exceptions.APIError:
-        return None
-    # Given str was not a link
-    except gspread.exceptions.NoValidUrlKeyFound:
-        pass
-    # Assume the str is a sheet key
-    try:
-        sheet = gspread_client.open_by_key(sheet_key_or_link)
-        return sheet
-    # Entity Not Found
-    except gspread.exceptions.APIError:
-        return None
+
 
 
 async def sheetcreatetabgeneric(

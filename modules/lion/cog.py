@@ -736,7 +736,7 @@ class LionCog(commands.Cog, name="Lion"):
     async def validate_template(self, ctx, proposed_sheet):
         embed = discord_utils.create_embed()
 
-        proposed_template = sheet_utils.get_sheet_from_key_or_link(
+        proposed_template = sheet_utils.open_by_url_or_key(
             self.gspread_client, proposed_sheet
         )
 
