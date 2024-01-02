@@ -92,7 +92,7 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~gettablion
         """
         logging_utils.log_command("gettablion", ctx.guild, ctx.channel, ctx.author)
-        result, _ = sheet_utils.findsheettether(
+        result, _ = sheet_utils.get_sheet(
             str(ctx.message.channel.category_id), str(ctx.message.channel.id)
         )
 
@@ -205,7 +205,7 @@ class LionCog(commands.Cog, name="Lion"):
                 status_info = sheets_constants.status_dict.get("None")
 
             # Find tethered sheet
-            result, _ = sheet_utils.findsheettether(
+            result, _ = sheet_utils.get_sheet(
                 str(ctx.message.channel.category_id), str(ctx.message.channel.id)
             )
 
@@ -334,7 +334,7 @@ class LionCog(commands.Cog, name="Lion"):
         """
         logging_utils.log_command("mtalion", ctx.guild, ctx.channel, ctx.author)
 
-        result, _ = sheet_utils.findsheettether(
+        result, _ = sheet_utils.get_sheet(
             str(ctx.message.channel.category_id), str(ctx.message.channel.id)
         )
 
