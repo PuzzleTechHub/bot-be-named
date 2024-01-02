@@ -319,7 +319,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             curr_thread_id = ctx.message.channel.id
             curr_chan_id = ctx.message.channel.parent.id
 
-        curr_chan_or_cat_row, tether_type = sheet_utils.findsheettether(
+        curr_chan_or_cat_row, tether_type = sheet_utils.get_sheet(
             curr_cat_id, curr_chan_id, curr_thread_id
         )
 
@@ -446,7 +446,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         service = discovery.build("drive", "v3", http=http)
 
         if sheet_url is None:
-            tether_db_result, _ = sheet_utils.findsheettether(
+            tether_db_result, _ = sheet_utils.get_sheet(
                 ctx.channel.id, ctx.channel.category.id
             )
             if tether_db_result is None:

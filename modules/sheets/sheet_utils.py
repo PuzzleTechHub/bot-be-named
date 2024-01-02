@@ -78,6 +78,19 @@ def set_sheet_generic(
     return proposed_sheet
 
 
+def get_sheet(category_id: int, channel_id: int, thread_id: int = None):
+    """For finding the appropriate sheet tethering for a given category or channel"""
+    #search order: thread, channel, then category
+    ids = [thread_id, channel_id, category_id]
+    types = [sheets_constants.THREAD, sheets_constants.CHANNEL, sheets_constants.CATEGORY]
+    # Search DB for the sheet tether, if there is one
+    with Session(database.DATABASE_ENGINE) as session:
+        for curr_id, curr_type in zip(ids, types):
+            result = session.query(database.SheetTethers).filter_by(channel_or_cat_id=str(curr_id)).first()
+            if result is not None:
+                return result, curr_type
+
+    return None,None
 async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = ""):
     embed = discord_utils.create_embed()
 
@@ -237,37 +250,6 @@ async def chancrabgeneric(
     return curr_sheet_link, newsheet, new_chan
 
 
-def findsheettether(curr_cat_id: int, curr_chan_id: int, curr_thread_id: int = None):
-    """For finding the appropriate sheet tethering for a given category or channel"""
-    result = None
-    tether_type = None
-    # Search DB for the sheet tether, if there is one
-    with Session(database.DATABASE_ENGINE) as session:
-        # Search for channel's tether
-        result = (
-            session.query(database.SheetTethers)
-            .filter_by(channel_or_cat_id=curr_thread_id)
-            .first()
-        )
-        if result is not None:
-            tether_type = sheets_constants.THREAD
-        else:
-            result = (
-                session.query(database.SheetTethers)
-                .filter_by(channel_or_cat_id=curr_chan_id)
-                .first()
-            )
-            # If we miss on the channel ID, try the category ID
-            if result is not None:
-                tether_type = sheets_constants.CHANNEL
-            else:
-                result = (
-                    session.query(database.SheetTethers)
-                    .filter_by(channel_or_cat_id=curr_cat_id)
-                    .first()
-                )
-                tether_type = sheets_constants.CATEGORY
-    return result, tether_type
 
 
 
@@ -281,7 +263,7 @@ async def sheetcreatetabgeneric(
     curr_sheet_link = None
     newsheet = None
 
-    tether_db_result, tether_type = findsheettether(str(curr_cat.id), str(curr_chan.id))
+    tether_db_result, tether_type = get_sheet(curr_cat.id, curr_chan.id)
 
     try:
         if tether_db_result is not None:
