@@ -10,7 +10,7 @@ from sqlalchemy.sql.expression import insert
 from sqlalchemy.orm import Session
 from typing import Union
 import emoji
-
+import itertools
 
 #########################
 # SHEET UTILS FUNCTIONS #
@@ -103,6 +103,43 @@ def unset_sheet(category_id : int, channel_id : int, thread_id : int = None):
                 session.commit()
                 break
     return sheet_url, tether_type
+
+def prune_sheets(guilds):
+    """remove unused tether database rows """
+        guilds_by_id = {guild.id:guild for guild in guilds}
+        active_ids_by_guild_id = {}
+
+        pruned = []
+        unknown_guilds = set()
+        with Session(database.DATABASE_ENGINE) as session:
+            
+            for row in session.query(database.SheetTethers):
+                #skip sheets associated with the server directly
+                if row.server_id == row.channel_or_cat_id:
+                    continue
+
+                #get the ids of categories, channels, and threads in the given guilds
+                active_ids = active_ids_by_guild_id.get(row.server_id, default=None)
+                if active_ids is None:
+                    guild = guilds_by_id.get(row.server_id, default=None)
+                    if guild is None:
+                        #skip rows with unknown server_id
+                        unknown_guilds.add((row.server_id, row.server_name))
+                        continue
+                    active_ids = set(x.id for x in itertools.chain(guild.categories, guild.channels, guild.threads))
+                    active_ids_by_guild_id[row.server_id] = active_ids
+
+                #check if the server still has the associated channel
+                if row.channel_or_cat_id not in active_ids:
+                    #TODO: where does this print?!
+                    pruned.append((row.server_id, row.server_name, row.channel_or_cat_id, row.channel_or_cat_name, row.sheet_link))
+                    print(f'Deleting tether: {pruned[-1]}')                    
+                    row.delete()
+            session.commit()
+        if unknown_guilds:
+            #TODO: where does this print?!
+            print(f'Unknown guilds in database: {unknown_guilds}')
+        return pruned
 
 async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = ""):
     embed = discord_utils.create_embed()
@@ -261,11 +298,6 @@ async def chancrabgeneric(
 
     set_sheet_generic(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
     return curr_sheet_link, newsheet, new_chan
-
-
-
-
-
 
 
 async def sheetcreatetabgeneric(
