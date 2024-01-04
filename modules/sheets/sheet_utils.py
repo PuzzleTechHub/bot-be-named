@@ -41,10 +41,10 @@ def open_by_url_or_key(
 
 def set_sheet_generic(
     sheet_url: str,
-    curr_guild: nextcord.Guild,
-    curr_catorchan: Union[nextcord.CategoryChannel, nextcord.TextChannel],
-) -> gspread.Spreadsheet:
-    """Add a sheet url to the current channel or category. The url is not validated"""
+    guild: nextcord.Guild,
+    what: Union[nextcord.CategoryChannel, nextcord.TextChannel, nextcord.Guild],
+):
+    """Add a sheet url to the given object (what). The url is not validated"""
     
     # If the channel already has a sheet, then we update it.
     # Otherwise, we add the channel to our master sheet to establish the tether
@@ -52,7 +52,7 @@ def set_sheet_generic(
     with Session(database.DATABASE_ENGINE) as session:
         result = (
             session.query(database.SheetTethers)
-            .filter_by(channel_or_cat_id=curr_catorchan.id)
+            .filter_by(channel_or_cat_id=what.id)
             .first()
         )
         # If there is already an entry, we just need to update it.
@@ -61,10 +61,10 @@ def set_sheet_generic(
         # Otherwise, we need to create an entry
         else:
             stmt = insert(database.SheetTethers).values(
-                server_id=curr_guild.id,
-                server_name=curr_guild.name,
-                channel_or_cat_name=curr_catorchan.name,
-                channel_or_cat_id=curr_catorchan.id,
+                server_id=guild.id,
+                server_name=guild.name,
+                channel_or_cat_name=what.name,
+                channel_or_cat_id=what.id,
                 sheet_link=sheet_url,
             )
             session.execute(stmt)

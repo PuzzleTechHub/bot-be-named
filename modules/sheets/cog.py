@@ -3,7 +3,7 @@ from utils import discord_utils, google_utils, logging_utils, command_predicates
 from modules.sheets import sheets_constants, sheet_utils
 import constants
 import nextcord
-from nextcord import TextChannel, CategoryChannel
+from nextcord import TextChannel, CategoryChannel, Guild
 from nextcord.ext import commands
 from nextcord.ext.tasks import loop
 
@@ -33,6 +33,13 @@ class SheetsCog(commands.Cog, name="Sheets"):
         if not self.prune_tethers.is_running():
             self.prune_tethers.start()
 
+    ## Sheet management:
+    # set_template
+    # set_sheet
+    # unset_sheet
+    # prune_sheets
+    # prune_sheets_scheduled
+
     def validate_sheet(self, sheet, required_tabs = ['Template','Meta Template','Overview']):
         """Check the open sheet for required tabs
         Returns None on success or an error message on failure
@@ -51,25 +58,40 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @command_predicates.is_solver()
     @commands.command(name='setsheet',aliases=['tether'])
     async def set_sheet(self, ctx,
-        sheet_key_or_link : str,
-        what : Union[TextChannel, CategoryChannel, str] = 'channel'
+        sheet_link : str,
+        what : Union[TextChannel, CategoryChannel, Guild, str] = 'category'
     ):
-        """Sets the sheet to use for the specified category or channel; use 'category' or 'channel' for the current"""
+        """Sets the sheet for the given channel, category, or guild; use 'category','channel', or 'guild' for the current such."""
         logging_utils.log_command('setsheet', ctx.guild, ctx.channel, ctx.author)
         
         if isinstance(what, str):
-            if what.startswith('cat'):
+            #branch based on common prefix
+            if 'category'.startswith(what) and len(what) > 1:
                 what = ctx.channel.category
-            elif what.startswith('chan'):
+            elif 'channel'.startswith(what) and len(what) > 1:
                 what = ctx.channel
+            elif 'guild'.startswith(what) or 'template'.startswith(what):
+                what = ctx.guild
             else:
-                raise commands.BadArgument('Argument 2 must be channel or category name or "channel" or "category"')
+                raise commands.BadArgument('Argument 2 must be "channel", "category", "template", or "guild" or the name of such.')
+        
+        if isinstance(what, TextChannel):
+            whattype = 'channel'
+            whatname = what.mention
+        elif isinstance(what, CategoryChannel):
+            whattype = 'category'
+            whatname = f'**{what.mention}**'
+        elif isinstance(what, Guild):
+            whattype = 'guild'
+            whatname = f'***{what.name}***'
+        else:
+            raise commands.BadArgument('Argument 2 must refer to a channel, category, or guild.')
 
         #open the sheet
-        sheet = sheet_utils.open_by_url_or_key(self.gspread_client, sheet_key_or_link)
+        sheet = sheet_utils.open_by_url_or_key(self.gspread_client, sheet_link)
 
         if sheet is None:
-            error = f'Unable to open the sheet "{sheet_key_or_link}". Did you forget to set "Anyone with the link can edit?"'
+            error = f'Unable to open the sheet "{sheet_link}". Did you forget to set "Anyone with the link can edit?"'
         else:
             #check the sheet
             error = self.validate_sheet(sheet)
@@ -78,10 +100,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
             #add to the database
             sheet_utils.set_sheet_generic(sheet.url, ctx.guild, what)
             status = constants.SUCCESS
-            message = f'The {whattype} {what.mention} is now tethered to [the given sheet]({proposed_sheet.url}).'
+            message = f'The {whattype} {whatname} is now tethered to [the given sheet]({proposed_sheet.url}).'
         else:
             status = constants.FAILED
-            message = f'Error: {error}'
+            message = f'Error tethering {whattype} {whatname}: {error}'
 
         #report results
         embed = discord_utils.create_embed()
@@ -142,12 +164,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await ctx.send(embed=embed)
 
 
-    @loop(hours=12)
-    async def prune_sheets_scheduled(self):
-        """Function which runs periodically to remove all tethers to channels which have been deleted"""
-        #TODO: how do we log this?
-        sheet_utils.prune_sheets(self.bot.guilds)
-
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(
         name="prunesheets",
@@ -171,6 +187,12 @@ class SheetsCog(commands.Cog, name="Sheets"):
             inline=False,
         )
         await ctx.send(embed=embed)
+
+    @loop(hours=12)
+    async def prune_sheets_scheduled(self):
+        """Function which runs periodically to remove all tethers to channels which have been deleted"""
+        #TODO: how do we log this?
+        sheet_utils.prune_sheets(self.bot.guilds)
 
     @command_predicates.is_solver()
     @commands.command(name="chancrab", aliases=["channelcrab", "channelcreatetab"])
