@@ -254,11 +254,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
             curr_thread_id = ctx.message.channel.id
             curr_chan_id = ctx.message.channel.parent.id
 
-        curr_chan_or_cat_row, tether_type = sheet_utils.get_sheet(
-            curr_cat_id, curr_chan_id, curr_thread_id
-        )
-
+        curr_chan_or_cat_row, id_index = sheet_utils.get_sheet((curr_thread_id, curr_chan_id, curr_cat_id))
+        
         if curr_chan_or_cat_row is not None:
+            tether_type = (sheets_constants.THREAD, sheets_constants.CHANNEL, sheets_constants.CATEGORY)[id_index]
             curr_sheet_link = curr_chan_or_cat_row.sheet_link
             if tether_type == sheets_constants.THREAD and curr_thread_id is not None:
                 embed.add_field(
@@ -381,9 +380,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
         service = discovery.build("drive", "v3", http=http)
 
         if sheet_url is None:
-            tether_db_result, _ = sheet_utils.get_sheet(
+            tether_db_result, _ = sheet_utils.get_sheet((
                 ctx.channel.id, ctx.channel.category.id
-            )
+            ))
             if tether_db_result is None:
                 embed.add_field(
                     name=f"{constants.FAILED}",

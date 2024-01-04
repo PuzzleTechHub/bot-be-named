@@ -71,18 +71,24 @@ def set_sheet_generic(
         # Commits change
         session.commit()
 
+def get_sheet(search_ids : list[int]):
+    """For finding the appropriate sheet tethering for a given category or channel
+        The ids are given in search order
+    returns (sheet, id_index) if an id was in the database
+    otherwise returns (None,None)
+    """
+    
+    #TODO: a better way would be to use an address scheme and prefix searches
+    #      e.g. store <guild_id>/<category_id>/<channel_id>/... as the key in the database
+    # then do a longest-prefix search e.g. https://www.richard-towers.com/2023/01/29/finding-the-longest-matching-prefix-in-sql.html
 
-def get_sheet(category_id: int, channel_id: int, thread_id: int = None):
-    """For finding the appropriate sheet tethering for a given category or channel"""
-    #search order: thread, channel, then category
-    ids = [thread_id, channel_id, category_id]
-    types = [sheets_constants.THREAD, sheets_constants.CHANNEL, sheets_constants.CATEGORY]
     # Search DB for the sheet tether, if there is one
     with Session(database.DATABASE_ENGINE) as session:
-        for curr_id, curr_type in zip(ids, types):
+        for curr_id, curr_index in enumerate(search_ids):
+            #TODO: does the id need to be converted to str?
             result = session.query(database.SheetTethers).filter_by(channel_or_cat_id=str(curr_id)).first()
             if result is not None:
-                return result, curr_type
+                return result, curr_index
 
     return None,None
 
@@ -308,10 +314,11 @@ async def sheetcreatetabgeneric(
     curr_sheet_link = None
     newsheet = None
 
-    tether_db_result, tether_type = get_sheet(curr_cat.id, curr_chan.id)
-
+    tether_db_result, id_index = get_sheet((curr_chan.id, curr_cat.id))
+    
     try:
         if tether_db_result is not None:
+            tether_type = (sheets_constants.CHANNEL, sheets_constants.CATEGORY)[id_index]
             curr_sheet_link = tether_db_result.sheet_link
         else:
             embed = discord_utils.create_embed()
