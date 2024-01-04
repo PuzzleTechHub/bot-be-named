@@ -12,15 +12,15 @@
 ## What is Bot-Be-Named
 
 A Discord bot that interoperates with Google Sheets to smoothen solving puzzle hunts. 
-If you would like to add Bot-Be-Named to your server, please contact `@kevslinger#9711` or `@Soni#3662` on discord. 
+If you would like to add Bot-Be-Named to your server, please contact `@talesfromtim` on discord. 
 
 Bot-Be-Named is currently set up with our own configurations and environment variables, so might have assumptions that don't work for you. Please contact us if you need **a Bot invite link**, or to set up your own fork/instance of the bot.
 
 ## Inviting the Bot to your server
 
-- Message `@kevslinger#9711` or `@Soni#3662` on discord to get Bot invite link.
+- Join the bot's discord server at `discord (dot) gg / x8f2ywHUky`
 
-- Use the Link and add the Bot to your discord server. Note that you need "Manage Server" permission to do that.
+- There is an instance of the bot currently on that server, named `~Bot Be Named`. Click on that name - Add App - Add it to your discord server.  Note that you need "Manage Server" permission to do that.
 
 - Use `~about` to get a quick guide to the bot, and `~startup` for all the commands that will come in very handy for you.
 
@@ -111,11 +111,13 @@ When deploying on heroku, any variables stored in .env locally cannot be pushed 
 
 ## Acknowledgements
 
-Big thanks to [Jonah Lawrence](https://github.com/DenverCoder1) and his [Professor Vector](https://github.com/DenverCoder1/professor-vector-discord-bot)
-repo for much inspiration and code, specifically on the [Channel Management](./modules/channel_management), [Error Logging](./modules/error_logging), [Help](./modules/help), and [Solved](./modules/solved) modules. 
+This bot took heavy inspiration and code from [Jonah Lawrence](https://github.com/DenverCoder1) and his [Professor Vector](https://github.com/DenverCoder1/professor-vector-discord-bot)
+repo, specifically on the [Channel Management](./modules/channel_management), [Error Logging](./modules/error_logging), [Help](./modules/help), and [Solved](./modules/solved) modules. 
+
+A majority of this bot was written by [Kevslinger](https://github.com/kevslinger) and [TheOriginalSoni](https://github.com/TheOriginalSoni) with significant contributions from [Pete Cao](https://github.com/petecao) for the Lion module.
 
 ## Contributing/Issues
 
 If you find any issues, bugs, or improvements, please feel free to open an issue and/or pull request! Thank you!
 
-Feel free to find me on discord, `@kevslinger#9711` with any questions you may have!
+Feel free to join our discord at `discord (dot) gg / x8f2ywHUky` with any questions you may have!
