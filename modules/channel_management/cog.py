@@ -1112,7 +1112,7 @@ class ChannelManagementCog(commands.Cog, name="Channel Management"):
     async def deletecategory(self, ctx, cat_name: str = ""):
         """Delete a category in the server. Requires emoji confirmation
 
-        Permission Category : Server Owner only.
+        Permission Category : Server Moderator only.
         Usage: `~deletecat "Cat A"` (List all the channels in the given category)
         """
         logging_utils.log_command("deletecategory", ctx.guild, ctx.channel, ctx.author)
