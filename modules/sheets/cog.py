@@ -193,6 +193,64 @@ class SheetsCog(commands.Cog, name="Sheets"):
         #TODO: how do we log this?
         sheet_utils.prune_sheets(self.bot.guilds)
 
+    ## Puzzle management
+    # new_round : creates a category linked to a copy of the guild template sheet
+    # new_puzzle : create a new tab in the category's sheet
+    # status : set puzzle status, change channel name?
+    # archive : move puzzle to archive category
+
+    async def new_round(self, ctx, round_name : str, channel_name : str = 'main-not-a-puzzle'):
+        logging_utils.log_command("create_from_template", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+        
+        #create the category and a single channel in it
+        category_name = round_name.upper()
+        category, error = None,None
+        try:
+            category = await ctx.guild.create_category(category_name)
+            channel = await ctx.guild.create_text_channel(channel_name, category=category)
+        except nextcord.Forbidden:
+            error = 'Permission denied!'
+        except:
+            error = 'Failed!'
+        if error is not None:
+            embed.add_field(name=f'{constants.FAILED}!',
+                value=f'Failed to create category "{category_name}" and/or channel "{channel_name}": {error}',inline=False)
+            await ctx.send(embed=embed)
+            return
+        message = f'Round created with category **{category_name}** and channel {channel.mention}.'
+        #now copy the template and link it to the category
+        template, _ = sheet_utils.get_sheet((ctx.guild.id))
+        
+        if template is None:
+            embed.add_field(name=f'{constants.SUCCESS}!',
+                value=f'{message} No sheet template was found, use `~setsheet SHEET_URL` to set the round\'s sheet. Use `~setsheet SHEET_URL template` to set the template sheet.',
+                inline=False)
+            await ctx.send(embed=embed)
+            return
+
+        try:
+            template = self.gspread_client.open_by_url(template)
+
+            new_sheet = self.gspread_client.copy(
+                file_id=template.id,
+                title=category_name,
+                copy_permissions=True,
+                folder_id=None,
+                copy_comments=True)
+
+            overview = new_sheet.worksheet("Overview")
+            overview.update("C1", hunturl)
+        except gspread.exceptions.APIError:
+            embed.add_field(name=f'{constants.SUCCESS} but also {constants.FAILED}!',
+                value=f'{message} but failed to copy the [template sheet]({template.url}). Are the permissions set correctly?',
+                inline=False)
+            await ctx.send(embed=embed)
+            return
+
+        sheet_utils.set_sheet_generic(new_sheet.url, ctx.guild, category)
+
+
     @command_predicates.is_solver()
     @commands.command(name="chancrab", aliases=["channelcrab", "channelcreatetab"])
     async def channelcreatetab(self, ctx, chan_name: str, *args):
