@@ -34,8 +34,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             self.prune_tethers.start()
 
     ## Sheet management:
-    # set_template
-    # set_sheet
+    # set_sheet <sheet-link> <target>
     # unset_sheet
     # prune_sheets
     # prune_sheets_scheduled
@@ -59,31 +58,31 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @commands.command(name='setsheet',aliases=['tether'])
     async def set_sheet(self, ctx,
         sheet_link : str,
-        what : Union[TextChannel, CategoryChannel, Guild, str] = 'category'
+        target : Union[TextChannel, CategoryChannel, Guild, str] = 'category'
     ):
         """Sets the sheet for the given channel, category, or guild; use 'category','channel', or 'guild' for the current such."""
         logging_utils.log_command('setsheet', ctx.guild, ctx.channel, ctx.author)
         
-        if isinstance(what, str):
+        if isinstance(target, str):
             #branch based on common prefix
-            if 'category'.startswith(what) and len(what) > 1:
-                what = ctx.channel.category
-            elif 'channel'.startswith(what) and len(what) > 1:
-                what = ctx.channel
-            elif 'guild'.startswith(what) or 'template'.startswith(what):
-                what = ctx.guild
+            if 'category'.startswith(target) and len(target) > 1:
+                target = ctx.channel.category
+            elif 'channel'.startswith(target) and len(target) > 1:
+                target = ctx.channel
+            elif 'guild'.startswith(target) or 'template'.startswith(target):
+                target = ctx.guild
             else:
                 raise commands.BadArgument('Argument 2 must be "channel", "category", "template", or "guild" or the name of such.')
         
-        if isinstance(what, TextChannel):
-            whattype = 'channel'
-            whatname = what.mention
-        elif isinstance(what, CategoryChannel):
-            whattype = 'category'
-            whatname = f'**{what.mention}**'
-        elif isinstance(what, Guild):
-            whattype = 'guild'
-            whatname = f'***{what.name}***'
+        if isinstance(target, TextChannel):
+            ttype = 'channel'
+            tname = target.mention
+        elif isinstance(target, CategoryChannel):
+            ttype = 'category'
+            tname = f'**{target.mention}**'
+        elif isinstance(target, Guild):
+            ttype = 'guild'
+            tname = f'***{target.name}***'
         else:
             raise commands.BadArgument('Argument 2 must refer to a channel, category, or guild.')
 
@@ -98,12 +97,12 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         if error is None:
             #add to the database
-            sheet_utils.set_sheet_generic(sheet.url, ctx.guild, what)
+            sheet_utils.set_sheet_generic(sheet.url, ctx.guild, target)
             status = constants.SUCCESS
-            message = f'The {whattype} {whatname} is now tethered to [the given sheet]({proposed_sheet.url}).'
+            message = f'The {ttype} {tname} is now tethered to [the given sheet]({proposed_sheet.url}).'
         else:
             status = constants.FAILED
-            message = f'Error tethering {whattype} {whatname}: {error}'
+            message = f'Error tethering {ttype} {tname}: {error}'
 
         #report results
         embed = discord_utils.create_embed()
