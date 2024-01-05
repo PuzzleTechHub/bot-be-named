@@ -16,7 +16,7 @@ class SolvedCog(commands.Cog):
         self.bot = bot
 
     @command_predicates.is_solver()
-    @commands.command(name="solved")
+    @commands.command(name="solved", aliases=["solvedcrab"])
     async def solved(self, ctx: commands.Context):
         """Changes channel name to solved-<channel-name>
 
@@ -31,7 +31,7 @@ class SolvedCog(commands.Cog):
         await ctx.send(embed=embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="solvedish")
+    @commands.command(name="solvedish", aliases=["solvedishcrab"])
     async def solvedish(self, ctx: commands.Context):
         """Changes channel name to solvedish-<channel-name>
 
@@ -46,7 +46,7 @@ class SolvedCog(commands.Cog):
         await ctx.send(embed=embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="backsolved")
+    @commands.command(name="backsolved", aliases=["backsolvedcrab"])
     async def backsolved(self, ctx: commands.Context):
         """Changes channel name to backsolved-<channel-name>
 
@@ -61,7 +61,7 @@ class SolvedCog(commands.Cog):
         await ctx.send(embed=embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="unsolved")
+    @commands.command(name="unsolved", aliases=["unsolvedcrab"])
     async def unsolved(self, ctx: commands.context):
         """removes one of the solved prefixes from channel name
 
@@ -76,7 +76,7 @@ class SolvedCog(commands.Cog):
         await ctx.send(embed=embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="movetoarchive", aliases=["mta"])
+    @commands.command(name="mta", aliases=["movetoarchive","mtacrab"])
     async def movetoarchive(self, ctx, archive_name: str = None):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
