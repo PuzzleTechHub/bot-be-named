@@ -105,9 +105,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             message = f'Error tethering {ttype} {tname}: {error}'
 
         #report results
-        embed = discord_utils.create_embed()
-        embed.add_field(name=f'{status}!',value=message,inline=False)
-        await ctx.send(embed=embed)
+        await discord_utils.send_embed(ctx, name=f'{status}!',value=message,inline=False)
         return
 
 
@@ -158,9 +156,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
             message = f'Category **{category}** unlinked from [sheet]({sheet_url}).'
         else:
             message = f'Sheet removed from tethers database: {sheet_url}'
-        embed = discord_utils.create_embed()
-        embed.add_field(name=f"{status}", value=message, inline=False)
-        await ctx.send(embed=embed)
+        
+        await discord_utils.send_embed(ctx, name=f'{status}', value=message, inline=False)
 
 
     @command_predicates.is_bot_owner_or_admin()
@@ -179,13 +176,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
         
         pruned = sheet_utils.prune_sheets(self.bot.guilds)
 
-        embed = discord_utils.create_embed()
-        embed.add_field(
+        await discord_utils.send_embed(ctx,
             name=f"{constants.SUCCESS}!",
             value=f"**{len(pruned)}** tethers deleted.",
             inline=False,
         )
-        await ctx.send(embed=embed)
 
     @loop(hours=12)
     async def prune_sheets_scheduled(self):
@@ -214,19 +209,18 @@ class SheetsCog(commands.Cog, name="Sheets"):
         except:
             error = 'Failed!'
         if error is not None:
-            embed.add_field(name=f'{constants.FAILED}!',
-                value=f'Failed to create category "{category_name}" and/or channel "{channel_name}": {error}',inline=False)
-            await ctx.send(embed=embed)
+            await discord_utils.send_embed(ctx, name=f'{constants.FAILED}!',
+                value=f'Failed to create category "{category_name}" and/or channel "{channel_name}": {error}',
+                inline=False)
             return
         message = f'Round created with category **{category_name}** and channel {channel.mention}.'
         #now copy the template and link it to the category
         template, _ = sheet_utils.get_sheet((ctx.guild.id))
         
         if template is None:
-            embed.add_field(name=f'{constants.SUCCESS}!',
-                value=f'{message} No sheet template was found, use `~setsheet SHEET_URL` to set the round\'s sheet. Use `~setsheet SHEET_URL template` to set the template sheet.',
+            await discord_utils.send_embed(ctx, name=f'{constants.SUCCESS}!',
+                value=f'{message}. No sheet template was found, use `~setsheet SHEET_URL` to set the round\'s sheet. Use `~setsheet SHEET_URL template` to set the template sheet.',
                 inline=False)
-            await ctx.send(embed=embed)
             return
 
         try:
