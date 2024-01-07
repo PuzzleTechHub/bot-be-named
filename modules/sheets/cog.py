@@ -257,9 +257,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     
     @command_predicates.is_solver()
-    @commands.command(name='createchannel',aliases=['puzzle'])
-    async def create_channel(self, ctx, channel_name : str, puzzle_url : str, template_name : str = 'Template'):
-        logging_utils.log_command('createchannel',ctx.guild,ctx.channel,ctx.author)
+    @commands.command(name='createround',aliases=['puzzle'])
+    async def create_round(self, ctx, channel_name : str, puzzle_url : str, template_name : str = 'Template'):
+        logging_utils.log_command('createround',ctx.guild,ctx.channel,ctx.author)
         
         if discord_utils.category_is_full(ctx.channel.category):
             await discord_utils.send_embed(ctx, name=f'{constants.FAILED}', value=f'Category **{ctx.channel.category.name}** is full (limit 50 channels).', inline=False)
