@@ -201,7 +201,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             cclist = database.CUSTOM_COMMANDS[guildid].keys()
             custom_commands = "\n".join(sorted(cclist))
             embed.add_field(
-                name=f"Custom Commands for {guildid}", value=custom_commands
+                name=f"Custom Commands for {guildid} : {ctx.guild.name}", value=custom_commands
             )
         else:
             embed.add_field(

@@ -32,15 +32,10 @@ class AdminCog(commands.Cog, name="Admin"):
     ):
         """Add a new Permission Category for a given role on this server. Only available to server admins or bot owners.
 
-        A lot of bot commands can only be used by one of the Permission Categories, so this command is necessary beforehand.
+        This command is necessary before most to all bot commands. Nearly all commands are restricted to some Permission Category or the other.
+        The Permission Categories available are - Verified, Trusted, Solver, Tester. 
 
-        The permission categories available are - Verified, Trusted, Solver, Tester.
-
-        Generally,
-        Solver - All "regular" solving and sheet functions
-        Verified - All channel management functions + some archive functions
-        Trusted - Can edit customcommands, and use any role commands
-        Tester - Used internally
+        See `~permcathelp` for more info.
 
         Permission Category : Admin or Bot Owner Roles only.
         Usage: `~addperm Verified @VerifiedRoleName`

@@ -8,8 +8,7 @@ from sqlalchemy.sql.expression import insert
 from typing import Union
 from utils import discord_utils, google_utils, logging_utils, command_predicates
 from modules.sheets import sheets_constants, sheet_utils
-from modules.solved import solved_utils
-
+from modules.lion import solved_utils
 
 class LionCog(commands.Cog, name="Lion"):
     """Google Sheets - Lion management commands"""
@@ -233,9 +232,9 @@ class LionCog(commands.Cog, name="Lion"):
             puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
 
             if answer and status_info.get("update_ans"):
-                puzzle_tab.update("B3", answer.upper())
+                puzzle_tab.update_acell(label="B3", value=answer.upper())
             elif not status_info.get("update_ans"):
-                puzzle_tab.update("B3", "")
+                puzzle_tab.update_acell(label="B3", value="")
 
             status_col = overview.acell("B1").value
 
@@ -245,7 +244,7 @@ class LionCog(commands.Cog, name="Lion"):
             if curr_stat_info is None:
                 curr_stat_info = sheets_constants.status_dict.get("None")
 
-            overview.update_acell(status_col + str(row_to_find), status)
+            overview.update_acell(label=status_col + str(row_to_find), value=status)
 
             color = status_info.get("color")
 
@@ -498,22 +497,22 @@ class LionCog(commands.Cog, name="Lion"):
             final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
 
             overview.update_acell(
-                puzz_name_col + str(first_empty),
-                f'=HYPERLINK("{final_sheet_link}", "{chan_name}")',
+                label=puzz_name_col + str(first_empty),
+                value=f'=HYPERLINK("{final_sheet_link}", "{chan_name}")',
             )
 
-            overview.update_acell("A" + str(first_empty), str(new_chan.id))
-            overview.update_acell("B" + str(first_empty), str(newsheet.id))
-            overview.update_acell(status_col + str(first_empty), "Unstarted")
+            overview.update_acell(label="A" + str(first_empty), value=str(new_chan.id))
+            overview.update_acell(label="B" + str(first_empty), value=str(newsheet.id))
+            overview.update_acell(label=status_col + str(first_empty), value="Unstarted")
             chan_name_for_sheet_ref = chan_name.replace("'", "''")
             overview.update_acell(
-                answer_col + str(first_empty), f"='{chan_name_for_sheet_ref}'!B3"
+                label=answer_col + str(first_empty), value=f"='{chan_name_for_sheet_ref}'!B3"
             )
 
-            newsheet.update_acell("A1", chan_name)
+            newsheet.update_acell(label="A1", value=chan_name)
 
             if url:
-                newsheet.update_acell("B1", url)
+                newsheet.update_acell(label="B1", value=url)
 
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
         except gspread.exceptions.APIError as e:
@@ -1026,7 +1025,7 @@ class LionCog(commands.Cog, name="Lion"):
             await ctx.send(embed=embed)
             return None
 
-        overview.update("C1", hunturl)
+        overview.update_acell(label="C1", value=hunturl)
         return True
 
     # @command_predicates.is_verified()

@@ -2,7 +2,7 @@ import nextcord
 
 import constants
 from nextcord.ext import commands
-from modules.solved.prefix import Prefix
+from modules.lion.prefix import Prefix
 from modules.sheets import sheets_constants
 from utils import discord_utils, logging_utils
 

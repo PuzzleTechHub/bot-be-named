@@ -101,12 +101,11 @@ When deploying on heroku, any variables stored in .env locally cannot be pushed 
 - [Discord](modules/discord) for discord utility commands (e.g. roles, stats)
 - [Error Logging](./modules/error_logging) for printing error logs
 - [Help](./modules/help) is an updated help command which automatically pulls docstrings for `~help`
-- [Lion](./modules/lion) is the "Google Sheets-Discord" commands currently used in every Puzzle Hunt. Advanced version of [Sheets](./modules/sheets) and [Solved](./modules/solved) modules. 
+- [Lion](./modules/lion) is the "Google Sheets-Discord" commands currently used in every Puzzle Hunt. 
 - [Lookup](./modules/lookup) for Searching the internet via google and wikipedia
 - [Misc](./modules/misc) for misc. random (fun) commands
 - [Role Management](./modules/role_management) for managing roles and similar
 - [Sheets](./modules/sheets) for working with Google Sheets during puzzlehunts
-- [Solved](./modules/solved) for marking Discord Channels as solved, backsolved, solvedish etc.
 - [Time](./modules/time) for finding the time anywhere in the world
 
 ## Acknowledgements
