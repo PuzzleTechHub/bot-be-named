@@ -306,7 +306,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
             name_cell = overview.find('Puzzle Name',in_row=3) #TODO: don't hardcode the header row
             ans_cell = overview.find('Answer',in_row=3)
             status_cell = overview.find('Status',in_row=3)
-            
+        except:
+            pass
 
         ## send the message in the new channel and pin it
         msg = await discord_utils.send_embed(new_channel, name=f'{constants.SUCCESS}!',value=f'Tab created at [{tab_name}]({tab_url}).',inline=False)
