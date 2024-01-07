@@ -101,7 +101,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             #add to the database
             sheet_utils.set_sheet_generic(sheet.url, ctx.guild, target)
             status = constants.SUCCESS
-            message = f'The {ttype} {tname} is now tethered to [the given sheet]({proposed_sheet.url}).'
+            message = f'The {ttype} {tname} is now tethered to [the given sheet]({sheet.url}).'
         else:
             status = constants.FAILED
             message = f'Error tethering {ttype} {tname}: {error}'
