@@ -238,62 +238,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="chancrab", aliases=["channelcrab", "channelcreatetab"])
-    async def channelcreatetab(self, ctx, chan_name: str, *args):
-        """Create new channel, then a New tab on the sheet that is currently tethered to this category, then pins links to the channel, if any.
-
-        This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
-        Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
-
-        Permission Category : Solver Roles only.
-        Usage : `~chancrab PuzzleName`
-        Usage : `~chancrab PuzzleName linktopuzzle`
-        """
-        logging_utils.log_command(
-            "channelcreatetab", ctx.guild, ctx.channel, ctx.author
-        )
-        embed = discord_utils.create_embed()
-        text_to_pin = " ".join(args)
-
-        return await sheet_utils.chancrabgeneric(
-            self.gspread_client,
-            ctx,
-            chan_name,
-            "chan",
-            is_meta=False,
-            text_to_pin=text_to_pin,
-        )
-
-    @command_predicates.is_solver()
-    @commands.command(name="metacrab", aliases=["channelcreatemetatab"])
-    async def channelcreatemetatab(self, ctx, chan_name: str, *args):
-        """Create new channel, then a New tab on the sheet that is currently tethered to this category, then pins links to the channel, if any.
-
-        FOR METAPUZZLES ONLY
-
-        This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
-        Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
-
-        Permission Category : Solver Roles only.
-        Usage : `~metacrab PuzzleName`
-        Usage : `~metacrab PuzzleName linktopuzzle`
-        """
-        logging_utils.log_command(
-            "channelcreatetab", ctx.guild, ctx.channel, ctx.author
-        )
-        embed = discord_utils.create_embed()
-        text_to_pin = " ".join(args)
-
-        return await sheet_utils.chancrabgeneric(
-            self.gspread_client,
-            ctx,
-            chan_name,
-            chan_or_thread="chan",
-            is_meta=True,
-            text_to_pin=text_to_pin,
-        )
-
-    @command_predicates.is_solver()
     @commands.command(
         name="showtether",
         aliases=["showsheettether", "displaysheettether", "displaytether"],
@@ -370,65 +314,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
             )
             await ctx.send(embed=embed)
             return
-
-    @command_predicates.is_solver()
-    @commands.command(name="sheetcrab", aliases=["sheettab", "sheetcreatetab"])
-    async def sheetcreatetab(self, ctx, tab_name: str, to_pin: str = ""):
-        """Create a New tab on the sheet that is currently tethered to this category
-
-        This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
-        Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
-
-        Permission Category : Solver Roles only.
-        Usage : `~sheetcrab TabName`
-        Usage : `~sheetcrab TabName pin` (Pins the new tab on creation)
-        """
-        logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        await sheet_utils.sheetcrabgeneric(self.gspread_client, ctx, tab_name, to_pin)
-
-    @command_predicates.is_solver()
-    @commands.command(
-        name="sheetmetacrab", aliases=["sheetmetatab", "sheetcreatemetatab"]
-    )
-    async def sheetcreatemetatab(self, ctx, tab_name: str):
-        """Create a New tab on the sheet that is currently tethered to this category
-
-        This requires a tethered sheet (See `~addtether`) and a tab named "Template" on the sheet.
-        Also the sheet must be 'Anyone with the link can edit' or the bot email get edit access.
-
-        Permission Category : Solver Roles only.
-        Usage : `~sheetmetatab TabName`
-        """
-        logging_utils.log_command("sheetcreatetab", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        curr_chan = ctx.message.channel
-        curr_cat = ctx.message.channel.category
-        curr_sheet_link, newsheet = await sheet_utils.sheetcreatetabmeta(
-            self.gspread_client, ctx, curr_chan, curr_cat, tab_name
-        )
-
-        # Error, already being handled at the generic function
-        if not curr_sheet_link or newsheet is None:
-            return
-
-        # This link is customized for the newly made tab
-        final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
-
-        embed.add_field(
-            name=f"{constants.SUCCESS}!",
-            value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
-            inline=False,
-        )
-        msg = await ctx.send(embed=embed)
-        # Pin message to the new channel
-        embed_or_none = await discord_utils.pin_message(msg)
-        if embed_or_none is not None:
-            await ctx.send(embed=embed_or_none)
-
-        return curr_sheet_link, newsheet
 
     @command_predicates.is_solver()
     @commands.command(name="downloadsheet", aliases=["savesheet"])
@@ -522,7 +407,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             serv = x.server_id
             chan = x.channel_or_cat_id
             botguilds = list(map(lambda x: x.id, self.bot.guilds))
-            if serv not in botguilds:
+            if serv not in botguilds and serv != 0:
                 not_in_server.add(serv)
             else:
                 serverguild = list(filter(lambda x: x.id == serv, self.bot.guilds))[0]
@@ -530,6 +415,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 if chan != serv:
                     chan_cat_threads = serverguild.channels + serverguild.threads
                     chan_cat_threads_id = list(map(lambda x: x.id, chan_cat_threads))
+                    #All channels and threads currently active in the server, aka the bot can find it
                     if chan not in chan_cat_threads_id:
                         to_delete.append((serv, chan))
 

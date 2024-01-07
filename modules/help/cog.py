@@ -1,7 +1,5 @@
 from nextcord.ext import commands
-
 from modules.help import help_command
-
 
 # Dont forget to shoutout my guy Jonah Lawrence aka DenverCoder1
 # As this module was copied (with minimal modification)
