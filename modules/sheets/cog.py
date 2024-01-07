@@ -30,8 +30,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @commands.Cog.listener()
     async def on_ready(self):
         """When discord is connected"""
-        if not self.prune_tethers.is_running():
-            self.prune_tethers.start()
+        if not self.prune_sheets.is_running():
+            self.prune_sheets.start()
+
+
 
     ## Sheet management:
     # set_sheet <sheet-link> <target>
