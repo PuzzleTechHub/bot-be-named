@@ -10,53 +10,142 @@ from sqlalchemy.sql.expression import insert
 from sqlalchemy.orm import Session
 from typing import Union
 import emoji
-
+import itertools
 
 #########################
 # SHEET UTILS FUNCTIONS #
 #########################
 
-
-def addsheettethergeneric(
-    gspread_client,
-    sheet_key_or_link: str,
-    curr_guild: nextcord.Guild,
-    curr_catorchan: Union[nextcord.CategoryChannel, nextcord.TextChannel],
+def open_by_url_or_key(
+    gspread_client, sheet_key_or_link: str
 ) -> gspread.Spreadsheet:
-    """Add a sheet to the current channel"""
-    # We accept both sheet keys or full links
-    proposed_sheet = get_sheet_from_key_or_link(gspread_client, sheet_key_or_link)
-
-    # If we can't open the sheet, send an error and return
-    if not proposed_sheet:
+    """Takes in a string, which could be a google sheet key or URL"""
+    # Assume the str is a URL
+    try:
+        sheet = gspread_client.open_by_url(sheet_key_or_link)
+        return sheet
+    except gspread.exceptions.APIError:
         return None
+    # Given str was not a link
+    except gspread.exceptions.NoValidUrlKeyFound:
+        pass
+    # Assume the str is a sheet key
+    try:
+        sheet = gspread_client.open_by_key(sheet_key_or_link)
+        return sheet
+    # Entity Not Found
+    except gspread.exceptions.APIError:
+        return None
+    #something else happened:
+    return None
 
+def set_sheet_generic(
+    sheet_url: str,
+    guild: nextcord.Guild,
+    target: Union[nextcord.CategoryChannel, nextcord.TextChannel, nextcord.Guild],
+):
+    """Add a sheet url to the given object (target). The url is not validated"""
+    
     # If the channel already has a sheet, then we update it.
     # Otherwise, we add the channel to our master sheet to establish the tether
 
     with Session(database.DATABASE_ENGINE) as session:
         result = (
             session.query(database.SheetTethers)
-            .filter_by(channel_or_cat_id=curr_catorchan.id)
+            .filter_by(channel_or_cat_id=target.id)
             .first()
         )
         # If there is already an entry, we just need to update it.
         if result is not None:
-            result.sheet_link = proposed_sheet.url
+            result.sheet_link = sheet_url
         # Otherwise, we need to create an entry
         else:
             stmt = insert(database.SheetTethers).values(
-                server_id=curr_guild.id,
-                server_name=curr_guild.name,
-                channel_or_cat_name=curr_catorchan.name,
-                channel_or_cat_id=curr_catorchan.id,
-                sheet_link=proposed_sheet.url,
+                server_id=guild.id,
+                server_name=guild.name,
+                channel_or_cat_name=target.name,
+                channel_or_cat_id=target.id,
+                sheet_link=sheet_url,
             )
             session.execute(stmt)
         # Commits change
         session.commit()
-    return proposed_sheet
 
+def get_sheet(search_ids : list[int]):
+    """For finding the appropriate sheet tethering for a given category or channel
+        The ids are given in search order
+    returns (sheet, id_index) if an id was in the database
+    otherwise returns (None,None)
+    """
+    
+    #TODO: a better way would be to use an address scheme and prefix searches
+    #      e.g. store <guild_id>/<category_id>/<channel_id>/... as the key in the database
+    # then do a longest-prefix search e.g. https://www.richard-towers.com/2023/01/29/finding-the-longest-matching-prefix-in-sql.html
+
+    # Search DB for the sheet tether, if there is one
+    with Session(database.DATABASE_ENGINE) as session:
+        for curr_id, curr_index in enumerate(search_ids):
+            #TODO: does the id need to be converted to str?
+            result = session.query(database.SheetTethers).filter_by(channel_or_cat_id=str(curr_id)).first()
+            if result is not None:
+                return result, curr_index
+
+    return None,None
+
+def unset_sheet(category_id : int, channel_id : int, thread_id : int = None):
+    """Remove the sheet tethered to a given channel or category"""
+    #search order: thread, channel, category
+    ids = [thread_id, channel_id, category_id]
+    types = [sheets_constants.THREAD, sheets_constants.CHANNEL, sheets_constants.CATEGORY]
+    tether_type = None
+    sheet_url = None
+    with Session(database.DATABASE_ENGINE) as session:
+        for curr_id, curr_type in zip(ids, types):
+            result = session.query(database.SheetTethers).filter_by(channel_or_cat_id=str(curr_id)).first()
+            if result is not None:
+                tether_type = curr_type
+                sheet_url = result.sheet_link
+                result.delete()
+                session.commit()
+                break
+    return sheet_url, tether_type
+
+def prune_sheets(guilds):
+    """remove unused tether database rows """
+        guilds_by_id = {guild.id:guild for guild in guilds}
+        active_ids_by_guild_id = {}
+
+        pruned = []
+        unknown_guilds = set()
+        with Session(database.DATABASE_ENGINE) as session:
+            
+            for row in session.query(database.SheetTethers):
+                #skip sheets associated with the server directly
+                if row.server_id == row.channel_or_cat_id:
+                    continue
+
+                #get the ids of categories, channels, and threads in the given guilds
+                active_ids = active_ids_by_guild_id.get(row.server_id, default=None)
+                if active_ids is None:
+                    guild = guilds_by_id.get(row.server_id, default=None)
+                    if guild is None:
+                        #skip rows with unknown server_id
+                        unknown_guilds.add((row.server_id, row.server_name))
+                        continue
+                    active_ids = set(x.id for x in itertools.chain(guild.categories, guild.channels, guild.threads))
+                    active_ids_by_guild_id[row.server_id] = active_ids
+
+                #check if the server still has the associated channel
+                if row.channel_or_cat_id not in active_ids:
+                    #TODO: where does this print?!
+                    pruned.append((row.server_id, row.server_name, row.channel_or_cat_id, row.channel_or_cat_name, row.sheet_link))
+                    print(f'Deleting tether: {pruned[-1]}')                    
+                    row.delete()
+            session.commit()
+        if unknown_guilds:
+            #TODO: where does this print?!
+            print(f'Unknown guilds in database: {unknown_guilds}')
+        return pruned
 
 async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = ""):
     embed = discord_utils.create_embed()
@@ -213,63 +302,8 @@ async def chancrabgeneric(
     )
     await ctx.send(embed=embed)
 
-    addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
+    set_sheet_generic(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
     return curr_sheet_link, newsheet, new_chan
-
-
-def findsheettether(curr_cat_id: int, curr_chan_id: int, curr_thread_id: int = None):
-    """For finding the appropriate sheet tethering for a given category or channel"""
-    result = None
-    tether_type = None
-    # Search DB for the sheet tether, if there is one
-    with Session(database.DATABASE_ENGINE) as session:
-        # Search for channel's tether
-        result = (
-            session.query(database.SheetTethers)
-            .filter_by(channel_or_cat_id=curr_thread_id)
-            .first()
-        )
-        if result is not None:
-            tether_type = sheets_constants.THREAD
-        else:
-            result = (
-                session.query(database.SheetTethers)
-                .filter_by(channel_or_cat_id=curr_chan_id)
-                .first()
-            )
-            # If we miss on the channel ID, try the category ID
-            if result is not None:
-                tether_type = sheets_constants.CHANNEL
-            else:
-                result = (
-                    session.query(database.SheetTethers)
-                    .filter_by(channel_or_cat_id=curr_cat_id)
-                    .first()
-                )
-                tether_type = sheets_constants.CATEGORY
-    return result, tether_type
-
-
-def get_sheet_from_key_or_link(
-    gspread_client, sheet_key_or_link: str
-) -> gspread.Spreadsheet:
-    """Takes in a string, which could be a google sheet key or URL"""
-    # Assume the str is a URL
-    try:
-        sheet = gspread_client.open_by_url(sheet_key_or_link)
-        return sheet
-    except gspread.exceptions.APIError:
-        return None
-    # Given str was not a link
-    except gspread.exceptions.NoValidUrlKeyFound:
-        pass
-    # Assume the str is a sheet key
-    try:
-        sheet = gspread_client.open_by_key(sheet_key_or_link)
-        return sheet
-    # Entity Not Found
-    except gspread.exceptions.APIError:
-        return None
 
 
 async def sheetcreatetabgeneric(
@@ -280,10 +314,11 @@ async def sheetcreatetabgeneric(
     curr_sheet_link = None
     newsheet = None
 
-    tether_db_result, tether_type = findsheettether(str(curr_cat.id), str(curr_chan.id))
-
+    tether_db_result, id_index = get_sheet((curr_chan.id, curr_cat.id))
+    
     try:
         if tether_db_result is not None:
+            tether_type = (sheets_constants.CHANNEL, sheets_constants.CATEGORY)[id_index]
             curr_sheet_link = tether_db_result.sheet_link
         else:
             embed = discord_utils.create_embed()

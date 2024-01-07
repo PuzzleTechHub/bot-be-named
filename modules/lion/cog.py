@@ -92,9 +92,7 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~gettablion
         """
         logging_utils.log_command("gettablion", ctx.guild, ctx.channel, ctx.author)
-        result, _ = sheet_utils.findsheettether(
-            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
-        )
+        result, _ = sheet_utils.get_sheet((ctx.message.channel.id, ctx.message.channel.category_id))
 
         if result is None:
             embed = discord_utils.create_embed()
@@ -205,9 +203,7 @@ class LionCog(commands.Cog, name="Lion"):
                 status_info = sheets_constants.status_dict.get("None")
 
             # Find tethered sheet
-            result, _ = sheet_utils.findsheettether(
-                str(ctx.message.channel.category_id), str(ctx.message.channel.id)
-            )
+            result, _ = sheet_utils.get_sheet((ctx.message.channel.id, ctx.message.channel.category_id))
 
             if result is None:
                 embed.add_field(
@@ -334,9 +330,7 @@ class LionCog(commands.Cog, name="Lion"):
         """
         logging_utils.log_command("mtalion", ctx.guild, ctx.channel, ctx.author)
 
-        result, _ = sheet_utils.findsheettether(
-            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
-        )
+        result, _ = sheet_utils.get_sheet((ctx.message.channel.id, ctx.message.channel.category_id))
 
         if result is None:
             embed = discord_utils.create_embed()
@@ -736,7 +730,7 @@ class LionCog(commands.Cog, name="Lion"):
     async def validate_template(self, ctx, proposed_sheet):
         embed = discord_utils.create_embed()
 
-        proposed_template = sheet_utils.get_sheet_from_key_or_link(
+        proposed_template = sheet_utils.open_by_url_or_key(
             self.gspread_client, proposed_sheet
         )
 
@@ -943,7 +937,7 @@ class LionCog(commands.Cog, name="Lion"):
         if await self.validate_template(ctx, new_sheet.url) is None:
             return
 
-        proposed_sheet = sheet_utils.addsheettethergeneric(
+        proposed_sheet = sheet_utils.set_sheet_generic(
             self.gspread_client, new_sheet.url, ctx.guild, cat
         )
 
@@ -1119,7 +1113,7 @@ class LionCog(commands.Cog, name="Lion"):
         if await self.validate_template(ctx, sheet_key_or_link) is None:
             return
 
-        proposed_sheet = sheet_utils.addsheettethergeneric(
+        proposed_sheet = sheet_utils.set_sheet_generic(
             self.gspread_client, sheet_key_or_link, ctx.guild, ctx.channel.category
         )
 

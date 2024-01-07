@@ -353,37 +353,15 @@ async def find_category(
         - category (nextcord.CategoryChannel): the category or None if not found"""
     if (isinstance(category_name, nextcord.CategoryChannel)) or category_name is None:
         return category_name
-    try:
-        category = await commands.CategoryChannelConverter().convert(ctx, category_name)
-    except ChannelNotFound:
-        # Discord category finding is case specific, but the GUI displays all caps
-        # Try to search with uppercase, first word capitalized, each word capitalized, and lowercase
+    # Discord category finding is case specific, but the GUI displays all caps
+    # Try to search with uppercase, first word capitalized, each word capitalized, and lowercase
+    case_transforms = [str.upper, str.title, str.capitalize, str.lower]
+    for xform in case_transforms:
         try:
-            # Uppercase
-            category = await commands.CategoryChannelConverter().convert(
-                ctx, category_name.upper()
-            )
+            return await commands.CategoryChannelConverter().convert(ctx, xform(category_name))
         except ChannelNotFound:
-            try:
-                # Capitalize each word
-                category = await commands.CategoryChannelConverter().convert(
-                    ctx, category_name.title()
-                )
-            except ChannelNotFound:
-                try:
-                    # Capitalize first word
-                    category = await commands.CategoryChannelConverter().convert(
-                        ctx, category_name.capitalize()
-                    )
-                except ChannelNotFound:
-                    try:
-                        # Lowercase
-                        category = await commands.CategoryChannelConverter().convert(
-                            ctx, category_name.lower()
-                        )
-                    except ChannelNotFound:
-                        category = None
-    return category
+            pass
+    return None
 
 
 async def find_chan_or_thread(
