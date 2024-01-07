@@ -221,7 +221,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         message = f'Round created with category **{category_name}** and channel {new_channel.mention}'
         #now copy the template and link it to the category
-        template, i = sheet_utils.get_sheet((ctx.guild.id))
+        template, i = sheet_utils.get_sheet((ctx.guild.id,))
         
         if template is None:
             await discord_utils.send_embed(ctx, name=f'{constants.SUCCESS}!',
