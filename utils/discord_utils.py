@@ -160,6 +160,11 @@ def merge_embed(orig: nextcord.Embed, to_merge: nextcord.Embed) -> nextcord.Embe
         )
     return orig
 
+async def send_embed(ctx : nextcord.Context, **embed_fields):
+    embed = create_embed()
+    embed.add_field(**embed_fields)
+    return await ctx.send(embed=embed) #TODO: is this the right way to do async/await?
+
 
 def create_no_argument_embed(arg_name: str = "argument") -> nextcord.Embed:
     """
