@@ -53,7 +53,7 @@ async def status_channel(ctx: commands.Context, status_prefix):
         except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Unable to prepend `solved` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?",
+                value=f"Unable to prepend `{status_prefix}` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?",
             )
             await ctx.send(embed=embed)
             return
