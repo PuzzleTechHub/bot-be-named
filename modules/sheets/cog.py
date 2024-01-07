@@ -17,6 +17,8 @@ import shutil
 from typing import Union,Literal
 
 
+
+
 class SheetsCog(commands.Cog, name="Sheets"):
     """Google Sheets management commands"""
 
@@ -191,21 +193,22 @@ class SheetsCog(commands.Cog, name="Sheets"):
         sheet_utils.prune_sheets(self.bot.guilds)
 
     ## Puzzle management
-    # new_round : creates a category linked to a copy of the guild template sheet
-    # new_puzzle : create a new tab in the category's sheet
-    # status : set puzzle status, change channel name?
+    # create_category : creates a category linked to a copy of the guild template sheet
+    # create_channel : create a new tab in the category's sheet
+    # set_status : set puzzle status, change channel name?
     # archive : move puzzle to archive category
 
-    async def new_round(self, ctx, round_name : str, channel_name : str = 'main-not-a-puzzle'):
-        logging_utils.log_command("create_from_template", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-        
+    @command_predicates.is_solver()
+    @commands.command(name='createcategory',aliases=['round'])
+    async def create_category(self, ctx, category_name : str, round_url : str, channel_name : str = 'main-not-a-puzzle'):
+        logging_utils.log_command("create_category", ctx.guild, ctx.channel, ctx.author)
+                
         #create the category and a single channel in it
-        category_name = round_name.upper()
-        category, error = None,None
+        category_name = category_name.upper()
+        new_category, error = None,None
         try:
-            category = await ctx.guild.create_category(category_name)
-            channel = await ctx.guild.create_text_channel(channel_name, category=category)
+            new_category = await ctx.guild.create_category(category_name)
+            new_channel = await ctx.guild.create_text_channel(channel_name, category=new_category)
         except nextcord.Forbidden:
             error = 'Permission denied!'
         except:
@@ -215,9 +218,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 value=f'Failed to create category "{category_name}" and/or channel "{channel_name}": {error}',
                 inline=False)
             return
-        message = f'Round created with category **{category_name}** and channel {channel.mention}.'
+
+        message = f'Round created with category **{category_name}** and channel {new_channel.mention}'
         #now copy the template and link it to the category
-        template, _ = sheet_utils.get_sheet((ctx.guild.id))
+        template, i = sheet_utils.get_sheet((ctx.guild.id))
         
         if template is None:
             await discord_utils.send_embed(ctx, name=f'{constants.SUCCESS}!',
@@ -232,20 +236,91 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 file_id=template.id,
                 title=category_name,
                 copy_permissions=True,
-                folder_id=None,
+                folder_id=None, #TODO: match the template's folder? how?!
                 copy_comments=True)
 
             overview = new_sheet.worksheet("Overview")
-            overview.update("C1", hunturl)
-        except gspread.exceptions.APIError:
-            embed.add_field(name=f'{constants.SUCCESS} but also {constants.FAILED}!',
-                value=f'{message} but failed to copy the [template sheet]({template.url}). Are the permissions set correctly?',
-                inline=False)
-            await ctx.send(embed=embed)
+            overview.update("C1", round_url) #TODO: remove hardcoded cell
+
+            sheet_utils.set_sheet_generic(new_sheet.url, ctx.guild, new_category)
+
+            await discord_utils.send_embed(ctx, name=f'{constants.SUCCESS}!',
+                value=f'{message}, linked to [sheet]({new_sheet.url}).',inline=False)
+            
             return
 
-        sheet_utils.set_sheet_generic(new_sheet.url, ctx.guild, category)
+        except gspread.exceptions.APIError:
+            await discord_utils.send(ctx, name=f'{constants.SUCCESS} but also {constants.FAILED}!',
+                value=f'{message}, but failed to copy the [template sheet]({template.url}). Are the permissions set correctly?',
+                inline=False)
+            return
 
+    
+    @command_predicates.is_solver()
+    @commands.command(name='createchannel',aliases=['puzzle'])
+    async def create_channel(self, ctx, channel_name : str, puzzle_url : str, template_name : str = 'Template'):
+        logging_utils.log_command('createchannel',ctx.guild,ctx.channel,ctx.author)
+        
+        if discord_utils.category_is_full(ctx.channel.category):
+            await discord_utils.send_embed(ctx, name=f'{constants.FAILED}', value=f'Category **{ctx.channel.category.name}** is full (limit 50 channels).', inline=False)
+            return
+
+        if discord_utils.server_is_full(ctx.channel.guild):
+            await discord_utils.send_embed(ctx, name=f'{constants.FAILED}', value=f'Guild ***{ctx.channel.guild.name}*** is full (limit 500 categories & channels).', inline=False)
+            return
+
+        ## create the channel
+        #TODO: check if channel already exists
+        error = None
+        try:
+            new_channel = await ctx.guild.create_text_channel(channel_name, category=ctx.channel.category)
+        except nextcord.Forbidden:
+            error = 'Permission denied!'
+        except:
+            error = 'Failed!'
+        if error is not None:
+            await discord_utils.send_embed(ctx, name=f'{constants.FAILED}!', value=f'Failed to create channel: "{channel_name}": {error}', inline=False)
+            return
+
+        ## create the sheet tab
+        # get the sheet
+        tether, i = sheet_utils.get_sheet((ctx.channel.id, ctx.channel.category.id))
+        sheet_url = tether.sheet_link
+
+        # set it as the sheet for the new channel
+        sheet_utils.set_sheet_generic(sheet_url, ctx.guild, new_channel)
+
+        # copy the template tab
+        tab_name = channel_name.replace('#','').replace('-',' ')
+        try:
+            sheet = gspread_client.open_by_url(sheet_url)
+            overview = sheet.worksheet('Overview')
+            template_tab = sheet.worksheet(template_name)
+            
+            new_tab = sheet.duplicate_sheet(
+                source_sheet_id=template_tab.id,
+                new_sheet_name=tab_name,
+                insert_sheet_index=template_tab.index + 1,#always insert just after the associated template
+                ) 
+            #fill in the overview
+            name_cell = overview.find('Puzzle Name',in_row=3) #TODO: don't hardcode the header row
+            ans_cell = overview.find('Answer',in_row=3)
+            status_cell = overview.find('Status',in_row=3)
+            
+
+        ## send the message in the new channel and pin it
+        msg = await discord_utils.send_embed(new_channel, name=f'{constants.SUCCESS}!',value=f'Tab created at [{tab_name}]({tab_url}).',inline=False)
+        error = await discord_utils.pin_message(msg)
+        if error is not None:
+            await new_channel.send(embed=error)
+
+        # set the channel topic
+        await new_channel.edit(topic=f'Link to [Puzzle]({puzzle_url}) and [worksheet]({tab_url})')
+
+        #final status message in the current channel
+        await discord_utils.send_embed(ctx, name=f'{constants.SUCCESS}!',value=f'Created channel {new_channel.mention} and [new puzzle tab]({tab_url}).')
+
+        
 
     @command_predicates.is_solver()
     @commands.command(name="chancrab", aliases=["channelcrab", "channelcreatetab"])
