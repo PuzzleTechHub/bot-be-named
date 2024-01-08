@@ -407,7 +407,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
             serv = x.server_id
             chan = x.channel_or_cat_id
             botguilds = list(map(lambda x: x.id, self.bot.guilds))
-            if serv not in botguilds and serv != 0:
+            if serv == 0:
+                pass
+            elif serv not in botguilds and serv != 0:
                 not_in_server.add(serv)
             else:
                 serverguild = list(filter(lambda x: x.id == serv, self.bot.guilds))[0]
