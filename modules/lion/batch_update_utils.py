@@ -35,6 +35,7 @@ class BatchUpdateBuilder:
         )
 
     def update_cell_by_index(self, sheet_id, column_index, row_index, value, is_formula=False):
+        """Note - col_index and row_index are 0-INDEXED not 1-INDEXED"""
         self.requests.append(
             {
                 "updateCells": {
