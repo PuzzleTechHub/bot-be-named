@@ -70,6 +70,20 @@ status_dict = {
     },
 }
 
+UNSTARTED_NAME = "Unstarted"
 # ["solved","solvedish","backsolved"...]
 solved_prefixes = [status_dict[x].get("prefix_name") for x in status_dict]
 solved_prefixes = [y for y in solved_prefixes if y is not None]
+
+DISCORD_CHANNEL_ID_COLUMN = "A"
+SHEET_TAB_ID_COLUMN = "B"
+PUZZLE_NAME_COLUMN_LOCATION = "A1"      #C in TM sheet
+STATUS_COLUMN_LOCATION = "B1"           #D in TM sheet
+ANSWER_COLUMN_LOCATION = "A2"           #E in TM sheet
+
+TAB_CHAN_NAME_LOCATION = "A1"
+TAB_URL_LOCATION = "B1"
+TAB_ANSWER_LOCATION = "B3"
+
+#To be used in chanhydra, clonehydra and hunthydra
+OVERVIEW_HUNTURL_LOCATION = "C1"

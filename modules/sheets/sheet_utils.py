@@ -1,6 +1,6 @@
 from http.client import FORBIDDEN
 import googleapiclient
-from modules.sheets import sheets_constants
+from modules.lion import sheets_constants
 from utils import discord_utils
 import constants
 import nextcord
@@ -97,9 +97,16 @@ async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = "")
 
 
 async def chancrabgeneric(
-    gspread_client, ctx, chan_name: str, chan_or_thread: str, is_meta: bool, text_to_pin
-):
+        gspread_client, 
+        ctx, 
+        chan_name: str, 
+        chan_or_thread: str, 
+        is_meta: bool, 
+        text_to_pin
+    ):
     embed = discord_utils.create_embed()
+    tab_name = chan_name.replace("#", "").replace("-", " ")
+
     # Cannot make a new channel if the category is full``
     if chan_or_thread == "chan":
         if discord_utils.category_is_full(ctx.channel.category):
@@ -124,8 +131,6 @@ async def chancrabgeneric(
     else:
         tab_type = "Template"
 
-    tab_name = chan_name.replace("#", "").replace("-", " ")
-
     if chan_or_thread == "thread" and await discord_utils.is_thread(ctx, ctx.channel):
         embed.add_field(
             name=f"{constants.FAILED}!",
@@ -134,6 +139,7 @@ async def chancrabgeneric(
         await ctx.send(embed=embed)
         return None, None, None
 
+    #Creates the new sheet
     curr_sheet_link, newsheet = await sheetcreatetabgeneric(
         gspread_client, ctx, ctx.channel, ctx.channel.category, tab_name, tab_type
     )

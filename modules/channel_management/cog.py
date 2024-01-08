@@ -4,8 +4,7 @@ import constants
 import nextcord
 from typing import Union
 import asyncio
-from modules.sheets import sheets_constants
-
+from modules.lion import sheets_constants
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot

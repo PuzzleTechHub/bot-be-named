@@ -7,8 +7,8 @@ from nextcord.ext import commands
 from sqlalchemy.sql.expression import insert
 from typing import Union
 from utils import discord_utils, google_utils, logging_utils, command_predicates
-from modules.sheets import sheets_constants, sheet_utils
-from modules.lion import solved_utils
+from modules.sheets import sheet_utils
+from modules.lion import sheets_constants, solved_utils, batch_update_utils
 
 class LionCog(commands.Cog, name="Lion"):
     """Google Sheets - Lion management commands"""
@@ -284,7 +284,8 @@ class LionCog(commands.Cog, name="Lion"):
 
         row_to_find = chan_cell.row
 
-        tab_id = overview.acell("B" + str(row_to_find)).value
+        sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
+        tab_id = overview.acell(sheet_tab_id_col + str(row_to_find)).value
 
         final_link = curr_sheet_link + "/edit#gid=" + str(tab_id)
 
@@ -401,15 +402,23 @@ class LionCog(commands.Cog, name="Lion"):
 
             row_to_find = chan_cell.row
 
-            tab_id = overview.acell("B" + str(row_to_find)).value
+            #discord_channel_id_col = sheets_constants.DISCORD_CHANNEL_ID_COLUMN
+            sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
+            #puzz_name_col = overview.acell(sheets_constants.PUZZLE_NAME_COLUMN_LOCATION).value
+            status_col = overview.acell(sheets_constants.STATUS_COLUMN_LOCATION).value
+            #answer_col = overview.acell(sheets_constants.ANSWER_COLUMN_LOCATION).value
+
+            tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
+            #chan_name_loc = sheets_constants.TAB_CHAN_NAME_LOCATION
+            #url_loc = sheets_constants.TAB_URL_LOCATION
+
+            tab_id = overview.acell(sheet_tab_id_col + str(row_to_find)).value
             puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
 
             if answer and status_info.get("update_ans"):
-                puzzle_tab.update_acell(label="B3", value=answer.upper())
+                puzzle_tab.update_acell(label=tab_ans_loc, value=answer.upper())
             elif not status_info.get("update_ans"):
-                puzzle_tab.update_acell(label="B3", value="")
-
-            status_col = overview.acell("B1").value
+                puzzle_tab.update_acell(label=tab_ans_loc, value="")
 
             curr_status = overview.acell(status_col + str(row_to_find)).value
             curr_stat_info = sheets_constants.status_dict.get(curr_status)
@@ -529,7 +538,14 @@ class LionCog(commands.Cog, name="Lion"):
             return
 
         row_to_find = chan_cell.row
-        tab_id = overview.acell("B" + str(row_to_find)).value
+
+        sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
+
+        tab_id = overview.acell(sheet_tab_id_col + str(row_to_find)).value
+        puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
+
+
+        tab_id = overview.acell(sheet_tab_id_col + str(row_to_find)).value
         puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
         puzzle_tab.update_index(len(curr_sheet.worksheets()))
         embed = discord_utils.create_embed()
@@ -551,6 +567,7 @@ class LionCog(commands.Cog, name="Lion"):
         """Does the final touches on the sheet after creating a puzzle"""
         try:
             embed = discord_utils.create_embed()
+            tab_name = chan_name.replace("#", "").replace("-", " ")
 
             sheet = self.gspread_client.open_by_url(curr_sheet_link)
             overview = None
@@ -569,28 +586,60 @@ class LionCog(commands.Cog, name="Lion"):
 
             first_empty = self.firstemptyrow(overview)
 
-            puzz_name_col = overview.acell("A1").value
-            answer_col = overview.acell("A2").value
-            status_col = overview.acell("B1").value
+            discord_channel_id_col = sheets_constants.DISCORD_CHANNEL_ID_COLUMN
+            sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
+            puzz_name_col = overview.acell(sheets_constants.PUZZLE_NAME_COLUMN_LOCATION).value
+            status_col = overview.acell(sheets_constants.STATUS_COLUMN_LOCATION).value
+            answer_col = overview.acell(sheets_constants.ANSWER_COLUMN_LOCATION).value
+            
             final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
 
-            overview.update_acell(
-                label=puzz_name_col + str(first_empty),
-                value=f'=HYPERLINK("{final_sheet_link}", "{chan_name}")',
-            )
-
-            overview.update_acell(label="A" + str(first_empty), value=str(new_chan.id))
-            overview.update_acell(label="B" + str(first_empty), value=str(newsheet.id))
-            overview.update_acell(label=status_col + str(first_empty), value="Unstarted")
             chan_name_for_sheet_ref = chan_name.replace("'", "''")
-            overview.update_acell(
-                label=answer_col + str(first_empty), value=f"='{chan_name_for_sheet_ref}'!B3"
+            batch_update_builder = batch_update_utils.BatchUpdateBuilder()
+
+            batch_update_builder.update_cell_by_label(
+                sheet_id = overview.id,
+                label = puzz_name_col + str(first_empty),
+                value = f'=HYPERLINK("{final_sheet_link}", "{chan_name}")',
+                is_formula = True,
             )
 
-            newsheet.update_acell(label="A1", value=chan_name)
+            batch_update_builder.update_cell_by_label(
+                sheet_id = overview.id,
+                label = discord_channel_id_col + str(first_empty),
+                value = str(new_chan.id),
+            )
 
+            batch_update_builder.update_cell_by_label(
+                sheet_id = overview.id,
+                label = sheet_tab_id_col + str(first_empty),
+                value = str(newsheet.id),
+            )
+
+            unstarted = sheets_constants.UNSTARTED_NAME
+            batch_update_builder.update_cell_by_label(
+                sheet_id = overview.id,
+                label = status_col + str(first_empty),
+                value = unstarted,
+            )
+
+            chan_name_for_sheet_ref = tab_name.replace("'", "''")
+            tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
+            chan_name_loc = sheets_constants.TAB_CHAN_NAME_LOCATION
+            url_loc = sheets_constants.TAB_URL_LOCATION
+
+            batch_update_builder.update_cell_by_label(
+                sheet_id = overview.id,
+                label = answer_col + str(first_empty),
+                value = f"='{chan_name_for_sheet_ref}'!{tab_ans_loc}",
+                is_formula=True,
+            )
+
+            batch_update_builder.update_cell_by_label(sheet_id=newsheet.id, label=chan_name_loc, value=chan_name)
             if url:
-                newsheet.update_acell(label="B1", value=url)
+                batch_update_builder.update_cell_by_label(sheet_id=newsheet.id, label=url_loc, value=url)
+
+            sheet.batch_update(batch_update_builder.build())
 
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
         except gspread.exceptions.APIError as e:
@@ -1103,7 +1152,8 @@ class LionCog(commands.Cog, name="Lion"):
             await ctx.send(embed=embed)
             return None
 
-        overview.update_acell(label="C1", value=hunturl)
+        overview_hunturl_loc = sheets_constants.OVERVIEW_HUNTURL_LOCATION
+        overview.update_acell(label=overview_hunturl_loc, value=hunturl)
         return True
 
     # @command_predicates.is_verified()

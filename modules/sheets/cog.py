@@ -1,6 +1,7 @@
 import googleapiclient
+from modules.lion import sheets_constants
 from utils import discord_utils, google_utils, logging_utils, command_predicates
-from modules.sheets import sheets_constants, sheet_utils
+from modules.sheets import sheet_utils
 import constants
 from nextcord.ext import commands
 from nextcord.ext.tasks import loop
