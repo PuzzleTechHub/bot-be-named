@@ -4,11 +4,10 @@ from nextcord import Webhook
 import aiohttp
 import os
 
-# webhook_username = os.getenv("WEBHOOK_USERNAME")
 webhook_url = os.getenv("WEBHOOK_URL")
 session = aiohttp.ClientSession()
 webhook = None
-if webhook_url != "":
+if webhook_url is not None and webhook_url != "":
     webhook = Webhook.from_url(webhook_url, session=session)
 
 
@@ -21,7 +20,7 @@ def log_to_file(filename: str, text: str):
 async def send_to_webhook(text: str):
     """Send log to webhook"""
     if webhook is not None:
-        await webhook.send(text)  # , username=webhook_username)
+        await webhook.send(text)
     log_to_file(error_constants.ERROR_WEBHOOKFILE, text)
 
 
