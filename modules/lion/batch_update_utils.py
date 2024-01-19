@@ -2,6 +2,7 @@ import googleapiclient
 import json
 import gspread
 
+
 class BatchUpdateBuilder:
     def __init__(self):
         self.requests = []
@@ -25,16 +26,18 @@ class BatchUpdateBuilder:
         )
 
     def update_cell_by_label(self, sheet_id, label, value, is_formula=False):
-        row,col = gspread.utils.a1_to_rowcol(label)
+        row, col = gspread.utils.a1_to_rowcol(label)
         self.update_cell_by_index(
-            sheet_id=sheet_id, 
+            sheet_id=sheet_id,
             column_index=col - 1,
             row_index=row - 1,
             value=value,
-            is_formula=is_formula
+            is_formula=is_formula,
         )
 
-    def update_cell_by_index(self, sheet_id, column_index, row_index, value, is_formula=False):
+    def update_cell_by_index(
+        self, sheet_id, column_index, row_index, value, is_formula=False
+    ):
         """Note - col_index and row_index are 0-INDEXED not 1-INDEXED"""
         self.requests.append(
             {

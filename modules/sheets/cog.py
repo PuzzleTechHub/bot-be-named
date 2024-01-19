@@ -46,7 +46,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Permission Category : Solver Roles only.
         Usage : `~tether SheetLink`
         """
-        await logging_utils.log_command("addsheettether", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "addsheettether", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         proposed_sheet = sheet_utils.addsheettethergeneric(
@@ -225,7 +227,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Permission Category : Owner or Admin only
         Usage : `~prunetethers`
         """
-        await logging_utils.log_command("prunetethers", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "prunetethers", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         to_delete = await self.prune_tethers()
@@ -324,7 +328,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Permission Category : Solver Roles only.
         Usage: `~savesheet`
         """
-        await logging_utils.log_command("downloadsheet", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "downloadsheet", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         http = self.gdrive_credentials.authorize(httplib2.Http())
@@ -417,7 +423,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 if chan != serv:
                     chan_cat_threads = serverguild.channels + serverguild.threads
                     chan_cat_threads_id = list(map(lambda x: x.id, chan_cat_threads))
-                    #All channels and threads currently active in the server, aka the bot can find it
+                    # All channels and threads currently active in the server, aka the bot can find it
                     if chan not in chan_cat_threads_id:
                         to_delete.append((serv, chan))
 

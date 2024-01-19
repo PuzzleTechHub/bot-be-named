@@ -20,12 +20,16 @@ class AdminCog(commands.Cog, name="Admin"):
     ################################
 
     @command_predicates.is_bot_owner_or_admin()
-    @commands.command(name="addperm",aliases=["addverifieds", "addverified", "addperms"])
-    async def addperm(self, ctx, role_permissions: str, role_or_rolename: Union[nextcord.Role, str]):
+    @commands.command(
+        name="addperm", aliases=["addverifieds", "addverified", "addperms"]
+    )
+    async def addperm(
+        self, ctx, role_permissions: str, role_or_rolename: Union[nextcord.Role, str]
+    ):
         """Add a new Permission Category for a given role on this server. Only available to server admins or bot owners.
 
         This command is necessary before most to all bot commands. Nearly all commands are restricted to some Permission Category or the other.
-        The Permission Categories available are - Verified, Trusted, Solver, Tester. 
+        The Permission Categories available are - Verified, Trusted, Solver, Tester.
 
         See `~permcathelp` for more info.
 
@@ -172,9 +176,11 @@ class AdminCog(commands.Cog, name="Admin"):
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(
         name="removeperm",
-        aliases=["removeperms","rmperms","rmverified","rmperm"],
+        aliases=["removeperms", "rmperms", "rmverified", "rmperm"],
     )
-    async def removeperm(self, ctx, role_permissions: str, role_or_rolename: Union[nextcord.Role, str]):
+    async def removeperm(
+        self, ctx, role_permissions: str, role_or_rolename: Union[nextcord.Role, str]
+    ):
         """Remove a role from the given Permission Category within the server.
         Only available to server admins or bot owners.
 
@@ -182,7 +188,9 @@ class AdminCog(commands.Cog, name="Admin"):
         Usage: `~removeperm Verified @VerifiedRoleName`
         Usage: `~removeperm Trusted @everyone`
         """
-        await logging_utils.log_command("removeperm", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "removeperm", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         if role_permissions not in database.VERIFIED_CATEGORIES:
@@ -267,14 +275,21 @@ class AdminCog(commands.Cog, name="Admin"):
         name="commonmemberguilds",
         aliases=["commonguild", "guildcommon"],
     )
-    async def commonmemberguilds(self, ctx, guild_1: Union[nextcord.Guild, str], guild_2: Union[nextcord.Guild, str]):
+    async def commonmemberguilds(
+        self,
+        ctx,
+        guild_1: Union[nextcord.Guild, str],
+        guild_2: Union[nextcord.Guild, str],
+    ):
         """List all users in common between 2 guilds that the bot is in.
 
         Permission Category : Bot Owner Roles only.
         See also : `~lsguilds`
         Usage: `~commonmemberguilds "Guild1" "Guild2"`
         """
-        await logging_utils.log_command("commonmemberguilds", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "commonmemberguilds", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         guild_1_guild = await discord_utils.find_guild(ctx, guild_1)
@@ -336,7 +351,9 @@ class AdminCog(commands.Cog, name="Admin"):
         Permission Category : Bot Owner Roles only.
         Usage: `~guildowner "Guild1"`
         """
-        await logging_utils.log_command("guildowner", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "guildowner", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         guild = await discord_utils.find_guild(ctx, guild_name)

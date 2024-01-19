@@ -12,6 +12,7 @@ from sqlalchemy import insert
 from sqlalchemy.orm import Session
 from utils import logging_utils
 
+
 def get_prefix(client, message):
     """Gets prefix for the bot"""
     # Check if in new server or DM
@@ -203,6 +204,7 @@ def main():
     @client.event
     async def on_close():
         await logging_utils.close_session()
+
 
 if __name__ == "__main__":
     main()

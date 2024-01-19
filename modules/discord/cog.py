@@ -267,7 +267,9 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         Usage: `~listreacts` (as a reply to a message)
         """
-        await logging_utils.log_command("listreacts", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "listreacts", ctx.guild, ctx.channel, ctx.author
+        )
 
         if not ctx.message.reference:
             embed.add_field(

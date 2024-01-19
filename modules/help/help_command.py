@@ -3,6 +3,7 @@ from nextcord.ext import commands
 import constants
 from utils import discord_utils
 
+
 class HelpCommand(commands.MinimalHelpCommand):
     """Custom help command override using embeds"""
 
@@ -28,7 +29,7 @@ class HelpCommand(commands.MinimalHelpCommand):
         if description:
             embed.description = description
 
-        #no_category_commands = await self.filter_commands(mapping[None], sort=True)
+        # no_category_commands = await self.filter_commands(mapping[None], sort=True)
         del mapping[None]
         for cog, commands in sorted(mapping.items(), key=lambda x: x[0].qualified_name):
             name = "No Category" if cog is None else cog.qualified_name

@@ -136,7 +136,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
         Usage: `~archivechannel #channel`
         Usage: `~archivechannel #channel1 "channel2"`
         """
-        await logging_utils.log_command("archivechannel", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "archivechannel", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         # Check if the user supplied a channel
@@ -237,7 +239,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
         Permission Category : Verified Roles only.
         Usage: `~archivecategory "Category name"`
         """
-        await logging_utils.log_command("archivecategory", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "archivecategory", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         # Check if the user supplied a category
@@ -336,7 +340,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
         Permission Category : Admin or Bot Owner Roles only.
         Usage: `~archiveserver`
         """
-        await logging_utils.log_command("archiveserver", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "archiveserver", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         # If we don't have the lock, let the user know it may take a while.

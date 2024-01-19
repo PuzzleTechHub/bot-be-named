@@ -6,6 +6,7 @@ from modules.error_logging import error_constants
 from utils import logging_utils
 import os
 
+
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
 class ErrorHandler:
@@ -28,10 +29,14 @@ class ErrorHandler:
         print(f"In handle_error")
         logging.warning(error_details)
         print(f"Printing from handle_error: {error_details}")
-    
+
         logging_utils.log_to_file(error_constants.ERROR_LOGFILE, error_details)
 
-        exceptions = "".join(traceback.format_exception(type(self.error), self.error, self.error.__traceback__))
+        exceptions = "".join(
+            traceback.format_exception(
+                type(self.error), self.error, self.error.__traceback__
+            )
+        )
         print(exceptions)
 
         user_error = self.__user_error_message()

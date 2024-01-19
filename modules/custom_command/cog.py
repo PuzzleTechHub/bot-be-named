@@ -108,7 +108,9 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Usage: `~addcimage command_name Link_to_image`
         Usage: `~addcimage command_name Link_to_hyperlink`
         """
-        await logging_utils.log_command("addcustomimage", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "addcustomimage", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         if len(args) <= 0:
@@ -201,7 +203,8 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             cclist = database.CUSTOM_COMMANDS[guildid].keys()
             custom_commands = "\n".join(sorted(cclist))
             embed.add_field(
-                name=f"Custom Commands for {guildid} : {ctx.guild.name}", value=custom_commands
+                name=f"Custom Commands for {guildid} : {ctx.guild.name}",
+                value=custom_commands,
             )
         else:
             embed.add_field(
@@ -313,7 +316,9 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Permission Category : Trusted Roles or Bot Owner only.
         Usage: `~rmcustomcommand potato`
         """
-        await logging_utils.log_command("rmcustomcommand", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "rmcustomcommand", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         command_name = command_name.lower()

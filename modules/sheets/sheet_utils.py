@@ -97,13 +97,8 @@ async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = "")
 
 
 async def chancrabgeneric(
-        gspread_client, 
-        ctx, 
-        chan_name: str, 
-        chan_or_thread: str, 
-        is_meta: bool, 
-        text_to_pin
-    ):
+    gspread_client, ctx, chan_name: str, chan_or_thread: str, is_meta: bool, text_to_pin
+):
     embed = discord_utils.create_embed()
     tab_name = chan_name.replace("#", "").replace("-", " ")
 
@@ -139,7 +134,7 @@ async def chancrabgeneric(
         await ctx.send(embed=embed)
         return None, None, None
 
-    #Creates the new sheet
+    # Creates the new sheet
     curr_sheet_link, newsheet = await sheetcreatetabgeneric(
         gspread_client, ctx, ctx.channel, ctx.channel.category, tab_name, tab_type
     )

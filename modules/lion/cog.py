@@ -10,6 +10,7 @@ from utils import discord_utils, google_utils, logging_utils, command_predicates
 from modules.sheets import sheet_utils
 from modules.lion import sheets_constants, solved_utils, batch_update_utils
 
+
 class LionCog(commands.Cog, name="Lion"):
     """Google Sheets - Lion management commands"""
 
@@ -83,7 +84,7 @@ class LionCog(commands.Cog, name="Lion"):
         embed = await solved_utils.status_remove(ctx)
         await ctx.send(embed=embed)
 
-    async def movetoarchive_generic(self, ctx, archive_name:str):
+    async def movetoarchive_generic(self, ctx, archive_name: str):
         embed = discord_utils.create_embed()
         # Handling if mta is called from a thread
         if await discord_utils.is_thread(ctx, ctx.channel):
@@ -175,7 +176,7 @@ class LionCog(commands.Cog, name="Lion"):
         await ctx.send(embed=embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="mta", aliases=["movetoarchive","mtacrab"])
+    @commands.command(name="mta", aliases=["movetoarchive", "mtacrab"])
     async def movetoarchive(self, ctx, archive_name: str = None):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
@@ -185,9 +186,10 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: `~mta`
         Usage: `~movetoarchive archive_category_name`
         """
-        await logging_utils.log_command("movetoarchive", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "movetoarchive", ctx.guild, ctx.channel, ctx.author
+        )
         await self.movetoarchive_generic(ctx, archive_name)
-
 
     #################
     # LION COMMANDS #
@@ -260,7 +262,9 @@ class LionCog(commands.Cog, name="Lion"):
 
         Usage: ~gettablion
         """
-        await logging_utils.log_command("gettablion", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "gettablion", ctx.guild, ctx.channel, ctx.author
+        )
         result, _ = sheet_utils.findsheettether(
             str(ctx.message.channel.category_id), str(ctx.message.channel.id)
         )
@@ -311,7 +315,9 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~solvedlion
         Usage: ~solvedlion "answer"
         """
-        await logging_utils.log_command("solvedlion", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "solvedlion", ctx.guild, ctx.channel, ctx.author
+        )
         await self.statuslion(ctx, "solved", answer)
 
     @command_predicates.is_solver()
@@ -323,7 +329,9 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~backsolvedlion
         Usage: ~backsolvedlion "answer"
         """
-        await logging_utils.log_command("backsolvedlion", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "backsolvedlion", ctx.guild, ctx.channel, ctx.author
+        )
         await self.statuslion(ctx, "backsolved", answer)
 
     @command_predicates.is_solver()
@@ -335,7 +343,9 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~solvedishlion
         Usage: ~solvedishlion "answer"
         """
-        await logging_utils.log_command("solvedishlion", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "solvedishlion", ctx.guild, ctx.channel, ctx.author
+        )
         await self.statuslion(ctx, "solvedish", answer)
 
     @command_predicates.is_solver()
@@ -346,7 +356,9 @@ class LionCog(commands.Cog, name="Lion"):
         Permission Category : Solver Roles only.
         Usage: ~unsolvedlion
         """
-        await logging_utils.log_command("unsolvedlion", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "unsolvedlion", ctx.guild, ctx.channel, ctx.author
+        )
         await self.statuslion(ctx, "in progress", answer)
 
     @command_predicates.is_solver()
@@ -402,15 +414,15 @@ class LionCog(commands.Cog, name="Lion"):
 
             row_to_find = chan_cell.row
 
-            #discord_channel_id_col = sheets_constants.DISCORD_CHANNEL_ID_COLUMN
+            # discord_channel_id_col = sheets_constants.DISCORD_CHANNEL_ID_COLUMN
             sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
-            #puzz_name_col = overview.acell(sheets_constants.PUZZLE_NAME_COLUMN_LOCATION).value
+            # puzz_name_col = overview.acell(sheets_constants.PUZZLE_NAME_COLUMN_LOCATION).value
             status_col = overview.acell(sheets_constants.STATUS_COLUMN_LOCATION).value
-            #answer_col = overview.acell(sheets_constants.ANSWER_COLUMN_LOCATION).value
+            # answer_col = overview.acell(sheets_constants.ANSWER_COLUMN_LOCATION).value
 
             tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
-            #chan_name_loc = sheets_constants.TAB_CHAN_NAME_LOCATION
-            #url_loc = sheets_constants.TAB_URL_LOCATION
+            # chan_name_loc = sheets_constants.TAB_CHAN_NAME_LOCATION
+            # url_loc = sheets_constants.TAB_URL_LOCATION
 
             tab_id = overview.acell(sheet_tab_id_col + str(row_to_find)).value
             puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
@@ -544,7 +556,6 @@ class LionCog(commands.Cog, name="Lion"):
         tab_id = overview.acell(sheet_tab_id_col + str(row_to_find)).value
         puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
 
-
         tab_id = overview.acell(sheet_tab_id_col + str(row_to_find)).value
         puzzle_tab = curr_sheet.get_worksheet_by_id(int(tab_id))
         puzzle_tab.update_index(len(curr_sheet.worksheets()))
@@ -588,39 +599,41 @@ class LionCog(commands.Cog, name="Lion"):
 
             discord_channel_id_col = sheets_constants.DISCORD_CHANNEL_ID_COLUMN
             sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
-            puzz_name_col = overview.acell(sheets_constants.PUZZLE_NAME_COLUMN_LOCATION).value
+            puzz_name_col = overview.acell(
+                sheets_constants.PUZZLE_NAME_COLUMN_LOCATION
+            ).value
             status_col = overview.acell(sheets_constants.STATUS_COLUMN_LOCATION).value
             answer_col = overview.acell(sheets_constants.ANSWER_COLUMN_LOCATION).value
-            
+
             final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
 
             chan_name_for_sheet_ref = chan_name.replace("'", "''")
             batch_update_builder = batch_update_utils.BatchUpdateBuilder()
 
             batch_update_builder.update_cell_by_label(
-                sheet_id = overview.id,
-                label = puzz_name_col + str(first_empty),
-                value = f'=HYPERLINK("{final_sheet_link}", "{chan_name}")',
-                is_formula = True,
+                sheet_id=overview.id,
+                label=puzz_name_col + str(first_empty),
+                value=f'=HYPERLINK("{final_sheet_link}", "{chan_name}")',
+                is_formula=True,
             )
 
             batch_update_builder.update_cell_by_label(
-                sheet_id = overview.id,
-                label = discord_channel_id_col + str(first_empty),
-                value = str(new_chan.id),
+                sheet_id=overview.id,
+                label=discord_channel_id_col + str(first_empty),
+                value=str(new_chan.id),
             )
 
             batch_update_builder.update_cell_by_label(
-                sheet_id = overview.id,
-                label = sheet_tab_id_col + str(first_empty),
-                value = str(newsheet.id),
+                sheet_id=overview.id,
+                label=sheet_tab_id_col + str(first_empty),
+                value=str(newsheet.id),
             )
 
             unstarted = sheets_constants.UNSTARTED_NAME
             batch_update_builder.update_cell_by_label(
-                sheet_id = overview.id,
-                label = status_col + str(first_empty),
-                value = unstarted,
+                sheet_id=overview.id,
+                label=status_col + str(first_empty),
+                value=unstarted,
             )
 
             chan_name_for_sheet_ref = tab_name.replace("'", "''")
@@ -629,15 +642,19 @@ class LionCog(commands.Cog, name="Lion"):
             url_loc = sheets_constants.TAB_URL_LOCATION
 
             batch_update_builder.update_cell_by_label(
-                sheet_id = overview.id,
-                label = answer_col + str(first_empty),
-                value = f"='{chan_name_for_sheet_ref}'!{tab_ans_loc}",
+                sheet_id=overview.id,
+                label=answer_col + str(first_empty),
+                value=f"='{chan_name_for_sheet_ref}'!{tab_ans_loc}",
                 is_formula=True,
             )
 
-            batch_update_builder.update_cell_by_label(sheet_id=newsheet.id, label=chan_name_loc, value=chan_name)
+            batch_update_builder.update_cell_by_label(
+                sheet_id=newsheet.id, label=chan_name_loc, value=chan_name
+            )
             if url:
-                batch_update_builder.update_cell_by_label(sheet_id=newsheet.id, label=url_loc, value=url)
+                batch_update_builder.update_cell_by_label(
+                    sheet_id=newsheet.id, label=url_loc, value=url
+                )
 
             sheet.batch_update(batch_update_builder.build())
 
@@ -729,7 +746,9 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~threadlion PuzzleName
         Usage: ~threadlion PuzzleName linktopuzzle
         """
-        await logging_utils.log_command("threadlion", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "threadlion", ctx.guild, ctx.channel, ctx.author
+        )
 
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
@@ -761,7 +780,9 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~metathreadlion PuzzleName
         Usage: ~metathreadlion PuzzleName linktopuzzle
         """
-        await logging_utils.log_command("metathreadlion", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "metathreadlion", ctx.guild, ctx.channel, ctx.author
+        )
 
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
@@ -817,7 +838,9 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~metasheetlion PuzzleName
         Usage: ~metasheetlion PuzzleName linktopuzzle
         """
-        await logging_utils.log_command("metasheetlion", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "metasheetlion", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         curr_sheet_link, newsheet = None, None
@@ -1105,7 +1128,9 @@ class LionCog(commands.Cog, name="Lion"):
 
     # @command_predicates.is_verified()
     # @commands.command(name="clonelion")
-    async def clonelion(self, ctx, huntroundname: str, hunturl: str, folderurl: str = None):
+    async def clonelion(
+        self, ctx, huntroundname: str, hunturl: str, folderurl: str = None
+    ):
         """Clone the template and names the new sheet. Also tethers the new sheet to the category.
 
         Useful when we want to make a new sheet for a new set of rounds.
@@ -1167,7 +1192,9 @@ class LionCog(commands.Cog, name="Lion"):
         Permission Category : Verified Roles only.
         Usage: ~clonetemplatelion SheetName
         """
-        await logging_utils.log_command("clonetemplatelion", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "clonetemplatelion", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         result = self.findtemplate(ctx)
@@ -1236,7 +1263,9 @@ class LionCog(commands.Cog, name="Lion"):
 
         Usage: ~tetherlion sheeturl
         """
-        await logging_utils.log_command("tetherlion", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "tetherlion", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         if await self.validate_template(ctx, sheet_key_or_link) is None:

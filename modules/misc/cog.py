@@ -136,7 +136,9 @@ class MiscCog(commands.Cog, name="Misc"):
 
         Usage : `~permcathelp`
         """
-        await logging_utils.log_command("permcathelp", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "permcathelp", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         embed.add_field(
@@ -214,7 +216,9 @@ class MiscCog(commands.Cog, name="Misc"):
         Usage: `~botsayembed channelname Message`
         Usage: `~botsayembed #channelmention Longer Message`
         """
-        await logging_utils.log_command("botsayembed", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "botsayembed", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         if len(args) < 1:

@@ -11,6 +11,7 @@ from utils import logging_utils, time_utils, discord_utils
 # Code partially taken from Ravenclaw-Discord-Bot, also a bot by Kevslinger
 # https://github.com/kevslinger/ravenclaw-discord-bot
 
+
 class TimeCog(commands.Cog, name="Time"):
     """Get time and timezone of any location"""
 
