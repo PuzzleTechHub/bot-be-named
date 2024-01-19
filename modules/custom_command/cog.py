@@ -81,7 +81,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Permission Category : Trusted Roles only.
         Usage: `~addccommand command_name "This is my custom command!"`
         """
-        logging_utils.log_command(
+        await logging_utils.log_command(
             "addcustomcommand", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
@@ -108,7 +108,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Usage: `~addcimage command_name Link_to_image`
         Usage: `~addcimage command_name Link_to_hyperlink`
         """
-        logging_utils.log_command("addcustomimage", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("addcustomimage", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if len(args) <= 0:
@@ -134,7 +134,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Permission Category : Bot Owner only.
         Usage: `~addglobalccommand command_name "This is my custom command!"`
         """
-        logging_utils.log_command(
+        await logging_utils.log_command(
             "addglobalcustomcommand", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
@@ -162,7 +162,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Usage: `~addglobalcimage command_name Link_to_image`
         Usage: `~addglobalcimage command_name Link_to_hyperlink`
         """
-        logging_utils.log_command(
+        await logging_utils.log_command(
             "addglobalcustomimage", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
@@ -187,7 +187,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
 
         Usage: `~listccommands`
         """
-        logging_utils.log_command(
+        await logging_utils.log_command(
             "lscustomcommands", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
@@ -248,7 +248,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Usage: `~editcustomcommand potato "My new return value"`
         """
         # TODO - Merge with add_cc generic
-        logging_utils.log_command(
+        await logging_utils.log_command(
             "editcustomcommand", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
@@ -313,7 +313,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
         Permission Category : Trusted Roles or Bot Owner only.
         Usage: `~rmcustomcommand potato`
         """
-        logging_utils.log_command("rmcustomcommand", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("rmcustomcommand", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         command_name = command_name.lower()

@@ -3,6 +3,7 @@ __pycache__
 .env
 venv/
 error_logfile.txt
+error_webhook.txt
 /archive/
 .idea
 modules/perfect_pitch/music/tunes

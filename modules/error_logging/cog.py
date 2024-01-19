@@ -20,7 +20,7 @@ class ErrorLogCog(commands.Cog):
         Permission Category : Admin and Bot Owner only.
         Usage: `~errorlog`
         """
-        logging_utils.log_command("errorlog", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("errorlog", ctx.guild, ctx.channel, ctx.author)
         if not os.path.exists(error_constants.ERROR_LOGFILE):
             embed = discord_utils.create_embed()
             embed.add_field(

@@ -3,8 +3,8 @@ import traceback
 from nextcord import logging
 from nextcord.ext.commands import errors
 from modules.error_logging import error_constants
-from datetime import datetime
-
+from utils import logging_utils
+import os
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
 # https://github.com/DenverCoder1/professor-vector-discord-bot
@@ -15,6 +15,7 @@ class ErrorHandler:
         self.message = message
         self.error = error
         self.human_readable_msg = human_readable_msg
+
         # Formats the error as traceback
         self.trace = traceback.format_exc()
         traceback.print_exception(
@@ -27,7 +28,12 @@ class ErrorHandler:
         print(f"In handle_error")
         logging.warning(error_details)
         print(f"Printing from handle_error: {error_details}")
-        self.__log_to_file(error_constants.ERROR_LOGFILE, error_details)
+    
+        logging_utils.log_to_file(error_constants.ERROR_LOGFILE, error_details)
+
+        exceptions = "".join(traceback.format_exception(type(self.error), self.error, self.error.__traceback__))
+        print(exceptions)
+
         user_error = self.__user_error_message()
         if user_error == -1:  # No error from __user_error_message
             return error_details
@@ -80,18 +86,10 @@ class ErrorHandler:
             # This would happen if the perm is not available in that server.
             else:
                 return (
-                    f"You don't have the necessary permissions to use that command! Speak with kevslinger to "
+                    f"You don't have the necessary permissions to use that command! Speak with a bot owner or a server administrator to "
                     f"get your permissions set up for that."
                 )
         # elif isinstance(self.error, errors.HTTPException):
         #    return f"Some HTTPException (We don't know what's going on)"
         else:
             return -1  # No Error found
-
-    def __log_to_file(self, filename: str, text: str):
-        """Appends the error to the error log file"""
-        with open(filename, "a") as f:
-            f.write(f"[ {datetime.now().strftime('%m-%d-%Y, %H:%M:%S')} ] {text}\n\n")
-            traceback.print_exception(
-                type(self.error), self.error, self.error.__traceback__, file=f
-            )

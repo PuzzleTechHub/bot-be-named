@@ -46,7 +46,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Permission Category : Solver Roles only.
         Usage : `~tether SheetLink`
         """
-        logging_utils.log_command("addsheettether", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("addsheettether", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         proposed_sheet = sheet_utils.addsheettethergeneric(
@@ -95,7 +95,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Permission Category : Solver Roles only.
         Usage : `~chantether SheetLink`
         """
-        logging_utils.log_command(
+        await logging_utils.log_command(
             "addchannelsheettether", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
@@ -129,7 +129,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         aliases=[
             "deletetether",
             "untether",
-            "removesheettether",
             "deltether",
             "removetetherlion",
             "deltetherlion",
@@ -144,7 +143,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Permission Category : Solver Roles only.
         Usage : `~removetether`
         """
-        logging_utils.log_command(
+        await logging_utils.log_command(
             "removesheettether", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
@@ -226,7 +225,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Permission Category : Owner or Admin only
         Usage : `~prunetethers`
         """
-        logging_utils.log_command("prunetethers", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("prunetethers", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         to_delete = await self.prune_tethers()
@@ -249,7 +248,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Permission Category : Solver Roles only.
         Usage : `~showtether`
         """
-        logging_utils.log_command(
+        await logging_utils.log_command(
             "displaysheettether", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
@@ -325,7 +324,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Permission Category : Solver Roles only.
         Usage: `~savesheet`
         """
-        logging_utils.log_command("downloadsheet", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("downloadsheet", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         http = self.gdrive_credentials.authorize(httplib2.Http())

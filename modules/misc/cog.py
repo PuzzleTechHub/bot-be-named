@@ -27,7 +27,7 @@ class MiscCog(commands.Cog, name="Misc"):
         Usage : `~emoji snoo_glow delete`
         Usage : `~emoji :snoo_grin:`
         """
-        logging_utils.log_command("emoji", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("emoji", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         try:
@@ -88,7 +88,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
         Usage : `~about`
         """
-        logging_utils.log_command("about", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("about", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
@@ -113,7 +113,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
         Usage : `~startup`
         """
-        logging_utils.log_command("startup", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("startup", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         embed.add_field(
@@ -122,10 +122,10 @@ class MiscCog(commands.Cog, name="Misc"):
             f"- `{ctx.prefix}help` for a list of commands\n"
             f"- `{ctx.prefix}help commandname` for a description of a command (and its limitations). \n **When in doubt, use this command**.\n"
             f"- `{ctx.prefix}chanlion` and `{ctx.prefix}sheetlion` for making Google Sheet tabs for your current hunt\n"
-            f"- `{ctx.prefix}solvedlion` etc for marking puzzle channels as solved etc\n"
+            f"- `{ctx.prefix}solvedlion` etc for marking puzzle channels as solved etc, and `{ctx.prefix}mtalion` for cleaning up the channels. \n"
             f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply.\n\n"
             f"Note that most commands are only restricted to certain Permission Categories. The current categories for those are - Verified/Trusted/Solver/Tester. These need to be configured accordingly.\n"
-            f"- `{ctx.prefix}addperm` for setting up Permission Categories on your server (see `{ctx.prefix}help addperm` for an explanation)\n",
+            f"- `{ctx.prefix}addperm` for setting up Permission Categories on your server (see `{ctx.prefix}help addperm` and `{ctx.prefix} permcathelp`for an explanation)\n",
             inline=False,
         )
         await ctx.send(embed=embed)
@@ -136,7 +136,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
         Usage : `~permcathelp`
         """
-        logging_utils.log_command("permcathelp", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("permcathelp", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         embed.add_field(
@@ -167,7 +167,7 @@ class MiscCog(commands.Cog, name="Misc"):
         Usage: `~botsay channelname Message`
         Usage: `~botsay #channelmention Longer Message`
         """
-        logging_utils.log_command("botsay", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("botsay", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if len(args) < 1:
@@ -214,7 +214,7 @@ class MiscCog(commands.Cog, name="Misc"):
         Usage: `~botsayembed channelname Message`
         Usage: `~botsayembed #channelmention Longer Message`
         """
-        logging_utils.log_command("botsayembed", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("botsayembed", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if len(args) < 1:

@@ -21,7 +21,7 @@ class LookupCog(commands.Cog, name="Lookup"):
 
         Usage: `~search <target_site> <[query...]>`
         """
-        logging_utils.log_command("search", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("search", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if len(args) < 1:
@@ -86,7 +86,7 @@ class LookupCog(commands.Cog, name="Lookup"):
 
         Usage: `~google <[query...]>`
         """
-        logging_utils.log_command("google", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("google", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         results = lookup_utils.search_query(" ".join(args))
@@ -103,7 +103,7 @@ class LookupCog(commands.Cog, name="Lookup"):
 
         Usage: `~wikipedia <[query...]>`
         """
-        logging_utils.log_command("wikipedia", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("wikipedia", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         results = lookup_utils.search_query(

@@ -36,7 +36,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         Usage: `~assignrole "NewRoleName" @User1`
         Usage: `~assignrole "NewRolename"` (if no users given, just creates the role)
         """
-        logging_utils.log_command("assignrole", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("assignrole", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if isinstance(rolename, nextcord.Member):
@@ -163,7 +163,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         Usage: `~unassignrole @RoleName here (Everyone who can see this channel, including BBN)`
         Usage: `~unassignrole "RoleName" "User 1"`
         """
-        logging_utils.log_command("unassignrole", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("unassignrole", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         role_to_unassign = await discord_utils.find_role(ctx, rolename)
@@ -277,7 +277,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         Usage: `~clonerole @RoleName "NewRoleName"`
         Usage: `~clonerole @RoleName @RoleName2`
         """
-        logging_utils.log_command("clonerole", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("clonerole", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         oldrole_as_role = await discord_utils.find_role(ctx, oldrole)
@@ -348,7 +348,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         Usage: `~deleterole "RoleName"`
         Usage: `~deleterole @RoleMention`
         """
-        logging_utils.log_command("deleterole", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("deleterole", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         role_to_delete = await discord_utils.find_role(ctx, rolename)
@@ -389,7 +389,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         Usage:`~listroles` (All roles in the server)
         Usage:`~listrole @RoleName` (List all users with role @RoleName)
         """
-        logging_utils.log_command("listroles", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("listroles", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if rolename == "":
@@ -434,7 +434,7 @@ class RoleManagementCog(commands.Cog, name="Role Management"):
         Usage:(as reply to message) `~unreactrole here` (Everyone who can see this channel, including BBN)
         Usage:(to just consider the last message) `~unreactrole @RoleA "RoleB"`
         """
-        logging_utils.log_command("unreactrole", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("unreactrole", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         members = []

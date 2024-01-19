@@ -31,7 +31,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~pin` (to just pin the last message)
         Usage: `~pin del` (to pin the message and also delete the msg)
         """
-        logging_utils.log_command("pin", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("pin", ctx.guild, ctx.channel, ctx.author)
 
         if not ctx.message.reference:
             channel_history = await ctx.message.channel.history(limit=2).flatten()
@@ -66,7 +66,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         Usage : `~pinme Message`
         """
-        logging_utils.log_command("pinme", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("pinme", ctx.guild, ctx.channel, ctx.author)
 
         embed_or_none = await discord_utils.pin_message(ctx.message)
         # Error pinning, send error message to user
@@ -82,7 +82,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~unpin 2` (unpins latest 2 pins)
         Usage: `~unpin` (as a reply to pinned message)
         """
-        logging_utils.log_command("unpin", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("unpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if num_to_unpin < 1 or not isinstance(num_to_unpin, int):
@@ -150,7 +150,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~listpins~`
         """
 
-        logging_utils.log_command("listpin", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("listpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         pins = await ctx.message.channel.pins()
@@ -182,7 +182,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         Permission Category : Verified Roles only.
         Usage: `~stats`
         """
-        logging_utils.log_command("stats", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("stats", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         guild = ctx.guild
@@ -221,7 +221,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~catstats` (current category)
         Usage: `~catstats "Cat Name"` (Named category)
         """
-        logging_utils.log_command("catstats", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("catstats", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if cat_name == "":
@@ -267,7 +267,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         Usage: `~listreacts` (as a reply to a message)
         """
-        logging_utils.log_command("listreacts", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("listreacts", ctx.guild, ctx.channel, ctx.author)
 
         if not ctx.message.reference:
             embed.add_field(
@@ -302,7 +302,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         Usage: `~listemojis`
         """
-        logging_utils.log_command("listemoji", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("listemoji", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         embed.add_field(
             name=f"Emoji in {ctx.guild.name}",
@@ -322,7 +322,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         Permission Category : Verified Roles only.
         Usage: `~steal :emote1: :emote2:`
         """
-        logging_utils.log_command("steal", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("steal", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         for emoji in emojis:
@@ -369,7 +369,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         Usage: `~getsource` (as a reply to the message)
         """
-        logging_utils.log_command("getsource", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("getsource", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         # If not direct reply to another message
