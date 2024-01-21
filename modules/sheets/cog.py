@@ -349,9 +349,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 )
                 await ctx.send(embed=embed)
                 return
+            sheet_url = tether_db_result.sheet_link
 
+        
         sheet = sheet_utils.get_sheet_from_key_or_link(
-            self.gspread_client, tether_db_result.sheet_link
+            self.gspread_client, sheet_url
         )
         if sheet is None:
             embed.add_field(
