@@ -8,10 +8,14 @@ from typing import Tuple, Union
 from utils import discord_utils, logging_utils, command_predicates
 from modules.archive import archive_constants, archive_utils
 
+"""
+Archive module. Downloads a channel's history and sends it as a file
+"""
+
 
 class ArchiveCog(commands.Cog, name="Archive"):
     """
-    Archive module. Downloads a channel's history and sends it as a file
+    Downloads a channel's history and sends it as a file
     """
 
     def __init__(self, bot):

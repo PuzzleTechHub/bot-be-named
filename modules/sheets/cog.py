@@ -14,11 +14,15 @@ from utils import sheets_constants
 from utils import discord_utils, google_utils, logging_utils, command_predicates
 from utils import sheet_utils
 
+"""
+Sheets module. Useful for any sheet related commands.
+Required to allow Lion/Hydra commands.
+"""
+
 
 class SheetsCog(commands.Cog, name="Sheets"):
     """
-    Sheets module. Useful for any sheet related commands.
-    Required to allow Lion/Hydra commands.
+    Useful for any sheet related commands.
     """
 
     def __init__(self, bot):

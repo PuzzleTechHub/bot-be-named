@@ -6,12 +6,16 @@ from utils import sheets_constants
 from nextcord.ext import commands
 from utils import discord_utils, logging_utils, command_predicates
 
+"""
+Discord Channel management module. Bundle of all discord functions and commands related to managing a specific discord channel and managing it.
+
+Code copied/adapted from DenverCoder1's  professor-vector-discord-bot repo - https://github.com/DenverCoder1/professor-vector-discord-bot
+"""
+
 
 class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management"):
     """
-    Discord Channel management module. Bundle of all discord functions and commands related to managing a specific discord channel and managing it.
-
-    Code copied/adapted from DenverCoder1's  professor-vector-discord-bot repo - https://github.com/DenverCoder1/professor-vector-discord-bot
+    For managing channels on discord.
     """
 
     def __init__(self, bot):
@@ -932,7 +936,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         await ctx.send(embed=embed)
 
     @command_predicates.is_verified()
-    @commands.command(name="clonecat",aliases=["copycategory", "clonecategory", "copycat", "catclone"])
+    @commands.command(
+        name="clonecat",
+        aliases=["copycategory", "clonecategory", "copycat", "catclone"],
+    )
     async def clonecategory(
         self,
         ctx,

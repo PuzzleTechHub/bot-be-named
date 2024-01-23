@@ -1,12 +1,8 @@
 import constants
-import nextcord
 import gspread
 import asyncio
-import emoji
 from nextcord.ext import commands
-from typing import Union
 from utils import (
-    batch_update_utils,
     discord_utils,
     google_utils,
     logging_utils,
@@ -14,12 +10,15 @@ from utils import (
     sheets_constants,
 )
 from utils import sheet_utils
-from utils import solved_utils
+
+"""
+Hydra module. Module with more advanced GSheet-Discord interfacing. See module's README.md for more.
+"""
 
 
 class HydraCog(commands.Cog, name="Hydra"):
     """
-    Hydra module. Module with more advanced GSheet-Discord interfacing. See module's README.md for more.
+    More powerful useful GSheet-Discord commands.
     """
 
     def __init__(self, bot):
@@ -31,11 +30,9 @@ class HydraCog(commands.Cog, name="Hydra"):
     ############################
     # LION DUPLICATED COMMANDS #
     ############################
-    
 
-    async def findchanidcell(self, ctx, sheet_link):
+    async def findchanidcell(self, ctx, sheet_link, list_channel_id):
         """Find the cell with the discord channel id based on lion overview"""
-        curr_chan_id = ctx.channel.id
         curr_sheet = None
         overview = None
         try:
@@ -69,21 +66,13 @@ class HydraCog(commands.Cog, name="Hydra"):
             await ctx.send(embed=embed)
             return
 
-        curr_chan_or_cat_cell = None
-        # Search first column for the channel
-        curr_chan_or_cat_cell = overview.find(str(curr_chan_id), in_column=1)
-        if curr_chan_or_cat_cell is None:
-            # If there is no tether for the specific channel, check if there is one for the category.
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value=f"I couldn't find the channel {ctx.channel.mention} in the sheet."
-                f" Are you sure this channel is linked to a puzzle?",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-
-        return curr_chan_or_cat_cell, overview
+        all_chan_ids = []
+        for channel_id in list_channel_id:
+            curr_chan_or_cat_cell = None
+            # Search first column for the channel
+            curr_chan_or_cat_cell = overview.find(str(channel_id), in_column=1)
+            all_chan_ids.append((curr_chan_or_cat_cell, overview))
+        return all_chan_ids
 
     def firstemptyrow(self, worksheet):
         """Finds the first empty row in a worksheet"""
@@ -94,7 +83,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     ###################
 
     @command_predicates.is_solver()
-    @commands.command(name="catsummaryhydra", aliases = ['categorysummaryhydra'])
+    @commands.command(name="catsummaryhydra", aliases=["categorysummaryhydra"])
     async def catsummaryhydra(self, ctx, cat_name: str = ""):
         """For all channels in the current category, gets a summary of the channels via the Ovewview column. Pastes the summary already in there.
 
@@ -103,10 +92,12 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~catsummaryhydra`
         Usage: `~catsummaryhydra "Cat Name"` (Named category)
         """
-        await logging_utils.log_command("catsummaryhydra", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "catsummaryhydra", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
-        #Make sure it's a valid category to summarise
+        # Make sure it's a valid category to summarise
         if cat_name == "":
             currcat = ctx.message.channel.category
         else:
@@ -119,28 +110,55 @@ class HydraCog(commands.Cog, name="Hydra"):
             await ctx.send(embed=embed)
             return
 
+        start_embed = discord_utils.create_embed()
+        start_embed.add_field(
+            name="Summary Started",
+            value=f"Your summarizing of category `{currcat.name}`"
+            f" has begun! This may take a while. If I run into "
+            f"any errors, I'll let you know.",
+            inline=False,
+        )
+
+        start_msg = await ctx.send(embed=start_embed)
         try:
             allchans = currcat.text_channels
             messages = []
+            allsheets = []
+
+            # Group all channels sharing the same tethered sheet. Now find the right cell
             for currchan in allchans:
-                result, _ = sheet_utils.findsheettether(str(currchan.category_id), str(currchan.id))
+                result, _ = sheet_utils.findsheettether(
+                    str(currchan.category_id), str(currchan.id)
+                )
                 if result is None:
                     messages.append(f"- {currchan.mention} - N/A")
                     continue
-
-                #Channel does in fact have a sheettether. Now find the right cell
                 curr_sheet_link = result.sheet_link
-                chan_cell, overview = None, None
-                chan_cell, overview = await self.findchanidcell(ctx, curr_sheet_link)
-                if chan_cell is None or overview is None:
-                    messages.append(f"- {currchan.mention} - N/A")
-                    continue
+                allsheets.append((curr_sheet_link, currchan))
 
-                #Right cell exists
-                row_to_find = chan_cell.row
-                overview_col = sheets_constants.OVERVIEW_COLUMN
-                overview_desc = overview.acell(overview_col + str(row_to_find)).value
-                messages.append(f"- {currchan.mention} - {overview_desc[:100]}")
+            all_unique_sheets = list(set([x[0] for x in allsheets]))
+
+            for curr_sheet_link in all_unique_sheets:
+                list_curr_sheet_chans = [
+                    x[1] for x in allsheets if x[0] == curr_sheet_link
+                ]
+                list_chan_cells_overview = await self.findchanidcell(
+                    ctx, curr_sheet_link, [x.id for x in list_curr_sheet_chans]
+                )
+
+                for i in range(len(list_curr_sheet_chans)):
+                    currchan = list_curr_sheet_chans[i]
+                    chan_cell, overview = list_chan_cells_overview[i]
+                    if chan_cell is None or overview is None:
+                        messages.append(f"- {currchan.mention} - N/A")
+                        continue
+
+                    row_to_find = chan_cell.row
+                    overview_col = sheets_constants.OVERVIEW_COLUMN
+                    overview_desc = overview.acell(
+                        overview_col + str(row_to_find)
+                    ).value
+                    messages.append(f"- {currchan.mention} - {overview_desc[:100]}")
         # Error when we can't open the curr sheet link
         except gspread.exceptions.APIError as e:
             error_json = e.response.json()
@@ -158,7 +176,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             else:
                 raise e
 
-        message = "\n".join(messages)        
+        message = "\n".join(messages)
         embed.add_field(
             name=f"{constants.SUCCESS}",
             value=f"Summary of Category `{currcat.name}` ({len(allchans)} text channels) - \n"
@@ -166,9 +184,12 @@ class HydraCog(commands.Cog, name="Hydra"):
             inline=False,
         )
 
+        if start_msg:
+            await start_msg.delete()
         embeds = discord_utils.split_embed(embed)
         for embed in embeds:
             await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(HydraCog(bot))

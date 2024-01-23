@@ -7,11 +7,15 @@ import constants
 from nextcord.ext import commands
 from utils import discord_utils, logging_utils, command_predicates
 
+"""
+Discord module. Functions and commands related specificially to discord functionality, that does not intersect with any other modules.
+For example, pinning/unpinning messages, or getting statistics for a server.
+"""
+
 
 class DiscordCog(commands.Cog, name="Discord"):
     """
-    Discord module. Functions and commands related specificially to discord functionality, that does not intersect with any other modules.
-    For example, pinning/unpinning messages, or getting statistics for a server.
+    Commands for generic discord things.
     """
 
     def __init__(self, bot):

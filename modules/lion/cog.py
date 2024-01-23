@@ -16,10 +16,14 @@ from utils import (
 from utils import sheet_utils
 from utils import solved_utils
 
+"""
+Lion module. Module with GSheet-Discord interfacing. See module's README.md for more.
+"""
+
 
 class LionCog(commands.Cog, name="Lion"):
     """
-    Lion module. Module with GSheet-Discord interfacing. See module's README.md for more.
+    Useful GSheet-Discord commands.
     """
 
     def __init__(self, bot):

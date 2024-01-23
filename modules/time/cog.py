@@ -6,11 +6,15 @@ from modules.time import time_utils
 from nextcord.ext import commands
 from utils import logging_utils, discord_utils
 
+"""
+Time module. Code to get time and timezone from different locations, convert timezones and similar.
+Code copied/adapted from Kevslinger's Ravenclaw-Discord-Bot repo - https://github.com/kevslinger/ravenclaw-discord-bot
+"""
+
 
 class TimeCog(commands.Cog, name="Time"):
     """
-    Time module. Code to get time and timezone from different locations, convert timezones and similar.
-    Code copied/adapted from Kevslinger's Ravenclaw-Discord-Bot repo - https://github.com/kevslinger/ravenclaw-discord-bot
+    For timezone conversions and similar.
     """
 
     def __init__(self, bot):

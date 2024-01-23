@@ -8,11 +8,15 @@ from utils import discord_utils, logging_utils, command_predicates
 from database import models
 from typing import Union
 
+"""
+Admin module. Bundle of commands related to Bot management and permission categories,
+as well as other commands useful for bot owners and admins generally.
+"""
+
 
 class AdminCog(commands.Cog, name="Admin"):
     """
-    Admin module. Bundle of commands related to Bot management and permission categories,
-    as well as other commands useful for bot owners and admins generally.
+    Commands for bot owners and bot management commands for server admins.
     """
 
     def __init__(self, bot):

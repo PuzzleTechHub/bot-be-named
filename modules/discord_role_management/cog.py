@@ -4,10 +4,14 @@ from nextcord.ext import commands
 from typing import Union
 from utils import discord_utils, logging_utils, command_predicates
 
+"""
+Discord Role management module. Bundle of all discord functions and commands related to managing roles in any discord guild.
+"""
+
 
 class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
     """
-    Discord Role management module. Bundle of all discord functions and commands related to managing roles in any discord guild.
+    For managing roles on discord.
     """
 
     def __init__(self, bot):

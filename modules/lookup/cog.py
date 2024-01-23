@@ -7,10 +7,14 @@ from nextcord.ext import commands
 from utils import discord_utils, logging_utils
 from modules.lookup import lookup_constants, lookup_utils
 
+"""
+Lookup module. Performs google searches and similar.
+"""
+
 
 class LookupCog(commands.Cog, name="Lookup"):
     """
-    Lookup module. Performs google searches and similar.
+    Performs google searches and similar.
     """
 
     def __init__(self, bot):

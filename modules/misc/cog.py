@@ -6,10 +6,14 @@ from emoji import EMOJI_DATA
 from typing import Union
 from utils import discord_utils, logging_utils, command_predicates
 
+"""
+Misc module. A collection of Misc useful/fun commands. Also everything not in any other module.
+"""
+
 
 class MiscCog(commands.Cog, name="Misc"):
     """
-    Misc module. A collection of Misc useful/fun commands. Also everything not in any other module.
+    A collection of Misc useful/fun commands.
     """
 
     def __init__(self, bot):
