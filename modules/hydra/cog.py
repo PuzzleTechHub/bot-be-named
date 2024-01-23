@@ -158,7 +158,10 @@ class HydraCog(commands.Cog, name="Hydra"):
                     overview_desc = overview.acell(
                         overview_col + str(row_to_find)
                     ).value
-                    messages.append(f"- {currchan.mention} - {overview_desc[:100]}")
+                    if(overview_desc is not None):
+                        messages.append(f"- {currchan.mention} - {overview_desc[:100]}")
+                    else:
+                        messages.append(f"- {currchan.mention} - N/A")
         # Error when we can't open the curr sheet link
         except gspread.exceptions.APIError as e:
             error_json = e.response.json()
