@@ -1,14 +1,16 @@
 import nextcord
 import os
+import constants
 from nextcord.ext import commands
 from emoji import EMOJI_DATA
 from typing import Union
-import constants
 from utils import discord_utils, logging_utils, command_predicates
 
 
 class MiscCog(commands.Cog, name="Misc"):
-    """A collection of Misc useful/fun commands"""
+    """
+    Misc module. A collection of Misc useful/fun commands. Also everything not in any other module.
+    """
 
     def __init__(self, bot):
         self.bot = bot

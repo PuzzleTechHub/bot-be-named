@@ -2,18 +2,16 @@ import geopy
 import datetime
 import os
 import constants
-
 from modules.time import time_utils
 from nextcord.ext import commands
-from nextcord.ext.tasks import loop
-from utils import logging_utils, time_utils, discord_utils
-
-# Code partially taken from Ravenclaw-Discord-Bot, also a bot by Kevslinger
-# https://github.com/kevslinger/ravenclaw-discord-bot
+from utils import logging_utils, discord_utils
 
 
 class TimeCog(commands.Cog, name="Time"):
-    """Get time and timezone of any location"""
+    """
+    Time module. Code to get time and timezone from different locations, convert timezones and similar.
+    Code copied/adapted from Kevslinger's Ravenclaw-Discord-Bot repo - https://github.com/kevslinger/ravenclaw-discord-bot
+    """
 
     def __init__(self, bot):
         self.bot = bot

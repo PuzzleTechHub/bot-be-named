@@ -4,6 +4,13 @@ from nextcord.ext.commands.errors import ChannelNotFound, ThreadNotFound
 from typing import List, Union
 import constants
 
+"""
+Discord utils. Lots of little functions required for making smoother discord operations, 
+or deduplicating important code that applies broadly to any Discord facing commands.
+Used throughout the bot.
+"""
+
+
 ##########
 # CHECKS #
 ##########

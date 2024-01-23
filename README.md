@@ -12,7 +12,8 @@
 ## What is Bot-Be-Named
 
 A Discord bot that interoperates with Google Sheets to smoothen solving puzzle hunts. 
-If you would like to add Bot-Be-Named to your server, please contact `@talesfromtim` on discord. 
+
+If you would like to add our instance of Bot-Be-Named to your server, please see below.
 
 Bot-Be-Named is currently set up with our own configurations and environment variables, so might have assumptions that don't work for you. Please contact us if you need **a Bot invite link**, or to set up your own fork/instance of the bot.
 
@@ -96,27 +97,27 @@ When deploying on heroku, any variables stored in .env locally cannot be pushed 
 
 - [Admin](./modules/admin) for administrator commands
 - [Archive](./modules/archive) for downloading channel/category/server contents into a Zip file
-- [Channel Management](./modules/channel_management) for cloning, creating, and moving channels 
 - [Custom Command](./modules/custom_command) for making custom commands in different servers
 - [Discord](modules/discord) for discord utility commands (e.g. roles, stats)
+- [Discord Channel Management](./modules/discord_channel_management) for cloning, creating, and moving channels 
+- [Discord Role Management](./modules/discord_role_management) for managing roles and similar
 - [Error Logging](./modules/error_logging) for printing error logs
 - [Help](./modules/help) is an updated help command which automatically pulls docstrings for `~help`
+- [Hydra](./modules/hydra) is the **NEW AND IMPROVED** "Google Sheets-Discord" commands. Currently Work in progress. 
 - [Lion](./modules/lion) is the "Google Sheets-Discord" commands currently used in every Puzzle Hunt. 
 - [Lookup](./modules/lookup) for Searching the internet via google and wikipedia
 - [Misc](./modules/misc) for misc. random (fun) commands
-- [Role Management](./modules/role_management) for managing roles and similar
 - [Sheets](./modules/sheets) for working with Google Sheets during puzzlehunts
 - [Time](./modules/time) for finding the time anywhere in the world
 
 ## Acknowledgements
 
-This bot took heavy inspiration and code from [Jonah Lawrence](https://github.com/DenverCoder1) and his [Professor Vector](https://github.com/DenverCoder1/professor-vector-discord-bot)
-repo, specifically on the [Channel Management](./modules/channel_management), [Error Logging](./modules/error_logging), [Help](./modules/help), and [Solved](./modules/solved) modules. 
+The majority of this bot was written by [TheOriginalSoni](https://github.com/TheOriginalSoni) and [Kevslinger](https://github.com/kevslinger), with significant contributions from [Pete Cao](https://github.com/petecao) for the Lion module.
 
-A majority of this bot was written by [Kevslinger](https://github.com/kevslinger) and [TheOriginalSoni](https://github.com/TheOriginalSoni) with significant contributions from [Pete Cao](https://github.com/petecao) for the Lion module.
+There are multiple repositories and code that BBN borrowed code from, most notably [Jonah Lawrence](https://github.com/DenverCoder1) and his [Professor Vector](https://github.com/DenverCoder1/professor-vector-discord-bot). Further info is included in respective modules.
 
 ## Contributing/Issues
 
 If you find any issues, bugs, or improvements, please feel free to open an issue and/or pull request! Thank you!
 
-Feel free to join our discord at `discord (dot) gg / x8f2ywHUky` with any questions you may have!
+Feel free to join our discord at `discord (dot) gg / x8f2ywHUky` with any questions you may have! If you are unable to join the discord, contact [TheOriginalSoni](https://github.com/TheOriginalSoni) (`@talesfromtim` on discord). 

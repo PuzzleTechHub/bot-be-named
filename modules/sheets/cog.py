@@ -1,22 +1,25 @@
-import googleapiclient
-from modules.lion import sheets_constants
-from utils import discord_utils, google_utils, logging_utils, command_predicates
-from modules.sheets import sheet_utils
-import constants
-from nextcord.ext import commands
-from nextcord.ext.tasks import loop
 import nextcord
 import os
 import httplib2
-from googleapiclient import discovery
 import database
-from sqlalchemy.orm import Session
+import constants
+import googleapiclient
 import asyncio
 import shutil
+from nextcord.ext import commands
+from nextcord.ext.tasks import loop
+from googleapiclient import discovery
+from sqlalchemy.orm import Session
+from utils import sheets_constants
+from utils import discord_utils, google_utils, logging_utils, command_predicates
+from utils import sheet_utils
 
 
 class SheetsCog(commands.Cog, name="Sheets"):
-    """Google Sheets management commands"""
+    """
+    Sheets module. Useful for any sheet related commands.
+    Required to allow Lion/Hydra commands.
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -351,10 +354,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 return
             sheet_url = tether_db_result.sheet_link
 
-        
-        sheet = sheet_utils.get_sheet_from_key_or_link(
-            self.gspread_client, sheet_url
-        )
+        sheet = sheet_utils.get_sheet_from_key_or_link(self.gspread_client, sheet_url)
         if sheet is None:
             embed.add_field(
                 name=f"{constants.FAILED}",

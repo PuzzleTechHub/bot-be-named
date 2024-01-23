@@ -1,6 +1,12 @@
 from nextcord.ext import commands
 import database
 
+"""
+Commands predicate utils. Informs all the functions on the rest of the modules what level of access the function caller has.
+Currently set to multiple granularities we need most. See ~addperm and the rest of "Admin module" for more.
+Used throughout the bot.
+"""
+
 
 def is_bot_owner():
     """

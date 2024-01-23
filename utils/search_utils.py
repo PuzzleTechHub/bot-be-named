@@ -1,14 +1,18 @@
-# from  https://github.com/Moonrise55/Mbot/blob/f4e19df1df9fa4ef1a7730e63aa8009894aa304c/utils/paginator.py#L8
+"""
+Search utils. Used for retrieving info from a Google Search.
+Code liberally copied/adapted from Moonrise's MBot - https://github.com/Moonrise55/Mbot/blob/f4e19df1df9fa4ef1a7730e63aa8009894aa304c/utils/paginator.py#L8
+Used in Misc module
+"""
 
 import asyncio
-
-# set up pagination of results
 
 
 class Pages:
     """
     (self, ctx, *, solutions, weights=None, embedTemp, endflag=None)
     solutions, weights: lists
+
+    set up pagination of results
     """
 
     def __init__(self, ctx, *, solutions, weights=None, embedTemp, endflag=None):

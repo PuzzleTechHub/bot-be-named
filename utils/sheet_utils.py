@@ -1,6 +1,5 @@
 from http.client import FORBIDDEN
-import googleapiclient
-from modules.lion import sheets_constants
+from utils import sheets_constants
 from utils import discord_utils
 import constants
 import nextcord
@@ -11,6 +10,11 @@ from sqlalchemy.orm import Session
 from typing import Union
 import emoji
 
+"""
+Sheets utils. Useful for any commands that require Google Sheets.
+Contains deduplicated code and logic from multiple commands/modules then generic helper functions.
+Used in any modules that uses sheets (sheets, lion, hydra...)
+"""
 
 #########################
 # SHEET UTILS FUNCTIONS #

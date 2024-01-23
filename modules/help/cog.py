@@ -2,11 +2,15 @@ from nextcord.ext import commands
 from modules.help import help_command
 
 
-# Dont forget to shoutout my guy Jonah Lawrence aka DenverCoder1
-# As this module was copied (with minimal modification)
-# from his repo https://github.com/DenverCoder1/weasley-chess-bot
 class HelpCog(commands.Cog, name="Help"):
-    """Help"""
+    """
+    Help module.
+    Manages a `~help` command which auto-populates a list of all commands from the codebase in other cogs.
+    Also manages a customised `~help commandname` command which gets autopopulated from individual function comments.
+    (This is why you write good documentation yall!)
+
+    Code copied/adapted from DenverCoder1's Weasley-Chess-Bot repo - https://github.com/DenverCoder1/weasley-chess-bot
+    """
 
     def __init__(self, bot: commands.Bot):
         self._original_help_command = bot.help_command

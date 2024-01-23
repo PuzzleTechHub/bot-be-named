@@ -1,16 +1,19 @@
 import nextcord
+import sqlalchemy
+import database
+import constants
 from nextcord.ext import commands
 from sqlalchemy.orm import Session
-import sqlalchemy
 from utils import discord_utils, logging_utils, command_predicates
-import database
 from database import models
-import constants
 from typing import Union
 
 
 class AdminCog(commands.Cog, name="Admin"):
-    """Commands for bot management by admins and bot owners"""
+    """
+    Admin module. Bundle of commands related to Bot management and permission categories,
+    as well as other commands useful for bot owners and admins generally.
+    """
 
     def __init__(self, bot):
         self.bot = bot

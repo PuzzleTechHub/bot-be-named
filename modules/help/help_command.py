@@ -1,6 +1,4 @@
-import nextcord
 from nextcord.ext import commands
-import constants
 from utils import discord_utils
 
 

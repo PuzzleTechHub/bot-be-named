@@ -1,10 +1,13 @@
 import nextcord
-
 import constants
 from nextcord.ext import commands
-from modules.lion.prefix import Prefix
-from modules.lion import sheets_constants
-from utils import discord_utils, logging_utils
+from utils import sheets_constants
+from utils import discord_utils
+
+"""
+Solved Utils. Used to edit "solved states" from discord channels etc. Allows us to deduplicate code when trying to edit channel names etc.
+Used in any modules that combine solving and discord (solved, lion, hydra...)
+"""
 
 
 def add_prefix(channel, prefix: str):
@@ -90,3 +93,24 @@ async def status_remove(ctx: commands.Context):
         inline=False,
     )
     return embed
+
+
+class Prefix:
+    """
+    Class Prefix. Used for assigning set "prefixes" to Discord channel names and navigating them
+    Used in Lion and Hydra modules
+    """
+
+    def __init__(self, original: str, prefix: str):
+        self.original = str(original)
+        self.prefix_str = str(prefix)
+        self.prefix_len = len(self.prefix_str)
+
+    def has_prefix(self):
+        return self.original[: self.prefix_len] == self.prefix_str
+
+    def add_prefix(self):
+        return f"{self.prefix_str}{self.original}"
+
+    def remove_prefix(self):
+        return self.original[self.prefix_len :]

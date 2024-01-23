@@ -8,7 +8,9 @@ from sqlalchemy import insert
 
 
 class CustomCommandCog(commands.Cog, name="Custom Command"):
-    """Create your own custom command!"""
+    """
+    Custom command module. Allows users to set their own "custom command" of saveable image/embed/messages making a lot of easy to retrieve utility.
+    """
 
     def __init__(self, bot):
         self.bot = bot

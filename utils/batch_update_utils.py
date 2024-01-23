@@ -1,9 +1,12 @@
-import googleapiclient
-import json
 import gspread
 
 
 class BatchUpdateBuilder:
+    """
+    Batch update utils. Used to bundle our Sheet operations into one GSheets call instead of multiple calls per command.
+    Used in any module that works on sheets (lion, hydra, ...)
+    """
+
     def __init__(self):
         self.requests = []
 

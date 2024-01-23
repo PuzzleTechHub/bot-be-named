@@ -1,15 +1,17 @@
 import googlesearch
+import nextcord
+import urllib
+import re
+from utils.search_utils import Pages
 from nextcord.ext import commands
 from utils import discord_utils, logging_utils
 from modules.lookup import lookup_constants, lookup_utils
-import nextcord
-import urllib
-from utils.search_utils import Pages
-import re
 
 
 class LookupCog(commands.Cog, name="Lookup"):
-    """Performs a Google Search"""
+    """
+    Lookup module. Performs google searches and similar.
+    """
 
     def __init__(self, bot):
         self.bot = bot

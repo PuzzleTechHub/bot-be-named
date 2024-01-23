@@ -1,14 +1,19 @@
+import sys
+import os
 from nextcord.ext import commands
 from modules.error_logging.error_handling import ErrorHandler
 from modules.error_logging import error_constants
 from utils import discord_utils, logging_utils, command_predicates
-import sys
-import os
 
 
-# Big thanks to denvercoder1 and his professor-vector-discord-bot repo
-# https://github.com/DenverCoder1/professor-vector-discord-bot
 class ErrorLogCog(commands.Cog):
+    """
+    Error logging module.
+    Handles all the errors in the bot gracefully. Prints errors on respective bot log channels as well as private bot webhook.
+    See also logging_utils
+    Code copied/adapted from Denvercoder1's professor-vector-discord-bot - https://github.com/DenverCoder1/professor-vector-discord-bot
+    """
+
     def __init__(self, bot):
         self.bot = bot
 

@@ -1,16 +1,18 @@
 import typing
 import nextcord
-from nextcord.ext import commands
 import aiohttp
 import io
 import emoji
-
 import constants
+from nextcord.ext import commands
 from utils import discord_utils, logging_utils, command_predicates
 
 
 class DiscordCog(commands.Cog, name="Discord"):
-    """Discord Utility Commands"""
+    """
+    Discord module. Functions and commands related specificially to discord functionality, that does not intersect with any other modules.
+    For example, pinning/unpinning messages, or getting statistics for a server.
+    """
 
     def __init__(self, bot):
         self.bot = bot

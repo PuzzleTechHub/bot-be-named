@@ -1,16 +1,18 @@
 import nextcord
-from nextcord.ext import commands
 import constants
 import os
 import zipfile
+import asyncio
+from nextcord.ext import commands
+from typing import Tuple, Union
 from utils import discord_utils, logging_utils, command_predicates
 from modules.archive import archive_constants, archive_utils
-import asyncio
-from typing import List, Tuple, Union
 
 
 class ArchiveCog(commands.Cog, name="Archive"):
-    """Downloads a channel's history and sends it as a file"""
+    """
+    Archive module. Downloads a channel's history and sends it as a file
+    """
 
     def __init__(self, bot):
         self.bot = bot

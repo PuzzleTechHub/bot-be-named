@@ -4,6 +4,10 @@ import pandas as pd
 from oauth2client.service_account import ServiceAccountCredentials
 import json
 
+"""
+Google utils. Used for any operations related to accessing the bot's Google accounts and credentials. 
+Used in any module that uses sheets (sheets, lion, hydra...)
+"""
 
 JSON_PARAMS = [
     "type",

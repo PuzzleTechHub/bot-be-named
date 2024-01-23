@@ -4,15 +4,23 @@ import gspread
 import asyncio
 import emoji
 from nextcord.ext import commands
-from sqlalchemy.sql.expression import insert
 from typing import Union
-from utils import discord_utils, google_utils, logging_utils, command_predicates
-from modules.sheets import sheet_utils
-from modules.lion import sheets_constants, solved_utils, batch_update_utils
+from utils import (
+    batch_update_utils,
+    discord_utils,
+    google_utils,
+    logging_utils,
+    command_predicates,
+    sheets_constants,
+)
+from utils import sheet_utils
+from utils import solved_utils
 
 
 class LionCog(commands.Cog, name="Lion"):
-    """Google Sheets - Lion management commands"""
+    """
+    Lion module. Module with GSheet-Discord interfacing. See module's README.md for more.
+    """
 
     def __init__(self, bot):
         self.bot = bot

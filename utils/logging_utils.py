@@ -4,6 +4,11 @@ from nextcord import Webhook
 import aiohttp
 import os
 
+"""
+Logging utils. Sends errors to log and to a specific private webhook used for BBN errors and command usage.
+Used by all modules.
+"""
+
 webhook_url = os.getenv("WEBHOOK_URL")
 session = aiohttp.ClientSession()
 webhook = None
