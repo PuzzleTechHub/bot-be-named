@@ -396,6 +396,7 @@ class AdminCog(commands.Cog, name="Admin"):
         embed = discord_utils.create_embed()
 
         guilds = ctx.bot.guilds
+        guilds = sorted(guilds,key=lambda guild:guild.name)
 
         if len(guilds) > 0:
             guilds_string = " ".join(["`" + guild.name + "` - \n" for guild in guilds])

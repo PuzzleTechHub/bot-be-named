@@ -2,7 +2,7 @@ import googlesearch
 import nextcord
 import urllib
 import re
-from utils.search_utils import Pages
+from utils.paging_utils import Pages
 from nextcord.ext import commands
 from utils import discord_utils, logging_utils
 from modules.lookup import lookup_constants, lookup_utils
@@ -130,19 +130,7 @@ class LookupCog(commands.Cog, name="Lookup"):
             )
         await ctx.send(embed=embed)
 
-    @commands.command(
-        aliases=[
-            "n",
-            "nu",
-            "nut",
-            "nutr",
-            "nutri",
-            "nutrim",
-            "nutrima",
-            "nutrimat",
-            "nutrimati",
-        ]
-    )
+    @commands.command(name="nutrimatic", aliases=["n","nu","nut","nutri"])
     async def nutrimatic(self, ctx, *, query=None):
         if not query:
             await ctx.send('Example regex: `!nut "<asympote_>"`')
