@@ -1,4 +1,4 @@
-aiohttp==3.9.1
+aiohttp==3.9.3
 black==23.12.1
 dateparser==1.1.8
 emoji==2.8.0
