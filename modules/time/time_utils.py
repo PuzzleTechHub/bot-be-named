@@ -20,7 +20,7 @@ def parse_date(
     from_tz: Optional[str] = None,
     to_tz: Optional[str] = None,
     future: Optional[bool] = None,
-    base: datetime = datetime.now(),
+    base: datetime = None,
 ) -> Optional[datetime]:
     """Returns datetime object for given date string
     Arguments:
@@ -30,6 +30,7 @@ def parse_date(
     :param future: :class:`Optional[bool]` set to true to prefer dates from the future when parsing
     :param base: :class:`datetime` datetime representing where dates should be parsed relative to
     """
+    base = datetime.now()
     if date_str is None:
         return None
     # set dateparser settings
