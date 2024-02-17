@@ -1,7 +1,7 @@
 aiohttp==3.9.3
 black==24.2.0
 dateparser==1.1.8
-emoji==2.8.0
+emoji==2.10.1
 geopy==2.4.0
 google==3.0.0
 google_api_python_client==2.116.0
