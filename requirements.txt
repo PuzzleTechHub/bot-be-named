@@ -1,5 +1,5 @@
 aiohttp==3.9.3
-black==23.12.1
+black==24.2.0
 dateparser==1.1.8
 emoji==2.8.0
 geopy==2.4.0
