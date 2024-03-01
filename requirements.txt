@@ -11,7 +11,7 @@ nextcord==2.6.0
 oauth2client==4.1.3
 pandas==2.2.1
 psycopg2-binary==2.9.9
-pytest==8.0.1
+pytest==8.0.2
 python-dotenv==1.0.1
 pytz==2024.1
 SQLAlchemy==2.0.27
