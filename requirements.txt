@@ -5,7 +5,7 @@ emoji==2.11.0
 geopy==2.4.1
 google==3.0.0
 google_api_python_client==2.120.0
-gspread==6.0.2
+gspread==6.1.0
 httplib2==0.22.0
 nextcord==2.6.0
 oauth2client==4.1.3
