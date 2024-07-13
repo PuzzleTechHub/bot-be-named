@@ -131,7 +131,7 @@ class MiscCog(commands.Cog, name="Misc"):
             f"- `{ctx.prefix}solvedlion` etc for marking puzzle channels as solved etc, and `{ctx.prefix}mtalion` for cleaning up the channels. \n"
             f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply.\n\n"
             f"Note that most commands are only restricted to certain Permission Categories. The current categories for those are - Verified/Trusted/Solver/Tester. These need to be configured accordingly.\n"
-            f"- `{ctx.prefix}addperm` for setting up Permission Categories on your server (see `{ctx.prefix}help addperm` and `{ctx.prefix} permcathelp`for an explanation)\n",
+            f"- `{ctx.prefix}addperm` for setting up Permission Categories on your server (see `{ctx.prefix}help addperm` and `{ctx.prefix}permcathelp`for an explanation)\n",
             inline=False,
         )
         await ctx.send(embed=embed)

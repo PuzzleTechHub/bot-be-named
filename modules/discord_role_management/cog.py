@@ -407,9 +407,13 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         if rolename == "":
             roles = await ctx.guild.fetch_roles()
             roles_sorted = sorted(roles, key=lambda x: x.position, reverse=True)
+            num_roles = len(roles_sorted)
+
             rolestext = f"{', '.join([role.mention for role in roles_sorted])}"
             roles.sort(key=lambda x: x.position, reverse=True)
-            embed.add_field(name=f"Roles in {ctx.guild.name}", value=rolestext)
+            embed.add_field(
+                name=f"Roles in {ctx.guild.name} = {num_roles}", value=rolestext
+            )
 
             embeds = discord_utils.split_embed(embed)
             for embed in embeds:
