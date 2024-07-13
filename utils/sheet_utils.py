@@ -62,13 +62,21 @@ def addsheettethergeneric(
     return proposed_sheet
 
 
-async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = ""):
+async def sheetcrabgeneric(
+    gspread_client, ctx, tab_name: str, is_meta: bool, to_pin: str = ""
+):
     embed = discord_utils.create_embed()
 
     curr_chan = ctx.message.channel
     curr_cat = ctx.message.channel.category
+
+    if is_meta:
+        tab_type = "Meta Template"
+    else:
+        tab_type = "Template"
+
     curr_sheet_link, newsheet = await sheetcreatetabgeneric(
-        gspread_client, ctx, curr_chan, curr_cat, tab_name, "Template"
+        gspread_client, ctx, curr_chan, curr_cat, tab_name, tab_type
     )
 
     pin_flag = False
@@ -101,7 +109,12 @@ async def sheetcrabgeneric(gspread_client, ctx, tab_name: str, to_pin: str = "")
 
 
 async def chancrabgeneric(
-    gspread_client, ctx, chan_name: str, chan_or_thread: str, is_meta: bool, text_to_pin
+    gspread_client,
+    ctx,
+    chan_name: str,
+    chan_or_thread: str,
+    is_meta: bool,
+    text_to_pin: str = "",
 ):
     embed = discord_utils.create_embed()
     tab_name = chan_name.replace("#", "").replace("-", " ")
