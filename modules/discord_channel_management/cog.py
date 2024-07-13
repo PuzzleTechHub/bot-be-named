@@ -125,7 +125,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 inline=False,
             )
 
-        await ctx.send(embed=embed)
+        embeds = discord_utils.split_embed(embed)
+        msgs = []
+        for e in embeds:
+            msgs.append(await ctx.send(embed=e))
 
     @command_predicates.is_verified()
     @commands.command(name="renamechan", aliases=["renamechannel", "renamethread"])
