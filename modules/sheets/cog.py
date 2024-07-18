@@ -58,6 +58,16 @@ class SheetsCog(commands.Cog, name="Sheets"):
         )
         embed = discord_utils.create_embed()
 
+        if ctx.channel.category is None:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Sorry, tether is used for categories, there is no category for this channel. "
+                f"Consider adding a category to this channel or using `{ctx.prefix}chantether`",
+                inline=False,
+            )
+            await ctx.send(embed=embed)
+            return
+
         proposed_sheet = sheet_utils.addsheettethergeneric(
             self.gspread_client, sheet_key_or_link, ctx.guild, ctx.channel.category
         )
