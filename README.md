@@ -37,13 +37,11 @@ Bot-Be-Named is currently set up with our own configurations and environment var
 
 - [Postgresql for storing data](https://www.postgresql.org/download/)
 
-- [Heroku CLI client for hosting](https://medium.com/analytics-vidhya/how-to-install-heroku-cli-in-windows-pc-e3cf9750b4ae)
-
 - [Pip package installer for Python](https://phoenixnap.com/kb/install-pip-windows)
 
-Note that you may use another Python installer (instead of Pip), Host (instead of Heroku) or Database (instead of Postgresql) but that will require you figuring out the required setup and configuation changes yourself.
+Note that you may use another Python installer (instead of Pip), Host (instead of Fly.io) or Database (instead of Supabase) but that will require you figuring out the required setup and configuation changes yourself.
 
-While only the above are necessary to run the code on Heroku, some OSes might require additional installations to also run locally. For example, on Ubuntu, you need - 
+While only the above are necessary to run the code when deployed, some OSes might require additional installations to also run locally. For example, on Ubuntu, you need - 
 ```bash
 sudo apt-get install postgresql-client-common postgresql-client
 ```
@@ -62,7 +60,7 @@ virtualenv venv -p=3.10
 pip install -r requirements.txt && pre-commit install
 ```
 
-The bot uses [Heroku Postgres](https://www.heroku.com/postgres) for storing data.
+The bot uses [Supabase](https://supabase.com/) for storing data.
 
 To run the bot locally, you will need a `.env` file which is used by [python-dotenv](https://github.com/theskumar/python-dotenv) to load `ENV` variables. Copy `.env.template` into `.env` with  
 
@@ -70,7 +68,7 @@ To run the bot locally, you will need a `.env` file which is used by [python-dot
 cp .env.template .env
 ```
 
-and fill in the blanks in order to get the bot running. You also need to set up the Postgresql database for the bot using Heroku's PostgresSQL add-on (To be finished). First [install the add-on](https://elements.heroku.com/addons/heroku-postgresql) then [set it up](https://devcenter.heroku.com/articles/heroku-postgresql) to attach your app to the Postgres. Now you can look at `Heroku - Dashboard - Resources - Add Ons` to look at the app on Heroku, and copy the URI given from Postgres add-on to the respective line in the `.env file`
+and fill in the blanks in order to get the bot running. You also need to set up the Postgresql database for the bot. If you're using Supabase, follow [any regular guide](https://docs.stacksync.cloud/guides/two-way-sync-salesforce-and-postgres/create-a-postgres-database-with-supabase-free-forever) for it then copy the full URI.
 
 Once you do all that, run
 
@@ -84,10 +82,16 @@ and the bot will run on the supplied discord token's account.
 
 ### Hosting
 
-Once you have the bot running and basic commands (like `~help`) run properly, you can host it externally. Our instance of the bot is [hosted on Heroku](https://medium.com/@linda0511ny/create-host-a-discord-bot-with-heroku-in-5-min-5cb0830d0ff2)
-
+Once you have the bot running and basic commands (like `~help`) run properly, you can host it externally. Our instance of the bot is [hosted on fly.io](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19)
 
 ### Other useful things
+
+You can set up automatic Continuous Deployment (CD) on Fly.io. [Follow the instructions here](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19) 
+
+### Using Heroku and Heroku Postgres for hosting.
+The instructions for [hosting on Heroku](https://medium.com/@linda0511ny/create-host-a-discord-bot-with-heroku-in-5-min-5cb0830d0ff2) are linked. You may need the [heroku CLI client for hosting](https://medium.com/analytics-vidhya/how-to-install-heroku-cli-in-windows-pc-e3cf9750b4ae).
+
+If you're using Heroku's PostgresSQL add-on instead, first [install the add-on](https://elements.heroku.com/addons/heroku-postgresql) then [set it up](https://devcenter.heroku.com/articles/heroku-postgresql) to attach your app to the Postgres. Now you can look at `Heroku - Dashboard - Resources - Add Ons` to look at the app on Heroku, and copy the URI given from Postgres add-on to the respective line in the `.env file`
 
 If you have github + heroku, using Heroku's [Github integration](https://devcenter.heroku.com/articles/github-integration) allows you to automatically push Github pushes to also deploy on Heroku. (Using `git push` to push to both Github and Heroku)
 
