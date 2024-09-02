@@ -1,6 +1,7 @@
 import gspread
 import os
-import pandas as pd
+
+# import pandas as pd
 from oauth2client.service_account import ServiceAccountCredentials
 import json
 
@@ -54,6 +55,7 @@ def get_gdrive_credentials() -> ServiceAccountCredentials:
     return creds
 
 
+'''
 def get_dataframe_from_gsheet(
     sheet: gspread.Spreadsheet, columns: list
 ) -> pd.DataFrame:
@@ -70,6 +72,7 @@ def get_dataframe_from_gsheet(
 def update_sheet_from_df(sheet: gspread.Spreadsheet, df: pd.DataFrame) -> None:
     """Dump the current dataframe onto the google sheet"""
     sheet.update([df.columns.values.tolist()] + df.values.tolist())
+'''
 
 
 def get_sheet_link(sheet: gspread.Spreadsheet, tab: gspread.Worksheet = None) -> str:
