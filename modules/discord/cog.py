@@ -69,7 +69,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="pinme")
     async def pinme(self, ctx):
         """Pins the message that called it.
- 
+
         Usage : `~pinme Message`
         """
         await logging_utils.log_command("pinme", ctx.guild, ctx.channel, ctx.author)
@@ -401,6 +401,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             return
 
         msg = orig_msg.content
+        msg = orig_msg.content
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"{msg}",
@@ -408,17 +409,34 @@ class DiscordCog(commands.Cog, name="Discord"):
         )
 
         embeds = discord_utils.split_embed(embed)
-    
+
+        embeds2 = []
+
         embeds2 = []
         for embed in embeds:
             embed2 = discord_utils.create_embed()
             for field in embed.fields:
-                embed2.add_field(name=field.name,value="```\n"+field.value+"\n```",inline=field.inline)
+                embed2.add_field(
+                    name=field.name,
+                    value="```\n" + field.value + "\n```",
+                    inline=field.inline,
+                )
+            embeds2.append(embed)
+
+        for embed in embeds2:
+            embed2 = discord_utils.create_embed()
+            for field in embed.fields:
+                embed2.add_field(
+                    name=field.name,
+                    value="```\n" + field.value + "\n```",
+                    inline=field.inline,
+                )
             embeds2.append(embed)
 
         for embed in embeds2:
             await ctx.send(embed=embed)
         return
+
 
 def setup(bot):
     bot.add_cog(DiscordCog(bot))

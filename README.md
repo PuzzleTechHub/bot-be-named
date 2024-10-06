@@ -124,4 +124,4 @@ There are multiple repositories and code that BBN borrowed code from, most notab
 
 If you find any issues, bugs, or improvements, please feel free to open an issue and/or pull request! Thank you!
 
-Feel free to join our discord at `discord (dot) gg / x8f2ywHUky` with any questions you may have! If you are unable to join the discord, contact [TheOriginalSoni](https://github.com/TheOriginalSoni) (`@talesfromtim` on discord). 
+Feel free to join our discord at `discord (dot) gg / x8f2ywHUky` with any questions you may have! If you are unable to join the discord, contact [TheOriginalSoni](https://github.com/TheOriginalSoni) (`@talesfromtim` on discord). zd6
