@@ -77,16 +77,31 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 if msg.flags.has_thread and msg.thread:
                     f.write(f"[  {msg.thread.id} ] {'THREAD'.rjust(25, ' ')}: ")
                     f.write(msg.thread.name + "\n")
-                    thread_dir = os.path.join(archive_constants.ARCHIVE, f"{channel.name}_{archive_constants.THREADS}")
+                    thread_dir = os.path.join(
+                        archive_constants.ARCHIVE,
+                        f"{channel.name}_{archive_constants.THREADS}",
+                    )
                     # The thread "name" is by default the original message content. Slugify and truncate if necessary
-                    norm_thread_name = unicodedata.normalize('NFKD', f"{msg.thread.id}_{msg.thread.name}").encode('ascii', 'ignore').decode('ascii')
-                    norm_thread_name = re.sub(r'[^\w\s-]', '', norm_thread_name.lower())
-                    norm_thread_name = re.sub(r'[-\s]+', '-', norm_thread_name).strip('-_')
+                    norm_thread_name = (
+                        unicodedata.normalize(
+                            "NFKD", f"{msg.thread.id}_{msg.thread.name}"
+                        )
+                        .encode("ascii", "ignore")
+                        .decode("ascii")
+                    )
+                    norm_thread_name = re.sub(r"[^\w\s-]", "", norm_thread_name.lower())
+                    norm_thread_name = re.sub(r"[-\s]+", "-", norm_thread_name).strip(
+                        "-_"
+                    )
                     norm_thread_name = norm_thread_name[:250]
                     os.makedirs(thread_dir, exist_ok=True)
-                    thread_log_path = os.path.join(thread_dir, norm_thread_name + ".txt")
+                    thread_log_path = os.path.join(
+                        thread_dir, norm_thread_name + ".txt"
+                    )
                     with open(thread_log_path, "w") as thread_f:
-                        async for t_msg in msg.thread.history(limit=None, oldest_first=True):
+                        async for t_msg in msg.thread.history(
+                            limit=None, oldest_first=True
+                        ):
                             await self.archive_message(thread_f, t_msg)
 
             text_file_size = f.tell()
