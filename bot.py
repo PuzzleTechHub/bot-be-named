@@ -13,6 +13,9 @@ from sqlalchemy.orm import Session
 from utils import logging_utils
 import aiohttp
 import asyncio
+import nest_asyncio
+
+nest_asyncio.apply()
 
 
 def get_prefix(client, message):
