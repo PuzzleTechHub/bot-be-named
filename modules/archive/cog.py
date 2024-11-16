@@ -3,8 +3,10 @@ import constants
 import os
 import zipfile
 import asyncio
+import unicodedata
+import re
 from nextcord.ext import commands
-from typing import Tuple, Union
+from typing import Tuple, Union, TextIO
 from utils import discord_utils, logging_utils, command_predicates
 from modules.archive import archive_constants, archive_utils
 
@@ -25,6 +27,40 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
         archive_utils.reset_archive_dir()
 
+    async def archive_message(self, f: TextIO, msg: nextcord.Message):
+        f.write(
+            f"[ {msg.created_at.strftime('%m-%d-%Y, %H:%M:%S')} ] "
+            f"{msg.author.display_name.rjust(25, ' ')}: "
+            f"{msg.clean_content}"
+        )
+        for attachment in msg.attachments:
+            f.write(f" {attachment.filename}")
+            # change duplicate filenames
+            # img.png would become img (1).png
+            original_path = os.path.join(
+                archive_constants.ARCHIVE,
+                archive_constants.IMAGES,
+                attachment.filename,
+            )
+            proposed_path = original_path
+            dupe_counter = 1
+            while os.path.exists(proposed_path):
+                proposed_path = (
+                    original_path.split(".")[0]
+                    + f" ({dupe_counter})."
+                    + original_path.split(".")[1]
+                )
+                dupe_counter += 1
+            # The discord filenames can get too long and throw an OSError
+            try:
+                await attachment.save(proposed_path)
+            except OSError:
+                await attachment.save(
+                    f"path_too_long_{dupe_counter}.{original_path.split('.')[1]}"
+                )
+        # Important: Write the newline after each comment is done
+        f.write("\n")
+
     async def archive_one_channel(
         self, channel: Union[nextcord.TextChannel, nextcord.Thread]
     ) -> Tuple[nextcord.File, int, nextcord.File, int]:
@@ -36,38 +72,38 @@ class ArchiveCog(commands.Cog, name="Archive"):
         )
         with open(text_log_path, "w") as f:
             async for msg in channel.history(limit=None, oldest_first=True):
-                f.write(
-                    f"[ {msg.created_at.strftime('%m-%d-%Y, %H:%M:%S')} ] "
-                    f"{msg.author.display_name.rjust(25, ' ')}: "
-                    f"{msg.clean_content}"
-                )
-                for attachment in msg.attachments:
-                    f.write(f" {attachment.filename}")
-                    # change duplicate filenames
-                    # img.png would become img (1).png
-                    original_path = os.path.join(
+                await self.archive_message(f, msg)
+                # Threads are attached to normal messages
+                if msg.flags.has_thread and msg.thread:
+                    f.write(f"[  {msg.thread.id} ] {'THREAD'.rjust(25, ' ')}: ")
+                    f.write(msg.thread.name + "\n")
+                    thread_dir = os.path.join(
                         archive_constants.ARCHIVE,
-                        archive_constants.IMAGES,
-                        attachment.filename,
+                        f"{channel.name}_{archive_constants.THREADS}",
                     )
-                    proposed_path = original_path
-                    dupe_counter = 1
-                    while os.path.exists(proposed_path):
-                        proposed_path = (
-                            original_path.split(".")[0]
-                            + f" ({dupe_counter})."
-                            + original_path.split(".")[1]
+                    # The thread "name" is by default the original message content. Slugify and truncate if necessary
+                    norm_thread_name = (
+                        unicodedata.normalize(
+                            "NFKD", f"{msg.thread.id}_{msg.thread.name}"
                         )
-                        dupe_counter += 1
-                    # The discord filenames can get too long and throw an OSError
-                    try:
-                        await attachment.save(proposed_path)
-                    except OSError:
-                        await attachment.save(
-                            f"path_too_long_{dupe_counter}.{original_path.split('.')[1]}"
-                        )
-                # Important: Write the newline after each comment is done
-                f.write("\n")
+                        .encode("ascii", "ignore")
+                        .decode("ascii")
+                    )
+                    norm_thread_name = re.sub(r"[^\w\s-]", "", norm_thread_name.lower())
+                    norm_thread_name = re.sub(r"[-\s]+", "-", norm_thread_name).strip(
+                        "-_"
+                    )
+                    norm_thread_name = norm_thread_name[:250]
+                    os.makedirs(thread_dir, exist_ok=True)
+                    thread_log_path = os.path.join(
+                        thread_dir, norm_thread_name + ".txt"
+                    )
+                    with open(thread_log_path, "w") as thread_f:
+                        async for t_msg in msg.thread.history(
+                            limit=None, oldest_first=True
+                        ):
+                            await self.archive_message(thread_f, t_msg)
+
             text_file_size = f.tell()
 
         ZIP_FILENAME = os.path.join(
