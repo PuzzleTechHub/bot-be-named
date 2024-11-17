@@ -28,6 +28,7 @@ def get_prefix(client, message):
 
 
 async def main():
+    await logging_utils.open_session()
     async with aiohttp.ClientSession() as session:
         intents = nextcord.Intents.default()
         intents.members = True
