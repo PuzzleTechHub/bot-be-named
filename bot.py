@@ -27,16 +27,30 @@ def get_prefix(client, message):
         return constants.DEFAULT_BOT_PREFIX
 
 
-async def main():
-    async with aiohttp.ClientSession() as session:
-        intents = nextcord.Intents.default()
-        intents.members = True
-        intents.message_content = True
-        client = commands.Bot(
-            command_prefix=get_prefix,
-            intents=intents,
-            help_command=None,
-            case_insensitive=True,
+def main():
+    intents = nextcord.Intents.default()
+    intents.members = True
+    intents.message_content = True
+    client = commands.Bot(
+        command_prefix=get_prefix,
+        intents=intents,
+        help_command=None,
+        case_insensitive=True,
+    )
+
+    # Get the modules of all cogs whose directory structure is modules/<module_name>/cog.py
+    for folder in os.listdir("modules"):
+        if os.path.exists(os.path.join("modules", folder, "cog.py")):
+            client.load_extension(f"modules.{folder}.cog")
+
+    @client.event
+    async def on_ready():
+        """When the bot starts up"""
+        await logging_utils.open_session()
+        await client.change_presence(
+            activity=nextcord.Activity(
+                type=nextcord.ActivityType.watching, name="you solve👀 | ~help"
+            )
         )
 
         # Get the modules of all cogs whose directory structure is modules/<module_name>/cog.py
