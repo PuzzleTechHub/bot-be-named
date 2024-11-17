@@ -41,6 +41,7 @@ def main():
     @client.event
     async def on_ready():
         """When the bot starts up"""
+        await logging_utils.open_session()
         await client.change_presence(
             activity=nextcord.Activity(
                 type=nextcord.ActivityType.watching, name="you solve👀 | ~help"

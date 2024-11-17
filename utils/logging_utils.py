@@ -10,10 +10,13 @@ Used by all modules.
 """
 
 webhook_url = os.getenv("WEBHOOK_URL")
-session = aiohttp.ClientSession()
-webhook = None
-if webhook_url is not None and webhook_url != "":
-    webhook = Webhook.from_url(webhook_url, session=session)
+
+
+async def open_session():
+    global session, webhook
+    session = aiohttp.ClientSession()
+    if webhook_url:
+        webhook = Webhook.from_url(webhook_url, session=session)
 
 
 def log_to_file(filename: str, text: str):
@@ -24,7 +27,7 @@ def log_to_file(filename: str, text: str):
 
 async def send_to_webhook(text: str):
     """Send log to webhook"""
-    if webhook is not None:
+    if webhook:
         await webhook.send(text)
     log_to_file(error_constants.ERROR_WEBHOOKFILE, text)
 
@@ -43,4 +46,5 @@ async def log_command(command: str, guild, channel, author: str) -> None:
 
 
 async def close_session():
-    session.close()
+    if session:
+        await session.close()
