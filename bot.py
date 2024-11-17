@@ -11,11 +11,6 @@ from nextcord.ext import commands
 from sqlalchemy import insert
 from sqlalchemy.orm import Session
 from utils import logging_utils
-import aiohttp
-import asyncio
-import nest_asyncio
-
-nest_asyncio.apply()
 
 
 def get_prefix(client, message):
@@ -27,7 +22,7 @@ def get_prefix(client, message):
         return constants.DEFAULT_BOT_PREFIX
 
 
-async def main():
+def main():
     intents = nextcord.Intents.default()
     intents.members = True
     intents.message_content = True
@@ -45,8 +40,8 @@ async def main():
 
     @client.event
     async def on_ready():
-        await logging_utils.open_session()
         """When the bot starts up"""
+        await logging_utils.open_session()
         await client.change_presence(
             activity=nextcord.Activity(
                 type=nextcord.ActivityType.watching, name="you solve👀 | ~help"
@@ -213,4 +208,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
