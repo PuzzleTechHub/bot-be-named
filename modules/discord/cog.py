@@ -370,47 +370,6 @@ class DiscordCog(commands.Cog, name="Discord"):
                         )
         await ctx.send(embed=embed)
 
-    @commands.command(name="getsource")
-    async def getsource(self, ctx):
-        """Gets the exact source text of a message, including formatting characters.
-        Must be used as a reply to the target message.
-
-        Usage: `~getsource` (as a reply to the message)
-        """
-        await logging_utils.log_command("getsource", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
-
-        if not ctx.message.reference:
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value="The command `~getsource` can only be used as a reply to another message.",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return
-
-        orig_msg = ctx.message.reference.resolved
-        if not orig_msg.content:
-            embed.add_field(
-                name=f"{constants.FAILED}!",
-                value="The replied message has no content to `~getsource` from. Is it a bot or system message?",
-                inline=False,
-            )
-            await ctx.send(embed=embed)
-            return
-
-        # The source content is just wrapped in a single code block
-        embed.add_field(
-            name=f"{constants.SUCCESS}!",
-            value=f"```\n{orig_msg.content}\n```",
-            inline=False,
-        )
-
-        # Split if needed and send
-        embeds = discord_utils.split_embed(embed)
-        for split_embed in embeds:
-            await ctx.send(embed=split_embed)
-
 
 def setup(bot):
     bot.add_cog(DiscordCog(bot))
