@@ -384,58 +384,47 @@ class DiscordCog(commands.Cog, name="Discord"):
         if not ctx.message.reference:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"The command `~getsource` can only be used as a reply to another message.",
+                value="The command `~getsource` can only be used as a reply to another message.",
                 inline=False,
             )
             await ctx.send(embed=embed)
             return
 
         orig_msg = ctx.message.reference.resolved
-        if orig_msg.content is None or len(orig_msg.content) == 0:
+        if not orig_msg.content:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"The replied message has no content to `~getsource` from. Is it a bot or system message?",
+                value="The replied message has no content to `~getsource` from. Is it a bot or system message?",
                 inline=False,
             )
             await ctx.send(embed=embed)
             return
 
-        msg = orig_msg.content
-        msg = orig_msg.content
+        # Add the original message content to the embed
         embed.add_field(
             name=f"{constants.SUCCESS}!",
-            value=f"{msg}",
+            value=orig_msg.content,
             inline=False,
         )
 
+        # Split the embed if content is too long
         embeds = discord_utils.split_embed(embed)
 
-        embeds2 = []
-
-        embeds2 = []
-        for embed in embeds:
-            embed2 = discord_utils.create_embed()
-            for field in embed.fields:
-                embed2.add_field(
+        # Format each embed's content with code blocks
+        formatted_embeds = []
+        for split_embed in embeds:
+            formatted_embed = discord_utils.create_embed()
+            for field in split_embed.fields:
+                formatted_embed.add_field(
                     name=field.name,
-                    value="```\n" + field.value + "\n```",
+                    value=f"```\n{field.value}\n```",
                     inline=field.inline,
                 )
-            embeds2.append(embed)
+            formatted_embeds.append(formatted_embed)
 
-        for embed in embeds2:
-            embed2 = discord_utils.create_embed()
-            for field in embed.fields:
-                embed2.add_field(
-                    name=field.name,
-                    value="```\n" + field.value + "\n```",
-                    inline=field.inline,
-                )
-            embeds2.append(embed)
-
-        for embed in embeds2:
-            await ctx.send(embed=embed)
-        return
+        # Send all formatted embeds
+        for formatted_embed in formatted_embeds:
+            await ctx.send(embed=formatted_embed)
 
 
 def setup(bot):
