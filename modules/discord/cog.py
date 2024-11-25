@@ -372,15 +372,14 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     @commands.command(name="getsource")
     async def getsource(self, ctx):
-        """Gives the discord formatted source code for a specific message in the channel.
-        This command must be a reply
+        """Gets the exact source text of a message, including formatting characters.
+        Must be used as a reply to the target message.
 
         Usage: `~getsource` (as a reply to the message)
         """
         await logging_utils.log_command("getsource", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        # If not direct reply to another message
         if not ctx.message.reference:
             embed.add_field(
                 name=f"{constants.FAILED}!",
@@ -400,31 +399,17 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.send(embed=embed)
             return
 
-        # Add the original message content to the embed
+        # The source content is just wrapped in a single code block
         embed.add_field(
             name=f"{constants.SUCCESS}!",
-            value=orig_msg.content,
+            value=f"```\n{orig_msg.content}\n```",
             inline=False,
         )
 
-        # Split the embed if content is too long
+        # Split if needed and send
         embeds = discord_utils.split_embed(embed)
-
-        # Format each embed's content with code blocks
-        formatted_embeds = []
         for split_embed in embeds:
-            formatted_embed = discord_utils.create_embed()
-            for field in split_embed.fields:
-                formatted_embed.add_field(
-                    name=field.name,
-                    value=f"```\n{field.value}\n```",
-                    inline=field.inline,
-                )
-            formatted_embeds.append(formatted_embed)
-
-        # Send all formatted embeds
-        for formatted_embed in formatted_embeds:
-            await ctx.send(embed=formatted_embed)
+            await ctx.send(embed=split_embed)
 
 
 def setup(bot):
