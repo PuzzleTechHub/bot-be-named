@@ -3,6 +3,7 @@ import os
 import constants
 from nextcord.ext import commands
 from emoji import EMOJI_DATA
+import emoji
 from typing import Union
 from utils import discord_utils, logging_utils, command_predicates
 
@@ -18,6 +19,40 @@ class MiscCog(commands.Cog, name="Misc"):
 
     def __init__(self, bot):
         self.bot = bot
+
+    @commands.command(name="emojiall")
+    async def emojiall(self, ctx, emoji_count: int = 20):
+        """Reacts to the replied message with respective number of emojis (Uses A-Z emojis).
+
+        Use: (as reply to another message) `~emojiall 5`
+        Use: (as reply to another message) `~emojiall` (defaults to 20)
+        """
+        await logging_utils.log_command("emojiall", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        if emoji_count <= 0:
+            emoji_count = 1
+        elif emoji_count > 20:
+            emoji_count = 20
+
+        letters_emojis = [chr(0x1F1E6 + i) for i in range(26)]
+        # 🇦 🇧 🇨 🇩 🇪 🇫 🇬 🇭 🇮 🇯 🇰 🇱 🇲 🇳 🇴 🇵 🇶 🇷 🇸 🇹 🇺 🇻 🇼 🇽 🇾 🇿
+
+        if not ctx.message.reference:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"You need to reply to a message to use emojiall",
+            )
+            await ctx.send(embed=embed)
+            return
+
+        # If it's replying to a message
+        orig_msg = ctx.message.reference.resolved
+        for i in range(emoji_count):
+            e = letters_emojis[i]
+            await orig_msg.add_reaction(emoji.emojize(e))
+
+        await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
 
     @commands.command(name="emoji")
     async def emoji(
