@@ -56,8 +56,12 @@ git clone https://github.com/kevslinger/bot-be-named.git
 cd bot-be-named
 #Technically optional, but using virtualenv is usually a good idea
 virtualenv venv -p=3.10 
+source venv/bin/activate
 #This installs all the python dependancies the bot needs
 pip install -r requirements.txt && pre-commit install
+
+#If pre-commit is not installed, you may need to add that as well
+#python -m pip install pre-commit
 ```
 
 The bot uses [Supabase](https://supabase.com/) for storing data.
@@ -74,6 +78,7 @@ Once you do all that, run
 
 
 ```bash
+#Run this line if you haven't already
 source venv/bin/activate
 python bot.py
 ```
