@@ -218,9 +218,11 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
         while description != "":
             embed_list.append(
                 nextcord.Embed(
-                    title=embed_title + " (continued)"
-                    if len(embed_title) > 0
-                    else embed_title,
+                    title=(
+                        embed_title + " (continued)"
+                        if len(embed_title) > 0
+                        else embed_title
+                    ),
                     color=embed.color,
                 )
             )

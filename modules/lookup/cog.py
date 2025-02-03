@@ -130,7 +130,7 @@ class LookupCog(commands.Cog, name="Lookup"):
             )
         await ctx.send(embed=embed)
 
-    @commands.command(name="nutrimatic", aliases=["n","nu","nut","nutri"])
+    @commands.command(name="nutrimatic", aliases=["n", "nu", "nut", "nutri"])
     async def nutrimatic(self, ctx, *, query=None):
         if not query:
             await ctx.send('Example regex: `!nut "<asympote_>"`')

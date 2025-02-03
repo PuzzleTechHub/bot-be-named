@@ -158,7 +158,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                     overview_desc = overview.acell(
                         overview_col + str(row_to_find)
                     ).value
-                    if(overview_desc is not None):
+                    if overview_desc is not None:
                         messages.append(f"- {currchan.mention} - {overview_desc[:100]}")
                     else:
                         messages.append(f"- {currchan.mention} - N/A")

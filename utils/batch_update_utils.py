@@ -65,7 +65,7 @@ class BatchUpdateBuilder:
                         "sheetId": sheet_id,
                         "columnIndex": column_index,
                         "rowIndex": row_index,
-                    }
+                    },
                     # "range": {
                     #     "sheetId": sheet_id,
                     #     "startColumnIndex": column_index,

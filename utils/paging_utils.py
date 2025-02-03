@@ -31,10 +31,10 @@ class Pages:
         self.first = True
         self.loopState = True
         self.reactAll = [
-            "\u23EA",  # first
-            "\u25C0",  # left
-            "\u25B6",  # right
-            "\u274C",  # stop
+            "\u23ea",  # first
+            "\u25c0",  # left
+            "\u25b6",  # right
+            "\u274c",  # stop
         ]
 
     def extractData(self):
