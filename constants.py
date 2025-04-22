@@ -14,6 +14,7 @@ FAILED = "Failed"
 
 # File size restriction
 BYTES_TO_MEGABYTES = 1_048_576  # 1024 squared
+HARDCODED_FILE_SIZE = 10_485_760
 
 ###########
 # MODULES #

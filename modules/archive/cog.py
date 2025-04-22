@@ -247,7 +247,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     return
                 file, embed = self.get_file_and_embed(
                     channel,
-                    ctx.guild.filesize_limit,
+                    ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE,
                     zip_file,
                     zip_file_size,
                     textfile,
@@ -330,7 +330,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     ) = await self.archive_one_channel(text_channel)
                     file, embed = self.get_file_and_embed(
                         text_channel,
-                        ctx.guild.filesize_limit,
+                        ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE,
                         zip_file,
                         zip_file_size,
                         textfile,
@@ -415,7 +415,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     ) = await self.archive_one_channel(text_channel)
                     file, embed = self.get_file_and_embed(
                         text_channel,
-                        ctx.guild.filesize_limit,
+                        ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE,
                         zip_file,
                         zip_file_size,
                         textfile,

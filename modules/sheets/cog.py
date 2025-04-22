@@ -402,13 +402,16 @@ class SheetsCog(commands.Cog, name="Sheets"):
             with open(download_path, "wb") as sheet_file:
                 sheet_file.write(response)
                 file_size = sheet_file.tell()
-                if file_size > ctx.guild.filesize_limit:
+                if (
+                    file_size
+                    > ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE
+                ):
                     embed = discord_utils.create_embed()
                     embed.add_field(
                         name=f"{constants.FAILED}",
                         value=f"Sorry, your sheet is {(file_size/constants.BYTES_TO_MEGABYTES):.2f}MB big, "
                         "but I can only send files of up to "
-                        "{(ctx.guild.filesize_limit/constants.BYTES_TO_MEGABYTES):.2f}MB.",
+                        "{(ctx.guild.filesize_limit*0+constants.HARDCODED_FILE_SIZE/constants.BYTES_TO_MEGABYTES):.2f}MB.",
                         inline=False,
                     )
                     await ctx.send(embed=embed)
