@@ -1,6 +1,6 @@
 aiohttp==3.11.15
 black==25.1.0
-dateparser==1.2.1
+dateparser==1.2.2
 emoji==2.14.1
 geopy==2.4.1
 google==3.0.0
