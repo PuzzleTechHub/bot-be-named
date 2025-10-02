@@ -25,13 +25,13 @@ Bot-Be-Named is currently set up with our own configurations and environment var
 
 - Use `~about` to get a quick guide to the bot, and `~startup` for all the commands that will come in very handy for you.
 
-- In case of any problems, message us on discord or [open a new issue on Github](https://github.com/kevslinger/bot-be-named/issues/new)
+- In case of any problems, message us on discord or [open a new issue on Github](https://github.com/PuzzleTechHub/bot-be-named/issues/new)
 
 ## How to install your own instance
 
 ### Prerequisites - 
 
-- [python3.10 or newer](https://realpython.com/installing-python/)
+- [python3.10](https://realpython.com/installing-python/)
 
 - [Git](https://github.com/git-guides/install-git)
 
@@ -39,12 +39,7 @@ Bot-Be-Named is currently set up with our own configurations and environment var
 
 - [Pip package installer for Python](https://phoenixnap.com/kb/install-pip-windows)
 
-Note that you may use another Python installer (instead of Pip), Host (instead of Fly.io) or Database (instead of Supabase) but that will require you figuring out the required setup and configuation changes yourself.
-
-While only the above are necessary to run the code when deployed, some OSes might require additional installations to also run locally. For example, on Ubuntu, you need - 
-```bash
-sudo apt-get install postgresql-client-common postgresql-client
-```
+Note that you may use another Python installer (instead of Pip), Host (instead of Google Cloud) or Database (instead of Supabase) but that will require you figuring out the required setup and configuation changes yourself.
 
 ### Installation
 
@@ -52,7 +47,7 @@ We recommend using [virtual environments](https://docs.python.org/3/tutorial/ven
 
 ```bash
 #Clone the bot locally
-git clone https://github.com/kevslinger/bot-be-named.git
+git clone https://github.com/PuzzleTechHub/bot-be-named.git
 cd bot-be-named
 #Technically optional, but using virtualenv is usually a good idea
 virtualenv venv -p=3.10 
@@ -76,7 +71,6 @@ and fill in the blanks in order to get the bot running. You also need to set up 
 
 Once you do all that, run
 
-
 ```bash
 #Run this line if you haven't already
 source venv/bin/activate
@@ -85,11 +79,99 @@ python bot.py
 
 and the bot will run on the supplied discord token's account.
 
+### Full GCloud instructions
+
+To install BBN on GCloud, the full instructions is as follows.
+
+#### Python
+
+First, make sure you have the correct version of python. If not, install it.
+```bash
+# Example instructions for GCloud / Debian systems - How to install Python 3.10.18
+# Following instructions on https://cloudcone.com/docs/article/how-to-install-python-3-10-on-debian-11/
+sudo apt update
+sudo apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
+wget https://www.python.org/ftp/python/3.10.18/Python-3.10.18.tgz
+tar -xvf Python-3.10.18.tgz
+cd Python-3.10.18
+sudo ./configure --enable-optimizations --prefix=/opt/python3.10
+# or sudo ./configure --enable-optimizations --prefix=/opt/python3.10
+# not sure what prefix does here
+sudo make -j$(nproc)
+sudo make altinstall
+
+#Confirm if python is installed / what version it is
+python3.10 --version
+```
+
+#### Aliasing
+Depending on the system, you may want to also [alias](https://stackoverflow.com/questions/35435517/creating-an-alias-for-python3 for that) for simplicity, for example to point `python` to `python3.10`
+
+If so, replace `python3.10 bot.py` in the instructions to `python bot.py` or similar.
+
+#### Other installations
+
+```bash
+#Now that you have python, install pip and git if you don't have them already
+#Most systems do have both, but not GCloud
+sudo apt-get update
+sudo apt install -y pip git
+# Now we install postgres, pre-commit, and virtualenv (Assuming you use it)
+sudo apt install -y postgresql-client-common postgresql-client virtualenv pre-commit
+```
+
+#### First time installations
+
+Everything else we have can now be handled by pip.
+
+```bash
+#Clone the bot locally
+git clone https://github.com/PuzzleTechHub/bot-be-named.git
+cd bot-be-named
+#Technically optional, but using virtualenv is usually a good idea
+virtualenv venv -p=3.10 
+source venv/bin/activate
+#This installs all the python dependancies the bot needs
+pip install -r requirements.txt && pre-commit install
+
+#Now Do .env stuff here. See above instructions for what to do
+cp .env.template .env
+nano .env
+#Here - edit your .env file
+
+#Test that your bot successfully runs!
+python3.10 bot.py
+```
+
+#### Every other run on GCloud
+
+Now that the bot is setup and successfully runs, you can keep it running from GCloud Console with something simple, like
+```bash
+cd bot-be-named
+source venv/bin/activate
+# nohup allows the bot to run while you close the SSH window, and also pastes log in a convenient spot. 
+# You can use soemthing simpler than nohup if you like!
+nohup python3.10 bot.py "This is BBN running" &
+#That message is not necessary, I just like to include one when running
+deactivate
+```
+
 ### Hosting
 
-Once you have the bot running and basic commands (like `~help`) run properly, you can host it externally. Our instance of the bot is [hosted on fly.io](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19).
+Once you have the bot running and basic commands (like `~help`) run properly, you can host it externally. Our instance of the bot is [hosted on Google Cloud Console](https://console.cloud.google.com/welcome).
 
 ### Other useful things
+
+While only the above are necessary to run the code when deployed, some OSes might require additional installations to also run locally. 
+
+For example, on Ubuntu, you also need - 
+```bash
+sudo apt-get install postgresql-client-common postgresql-client
+```
+
+### Using Fly.io for hosting
+
+You can also use [Fly.io](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19) for the bot hosting. Fly.io used to have a [free tier](https://fly.io/docs/about/pricing/#legacy-hobby-plan) as long as your monthly cost was below 5 USD.
 
 You can set up automatic Continuous Deployment (CD) on Fly.io. [Follow the instructions here](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19) 
 
