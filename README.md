@@ -156,6 +156,16 @@ nohup python3.10 bot.py "This is BBN running" &
 deactivate
 ```
 
+If necessary, kill the previous instance of the bot running, with something like
+```bash
+#Search for process id of the bot
+#Find the respective line that's giving you the actual run of the bot right now. The first number is your pid
+ps aux | grep "python"
+#Now kill the process using the pid
+kill 000000000000000
+#Now you can start a new instance of the bot
+```
+
 ### Hosting
 
 Once you have the bot running and basic commands (like `~help`) run properly, you can host it externally. Our instance of the bot is [hosted on Google Cloud Console](https://console.cloud.google.com/welcome).
