@@ -411,8 +411,9 @@ class AdminCog(commands.Cog, name="Admin"):
                 value="The bot is currently not in any guilds.",
                 inline=False,
             )
-
-        await ctx.send(embed=embed)
+        embeds = discord_utils.split_embed(embed)
+        for e in embeds:
+            emb = await ctx.send(embed=e)
 
     @command_predicates.is_bot_owner()
     @commands.command(
@@ -453,9 +454,7 @@ class AdminCog(commands.Cog, name="Admin"):
             value=f"Successfully left guild `{guild_name}`",
             inline=False,
         )
-        embeds = discord_utils.split_embed(embed)
-        for e in embeds:
-            emb = await ctx.send(embed=e)
+        await ctx.send(embed=embed)
 
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(name="setprefix")
