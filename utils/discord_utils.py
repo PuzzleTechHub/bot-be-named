@@ -10,6 +10,21 @@ or deduplicating important code that applies broadly to any Discord facing comma
 Used throughout the bot.
 """
 
+#################
+# SENDS MESSAGE #
+#################
+
+
+async def send_message(
+    ctx: commands.Context, message: nextcord.Embed
+) -> list[nextcord.Message]:
+    embeds = split_embed(message)
+    return_code = []
+    for e in embeds:
+        r = await ctx.send(embed=e)
+        return_code = return_code + [r]
+    return return_code
+
 
 ##########
 # CHECKS #

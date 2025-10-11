@@ -186,14 +186,16 @@ class ArchiveCog(commands.Cog, name="Archive"):
         # Check if the user supplied a channel
         if len(args) < 1:
             # No arguments provided
-            await ctx.send(embed=discord_utils.create_no_argument_embed("channel"))
+            embed = discord_utils.create_no_argument_embed("channel")
+            await discord_utils.send_message(ctx, embed)
             return
         # If we don't have the lock, let the user know it may take a while.
         msg = None
 
         for channelname in args:
             if self.lock.locked():
-                msg = await ctx.send(embed=archive_utils.get_delay_embed())
+                embed = archive_utils.get_delay_embed()
+                msg = await discord_utils.send_message(ctx, embed)[0]
             # LOCK EVERYTHING
             async with self.lock:
                 # If we sent a message about being delayed bc of lock, we can delete that now.
@@ -211,7 +213,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                             value=f"Sorry, I cannot find a channel with name {channelname}. Try mentioning the channel (e.g. `#{channelname}`)",
                             inline=False,
                         )
-                        await ctx.send(embed=embed)
+                        await discord_utils.send_message(ctx, embed)
                         return
                     if not (
                         channel.type.name in ["text", "public_thread", "private_thread"]
@@ -222,11 +224,11 @@ class ArchiveCog(commands.Cog, name="Archive"):
                             f"{channel} is a {channel.type} channel.",
                             inline=False,
                         )
-                        await ctx.send(embed=embed)
+                        await discord_utils.send_message(ctx, embed)
                         return
                 # If we've gotten to this point, we know we have a channel so we should probably let the user know.
                 start_embed = await self.get_start_embed(channel)
-                msg = await ctx.send(embed=start_embed)
+                msg = await discord_utils.send_message(ctx, start_embed)
                 try:
                     # zipfile, textfile
                     (
@@ -243,7 +245,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         f"to archive it",
                         inline=False,
                     )
-                    await ctx.send(embed=embed)
+                    await discord_utils.send_message(ctx, embed)
                     return
                 file, embed = self.get_file_and_embed(
                     channel,
@@ -265,8 +267,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         f"issue persists",
                         inline=False,
                     )
-                    await ctx.send(embed=embed)
-
+                    await discord_utils.send_message(ctx, embed)
                 if msg:
                     await msg.delete()
                     msg = None
@@ -289,13 +290,15 @@ class ArchiveCog(commands.Cog, name="Archive"):
         # Check if the user supplied a category
         if len(args) < 1:
             # No arguments provided
-            await ctx.send(embed=discord_utils.create_no_argument_embed("category"))
+            embed = discord_utils.create_no_argument_embed("category")
+            await discord_utils.send_message(ctx, embed)
             return
 
         # If we don't have the lock, let the user know it may take a while.
         msg = None
         if self.lock.locked():
-            msg = await ctx.send(embed=archive_utils.get_delay_embed())
+            embed = archive_utils.get_delay_embed()
+            await discord_utils.send_message(ctx, embed)
         # LOCK EVERYTHING
         async with self.lock:
             if msg:
@@ -309,15 +312,11 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     f"Please make sure the spelling and capitalization are correct!",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
             start_embed = await self.get_start_embed(category, category.text_channels)
-            # SOMETIMES THE EMBED IS TOO LONG FOR DISCORD
-            embeds = discord_utils.split_embed(start_embed)
-            msgs = []
-            for embed in embeds:
-                msgs.append(await ctx.send(embed=embed))
+            msgs = await discord_utils.send_message(ctx, start_embed)
 
             for text_channel in category.text_channels:
                 archive_utils.reset_archive_dir()
@@ -345,7 +344,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         f"to archive it",
                         inline=False,
                     )
-                    await ctx.send(embed=embed)
+                    await discord_utils.send_message(ctx, embed)
                     continue
                 # There has been an issue with AIO HTTP message sending fails, in which case discord.py crashes?
                 # So adding this try/catch for runtime to catch this. I don't think it's a deterministic error
@@ -358,7 +357,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         f" after I've finished archiving {category.mention}.",
                         inline=False,
                     )
-                    await ctx.send(embed=embed)
+                    await discord_utils.send_message(ctx, embed)
                     continue
             if msgs:
                 for msg in msgs:
@@ -369,7 +368,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 value=f"Successfully archived {category}",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
         # Clean up the archive dir
         archive_utils.reset_archive_dir()
 
@@ -398,12 +397,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
             if msg:
                 await msg.delete()
                 msg = None
-            # SOMETIMES THE EMBED IS TOO LONG FOR DISCORD
-            embeds = discord_utils.split_embed(start_embed)
-            msgs = []
-            for embed in embeds:
-                msgs.append(await ctx.send(embed=embed))
 
+            msgs = await discord_utils.send_message(ctx, start_embed)
             for text_channel in ctx.guild.text_channels:
                 archive_utils.reset_archive_dir()
                 try:
@@ -430,7 +425,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         f"to archive it",
                         inline=False,
                     )
-                    await ctx.send(embed=embed)
+                    await discord_utils.send_message(ctx, embed)
                     continue
             if msgs:
                 for msg in msgs:
@@ -441,7 +436,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 value=f"Successfully archived {ctx.guild}",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
         # Clean up the archive dir
         archive_utils.reset_archive_dir()
 

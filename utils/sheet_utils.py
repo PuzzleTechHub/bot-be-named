@@ -95,13 +95,13 @@ async def sheetcrabgeneric(
         value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
         inline=False,
     )
-    msg = await ctx.send(embed=embed)
+    msg = await discord_utils.send_message(ctx, embed)[0]
 
     # Pin message to the new channel
     if pin_flag:
         embed_or_none = await discord_utils.pin_message(msg)
         if embed_or_none is not None:
-            await ctx.send(embed=embed_or_none)
+            await discord_utils.send_message(ctx, embed_or_none)
         else:
             await msg.add_reaction(emoji.emojize(":pushpin:"))
 
@@ -127,7 +127,7 @@ async def chancrabgeneric(
                 value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
             )
             # reply to user
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return None, None, None
         if discord_utils.server_is_full(ctx.channel.guild):
             embed.add_field(
@@ -135,7 +135,7 @@ async def chancrabgeneric(
                 value=f"Guild `{ctx.channel.guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
             )
             # reply to user
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return None, None, None
 
     if is_meta:
@@ -148,7 +148,7 @@ async def chancrabgeneric(
             name=f"{constants.FAILED}!",
             value=f"Invalid! You cannot make a thread from inside another thread!",
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
         return None, None, None
 
     # Creates the new sheet
@@ -179,7 +179,7 @@ async def chancrabgeneric(
             name=f"{constants.FAILED}!",
             value=f"Forbidden! Have you checked if the bot has the required permisisons?",
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
         return None, None, None
 
     embed = discord_utils.create_embed()
@@ -198,7 +198,7 @@ async def chancrabgeneric(
             value=f"Cannot send messages in `{chan_name}`!",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
         return None, None, new_chan
 
     # Try to pin the message in new channel
@@ -216,7 +216,7 @@ async def chancrabgeneric(
 
         # Error pinning message
         if embed_or_none is not None:
-            await ctx.send(embed=embed_or_none)
+            await discord_utils.send_message(ctx, embed_or_none)
         else:
             await msg.add_reaction(emoji.emojize(":pushpin:"))
 
@@ -229,7 +229,7 @@ async def chancrabgeneric(
         value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
         inline=False,
     )
-    await ctx.send(embed=embed)
+    await discord_utils.send_message(ctx, embed)
 
     addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
     return curr_sheet_link, newsheet, new_chan
@@ -311,7 +311,7 @@ async def sheetcreatetabgeneric(
                 f"tethered to any Google sheet.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return curr_sheet_link, newsheet
 
         # Make sure the template/metatemplate tab exists on the sheet.
@@ -332,7 +332,7 @@ async def sheetcreatetabgeneric(
                     f"Did the permissions change?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return curr_sheet_link, newsheet
             else:
                 raise e
@@ -345,7 +345,7 @@ async def sheetcreatetabgeneric(
                 f"Did you forget to add one?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return curr_sheet_link, newsheet
         # Make sure tab_name does not exist
         try:
@@ -358,7 +358,7 @@ async def sheetcreatetabgeneric(
                 f"**{tab_name}**. Cannot create a tab with same name.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return curr_sheet_link, newsheet
         except gspread.exceptions.WorksheetNotFound:
             # If the tab isn't found, that's good! We will create one.
@@ -389,7 +389,7 @@ async def sheetcreatetabgeneric(
                     f"Is the permission set up with 'Anyone with link can edit'?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return curr_sheet_link, None
             else:
                 raise e
@@ -404,5 +404,5 @@ async def sheetcreatetabgeneric(
                 value=f"Unknown GSheets API Error - `{error_message}`",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return

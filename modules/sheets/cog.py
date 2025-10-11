@@ -65,7 +65,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 f"Consider adding a category to this channel or using `{ctx.prefix}chantether`",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         proposed_sheet = sheet_utils.addsheettethergeneric(
@@ -79,7 +79,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 f"[Google sheet at link]({proposed_sheet.url})",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
         # If we can't open the sheet, send an error and return
         else:
             embed.add_field(
@@ -88,7 +88,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
     @command_predicates.is_solver()
@@ -130,7 +130,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 f"[Google sheet at link]({proposed_sheet.url})",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
         # If we can't open the sheet, send an error and return
         else:
             embed.add_field(
@@ -139,7 +139,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
     @command_predicates.is_solver()
@@ -221,7 +221,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     value=f"The tether to [sheet]({sheet_link}) has been removed!",
                     inline=False,
                 )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
         else:
             embed.add_field(
                 name=f"{constants.FAILED}",
@@ -229,7 +229,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 f"are not tethered to any Google sheet.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
     @command_predicates.is_bot_owner_or_admin()
@@ -256,7 +256,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             value=f"**{len(to_delete)}** tethers deleted.",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
     @commands.command(
@@ -325,7 +325,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     value=f"There is a tether to [Google sheet at link]({curr_sheet_link})",
                     inline=False,
                 )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
         else:
             embed.add_field(
                 name=f"{constants.FAILED}",
@@ -333,7 +333,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 f"are tethered to any Google sheet.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
     @command_predicates.is_solver()
@@ -364,7 +364,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     f"**{ctx.channel.category.name}** category. You'll need to supply a sheet link "
                     f"for me to download.",
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             sheet_url = tether_db_result.sheet_link
 
@@ -376,7 +376,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 "'Anyone with the link can edit'?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         try:
@@ -390,7 +390,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 value=f"Sorry, your sheet is too large and cannot be downloaded.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         download_dir = "saved_sheets"
@@ -414,7 +414,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                         "{(ctx.guild.filesize_limit*0+constants.HARDCODED_FILE_SIZE/constants.BYTES_TO_MEGABYTES):.2f}MB.",
                         inline=False,
                     )
-                    await ctx.send(embed=embed)
+                    await discord_utils.send_message(ctx, embed)
                     return
 
             await ctx.send(file=nextcord.File(download_path))

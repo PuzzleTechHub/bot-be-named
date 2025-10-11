@@ -53,7 +53,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 value=f"Role name given is same as {rolename.mention}. Did you forget to specify a rolename?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         role_to_assign = await discord_utils.find_role(ctx, rolename)
@@ -77,7 +77,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                     f"permission to add a role in this server. Do I have the `add_roles` permission?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
         if len(args) > 0 and args[0] == "here":
@@ -101,7 +101,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 f"\nPlease contact a server admin to reorder server roles first.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         users_with_role_list = []
@@ -152,7 +152,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 value=f"Added the {role_to_assign.mention} role to {', '.join([user.mention for user in users_with_role_list])}",
                 inline=False,
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_trusted()
     @commands.command(name="unassignrole", aliases=["removerole"])
@@ -184,7 +184,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         if len(args) > 0 and args[0] == "here":
@@ -196,7 +196,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 value=f"No users provided! You must give at least one user to unassign.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # ctx.guild.roles = [@everyone, @bots, @mods, etc] (bottom to top)
@@ -214,7 +214,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 f"\nPlease contact a server admin to reorder server roles first.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         users_with_role_list = []
@@ -265,7 +265,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 value=f"Removed the {role_to_unassign.mention} role from {', '.join([user.mention for user in users_with_role_list])}",
                 inline=False,
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_trusted()
     @commands.command(name="clonerole", aliases=["syncrole"])
@@ -299,7 +299,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 value=f"I couldn't find role `{oldrole}` to clone! Perhaps check your spelling and try again.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # Cannot find the role, so we'll make one
@@ -324,7 +324,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                     f"permission to add a role in this server. Do I have the `add_roles` permission?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
         else:
             try:
@@ -345,9 +345,9 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                     f"permission to edit a role in this server. Do I have the `manage_roles` permission?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(name="deleterole")
@@ -371,7 +371,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # Delete the role or error if it didn't work.
@@ -383,7 +383,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 value=f"Removed role `{role_name}`",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
         except nextcord.Forbidden:
             embed.add_field(
@@ -391,7 +391,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 value=f"I don't have permission to add or remove a role in this server. Do I have the `add_roles` permission?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
     @commands.command(name="listroles", aliases=["lsroles", "listrole", "lsrole"])
@@ -417,7 +417,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
             embeds = discord_utils.split_embed(embed)
             for embed in embeds:
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
             return
 
         role_to_list = await discord_utils.find_role(ctx, rolename)
@@ -428,7 +428,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         allusers = f"{', '.join([user.mention for user in role_to_list.members])}"
@@ -441,7 +441,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         )
         embeds = discord_utils.split_embed(embed)
         for embed in embeds:
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="unreactrole", aliases=[])
     async def unreactrole(self, ctx, *args: Union[nextcord.Role, str]):
@@ -479,7 +479,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 value=f"No members to list. Check your roles again.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         if not ctx.message.reference:
@@ -501,7 +501,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 value=f"No members reacted to the message. Check the message again.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         reactor_but_not_member = []
@@ -531,7 +531,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             value=all_member_but_not_reactor,
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
 
 def setup(bot):

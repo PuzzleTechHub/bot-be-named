@@ -46,11 +46,6 @@ def parse_date(
     return date
 
 
-def replace_offset(text: str) -> str:
-    """Overrides the offset for better timezones"""
-    return text.replace("UTC\+05:30", "IST").replace("UTC\+01:00", "BST")
-
-
 def format_time(time):
     """Rearrange time str. Comes in as YYYY-MM-DD HH:MM, change to MM-DD-YYYY HH:MM"""
     date = datetime.strptime(time, "%Y-%m-%d %H:%M")

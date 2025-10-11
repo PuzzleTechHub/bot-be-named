@@ -54,7 +54,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 name=f"{constants.FAILED}!",
                 value=f"Could not find category `{category_name}`",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         channelstomove = []
@@ -108,7 +108,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                     value=f"Forbidden! Have you checked if the bot has the required permisisons?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
         if len(channels_moved) < 1:
@@ -124,11 +124,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"Moved these channels to `{new_category.name}` : {', '.join([chan.mention for chan in channels_moved])}",
                 inline=False,
             )
-
-        embeds = discord_utils.split_embed(embed)
-        msgs = []
-        for e in embeds:
-            msgs.append(await ctx.send(embed=e))
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_verified()
     @commands.command(name="renamechan", aliases=["renamechannel", "renamethread"])
@@ -168,7 +164,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 name=f"{constants.FAILED}!",
                 value=f"Channel `{old_channel_name}` was not found.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # If user managed to tag a channel name instead of typing
@@ -183,7 +179,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         embed.add_field(
@@ -191,7 +187,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             value=f"Renamed `{old_channel_name}` to `{new_channel_name}`: {ctx.channel.mention}!",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_verified()
     @commands.command(name="makethread", aliases=["createthread"])
@@ -212,7 +208,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 name=f"{constants.FAILED}!",
                 value=f"Invalid! You cannot make a thread from inside another thread!",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         channel = await discord_utils.createthreadgeneric(
@@ -229,7 +225,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_verified()
     @commands.command(
@@ -265,7 +261,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                     f"Please make sure the spelling and capitalization are correct!",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             else:
                 embed.add_field(
@@ -274,7 +270,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                     f"Are you sure you are in a category?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
         # Category channel limit
@@ -283,7 +279,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 name=f"{constants.FAILED}!",
                 value=f"Category `{category.name}` is already full, max limit is 50 channels.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return None
         # Server channel limit
         if discord_utils.server_is_full(category.guild):
@@ -292,7 +288,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"Guild `{category.guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
             )
             # reply to user
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return None
 
         channel = await discord_utils.createchannelgeneric(ctx.guild, category, name)
@@ -307,7 +303,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_verified()
     @commands.command(name="clonechan", aliases=["clonechannel", "chanclone"])
@@ -350,7 +346,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 name=f"{constants.FAILED}!",
                 value=f"Channel `{old_channel_name}` was not found.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         if isinstance(origRoleorUser, str):
@@ -362,7 +358,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                         name=f"{constants.FAILED}!",
                         value=f"Role/User `{origRoleorUser}` does not exist. Please use @ to tag them.",
                     )
-                    await ctx.send(embed=embed)
+                    await discord_utils.send_message(ctx, embed)
                     return
                 else:
                     origRoleorUser = origRole
@@ -391,7 +387,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                             f"permission to add a role in this server. Do I have the `add_roles` permission?",
                             inline=False,
                         )
-                        await ctx.send(embed=embed)
+                        await discord_utils.send_message(ctx, embed)
                         return
                 else:
                     targetRoleorUser = targetRole
@@ -409,7 +405,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"Category `{category.name}` is already full, max limit is 50 channels.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
         # Server channel limit
         if discord_utils.server_is_full(guild):
@@ -418,7 +414,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"Guild `{guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
             )
             # reply to user
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         try:
@@ -433,7 +429,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         embed.add_field(
@@ -469,9 +465,9 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                         value=f"Forbidden! Have you checked if the bot has the required permisisons?",
                         inline=False,
                     )
-                    await ctx.send(embed=embed)
+                    await discord_utils.send_message(ctx, embed)
                     return
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_verified()
     @commands.command(name="shiftchan", aliases=["shiftchannel"])
@@ -524,7 +520,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 name=f"{constants.FAILED}",
                 value=f"I cannot find channel `{chan_to_shift}`. Perhaps check your spelling and try again.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # Not top, so position needs to be given
@@ -534,7 +530,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                     name=f"{constants.FAILED}",
                     value=f"I cannot find channel `{chan_shifting_to}`. Perhaps check your spelling and try again.",
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             if chan_shifting_to.category != chan_to_shift.category:
                 # Different categories for channel to shift to
@@ -543,7 +539,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                     value=f"The channel to be shifted {chan_to_shift.mention} is in category `{chan_to_shift.category}` but it's trying to shift to channel {chan_shifting_to.mention}, which is in category `{chan_shifting_to.category}`"
                     f"\nUse `~movechan` to move the channel across categories first.",
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             # No errors
             pos_to_shift_to = chan_shifting_to.position + 1
@@ -556,7 +552,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         if pos_to_shift_to == 0:
@@ -569,7 +565,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 name=f"{constants.SUCCESS}!",
                 value=f"Succesfully moved channel {chan_to_shift.mention} to just below {chan_shifting_to.mention}",
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     ##########################
     # VOICE CHANNEL COMMANDS #
@@ -604,7 +600,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"User {calling_user.mention} needs to be in a Voice Channel to use `~renamevc`!",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         try:
@@ -615,7 +611,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 name=f"{constants.FAILED}!",
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
         embed.add_field(
             name=f"{constants.SUCCESS}!",
@@ -623,7 +619,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             inline=False,
         )
         # reply to user
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     #####################
     # CATEGORY COMMANDS #
@@ -659,7 +655,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"Error! The category named `{category_to_sort_name}` not found.  Perhaps check your spelling and try again.",
             )
             # reply to user
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         channel_list = self.sort_channels(category.text_channels)
@@ -670,7 +666,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             value=f"Your sort of category `{category.name}` has begun! "
             f"This may take a while. If I run into any errors, I'll let you know.",
         )
-        start_embed_msg = await ctx.send(embed=start_embed)
+        start_embed_msg = await discord_utils.send_message(ctx, embed)[0]
 
         for idx, channel in enumerate(channel_list):
             # Skip channels already in correct place.
@@ -685,7 +681,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                     name=f"{constants.FAILED}!",
                     value=f"Unable to sort `{channel.mention}`. Do I have the correct `manage_channel` positions?",
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
         if start_embed_msg:
@@ -694,7 +690,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             name=f"{constants.SUCCESS}!",
             value=f"Sorted the channels in `{category.name}`!",
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     def sort_channels(
         self,
@@ -750,7 +746,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 inline=False,
             )
             # reply to user
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         try:
@@ -763,14 +759,14 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 inline=False,
             )
             # reply to user
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
         embed.add_field(
             name=f"{constants.SUCCESS}!",
             value=f"Renamed `{old_category_name}` to `{new_category_name}`!",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_trusted()
     @commands.command(name="synccat", aliases=["synccategory", "catsync"])
@@ -801,7 +797,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 inline=False,
             )
             # reply to user
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         start_embed = discord_utils.create_embed()
@@ -812,7 +808,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             f"any errors, I'll let you know.",
             inline=False,
         )
-        start_msg = await ctx.send(embed=start_embed)
+        start_msg = await discord_utils.send_message(ctx, start_embed)
 
         try:
             for channel in category.channels:
@@ -826,7 +822,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 inline=False,
             )
             # reply to user
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         if start_msg:
@@ -836,7 +832,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             value=f"All channels in category `{category.name}` successfully synced to Category!",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_verified()
     @commands.command(
@@ -885,7 +881,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"The current channel {ctx.channel.mention} does not exist in a category I can move. Check `~help shiftcat`.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         cat_to_shift = await discord_utils.find_category(ctx, cat_to_shift_name)
@@ -895,7 +891,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"I cannot find category `{cat_to_shift_name}`. Perhaps check your spelling and try again.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # Not top, so position needs to be given
@@ -909,7 +905,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                     value=f"I cannot find category `{cat_shifting_to_name}`. Perhaps check your spelling and try again.",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             pos_to_shift_to = cat_shifting_to.position + 1
 
@@ -921,7 +917,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"I was unable to shift category `{cat_to_shift}`. Do I have the `manage_channels` permission?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         if pos_to_shift_to == 0:
@@ -936,7 +932,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"Succesfully moved Category `{cat_to_shift}` to just below Category `{cat_shifting_to}`",
                 inline=False,
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_verified()
     @commands.command(
@@ -974,7 +970,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"I cannot find category {origCatName}. Perhaps check your spelling and try again.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
         # Either neither origRole nor targetRole are supplied, or both are. If XOR, that's a fail.
         if (
@@ -988,7 +984,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"Next time, please supply both `origRole` and `targetRole`, or neither.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         origRole_or_none = await discord_utils.find_role(ctx, origRole)
@@ -1002,7 +998,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 + f"if it does.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # if targetRole doesn't exist, create it
@@ -1026,7 +1022,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                     value=f"I was unable to create role {targetRole}. Do I have the `manage_roles` permission?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
         targetCat = await discord_utils.find_category(ctx, targetCatName)
@@ -1071,10 +1067,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"I was unable to create category {targetCatName}. Do I have the `manage_channels` permission?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(
@@ -1104,7 +1100,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 value=f"{chr(10).join(categories)}",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # Return the channel names in a given category
@@ -1117,7 +1113,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 inline=False,
             )
             # reply to user
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         channel_list = category.channels
@@ -1129,7 +1125,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             value=f"{chr(10).join(channels)}",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @commands.command(
         name="deletecat",
@@ -1154,7 +1150,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 inline=False,
             )
             # reply to user
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # Return the channel names in a given category
@@ -1167,7 +1163,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 inline=False,
             )
             # reply to user
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         channel_list = category.channels
@@ -1188,10 +1184,8 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             name=f"Channels to delete", value=f"{chr(10).join(channels)}", inline=False
         )
 
-        embeds = discord_utils.split_embed(embed)
-        for e in embeds:
-            emb = await ctx.send(embed=e)
-
+        embs = await discord_utils.send_message(ctx, embed)
+        emb = embs[0]
         await emb.add_reaction(confirm_emoji)
         await emb.add_reaction(cancel_emoji)
 
@@ -1240,9 +1234,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         except asyncio.TimeoutError:
             final_embed.add_field(name="Canceled", value="The operation was cancelled.")
         finally:
-            embeds = discord_utils.split_embed(final_embed)
-            for e in embeds:
-                await ctx.send(embed=e)
+            await discord_utils.send_message(ctx, final_embed)
 
 
 def setup(bot):

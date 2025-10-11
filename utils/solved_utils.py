@@ -57,7 +57,7 @@ async def status_channel(ctx: commands.Context, status_prefix):
                 name=f"{constants.FAILED}!",
                 value=f"Unable to prepend `{status_prefix}` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
         embed.add_field(
             name=f"{constants.SUCCESS}!",

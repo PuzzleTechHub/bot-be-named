@@ -31,7 +31,8 @@ class LookupCog(commands.Cog, name="Lookup"):
         embed = discord_utils.create_embed()
 
         if len(args) < 1:
-            await ctx.send(embed=discord_utils.create_no_argument_embed("Query"))
+            embed = discord_utils.create_no_argument_embed("Query")
+            await discord_utils.send_message(ctx, embed)
             return
 
         target_site = target_site.lower()
@@ -68,7 +69,7 @@ class LookupCog(commands.Cog, name="Lookup"):
                     name=f"{target_site.capitalize()} Result for {original_query}",
                     value=result,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             results.append(result)
         if is_google_search:
@@ -83,7 +84,7 @@ class LookupCog(commands.Cog, name="Lookup"):
                 f"link for {original_query}. However, here are the top 10 hits on Google:\n"
                 f"{chr(10).join(results)}",
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="google")
     async def google(self, ctx, *args):
@@ -100,7 +101,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         embed.add_field(
             name=f"Google Result for {' '.join(args)}", value=f"{chr(10).join(results)}"
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="wikipedia", aliases=["wiki"])
     async def wikipedia(self, ctx, *args):
@@ -128,7 +129,7 @@ class LookupCog(commands.Cog, name="Lookup"):
                 name=f"Wikipedia Result for {' '.join(args)}",
                 value=f"{chr(10).join(results)}",
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="nutrimatic", aliases=["n", "nu", "nut", "nutri"])
     async def nutrimatic(self, ctx, *, query=None):
@@ -171,7 +172,7 @@ class LookupCog(commands.Cog, name="Lookup"):
                 errB = [m.start() for m in re.finditer("</font>", text1)]
                 final = text1[errA[-1] + 16 : errB[-1]]
             embed.description = final
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # check for ending error message, usually bolded

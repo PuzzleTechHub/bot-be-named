@@ -49,7 +49,7 @@ class LionCog(commands.Cog, name="Lion"):
         status = "Solved"
         status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
         embed = await solved_utils.status_channel(ctx, status_prefix)
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
     @commands.command(name="solvedish", aliases=["solvedishcrab"])
@@ -64,7 +64,7 @@ class LionCog(commands.Cog, name="Lion"):
         status = "Solvedish"
         status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
         embed = await solved_utils.status_channel(ctx, status_prefix)
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
     @commands.command(name="backsolved", aliases=["backsolvedcrab"])
@@ -79,7 +79,7 @@ class LionCog(commands.Cog, name="Lion"):
         status = "Backsolved"
         status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
         embed = await solved_utils.status_channel(ctx, status_prefix)
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
     @commands.command(name="unsolved", aliases=["unsolvedcrab"])
@@ -94,7 +94,7 @@ class LionCog(commands.Cog, name="Lion"):
         # log command in console
         await logging_utils.log_command("unsolved", ctx.guild, ctx.channel, ctx.author)
         embed = await solved_utils.status_remove(ctx)
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     async def movetoarchive_generic(self, ctx, archive_name: str):
         embed = discord_utils.create_embed()
@@ -108,14 +108,14 @@ class LionCog(commands.Cog, name="Lion"):
                     name=f"{constants.FAILED}!",
                     value=f"Forbidden! Have you checked if the bot has the required permisisons?",
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             embed.add_field(
                 name=f"{constants.SUCCESS}!",
                 value=f"Archived {ctx.channel.mention} thread",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             await ctx.channel.edit(archived=True)
             return
 
@@ -145,7 +145,7 @@ class LionCog(commands.Cog, name="Lion"):
                     f"`Archive: {ctx.channel.category.name}`, so I cannot move {ctx.channel.mention}.",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             else:
                 embed.add_field(
@@ -153,7 +153,7 @@ class LionCog(commands.Cog, name="Lion"):
                     value=f"There is no category named `{archive_name}`, so I cannot move {ctx.channel.mention}.",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
         if discord_utils.category_is_full(archive_category):
@@ -163,7 +163,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f" `{archive_category.name}` and creating a new `{archive_category.name}`.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         try:
@@ -177,7 +177,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"{ctx.channel.mention} to `{archive_category.name}`",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         embed.add_field(
@@ -185,7 +185,7 @@ class LionCog(commands.Cog, name="Lion"):
             value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
     @commands.command(name="mta", aliases=["movetoarchive", "mtacrab"])
@@ -231,7 +231,7 @@ class LionCog(commands.Cog, name="Lion"):
                     f"Did the permissions change?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             else:
                 raise e
@@ -244,7 +244,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"Did you forget to add one?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         curr_chan_or_cat_cell = None
@@ -259,7 +259,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f" Are you sure this channel is linked to a puzzle?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
 
         return curr_chan_or_cat_cell, overview
 
@@ -289,7 +289,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"are tethered to any Google sheet.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         curr_sheet_link = result.sheet_link
@@ -312,7 +312,7 @@ class LionCog(commands.Cog, name="Lion"):
             value=f"The tab linked to {ctx.message.channel.mention} is at [tab link]({final_link})",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     def firstemptyrow(self, worksheet):
         """Finds the first empty row in a worksheet"""
@@ -413,7 +413,7 @@ class LionCog(commands.Cog, name="Lion"):
                     f"are tethered to any Google sheet.",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
             curr_sheet_link = result.sheet_link
@@ -510,7 +510,7 @@ class LionCog(commands.Cog, name="Lion"):
                 embed = discord_utils.merge_embed(embed, new_embed)
 
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
 
         except gspread.exceptions.APIError as e:
             if hasattr(e, "response"):
@@ -521,7 +521,7 @@ class LionCog(commands.Cog, name="Lion"):
                     value=f"Unknown GSheets API Error - `{error_message}`",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
     @command_predicates.is_solver()
@@ -551,7 +551,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"are tethered to any Google sheet.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         curr_sheet_link = result.sheet_link
@@ -604,7 +604,7 @@ class LionCog(commands.Cog, name="Lion"):
                     f"Did you forget to add one?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
             first_empty = self.firstemptyrow(overview)
@@ -680,7 +680,7 @@ class LionCog(commands.Cog, name="Lion"):
                     value=f"Unknown GSheets API Error - `{error_message}`",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
     @command_predicates.is_solver()
@@ -889,7 +889,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return None
 
         curr_link = proposed_template.url
@@ -910,7 +910,7 @@ class LionCog(commands.Cog, name="Lion"):
                     f"Did the permissions change?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return None
             else:
                 raise e
@@ -923,7 +923,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"Did you forget to add one?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return None
 
         # Make sure the Meta Template tab exists on the sheet.
@@ -939,7 +939,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"Did you forget to add one?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return None
 
         # Make sure the Overview tab exists on the sheet.
@@ -955,7 +955,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"Did you forget to add one?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return None
 
         return proposed_template
@@ -1021,7 +1021,7 @@ class LionCog(commands.Cog, name="Lion"):
                     value=f"Error! The hunt category was not correctly created.",
                 )
                 # reply to user
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
             if roleName:
@@ -1035,7 +1035,7 @@ class LionCog(commands.Cog, name="Lion"):
                         value=f"Could not find role `{roleName}`, so I created it.",
                         inline=False,
                     )
-                    await ctx.send(embed=embed)
+                    await discord_utils.send_message(ctx, embed)
 
                 await cat.set_permissions(
                     role_to_allow,
@@ -1064,7 +1064,7 @@ class LionCog(commands.Cog, name="Lion"):
                 value=f"Forbidden! Have you checked if the bot has the required permisisons?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         channel_list = cat.channels
@@ -1076,7 +1076,7 @@ class LionCog(commands.Cog, name="Lion"):
             inline=False,
         )
         embed.add_field(name=f"Channels in {cat}", value=f"{chr(10).join(channels)}")
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
         new_sheet = await self.clonetemplatelion(ctx, hunt_team_name, f_url)
         if new_sheet is None:
@@ -1097,7 +1097,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"[Google sheet at link]({proposed_sheet.url})",
                 inline=False,
             )
-            await ctx.send(embed=new_embed)
+            await discord_utils.send_message(ctx, new_embed)
         # If we can't open the sheet, send an error and return
         else:
             embed = discord_utils.create_embed()
@@ -1107,7 +1107,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         if await self.initoverview(ctx, hunturl, new_sheet):
@@ -1117,7 +1117,7 @@ class LionCog(commands.Cog, name="Lion"):
                 value=f"The sheet is now set up for use",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
 
     # @command_predicates.is_verified()
     # @commands.command(name="clonelion")
@@ -1148,7 +1148,7 @@ class LionCog(commands.Cog, name="Lion"):
                 value=f"The sheet is now set up for use",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
 
     async def initoverview(self, ctx, hunturl, sheet):
         """Initializes the overview sheet for the hunt."""
@@ -1165,7 +1165,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"Did you forget to add one?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return None
 
         overview_hunturl_loc = sheets_constants.OVERVIEW_HUNTURL_LOCATION
@@ -1198,7 +1198,7 @@ class LionCog(commands.Cog, name="Lion"):
                 value=f"This server **{ctx.guild.name}** does not have a template Google Sheet.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return None
 
         f_id = ""
@@ -1227,7 +1227,7 @@ class LionCog(commands.Cog, name="Lion"):
                 value="Invalid folder. Please check to see that you have the correct link and permissions.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return None
 
         if f_id:
@@ -1244,7 +1244,7 @@ class LionCog(commands.Cog, name="Lion"):
                 inline=False,
             )
 
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
         return new_sheet
 
     @command_predicates.is_solver()
@@ -1275,7 +1275,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"[Google sheet at link]({proposed_sheet.url})",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
         # If we can't open the sheet, send an error and return
         else:
             embed.add_field(
@@ -1284,7 +1284,7 @@ class LionCog(commands.Cog, name="Lion"):
                 f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
 

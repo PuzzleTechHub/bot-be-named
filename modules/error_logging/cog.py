@@ -37,7 +37,7 @@ class ErrorLogCog(commands.Cog):
                 value=f"Is this an error? Is it a blessing in disguise? I don't know, but there have been "
                 f"no errors since I've last started!",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         with open(error_constants.ERROR_LOGFILE, "r") as f:
@@ -87,7 +87,7 @@ async def on_command_error(ctx, error):
     if user_error:
         embed = discord_utils.create_embed()
         embed.add_field(name="Error!", value=user_error, inline=False)
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
     else:
         print("on_command_error has no user_error")
 

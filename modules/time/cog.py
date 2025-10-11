@@ -34,7 +34,7 @@ class TimeCog(commands.Cog, name="Time"):
         embed = discord_utils.create_embed()
 
         if len(args) < 1:
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         user_time = time_utils.parse_date(" ".join(args))
@@ -45,7 +45,7 @@ class TimeCog(commands.Cog, name="Time"):
                 value=f"Is {' '.join(args)} a valid time? We want a timezone too!",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         unix_time = int(datetime.datetime.timestamp(user_time))
@@ -58,7 +58,7 @@ class TimeCog(commands.Cog, name="Time"):
             f"```\n"
             f"[Guide to format](https://discord.com/developers/docs/reference#message-formatting-formats)",
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="time")
     async def time(self, ctx, *args):
@@ -72,7 +72,7 @@ class TimeCog(commands.Cog, name="Time"):
         # No location provided
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("location")
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
         # Allow long input (e.g. St. Louis, Missouri, USA)
         location = " ".join(args)
@@ -85,7 +85,7 @@ class TimeCog(commands.Cog, name="Time"):
                 value=f"Cannot find location `{location}`!",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         names = ["Location", "Timezone", "Current Time"]
@@ -97,7 +97,7 @@ class TimeCog(commands.Cog, name="Time"):
         ]
         embed = discord_utils.populate_embed(names, values, inline=False)
 
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     def get_tz(self, location: str) -> dict:
         """Get timezone from a given string"""

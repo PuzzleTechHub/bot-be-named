@@ -54,7 +54,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 value=f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
                 f"but you supplied {role_permissions}",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         role_to_assign = await discord_utils.find_role(ctx, role_or_rolename)
@@ -67,7 +67,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 value=f"I couldn't find role {role_or_rolename}",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         with Session(database.DATABASE_ENGINE) as session:
@@ -95,7 +95,7 @@ class AdminCog(commands.Cog, name="Admin"):
                     name=f"{constants.FAILED}!",
                     value=f"Role {role_to_assign.mention} is already `{result.permissions}`!",
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
         if role_permissions == models.VERIFIED:
@@ -124,7 +124,7 @@ class AdminCog(commands.Cog, name="Admin"):
             value=f"Added the role {role_to_assign.mention} for this server set to `{role_permissions}`",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(
@@ -153,7 +153,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 value=f"`role_permissions` must be in `{', '.join(database.VERIFIED_CATEGORIES)}`, "
                 f"but you supplied `{role_permissions}`",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         cache_map = {
@@ -178,7 +178,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 value=f"Set up `{role_permissions}` roles with `{ctx.prefix}addverified`",
                 inline=False,
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(
@@ -206,7 +206,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 value=f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
                 f"but you supplied {role_permissions}",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         role_to_remove = await discord_utils.find_role(ctx, role_or_rolename)
@@ -215,7 +215,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 name=f"{constants.FAILED}",
                 value=f"Sorry, I can't find role `{role_or_rolename}`.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         with Session(database.DATABASE_ENGINE) as session:
@@ -232,7 +232,7 @@ class AdminCog(commands.Cog, name="Admin"):
                     name=f"{constants.FAILED}",
                     value=f"Role {role_to_remove.mention} is not `{role_permissions}` in `{ctx.guild.name}`",
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             else:
                 session.delete(result)
@@ -271,7 +271,7 @@ class AdminCog(commands.Cog, name="Admin"):
             name=f"{constants.SUCCESS}",
             value=f"Removed {role_to_remove.mention} from `{role_permissions}` in `{ctx.guild.name}`",
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     ##################
     # GUILD COMMANDS #
@@ -308,7 +308,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 name=f"{constants.FAILED}!",
                 value=f"There is no guild named `{guild_1}`. Please double check the spelling.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         if guild_2_guild is None:
@@ -316,7 +316,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 name=f"{constants.FAILED}!",
                 value=f"There is no guild named `{guild_2}`. Please double check the spelling.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         members_guild_1 = guild_1_guild.members
@@ -339,7 +339,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 value=f"The bot has no members in common between `{guild_1}` and `{guild_2}`",
                 inline=False,
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_bot_owner()
     @commands.command(
@@ -370,7 +370,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 name=f"{constants.FAILED}!",
                 value=f"There is no guild named `{guild_name}`. Please double check the spelling.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         owner = guild.owner
@@ -379,7 +379,7 @@ class AdminCog(commands.Cog, name="Admin"):
             value=f"Guild owner for `{guild}` : {owner.mention} : `{owner.display_name}` : `{owner.name}`",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_bot_owner()
     @commands.command(
@@ -411,9 +411,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 value="The bot is currently not in any guilds.",
                 inline=False,
             )
-        embeds = discord_utils.split_embed(embed)
-        for e in embeds:
-            emb = await ctx.send(embed=e)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_bot_owner()
     @commands.command(
@@ -435,7 +433,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 name=f"{constants.FAILED}!",
                 value=f"There is no guild named `{guild_name}`. Please double check the spelling.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         try:
@@ -446,7 +444,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 name=f"{constants.FAILED}",
                 value=f"Could not leave guild `{guild_name}`",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         embed.add_field(
@@ -454,7 +452,7 @@ class AdminCog(commands.Cog, name="Admin"):
             value=f"Successfully left guild `{guild_name}`",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(name="setprefix")
@@ -478,7 +476,7 @@ class AdminCog(commands.Cog, name="Admin"):
             value=f"Prefix for this server set to {prefix}",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     ######################
     # BOT CACHE COMMANDS #
@@ -559,8 +557,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 value="Successfully reloaded prefixes cache.",
                 inline=False,
             )
-
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
 
 def setup(bot):

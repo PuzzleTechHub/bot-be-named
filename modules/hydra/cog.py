@@ -50,7 +50,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                     f"Did the permissions change?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             else:
                 raise e
@@ -63,7 +63,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                 f"Did you forget to add one?",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         all_chan_ids = []
@@ -107,7 +107,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                 name=f"{constants.FAILED}",
                 value=f"I cannot find category `{cat_name}`. Perhaps check your spelling and try again.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         start_embed = discord_utils.create_embed()
@@ -119,7 +119,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             inline=False,
         )
 
-        start_msg = await ctx.send(embed=start_embed)
+        start_msg = await discord_utils.send_message(ctx, start_embed)[0]
         try:
             allchans = currcat.text_channels
             messages = []
@@ -174,7 +174,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                     f"Did the permissions change?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             else:
                 raise e
@@ -191,7 +191,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             await start_msg.delete()
         embeds = discord_utils.split_embed(embed)
         for embed in embeds:
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
 
 
 def setup(bot):

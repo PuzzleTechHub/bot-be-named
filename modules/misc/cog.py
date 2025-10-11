@@ -43,7 +43,7 @@ class MiscCog(commands.Cog, name="Misc"):
                 name=f"{constants.FAILED}!",
                 value=f"You need to reply to a message to use emojiall",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # If it's replying to a message
@@ -79,7 +79,7 @@ class MiscCog(commands.Cog, name="Misc"):
                 name=f"{constants.FAILED}!",
                 value=f"Unable to delete original message. Do I have `manage_messages` permissions?",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         emoji = None
@@ -107,7 +107,7 @@ class MiscCog(commands.Cog, name="Misc"):
                 value=f"Emoji named {emojiname} not found",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         if ctx.message.reference:
@@ -146,7 +146,7 @@ class MiscCog(commands.Cog, name="Misc"):
             f"Any problems? Let {owner.mention} know.",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="startup")
     async def startup(self, ctx):
@@ -169,7 +169,7 @@ class MiscCog(commands.Cog, name="Misc"):
             f"- `{ctx.prefix}addperm` for setting up Permission Categories on your server (see `{ctx.prefix}help addperm` and `{ctx.prefix}permcathelp`for an explanation)\n",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="permcathelp")
     async def permcathelp(self, ctx):
@@ -195,7 +195,7 @@ class MiscCog(commands.Cog, name="Misc"):
             f"So your first command in any server is probably `{ctx.prefix}addperm Solver @Rolename` or so. See `{ctx.prefix}help addperm` `for more info.\n",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     ###################
     # BOTSAY COMMANDS #
@@ -215,7 +215,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Message")
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         message = " ".join(args)
@@ -227,7 +227,7 @@ class MiscCog(commands.Cog, name="Misc"):
                 name=f"{constants.FAILED}!",
                 value=f"Error! The channel `{channel_id_or_name}` was not found",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         try:
@@ -238,7 +238,7 @@ class MiscCog(commands.Cog, name="Misc"):
                 value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
                 f"the bot has the required permisisons?",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         embed.add_field(
@@ -246,7 +246,7 @@ class MiscCog(commands.Cog, name="Misc"):
             value=f"Message sent to {channel.mention}: {message}!",
         )
         # reply to user
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_trusted()
     @commands.command(name="botsayembed")
@@ -264,7 +264,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
         if len(args) < 1:
             embed = discord_utils.create_no_argument_embed("Message")
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         message = " ".join(args)
@@ -275,7 +275,7 @@ class MiscCog(commands.Cog, name="Misc"):
                 name=f"{constants.FAILED}!",
                 value=f"Error! The channel `{channel_id_or_name}` was not found",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         try:
@@ -288,7 +288,7 @@ class MiscCog(commands.Cog, name="Misc"):
                 value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
                 f"the bot has the required permisisons?",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # reply to user
@@ -297,7 +297,7 @@ class MiscCog(commands.Cog, name="Misc"):
             value=f"Embed sent to {channel.mention}",
             inline=False,
         )
-        await ctx.send(embed=sent_embed)
+        await discord_utils.send_message(ctx, sent_embed)
 
 
 def setup(bot):

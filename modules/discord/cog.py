@@ -49,7 +49,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         # Error pinning, send error message to user
         if embed_or_none is not None:
-            await ctx.send(embed=embed_or_none)
+            await discord_utils.send_message(ctx, embed_or_none)
         else:
             await message.add_reaction(emoji.emojize(":pushpin:"))
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
@@ -63,7 +63,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                 name=f"{constants.FAILED}!",
                 value=f"Unable to delete original message. Do I have `manage_messages` permissions?",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
     @commands.command(name="pinme")
@@ -77,7 +77,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         embed_or_none = await discord_utils.pin_message(ctx.message)
         # Error pinning, send error message to user
         if embed_or_none is not None:
-            await ctx.send(embed=embed_or_none)
+            await discord_utils.send_message(ctx, embed_or_none)
         else:
             await ctx.message.add_reaction(emoji.emojize(":pushpin:"))
 
@@ -95,7 +95,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             embed = discord_utils.create_no_argument_embed(
                 "number of messages to unpin"
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         pins = await ctx.message.channel.pins()
@@ -113,7 +113,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                     value=f"The linked message [Msg]({orig_msg.jump_url}) has not been pinned, there's nothing to unpin.",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
             messages_to_unpin.append(orig_msg)
         # Else unpin the last X messages
@@ -137,7 +137,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                     value=f"I do not have permissions to unpin that message. Please check my perms and try again?",
                     inline=False,
                 )
-                await ctx.send(embed=embed)
+                await discord_utils.send_message(ctx, embed)
                 return
 
         embed.add_field(
@@ -146,7 +146,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             + f"{strmsg[:-3]}",
             inline=False,
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
         await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
 
     @commands.command(name="lspin", aliases=["lspins", "listpin", "listpins"])
@@ -172,9 +172,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             f"\n{strmsg[:-3]}",
             inline=False,
         )
-        embeds = discord_utils.split_embed(embed)
-        for embed in embeds:
-            await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     #######################
     # STATISTICS COMMANDS #
@@ -215,8 +213,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         embed.add_field(
             name="Voice Channels", value=f"{len(guild.voice_channels)}", inline=False
         )
-
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_verified()
     @commands.command(name="catstats")
@@ -240,7 +237,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                 name=f"{constants.FAILED}",
                 value=f"I cannot find category `{cat_name}`. Perhaps check your spelling and try again.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         embed.add_field(name="Category Name", value=f"{cat.name}", inline=False)
@@ -250,7 +247,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         embed.add_field(
             name="Voice Channels", value=f"{len(cat.voice_channels)}", inline=False
         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     ##################
     # EMOJI COMMANDS #
@@ -282,7 +279,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                 name=f"{constants.FAILED}",
                 value=f"Command `~listreacts` can only be called as a reply to another message.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
         else:
             message = await ctx.fetch_message(ctx.message.reference.message_id)
@@ -300,9 +297,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             name=f"Reactions to message = {len(message.reactions)}",
             value=embed_message,
         )
-        embeds = discord_utils.split_embed(embed)
-        for e in embeds:
-            emb = await ctx.send(embed=e)
+        await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="listemoji", aliases=["lsemoji", "listemojis", "lsemojis"])
     async def listemoji(self, ctx):
@@ -316,9 +311,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             name=f"Emoji in {ctx.guild.name}",
             value=f"{chr(10).join([f'{emoji} - {emoji.name} - {emoji.id}' for emoji in ctx.guild.emojis])}",
         )
-        embeds = discord_utils.split_embed(embed)
-        for e in embeds:
-            emb = await ctx.send(embed=e)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_verified()
     @commands.command(name="steal")
@@ -368,7 +361,7 @@ class DiscordCog(commands.Cog, name="Discord"):
                             name=f"{constants.FAILED}",
                             value=f"Could not find emote `:{name}:`.",
                         )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
 
 def setup(bot):

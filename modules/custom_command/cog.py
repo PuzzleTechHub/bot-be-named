@@ -28,7 +28,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 name=f"{constants.FAILED}",
                 value=f"Command {command_name} is a default command. Please use a different name.",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         if not is_global and command_name in database.CUSTOM_COMMANDS[ctx.guild.id]:
@@ -39,7 +39,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 f"`{ctx.prefix}{command_name}`, please use `{ctx.prefix}editcustomcommand {command_name} "
                 f"{command_return}`",
             )
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         with Session(database.DATABASE_ENGINE) as session:
@@ -73,7 +73,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 command_return,
                 is_image,
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_trusted()
     @commands.command(
@@ -94,7 +94,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
 
         if len(args) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
         command_name = command_name.lower()
         command_return = " ".join(args)
@@ -121,7 +121,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
 
         if len(args) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         command_name = command_name.lower()
@@ -149,7 +149,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
 
         if len(args) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
         command_name = command_name.lower()
         command_return = " ".join(args)
@@ -177,7 +177,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
 
         if len(args) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         command_name = command_name.lower()
@@ -243,7 +243,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 value=f"No global custom commands yet. Contact {owner.mention} to suggest one.",
                 inline=False,
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_trusted()
     @commands.command(
@@ -264,7 +264,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
 
         if len(args) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
-            await ctx.send(embed=embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         command_name = command_name.lower()
@@ -308,7 +308,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 value=f"Added command `{ctx.prefix}{command_name}` with return value "
                 f"`{command_return}`",
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_trusted_or_bot_owner()
     @commands.command(
@@ -362,7 +362,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 value=f"Command `{ctx.prefix}{command_name}` does not exist in {ctx.guild.name}",
                 # Technically it's the same error if no global command either, but no need to duplicate error fields yet
             )
-        await ctx.send(embed=embed)
+        await discord_utils.send_message(ctx, embed)
 
 
 def setup(bot):
