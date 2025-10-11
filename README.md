@@ -31,7 +31,7 @@ Bot-Be-Named is currently set up with our own configurations and environment var
 
 ### Prerequisites - 
 
-- [python3.10](https://realpython.com/installing-python/)
+- [python3.12](https://realpython.com/installing-python/)
 
 - [Git](https://github.com/git-guides/install-git)
 
@@ -50,7 +50,7 @@ We recommend using [virtual environments](https://docs.python.org/3/tutorial/ven
 git clone https://github.com/PuzzleTechHub/bot-be-named.git
 cd bot-be-named
 #Technically optional, but using virtualenv is usually a good idea
-virtualenv venv -p=3.10 
+virtualenv venv -p=3.12
 source venv/bin/activate
 #This installs all the python dependancies the bot needs
 pip install -r requirements.txt && pre-commit install
@@ -87,27 +87,28 @@ To install BBN on GCloud, the full instructions is as follows.
 
 First, make sure you have the correct version of python. If not, install it.
 ```bash
-# Example instructions for GCloud / Debian systems - How to install Python 3.10.18
+# Example instructions for GCloud / Debian systems - How to install Python 3.12.3
 # Following instructions on https://cloudcone.com/docs/article/how-to-install-python-3-10-on-debian-11/
 sudo apt update
 sudo apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
-wget https://www.python.org/ftp/python/3.10.18/Python-3.10.18.tgz
-tar -xvf Python-3.10.18.tgz
-cd Python-3.10.18
-sudo ./configure --enable-optimizations --prefix=/opt/python3.10
-# or sudo ./configure --enable-optimizations --prefix=/opt/python3.10
+wget https://www.python.org/ftp/python/3.12.3/Python-3.12.3.tgz
+tar -xvf Python-3.12.3.tgz
+cd Python-3.12.3
+sudo apt install pkg-config libgdbm-dev liblzma-dev tk-dev uuid-dev
+sudo ./configure --enable-optimizations --prefix=/opt/python3.12
+# or sudo ./configure --enable-optimizations --prefix=/opt/python3.12
 # not sure what prefix does here
 sudo make -j$(nproc)
 sudo make altinstall
 
 #Confirm if python is installed / what version it is
-python3.10 --version
+python3.12 --version
 ```
 
 #### Aliasing
-Depending on the system, you may want to also [alias](https://stackoverflow.com/questions/35435517/creating-an-alias-for-python3 for that) for simplicity, for example to point `python` to `python3.10`
+Depending on the system, you may want to also [alias](https://stackoverflow.com/questions/35435517/creating-an-alias-for-python3 for that) for simplicity, for example to point `python` to `python3.12`
 
-If so, replace `python3.10 bot.py` in the instructions to `python bot.py` or similar.
+If so, replace `python3.12 bot.py` in the BBN instructions to `python bot.py` or similar.
 
 #### Other installations
 
@@ -129,7 +130,7 @@ Everything else we have can now be handled by pip.
 git clone https://github.com/PuzzleTechHub/bot-be-named.git
 cd bot-be-named
 #Technically optional, but using virtualenv is usually a good idea
-virtualenv venv -p=3.10 
+virtualenv venv -p=3.12 
 source venv/bin/activate
 #This installs all the python dependancies the bot needs
 pip install -r requirements.txt && pre-commit install
@@ -140,7 +141,7 @@ nano .env
 #Here - edit your .env file
 
 #Test that your bot successfully runs!
-python3.10 bot.py
+python3.12 bot.py
 ```
 
 #### Every other run on GCloud
@@ -151,7 +152,7 @@ cd bot-be-named
 source venv/bin/activate
 # nohup allows the bot to run while you close the SSH window, and also pastes log in a convenient spot. 
 # You can use soemthing simpler than nohup if you like!
-nohup python3.10 bot.py "This is BBN running" &
+nohup python3.12 bot.py "This is BBN running" &
 #That message is not necessary, I just like to include one when running
 deactivate
 ```
@@ -221,4 +222,4 @@ There are multiple repositories and code that BBN borrowed code from, most notab
 
 If you find any issues, bugs, or improvements, please feel free to open an issue and/or pull request! Thank you!
 
-Feel free to join our discord at `discord (dot) gg / x8f2ywHUky` with any questions you may have! If you are unable to join the discord, contact [TheOriginalSoni](https://github.com/TheOriginalSoni) (`@talesfromtim` on discord). zd6
+Feel free to join our discord at `discord (dot) gg / x8f2ywHUky` with any questions you may have! If you are unable to join the discord, contact [TheOriginalSoni](https://github.com/TheOriginalSoni) (`@talesfromtim` on discord). 
