@@ -189,9 +189,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         if start_msg:
             await start_msg.delete()
-        embeds = discord_utils.split_embed(embed)
-        for embed in embeds:
-            await discord_utils.send_message(ctx, embed)
+        await discord_utils.send_message(ctx, embed)
 
 
 def setup(bot):

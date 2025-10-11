@@ -415,9 +415,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 name=f"Roles in {ctx.guild.name} = {num_roles}", value=rolestext
             )
 
-            embeds = discord_utils.split_embed(embed)
-            for embed in embeds:
-                await discord_utils.send_message(ctx, embed)
+            await discord_utils.send_message(ctx, embed)
             return
 
         role_to_list = await discord_utils.find_role(ctx, rolename)
@@ -439,9 +437,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             value=allusers,
             inline=False,
         )
-        embeds = discord_utils.split_embed(embed)
-        for embed in embeds:
-            await discord_utils.send_message(ctx, embed)
+        await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="unreactrole", aliases=[])
     async def unreactrole(self, ctx, *args: Union[nextcord.Role, str]):
