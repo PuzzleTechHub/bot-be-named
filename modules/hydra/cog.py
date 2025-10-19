@@ -119,7 +119,8 @@ class HydraCog(commands.Cog, name="Hydra"):
             inline=False,
         )
 
-        start_msg = await discord_utils.send_message(ctx, start_embed)[0]
+        start_msgs = await discord_utils.send_message(ctx, start_embed)
+        start_msg = start_msgs[0]
         try:
             allchans = currcat.text_channels
             messages = []

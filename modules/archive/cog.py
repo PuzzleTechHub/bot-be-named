@@ -195,7 +195,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
         for channelname in args:
             if self.lock.locked():
                 embed = archive_utils.get_delay_embed()
-                msg = await discord_utils.send_message(ctx, embed)[0]
+                msgs = await discord_utils.send_message(ctx, embed)
+                msg = msgs[0]
             # LOCK EVERYTHING
             async with self.lock:
                 # If we sent a message about being delayed bc of lock, we can delete that now.
@@ -228,7 +229,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         return
                 # If we've gotten to this point, we know we have a channel so we should probably let the user know.
                 start_embed = await self.get_start_embed(channel)
-                msg = await discord_utils.send_message(ctx, start_embed)
+                msgs = await discord_utils.send_message(ctx, start_embed)
+                msg = msgs[0]
                 try:
                     # zipfile, textfile
                     (

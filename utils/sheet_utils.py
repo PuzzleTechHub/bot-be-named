@@ -95,7 +95,8 @@ async def sheetcrabgeneric(
         value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
         inline=False,
     )
-    msg = await discord_utils.send_message(ctx, embed)[0]
+    msgs = await discord_utils.send_message(ctx, embed)
+    msg = msgs[0]
 
     # Pin message to the new channel
     if pin_flag:

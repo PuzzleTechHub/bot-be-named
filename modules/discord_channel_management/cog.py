@@ -666,7 +666,8 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             value=f"Your sort of category `{category.name}` has begun! "
             f"This may take a while. If I run into any errors, I'll let you know.",
         )
-        start_embed_msg = await discord_utils.send_message(ctx, embed)[0]
+        start_embed_msgs = await discord_utils.send_message(ctx, embed)
+        start_embed_msg = start_embed_msgs[0]
 
         for idx, channel in enumerate(channel_list):
             # Skip channels already in correct place.
@@ -808,7 +809,8 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             f"any errors, I'll let you know.",
             inline=False,
         )
-        start_msg = await discord_utils.send_message(ctx, start_embed)
+        start_msgs = await discord_utils.send_message(ctx, start_embed)
+        start_msg = start_msgs[0]
 
         try:
             for channel in category.channels:
