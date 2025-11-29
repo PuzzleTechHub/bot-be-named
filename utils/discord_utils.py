@@ -252,11 +252,13 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
             characters_remaining -= cutoff_point
     # If the title + description are small, we can just copy them over
     else:
-        embed_list.append(
-            nextcord.Embed(
-                title=embed_title, description=embed.description, color=embed.color
-            )
-        )
+        # embed_list.append(
+        #    nextcord.Embed(
+        #        title=embed_title, description=embed.description, color=embed.color
+        #    )
+        # )
+        return [embed]
+
     character_count = len(embed_list[-1].title) + len(embed_list[-1].description)
 
     # Iterate over all the proposed fields in the embed
