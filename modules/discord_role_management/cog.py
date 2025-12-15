@@ -110,7 +110,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 user = unclean_username
             elif isinstance(unclean_username, str):
                 user_found = await discord_utils.find_user(ctx, unclean_username)
-                if user_found != None:
+                if user_found is not None:
                     user = user_found
                 else:
                     embed.add_field(
@@ -223,7 +223,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 user = unclean_username
             elif isinstance(unclean_username, str):
                 user_found = await discord_utils.find_user(ctx, unclean_username)
-                if user_found != None:
+                if user_found is not None:
                     user = user_found
                 else:
                     embed.add_field(
