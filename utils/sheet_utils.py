@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from typing import Union
 import emoji
 
+from nextcord.ext.commands import Context
+
 """
 Sheets utils. Useful for any commands that require Google Sheets.
 Contains deduplicated code and logic from multiple commands/modules then generic helper functions.
@@ -407,3 +409,40 @@ async def sheetcreatetabgeneric(
             )
             await discord_utils.send_message(ctx, embed)
             return
+
+
+# TODO: class for interacting w/ overview sheet in a cached way
+class OverviewSheet:
+    def __init__(self, gspread_client: gspread.Client, sheet_url: str):
+        self.gspread_client = gspread_client
+        self.sheet_url = sheet_url
+        self.exception = None
+
+        self.curr_sheet = self.gspread_client.open_by_url(sheet_url)
+        self.sheet = self.curr_sheet.worksheet("Overview")
+
+        # Cache all data on the overview sheet
+        self.overview_data = self.sheet.get()
+
+    def get_cell_value(self, label: str) -> str:
+        row, col = gspread.utils.a1_to_rowcol(label)
+        return self.overview_data[row - 1][col - 1]
+
+    def find_row_of_channel(
+        self, ctx: Context
+    ) -> tuple[int, None] | tuple[None, nextcord.Embed]:
+        chan_id = str(ctx.channel.id)
+        for row, cell in enumerate(self.overview_data[0]):
+            if chan_id == cell:
+                # Users expect 1-indexed rows
+                return row + 1, None
+
+        # I don't like Go-style errors, but I also don't want to make this async...
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED}!",
+            value=f"I couldn't find the channel {ctx.channel.mention} in the sheet."
+            f" Are you sure this channel is linked to a puzzle?",
+            inline=False,
+        )
+        return None, embed
