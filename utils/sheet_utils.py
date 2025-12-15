@@ -418,11 +418,11 @@ class OverviewSheet:
         self.sheet_url = sheet_url
         self.exception = None
 
-        self.curr_sheet = self.gspread_client.open_by_url(sheet_url)
-        self.sheet = self.curr_sheet.worksheet("Overview")
+        self.spreadsheet = self.gspread_client.open_by_url(sheet_url)
+        self.worksheet = self.spreadsheet.worksheet("Overview")
 
         # Cache all data on the overview sheet
-        self.overview_data = self.sheet.get()
+        self.overview_data = self.worksheet.get()
 
     def get_cell_value(self, label: str) -> str:
         row, col = gspread.utils.a1_to_rowcol(label)

@@ -476,7 +476,7 @@ class LionCog(commands.Cog, name="Lion"):
             tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
             tab_cell_label = sheets_constants.SHEET_TAB_ID_COLUMN + str(row_to_find)
             tab_id = overview_sheet.get_cell_value(tab_cell_label)
-            puzzle_tab = overview_sheet.curr_sheet.get_worksheet_by_id(int(tab_id))
+            puzzle_tab = overview_sheet.spreadsheet.get_worksheet_by_id(int(tab_id))
 
             batch_update_builder = batch_update_utils.BatchUpdateBuilder()
 
@@ -496,14 +496,14 @@ class LionCog(commands.Cog, name="Lion"):
                 curr_stat_info = sheets_constants.status_dict.get("None")
 
             batch_update_builder.update_cell_by_label(
-                overview_sheet.sheet.id, status_col + str(row_to_find), status
+                overview_sheet.worksheet.id, status_col + str(row_to_find), status
             )
 
             color = status_info.get("color")
             batch_update_builder.color_update(tab_id, color)
 
             try:
-                overview_sheet.sheet.spreadsheet.batch_update(
+                overview_sheet.worksheet.spreadsheet.batch_update(
                     batch_update_builder.build()
                 )
             except gspread.exceptions.APIError as e:
@@ -602,9 +602,9 @@ class LionCog(commands.Cog, name="Lion"):
         tab_id = overview_sheet.get_cell_value(sheet_tab_id_col + str(row_to_find))
 
         # Grab worksheets all at once to avoid issuing 2 read requests
-        worksheets = overview_sheet.curr_sheet.worksheets()
+        worksheets = overview_sheet.spreadsheet.worksheets()
         puzzle_tab = next(w for w in worksheets if w.id == int(tab_id))
-        puzzle_tab.update_index(len(overview_sheet.curr_sheet.worksheets()))
+        puzzle_tab.update_index(len(overview_sheet.spreadsheet.worksheets()))
 
         embed = discord_utils.create_embed()
         embed.add_field(
@@ -646,7 +646,7 @@ class LionCog(commands.Cog, name="Lion"):
             if not overview_sheet:
                 return
 
-            overview_id = overview_sheet.curr_sheet.id
+            overview_id = overview_sheet.worksheet.id
             first_empty = len(overview_sheet.overview_data)
 
             discord_channel_id_col = sheets_constants.DISCORD_CHANNEL_ID_COLUMN
