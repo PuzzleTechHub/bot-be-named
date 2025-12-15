@@ -1,16 +1,17 @@
-from dotenv.main import load_dotenv
-
-load_dotenv(override=True)
-
 import os
 import constants
-import database
 import sqlalchemy
 import nextcord
 from nextcord.ext import commands
 from sqlalchemy import insert
 from sqlalchemy.orm import Session
 from utils import logging_utils
+
+from dotenv.main import load_dotenv
+
+load_dotenv(override=True)
+
+import database  # noqa: E402 -- needs env var to set up
 
 
 def get_prefix(client, message):
