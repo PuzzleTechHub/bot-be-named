@@ -138,8 +138,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     name="ERROR: History Too Big",
                     value=f"Sorry about that! The chat log in {channel.mention} is too big for me to send.\n"
                     f"The max file size I can send in this server is "
-                    f"`{(filesize_limit/constants.BYTES_TO_MEGABYTES):.2f}MB`, but the chat log is "
-                    f"`{(textfile_size/constants.BYTES_TO_MEGABYTES):.2f}MB`",
+                    f"`{(filesize_limit / constants.BYTES_TO_MEGABYTES):.2f}MB`, but the chat log is "
+                    f"`{(textfile_size / constants.BYTES_TO_MEGABYTES):.2f}MB`",
                     inline=False,
                 )
                 file = None
@@ -148,8 +148,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     name="WARNING: Attachments Too Big",
                     value=f"There are too many photos in {channel.mention} for me to send. The max file size "
                     f"I can send in this server is "
-                    f"`{(filesize_limit/constants.BYTES_TO_MEGABYTES):.2f}MB` but the zip is "
-                    f"`{(zip_file_size/constants.BYTES_TO_MEGABYTES):.2f}MB`. I'll only be able to send you the chat log.",
+                    f"`{(filesize_limit / constants.BYTES_TO_MEGABYTES):.2f}MB` but the zip is "
+                    f"`{(zip_file_size / constants.BYTES_TO_MEGABYTES):.2f}MB`. I'll only be able to send you the chat log.",
                     inline=False,
                 )
                 ZIP_FILENAME = os.path.join(
@@ -216,9 +216,11 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         )
                         await discord_utils.send_message(ctx, embed)
                         return
-                    if not (
-                        channel.type.name in ["text", "public_thread", "private_thread"]
-                    ):
+                    if channel.type.name not in [
+                        "text",
+                        "public_thread",
+                        "private_thread",
+                    ]:
                         embed.add_field(
                             name="ERROR: Cannot archive non-text channels",
                             value=f"Sorry! I can only archive text channels, but "

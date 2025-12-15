@@ -22,7 +22,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
     async def add_cc_generic(
         self, ctx, command_name, command_return, is_image: bool, is_global: bool
     ):
-        # TODO : Add way to use is_global in here
+        embed = discord_utils.create_embed()
         if command_name in constants.DEFAULT_COMMANDS:
             embed.add_field(
                 name=f"{constants.FAILED}",
@@ -60,7 +60,6 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 session.execute(stmt)
                 session.commit()
 
-                embed = discord_utils.create_embed()
                 embed.add_field(
                     name=f"{constants.SUCCESS}",
                     value=f"Added `{ctx.prefix}{command_name}` with value `{command_return}`",

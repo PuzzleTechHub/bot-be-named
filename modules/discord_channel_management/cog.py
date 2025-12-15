@@ -312,8 +312,8 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         ctx,
         chan_a: Union[nextcord.TextChannel, str],
         chan_b: str = "",
-        origRoleorUser: Union[nextcord.Role, nextcord.Member, str] = None,
-        targetRoleorUser: Union[nextcord.Role, nextcord.Member, str] = None,
+        origRoleorUser: Union[nextcord.Role, nextcord.Member, str, None] = None,
+        targetRoleorUser: Union[nextcord.Role, nextcord.Member, str, None] = None,
     ):
         """Command to create channel in same category with given name.
         If user/role is specified, then syncs permissions as well.
@@ -350,7 +350,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             return
 
         if isinstance(origRoleorUser, str):
-            origUser = await discord_utils.find_user(ctx, origUser)
+            origUser = await discord_utils.find_user(ctx, origRoleorUser)
             if origUser is None:
                 origRole = await discord_utils.find_role(ctx, origRoleorUser)
                 if origRole is None:

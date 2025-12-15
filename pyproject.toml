@@ -1,4 +1,7 @@
 [tool.ruff]
-line-length = 88
-indent-width = 4
 target-version = "py312"
+
+[tool.ruff.lint]
+extend-ignore = [
+  "E722"  # Strictly, should properly catch exceptions...
+]

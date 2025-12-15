@@ -219,7 +219,6 @@ class MiscCog(commands.Cog, name="Misc"):
             return
 
         message = " ".join(args)
-        guild = ctx.message.guild
 
         channel = await discord_utils.find_chan_or_thread(ctx, channel_id_or_name)
         if channel is None:

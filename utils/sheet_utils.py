@@ -1,4 +1,3 @@
-from http.client import FORBIDDEN
 from utils import sheets_constants
 from utils import discord_utils
 import constants

@@ -358,7 +358,7 @@ async def find_guild(
             if guild_name == currguild.name:
                 guild = currguild
                 break
-    except Exception as e:
+    except Exception:
         pass
     return guild
 

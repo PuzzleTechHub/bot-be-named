@@ -4,7 +4,6 @@ from nextcord import logging
 from nextcord.ext.commands import errors
 from modules.error_logging import error_constants
 from utils import logging_utils
-import os
 
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo

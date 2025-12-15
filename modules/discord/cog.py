@@ -272,6 +272,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         await logging_utils.log_command(
             "listreacts", ctx.guild, ctx.channel, ctx.author
         )
+        embed = discord_utils.create_embed()
 
         if not ctx.message.reference:
             embed.add_field(
@@ -291,7 +292,6 @@ class DiscordCog(commands.Cog, name="Discord"):
                 + f" {reaction.emoji} - {' : '.join([user.mention for user in await reaction.users().flatten()])}"
             )
 
-        embed = discord_utils.create_embed()
         embed.add_field(
             name=f"Reactions to message = {len(message.reactions)}",
             value=embed_message,
@@ -325,22 +325,22 @@ class DiscordCog(commands.Cog, name="Discord"):
         await logging_utils.log_command("steal", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        for emoji in emojis:
-            url = str(emoji.url)
-            name = emoji.name
+        for to_steal in emojis:
+            url = str(to_steal.url)
+            name = to_steal.name
             async with aiohttp.ClientSession() as ses:
                 async with ses.get(url) as r:
                     try:
                         img_or_gif = io.BytesIO(await r.read())
                         b_value = img_or_gif.getvalue()
                         try:
-                            emoji = await ctx.guild.create_custom_emoji(
+                            to_steal = await ctx.guild.create_custom_emoji(
                                 image=b_value, name=name
                             )
 
                             embed.add_field(
                                 name=f"{constants.SUCCESS}",
-                                value=f"Added {emoji} with name {emoji.name}",
+                                value=f"Added {to_steal} with name {to_steal.name}",
                             )
                             await ses.close()
                         except nextcord.Forbidden:
