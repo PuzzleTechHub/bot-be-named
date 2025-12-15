@@ -355,10 +355,6 @@ class LionCog(commands.Cog, name="Lion"):
         )
         await discord_utils.send_message(ctx, embed)
 
-    def firstemptyrow(self, worksheet):
-        """Finds the first empty row in a worksheet"""
-        return len(worksheet.get_values()) + 1
-
     @command_predicates.is_solver()
     @commands.command(name="solvedlion")
     async def solvedlion(self, ctx: commands.Context, answer: str = None):
@@ -647,7 +643,7 @@ class LionCog(commands.Cog, name="Lion"):
                 return
 
             overview_id = overview_sheet.worksheet.id
-            first_empty = len(overview_sheet.overview_data)
+            first_empty = len(overview_sheet.overview_data) + 1
 
             discord_channel_id_col = sheets_constants.DISCORD_CHANNEL_ID_COLUMN
             sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
