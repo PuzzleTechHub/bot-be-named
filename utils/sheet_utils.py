@@ -411,7 +411,6 @@ async def sheetcreatetabgeneric(
             return
 
 
-# TODO: class for interacting w/ overview sheet in a cached way
 class OverviewSheet:
     def __init__(self, gspread_client: gspread.Client, sheet_url: str):
         self.gspread_client = gspread_client
