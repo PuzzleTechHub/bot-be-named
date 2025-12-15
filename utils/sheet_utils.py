@@ -432,10 +432,10 @@ class OverviewSheet:
         self, ctx: Context
     ) -> tuple[int, None] | tuple[None, nextcord.Embed]:
         chan_id = str(ctx.channel.id)
-        for row, cell in enumerate(self.overview_data[0]):
-            if chan_id == cell:
+        for i, row in enumerate(self.overview_data):
+            if chan_id == row[0]:
                 # Users expect 1-indexed rows
-                return row + 1, None
+                return i + 1, None
 
         # I don't like Go-style errors, but I also don't want to make this async...
         embed = discord_utils.create_embed()
