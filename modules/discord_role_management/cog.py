@@ -193,7 +193,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         if len(args) < 1:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"No users provided! You must give at least one user to unassign.",
+                value="No users provided! You must give at least one user to unassign.",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -388,7 +388,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"I don't have permission to add or remove a role in this server. Do I have the `add_roles` permission?",
+                value="I don't have permission to add or remove a role in this server. Do I have the `add_roles` permission?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -472,7 +472,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         if len(members) == 0:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"No members to list. Check your roles again.",
+                value="No members to list. Check your roles again.",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -494,7 +494,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         if len(reactors) == 0:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"No members reacted to the message. Check the message again.",
+                value="No members reacted to the message. Check the message again.",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)

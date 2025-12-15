@@ -233,7 +233,7 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
                 + f"\nContact {owner.mention} to suggest any more custom commands."
             )
             embed.add_field(
-                name=f"Global Custom Commands",
+                name="Global Custom Commands",
                 value=custom_commands,
                 inline=False,
             )

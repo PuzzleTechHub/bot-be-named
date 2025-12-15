@@ -61,7 +61,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Unable to delete original message. Do I have `manage_messages` permissions?",
+                value="Unable to delete original message. Do I have `manage_messages` permissions?",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -134,7 +134,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
-                    value=f"I do not have permissions to unpin that message. Please check my perms and try again?",
+                    value="I do not have permissions to unpin that message. Please check my perms and try again?",
                     inline=False,
                 )
                 await discord_utils.send_message(ctx, embed)
@@ -168,8 +168,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         embed.add_field(
             name=f"{constants.SUCCESS}!",
-            value=f"There are {len(pins)} pinned posts on this channel."
-            f"\n{strmsg[:-3]}",
+            value=f"There are {len(pins)} pinned posts on this channel.\n{strmsg[:-3]}",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
@@ -277,7 +276,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         if not ctx.message.reference:
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value=f"Command `~listreacts` can only be called as a reply to another message.",
+                value="Command `~listreacts` can only be called as a reply to another message.",
             )
             await discord_utils.send_message(ctx, embed)
             return

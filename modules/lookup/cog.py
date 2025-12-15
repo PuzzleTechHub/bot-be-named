@@ -79,7 +79,7 @@ class LookupCog(commands.Cog, name="Lookup"):
             )
         else:
             embed.add_field(
-                name=f"Search failed!",
+                name="Search failed!",
                 value=f"Sorry! We weren't able to find a {target_site.capitalize()}"
                 f"link for {original_query}. However, here are the top 10 hits on Google:\n"
                 f"{chr(10).join(results)}",
@@ -119,7 +119,7 @@ class LookupCog(commands.Cog, name="Lookup"):
 
         if len(results) > 1:
             embed.add_field(
-                name=f"Search failed!",
+                name="Search failed!",
                 value=f"Sorry! We weren't able to find a Wikipedia"
                 f"link for {' '.join(args)}. However, here are the top 10 hits on Google:\n"
                 f"{chr(10).join(results)}",

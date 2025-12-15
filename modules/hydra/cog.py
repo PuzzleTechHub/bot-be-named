@@ -171,8 +171,8 @@ class HydraCog(commands.Cog, name="Hydra"):
                 embed = discord_utils.create_embed()
                 embed.add_field(
                     name=f"{constants.FAILED}",
-                    value=f"I'm unable to open the tethered sheet. "
-                    f"Did the permissions change?",
+                    value="I'm unable to open the tethered sheet. "
+                    "Did the permissions change?",
                     inline=False,
                 )
                 await discord_utils.send_message(ctx, embed)

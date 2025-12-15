@@ -41,7 +41,7 @@ class MiscCog(commands.Cog, name="Misc"):
         if not ctx.message.reference:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"You need to reply to a message to use emojiall",
+                value="You need to reply to a message to use emojiall",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -77,7 +77,7 @@ class MiscCog(commands.Cog, name="Misc"):
         except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Unable to delete original message. Do I have `manage_messages` permissions?",
+                value="Unable to delete original message. Do I have `manage_messages` permissions?",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -135,7 +135,7 @@ class MiscCog(commands.Cog, name="Misc"):
         owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
 
         embed.add_field(
-            name=f"About Me!",
+            name="About Me!",
             value=f"Hello!\n"
             f"Bot Be Named is a discord bot that we use while solving Puzzle Hunts.\n"
             f"The bot has a few channel management functions, some puzzle-hunt utility functions, "
@@ -158,7 +158,7 @@ class MiscCog(commands.Cog, name="Misc"):
         embed = discord_utils.create_embed()
 
         embed.add_field(
-            name=f"Helpful commands!",
+            name="Helpful commands!",
             value=f"Some of the useful bot commands are -\n"
             f"- `{ctx.prefix}help` for a list of commands\n"
             f"- `{ctx.prefix}help commandname` for a description of a command (and its limitations). \n **When in doubt, use this command**.\n"
@@ -183,7 +183,7 @@ class MiscCog(commands.Cog, name="Misc"):
         embed = discord_utils.create_embed()
 
         embed.add_field(
-            name=f"Permission Categories!",
+            name="Permission Categories!",
             value=f"In BBN, nearly every command is restricted to some Permission Category or the other. This allows server owners and admins to control what commands are available to users.\n"
             f"So you need to use `{ctx.prefix}addperm` before you can do almost anything else.\n"
             f"The Permission Categories available are - Verified, Trusted, Solver, Tester.\n\n"
