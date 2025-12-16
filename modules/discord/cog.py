@@ -61,7 +61,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Unable to delete original message. Do I have `manage_messages` permissions?",
+                value="Unable to delete original message. Do I have `manage_messages` permissions?",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -134,7 +134,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
-                    value=f"I do not have permissions to unpin that message. Please check my perms and try again?",
+                    value="I do not have permissions to unpin that message. Please check my perms and try again?",
                     inline=False,
                 )
                 await discord_utils.send_message(ctx, embed)
@@ -168,8 +168,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         embed.add_field(
             name=f"{constants.SUCCESS}!",
-            value=f"There are {len(pins)} pinned posts on this channel."
-            f"\n{strmsg[:-3]}",
+            value=f"There are {len(pins)} pinned posts on this channel.\n{strmsg[:-3]}",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
@@ -273,11 +272,12 @@ class DiscordCog(commands.Cog, name="Discord"):
         await logging_utils.log_command(
             "listreacts", ctx.guild, ctx.channel, ctx.author
         )
+        embed = discord_utils.create_embed()
 
         if not ctx.message.reference:
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value=f"Command `~listreacts` can only be called as a reply to another message.",
+                value="Command `~listreacts` can only be called as a reply to another message.",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -292,7 +292,6 @@ class DiscordCog(commands.Cog, name="Discord"):
                 + f" {reaction.emoji} - {' : '.join([user.mention for user in await reaction.users().flatten()])}"
             )
 
-        embed = discord_utils.create_embed()
         embed.add_field(
             name=f"Reactions to message = {len(message.reactions)}",
             value=embed_message,
@@ -326,22 +325,22 @@ class DiscordCog(commands.Cog, name="Discord"):
         await logging_utils.log_command("steal", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        for emoji in emojis:
-            url = str(emoji.url)
-            name = emoji.name
+        for to_steal in emojis:
+            url = str(to_steal.url)
+            name = to_steal.name
             async with aiohttp.ClientSession() as ses:
                 async with ses.get(url) as r:
                     try:
                         img_or_gif = io.BytesIO(await r.read())
                         b_value = img_or_gif.getvalue()
                         try:
-                            emoji = await ctx.guild.create_custom_emoji(
+                            to_steal = await ctx.guild.create_custom_emoji(
                                 image=b_value, name=name
                             )
 
                             embed.add_field(
                                 name=f"{constants.SUCCESS}",
-                                value=f"Added {emoji} with name {emoji.name}",
+                                value=f"Added {to_steal} with name {to_steal.name}",
                             )
                             await ses.close()
                         except nextcord.Forbidden:

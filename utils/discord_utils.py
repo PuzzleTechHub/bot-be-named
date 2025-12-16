@@ -197,9 +197,9 @@ def create_no_argument_embed(arg_name: str = "argument") -> nextcord.Embed:
 
 def populate_embed(names: list, values: list, inline: bool = False) -> nextcord.Embed:
     """Populate an embed with a list of names and values"""
-    assert len(names) == len(
-        values
-    ), "Tried to populate an embed with uneven numbers of names and values"
+    assert len(names) == len(values), (
+        "Tried to populate an embed with uneven numbers of names and values"
+    )
     embed = nextcord.Embed(color=constants.EMBED_COLOR)
     for idx in range(len(names)):
         embed.add_field(name=names[idx], value=values[idx], inline=inline)
@@ -358,7 +358,7 @@ async def find_guild(
             if guild_name == currguild.name:
                 guild = currguild
                 break
-    except Exception as e:
+    except Exception:
         pass
     return guild
 
@@ -523,7 +523,7 @@ async def pin_message(message: nextcord.Message) -> nextcord.Embed:
         embed = create_embed()
         embed.add_field(
             name=f"{constants.FAILED} to pin!",
-            value=f"Cannot pin system messages (e.g. **Bot-Be-Named** pinned **a message** to this channel.)",
+            value="Cannot pin system messages (e.g. **Bot-Be-Named** pinned **a message** to this channel.)",
         )
         return embed
 

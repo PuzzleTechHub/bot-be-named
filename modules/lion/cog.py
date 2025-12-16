@@ -106,7 +106,7 @@ class LionCog(commands.Cog, name="Lion"):
             except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
-                    value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                    value="Forbidden! Have you checked if the bot has the required permisisons?",
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
@@ -574,7 +574,7 @@ class LionCog(commands.Cog, name="Lion"):
         embed = discord_utils.create_embed()
         embed.add_field(
             name=f"{constants.SUCCESS}!",
-            value=f"Moved sheet to the end of the spreadsheet!",
+            value="Moved sheet to the end of the spreadsheet!",
             inline=False,
         )
 
@@ -827,7 +827,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~sheetlion PuzzleName linktopuzzle
         """
         await logging_utils.log_command("sheetlion", ctx.guild, ctx.channel, ctx.author)
-        embed = discord_utils.create_embed()
 
         curr_sheet_link, newsheet = await sheet_utils.sheetcrabgeneric(
             self.gspread_client, ctx, tab_name, False
@@ -855,7 +854,6 @@ class LionCog(commands.Cog, name="Lion"):
         await logging_utils.log_command(
             "metasheetlion", ctx.guild, ctx.channel, ctx.author
         )
-        embed = discord_utils.create_embed()
 
         curr_sheet_link, newsheet = None, None
 
@@ -885,8 +883,8 @@ class LionCog(commands.Cog, name="Lion"):
         if not proposed_template:
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value=f"Sorry, we can't find a sheet there. "
-                f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
+                value="Sorry, we can't find a sheet there. "
+                "Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -897,7 +895,7 @@ class LionCog(commands.Cog, name="Lion"):
         # Make sure the template tab exists on the sheet.
         try:
             curr_sheet = self.gspread_client.open_by_url(curr_link)
-            template_id = curr_sheet.worksheet("Template").id
+            _template_id = curr_sheet.worksheet("Template").id
         # Error when we can't open the curr sheet link
         except gspread.exceptions.APIError as e:
             error_json = e.response.json()
@@ -929,7 +927,7 @@ class LionCog(commands.Cog, name="Lion"):
         # Make sure the Meta Template tab exists on the sheet.
         try:
             curr_sheet = self.gspread_client.open_by_url(curr_link)
-            overview_id = curr_sheet.worksheet("Meta Template").id
+            _overview_id = curr_sheet.worksheet("Meta Template").id
         # Error when the sheet has no Meta Template tab
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
@@ -945,7 +943,7 @@ class LionCog(commands.Cog, name="Lion"):
         # Make sure the Overview tab exists on the sheet.
         try:
             curr_sheet = self.gspread_client.open_by_url(curr_link)
-            overview_id = curr_sheet.worksheet("Overview").id
+            _overview_id = curr_sheet.worksheet("Overview").id
         # Error when the sheet has no Overview tab
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
@@ -1018,7 +1016,7 @@ class LionCog(commands.Cog, name="Lion"):
                 embed = discord_utils.create_embed()
                 embed.add_field(
                     name=f"{constants.FAILED}!",
-                    value=f"Error! The hunt category was not correctly created.",
+                    value="Error! The hunt category was not correctly created.",
                 )
                 # reply to user
                 await discord_utils.send_message(ctx, embed)
@@ -1061,7 +1059,7 @@ class LionCog(commands.Cog, name="Lion"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permisisons?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -1072,7 +1070,7 @@ class LionCog(commands.Cog, name="Lion"):
         embed = discord_utils.create_embed()
         embed.add_field(
             name=f"{constants.SUCCESS}!",
-            value=f"The hunt category was created.",
+            value="The hunt category was created.",
             inline=False,
         )
         embed.add_field(name=f"Channels in {cat}", value=f"{chr(10).join(channels)}")
@@ -1103,8 +1101,8 @@ class LionCog(commands.Cog, name="Lion"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Sorry, we can't find a sheet there. "
-                f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
+                value="Sorry, we can't find a sheet there. "
+                "Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -1114,7 +1112,7 @@ class LionCog(commands.Cog, name="Lion"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.SUCCESS}!",
-                value=f"The sheet is now set up for use",
+                value="The sheet is now set up for use",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -1145,7 +1143,7 @@ class LionCog(commands.Cog, name="Lion"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.SUCCESS}!",
-                value=f"The sheet is now set up for use",
+                value="The sheet is now set up for use",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -1280,8 +1278,8 @@ class LionCog(commands.Cog, name="Lion"):
         else:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Sorry, we can't find a sheet there. "
-                f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
+                value="Sorry, we can't find a sheet there. "
+                "Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)

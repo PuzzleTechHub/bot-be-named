@@ -1,4 +1,3 @@
-from http.client import FORBIDDEN
 from utils import sheets_constants
 from utils import discord_utils
 import constants
@@ -147,7 +146,7 @@ async def chancrabgeneric(
     if chan_or_thread == "thread" and await discord_utils.is_thread(ctx, ctx.channel):
         embed.add_field(
             name=f"{constants.FAILED}!",
-            value=f"Invalid! You cannot make a thread from inside another thread!",
+            value="Invalid! You cannot make a thread from inside another thread!",
         )
         await discord_utils.send_message(ctx, embed)
         return None, None, None
@@ -178,7 +177,7 @@ async def chancrabgeneric(
     if not new_chan:
         embed.add_field(
             name=f"{constants.FAILED}!",
-            value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+            value="Forbidden! Have you checked if the bot has the required permisisons?",
         )
         await discord_utils.send_message(ctx, embed)
         return None, None, None
