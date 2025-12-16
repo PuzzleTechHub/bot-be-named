@@ -4,7 +4,6 @@ from typing import Union
 import emoji
 import gspread
 import nextcord
-from gspread import Cell
 from nextcord.ext import commands
 
 import constants
@@ -625,7 +624,6 @@ class LionCog(commands.Cog, name="Lion"):
             tab_name = chan_name.replace("#", "").replace("-", " ")
 
             sheet = self.gspread_client.open_by_url(curr_sheet_link)
-            overview = None
             try:
                 overview_sheet = await self.get_overview(ctx, curr_sheet_link)
             # Error when the sheet has no Overview tab
@@ -743,7 +741,7 @@ class LionCog(commands.Cog, name="Lion"):
             self.gspread_client,
             ctx,
             chan_name,
-            chan_or_thread="chan",
+            chan_type="chan",
             is_meta=False,
             text_to_pin=text_to_pin,
         )
@@ -775,7 +773,7 @@ class LionCog(commands.Cog, name="Lion"):
             self.gspread_client,
             ctx,
             chan_name,
-            chan_or_thread="chan",
+            chan_type="chan",
             is_meta=True,
             text_to_pin=text_to_pin,
         )
@@ -809,7 +807,7 @@ class LionCog(commands.Cog, name="Lion"):
             self.gspread_client,
             ctx,
             chan_name,
-            chan_or_thread="thread",
+            chan_type="thread",
             is_meta=False,
             text_to_pin=text_to_pin,
         )
@@ -843,7 +841,73 @@ class LionCog(commands.Cog, name="Lion"):
             self.gspread_client,
             ctx,
             chan_name,
-            chan_or_thread="thread",
+            chan_type="thread",
+            is_meta=True,
+            text_to_pin=text_to_pin,
+        )
+
+        if curr_sheet_link is None or newsheet is None or new_chan is None:
+            return
+
+        await self.puzzlelion(
+            ctx, chan_name, text_to_pin, curr_sheet_link, newsheet, new_chan
+        )
+
+    @command_predicates.is_solver()
+    @commands.command(name="forumlion")
+    async def forumlion(self, ctx: commands.Context, chan_name: str, *args):
+        """Creates a new tab and a new thread for a new feeder puzzle and then updates the info in the sheet accordingly.
+
+        Requires that the sheet has Overview and Template tabs
+
+        Permission Category : Solver Roles only.
+        Usage: ~forumlion PuzzleName
+        Usage: ~forumlion PuzzleName linktopuzzle
+        """
+        await logging_utils.log_command("forumlion", ctx.guild, ctx.channel, ctx.author)
+
+        curr_sheet_link, newsheet, new_chan = None, None, None
+        text_to_pin = " ".join(args)
+
+        curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
+            self.gspread_client,
+            ctx,
+            chan_name,
+            chan_type="forum",
+            is_meta=False,
+            text_to_pin=text_to_pin,
+        )
+
+        if curr_sheet_link is None or newsheet is None or new_chan is None:
+            return
+
+        await self.puzzlelion(
+            ctx, chan_name, text_to_pin, curr_sheet_link, newsheet, new_chan
+        )
+
+    @command_predicates.is_solver()
+    @commands.command(name="metaforumlion")
+    async def metaforumlion(self, ctx: commands.Context, chan_name: str, *args):
+        """Creates a new tab and a new thread for a new metapuzzle and then updates the info in the sheet accordingly.
+
+        Requires that the sheet has Overview and Meta Template tabs
+
+        Permission Category : Solver Roles only.
+        Usage: ~metaforumlion PuzzleName
+        Usage: ~metaforumlion PuzzleName linktopuzzle
+        """
+        await logging_utils.log_command(
+            "metaforumlion", ctx.guild, ctx.channel, ctx.author
+        )
+
+        curr_sheet_link, newsheet, new_chan = None, None, None
+        text_to_pin = " ".join(args)
+
+        curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
+            self.gspread_client,
+            ctx,
+            chan_name,
+            chan_type="forum",
             is_meta=True,
             text_to_pin=text_to_pin,
         )
