@@ -11,197 +11,239 @@
 
 ### What is Bot-Be-Named?
 
-Bot Be Named is a Discord bot that makes puzzle tracking super easy by connecting to Google Sheets!
+Bot Be Named (BBN) is a powerful Discord bot designed to make puzzle tracking and server management easier — especially during puzzle hunts like Puzzle Boat!
 
-With one simple command (~threadlion "Puzzle Name"), it:
-- Creates a new thread in your channel called "Puzzle Name"
-- Adds the puzzle to a shared Google Sheet
-- Sets up a pre-formatted tab just for that puzzle
+Key features:
+- Automatically creates threads, Google Sheet tabs, and entries for new puzzles with one command (~threadlion "Puzzle Name")
+- Marks puzzles as solved
+- Integrates deeply with Google Sheets for real-time tracking
+- Includes many helpful modules:
+  • Admin — administrator commands
+  • Archive — download channel contents as ZIP
+  • Sheets — advanced puzzle sheet management
+  • Lion — improved Google Sheets-Discord integration
+  • Hydra — the newest puzzle-solving tools
+  • And more (full list below!)
 
-There's also a command to mark puzzles as solved.
+Perfect for puzzle teams who want less manual work and more solving time ♡
 
-Perfect for puzzle hunts like Puzzle Boat — no more manual sheet updates or thread creation!
-
-If you'd like to add our instance of Bot-Be-Named to your server, see the "Inviting the Bot to your server" section below.
+Ready to add BBN to your server? See "Inviting the Bot to your server" below.
 
 
-## Inviting the Bot to your server
+### Inviting the Bot to your server
 
-- Join the bot's discord server at `discord (dot) gg / x8f2ywHUky`
+Want to add Bot-Be-Named to your Discord server? It's easy! ♡
 
-- There is an instance of the bot currently on that server, named `~Bot Be Named`. Click on that name - Add App - Add it to your discord server.  Note that you need "Manage Server" permission to do that.
+1. Join the bot's support server:  
+   https://discord.gg/x8f2ywHUky
 
-- Use `~about` to get a quick guide to the bot, and `~startup` for all the commands that will come in very handy for you.
+2. In that server, you'll find an instance named **~Bot Be Named**.  
+   Click its name → **Add App** → **Add to your server**.  
+   (Note: You'll need "Manage Server" permission on your own server.)
 
-- In case of any problems, message us on discord or [open a new issue on Github](https://github.com/PuzzleTechHub/bot-be-named/issues/new)
+3. Once added, use `~about` for a quick guide to the bot, and `~startup` for all available commands.
+
+Having trouble? Message us on the support server or  [open a new issue on Github](https://github.com/PuzzleTechHub/bot-be-named/issues/new) — we're happy to help!
 
 ## How to install your own instance
 
+Want to run Bot-Be-Named on your own server or computer? It's totally doable — even if you're new to this! ♡
+
+We'll use a **virtual environment** (highly recommended) to keep everything neat.
+
 ### Prerequisites - 
 
-- [python3.12](https://realpython.com/installing-python/)
+- [python3.12](https://realpython.com/installing-python/) (or newer)
 
 - [Git](https://github.com/git-guides/install-git)
 
-- [Postgresql for storing data](https://www.postgresql.org/download/)
+- [Postgresql for storing data](https://www.postgresql.org/download/) or [Supabase for easier cloud option](https://supabase.com/)
 
 - [Pip package installer for Python](https://phoenixnap.com/kb/install-pip-windows)
 
-Note that you may use another Python installer (instead of Pip), Host (instead of Google Cloud) or Database (instead of Supabase) but that will require you figuring out the required setup and configuation changes yourself.
+**Note**: You can use alternatives (different host, database, etc.), but you'll need to adjust the setup yourself.
 
-### Installation
-
-We recommend using [virtual environments](https://docs.python.org/3/tutorial/venv.html) to manage python packages for our repo. To clone the repo and install dependencies, run the following on the Command Line
+#### Installation steps
 
 ```bash
-#Clone the bot locally
-git clone https://github.com/PuzzleTechHub/bot-be-named.git
+1. **Clone the repository**  
+   Open your terminal/command line and run:
+git clone https://github.com/PuzzleTechHub/bot-be-named
 cd bot-be-named
-#Technically optional, but using virtualenv is usually a good idea
-virtualenv venv -p=3.12
-source venv/bin/activate
-#This installs all the python dependancies the bot needs
-pip install -r requirements.txt && pre-commit install
 
-#If pre-commit is not installed, you may need to add that as well
-#python -m pip install pre-commit
-```
+2. **(Recommended) Create a virtual environment**
+virtualenv venv -p3.12
+source venv/bin/activate   # On Windows: venv\Scripts\activate
 
-The bot uses [Supabase](https://supabase.com/) for storing data.
+3. **Install dependencies**
+pip install -r requirements.txt
 
-To run the bot locally, you will need a `.env` file which is used by [python-dotenv](https://github.com/theskumar/python-dotenv) to load `ENV` variables. Copy `.env.template` into `.env` with  
+4. **(If needed) Install pre-commit hooks**
+python -m pip install pre-commit
+pre-commit install
 
-```bash
+5. **Set up your environment file**  
+Copy the template and fill in your secrets:
 cp .env.template .env
-```
+nano .env   # or use any text editor
+Add your Discord token, Google Sheets credentials, database URL, etc.
 
-and fill in the blanks in order to get the bot running. You also need to set up the Postgresql database for the bot. If you're using Supabase, follow [any regular guide](https://docs.stacksync.cloud/guides/two-way-sync-salesforce-and-postgres/create-a-postgres-database-with-supabase-free-forever) for it then copy the full URI.
-
-Once you do all that, run
-
-```bash
-#Run this line if you haven't already
-source venv/bin/activate
+6. **Run the bot**
 python bot.py
 ```
 
-and the bot will run on the supplied discord token's account.
+The bot will start using the Discord token you provided.
 
-### Full GCloud instructions
+#### Using Supabase (easier database option)
+If you're using Supabase instead of local PostgreSQL, just follow any standard Supabase setup guide and put the connection URL in your `.env` file.
 
-To install BBN on GCloud, the full instructions is as follows.
+#### Questions?
+Feel free to ask in our Discord support server or [open a new issue on Github](https://github.com/PuzzleTechHub/bot-be-named/issues/new) — we're happy to help!
+
+### Running on Google Cloud (Advanced)
+
+Want to host Bot-Be-Named on Google Cloud for 24/7 uptime? This is for experienced users — it requires a Google Cloud account and some setup.
+
+The full instructions are a work in progress, but here's the basic flow:
+
+```bash
+1. Set up a Google Cloud project and enable billing.
+2. Use Google Cloud Console or gcloud CLI to deploy.
+3. Follow standard Python app deployment guides for Cloud Run or App Engine.
+4. Configure your `.env` file with Supabase/PostgreSQL details and Discord token.
+5. Deploy with continuous integration if desired.
+```
+
+For detailed steps, check official Google Cloud docs or ask in our Discord support server!
+
+**Beginners**: We recommend starting with local installation or Fly.io/Heroku (see below) — they're much easier ♡
 
 #### Python
 
 First, make sure you have the correct version of python. If not, install it.
 ```bash
-# Example instructions for GCloud / Debian systems - How to install Python 3.12.3
-# Following instructions on https://cloudcone.com/docs/article/how-to-install-python-3-10-on-debian-11/
-sudo apt update
-sudo apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
-wget https://www.python.org/ftp/python/3.12.3/Python-3.12.3.tgz
-tar -xvf Python-3.12.3.tgz
-cd Python-3.12.3
-sudo apt install pkg-config libgdbm-dev liblzma-dev tk-dev uuid-dev
-sudo ./configure --enable-optimizations --prefix=/opt/python3.12
-# or sudo ./configure --enable-optimizations --prefix=/opt/python3.12
-# not sure what prefix does here
-sudo make -j$(nproc)
-sudo make altinstall
+First, make sure you have the correct version of Python installed (3.12 or newer).
 
-#Confirm if python is installed / what version it is
+If not, download it from https://www.python.org/downloads/
+
+**Quick check**: Open terminal/command prompt and run:
 python3.12 --version
+(or `python --version` on Windows)
+
+No complicated sudo commands needed for most users — just install from the official site!
+
+Once Python is ready, continue with the "Installation" steps above.
 ```
 
-#### Aliasing
-Depending on the system, you may want to also [alias](https://stackoverflow.com/questions/35435517/creating-an-alias-for-python3 for that) for simplicity, for example to point `python` to `python3.12`
+#### Aliasing (Optional — for convenience)
+On some systems, you might need to type `python3.12` instead of just `python`.  
+To make it simpler, you can create an "alias" — a shortcut so `python` points to Python 3.12.
 
-If so, replace `python3.12 bot.py` in the BBN instructions to `python bot.py` or similar.
+```bash
+#### On Linux/Mac:
+Add this line to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
+alias python=python3.12
+
+Then restart your terminal or run `source ~/.bashrc`.
+```
+```bash
+#### On Windows:
+You can use the Python Launcher (usually installed automatically) — just type `py -3.12` instead of `python3.12`.
+
+For a permanent alias on Windows, see this guide:  
+https://stackoverflow.com/questions/3543517/creating-an-alias-for-python3-for-that
+
+After setting an alias, you can replace `python3.12` with `python` in all the bot commands (like `python bot.py`).
+```
+
+Not sure if you need this? Try running `python --version` first — if it shows 3.12, you're good to go without aliasing! ♡
 
 #### Other installations
 
 ```bash
-#Now that you have python, install pip and git if you don't have them already
-#Most systems do have both, but not GCloud
+#### Other packages you might need
+Most systems already have these, but if you get errors, install them:
 sudo apt-get update
 sudo apt install -y pip git
-# Now we install postgres, pre-commit, and virtualenv (Assuming you use it)
-sudo apt install -y postgresql-client-common postgresql-client virtualenv pre-commit
+
+For PostgreSQL (if not using Supabase):
+sudo apt install -y postgresql-
+(Replace with your system's package manager if not on Ubuntu/Debian.)
 ```
 
 #### First time installations
 
-Everything else we have can now be handled by pip.
+Everything else is handled by pip — no extra steps needed for most users!
 
 ```bash
-#Clone the bot locally
-git clone https://github.com/PuzzleTechHub/bot-be-named.git
-cd bot-be-named
-#Technically optional, but using virtualenv is usually a good idea
-virtualenv venv -p=3.12 
-source venv/bin/activate
-#This installs all the python dependancies the bot needs
-pip install -r requirements.txt && pre-commit install
-
-#Now Do .env stuff here. See above instructions for what to do
+After cloning and installing requirements:
+1. Copy the environment template:
 cp .env.template .env
-nano .env
-#Here - edit your .env file
 
-#Test that your bot successfully runs!
+2. Edit `.env` with your secrets (Discord token, database URL, etc.):
+nano .env   # or use any text editor
+
+3. Test the bot:
 python3.12 bot.py
 ```
 
-#### Every other run on GCloud
+If you see errors about missing packages, just install them with pip.
 
-Now that the bot is setup and successfully runs, you can keep it running from GCloud Console with something simple, like
+Having trouble? Join our Discord support server or [open a new issue on Github](https://github.com/PuzzleTechHub/bot-be-named/issues/new) — we're happy to help!
+
+### Running the bot continuously on Google Cloud (Advanced)
+
+Once the bot is set up and running locally, you can deploy it to Google Cloud for 24/7 uptime.
+
+This is for experienced users — it requires a Google Cloud account with billing enabled.
+
 ```bash
-cd bot-be-named
-source venv/bin/activate
-# nohup allows the bot to run while you close the SSH window, and also pastes log in a convenient spot. 
-# You can use soemthing simpler than nohup if you like!
-nohup python3.12 bot.py "This is BBN running" &
-#That message is not necessary, I just like to include one when running
-deactivate
+Basic steps:
+1. Set up a Google Cloud project.
+2. Use Cloud Run, App Engine, or Compute Engine to deploy.
+3. Configure your `.env` file on the server.
+4. Follow official Google Cloud guides for Python apps.
 ```
 
-If necessary, kill the previous instance of the bot running, with something like
-```bash
-#Search for process id of the bot
-#Find the respective line that's giving you the actual run of the bot right now. The first number is your pid
-ps aux | grep "python"
-#Now kill the process using the pid
-kill 000000000000000
-#Now you can start a new instance of the bot
-```
+Our instance is hosted on Google Cloud Console, but we recommend easier alternatives below for beginners ♡
 
-### Hosting
+### Hosting options (Easier alternatives)
 
-Once you have the bot running and basic commands (like `~help`) run properly, you can host it externally. Our instance of the bot is [hosted on Google Cloud Console](https://console.cloud.google.com/welcome).
+Want to keep the bot running without your computer always on? Here are friendlier options:
 
-### Other useful things
+- **Fly.io** — great for small bots.  
+  Follow their guide here: [Fly.io](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19) for the bot hosting. Fly.io used to have a [free tier](https://fly.io/docs/about/pricing/#legacy-hobby-plan) as long as your monthly cost was below 5 USD.
 
-While only the above are necessary to run the code when deployed, some OSes might require additional installations to also run locally. 
-
-For example, on Ubuntu, you also need - 
-```bash
-sudo apt-get install postgresql-client-common postgresql-client
-```
-
-### Using Fly.io for hosting
-
-You can also use [Fly.io](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19) for the bot hosting. Fly.io used to have a [free tier](https://fly.io/docs/about/pricing/#legacy-hobby-plan) as long as your monthly cost was below 5 USD.
-
-You can set up automatic Continuous Deployment (CD) on Fly.io. [Follow the instructions here](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19) 
-
-### Using Heroku and Heroku Postgres for hosting.
-The instructions for [hosting on Heroku](https://medium.com/@linda0511ny/create-host-a-discord-bot-with-heroku-in-5-min-5cb0830d0ff2) are linked. You may need the [heroku CLI client for hosting](https://medium.com/analytics-vidhya/how-to-install-heroku-cli-in-windows-pc-e3cf9750b4ae).
+- **Heroku** — Simple deployment with free dynos (sleeps when inactive).  
+ Heroku is a great option for easy deployment with a free tier.
+Full step-by-step instructions are here: [hosting on Heroku](https://medium.com/@linda0511ny/create-host-a-discord-bot-with-heroku-in-5-min-5cb0830d0ff2) are linked. You may need the [heroku CLI client for hosting](https://medium.com/analytics-vidhya/how-to-install-heroku-cli-in-windows-pc-e3cf9750b4ae).
 
 If you're using Heroku's PostgresSQL add-on instead, first [install the add-on](https://elements.heroku.com/addons/heroku-postgresql) then [set it up](https://devcenter.heroku.com/articles/heroku-postgresql) to attach your app to the Postgres. Now you can look at `Heroku - Dashboard - Resources - Add Ons` to look at the app on Heroku, and copy the URI given from Postgres add-on to the respective line in the `.env file`
 
 If you have github + heroku, using Heroku's [Github integration](https://devcenter.heroku.com/articles/github-integration) allows you to automatically push Github pushes to also deploy on Heroku. (Using `git push` to push to both Github and Heroku)
 
 When deploying on heroku, any variables stored in .env locally cannot be pushed to any public repos. It's advisable to use [Heroku Config Vars](https://devcenter.heroku.com/articles/config-vars) to store them.
+
+- **Render**, **Railway**, or **Vercel** — Other free/cheap platforms with easy Python support.
+
+For beginners: Start with local running or the hosted instance. Cloud hosting is powerful but more complex!
+
+Questions? Join our Discord support server — we're happy to help you choose the best option ♡
+
+### Other useful things
+
+While the steps above are enough to run the bot locally or on cloud platforms, some operating systems might need extra packages.
+
+For example, on Ubuntu/Debian:
+```bash
+sudo apt-get update
+sudo apt install postgresql   # if using local PostgreSQL
+```
+Check your system's package manager for equivalents.
+
+For hosting alternatives (Fly.io, Heroku, Render, Railway, etc.), see the "Hosting options" section above ♡
+
+Questions? Join our Discord support server or open an issue — we're happy to help!
 
 ## Current Modules
 
