@@ -181,7 +181,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         if not role_to_unassign:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
+                value=f"I can't find role `{rolename}` in this server. Make sure you check the spelling and punctuation!",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
