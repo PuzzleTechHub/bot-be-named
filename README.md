@@ -9,13 +9,21 @@
   - [Acknowledgements](#acknowledgements)
   - [Contributing/Issues](#contributingissues)
 
-## What is Bot-Be-Named
+### What is Bot-Be-Named?
 
-A Discord bot that interoperates with Google Sheets to smoothen solving puzzle hunts. 
+Bot Be Named is a Discord bot that makes puzzle tracking super easy by connecting to Google Sheets!
 
-If you would like to add our instance of Bot-Be-Named to your server, please see below.
+With one simple command (~threadlion "Puzzle Name"), it:
+- Creates a new thread in your channel called "Puzzle Name"
+- Adds the puzzle to a shared Google Sheet
+- Sets up a pre-formatted tab just for that puzzle
 
-Bot-Be-Named is currently set up with our own configurations and environment variables, so might have assumptions that don't work for you. Please contact us if you need **a Bot invite link**, or to set up your own fork/instance of the bot.
+There's also a command to mark puzzles as solved.
+
+Perfect for puzzle hunts like Puzzle Boat — no more manual sheet updates or thread creation!
+
+If you'd like to add our instance of Bot-Be-Named to your server, see the "Inviting the Bot to your server" section below.
+
 
 ## Inviting the Bot to your server
 
