@@ -5,13 +5,13 @@ import nextcord
 from nextcord.ext import commands
 from sqlalchemy import insert
 from sqlalchemy.orm import Session
-from utils import logging_utils
 
 from dotenv.main import load_dotenv
 
 load_dotenv(override=True)
 
-import database  # noqa: E402 -- needs env var to set up
+import database  # noqa: E402
+from utils import logging_utils  # noqa: E402
 
 
 def get_prefix(client, message):
