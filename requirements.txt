@@ -4,7 +4,7 @@ dateparser==1.2.2
 emoji==2.15.0
 geopy==2.4.1
 google==3.0.0
-google_api_python_client==2.183.0
+google_api_python_client==2.186.0
 gspread==6.2.1
 httplib2==0.31.0
 nextcord==2.6.0
