@@ -1,14 +1,17 @@
-import nextcord
-import constants
-import os
-import zipfile
 import asyncio
-import unicodedata
+import os
 import re
+import unicodedata
+import zipfile
+from typing import TextIO, Tuple, Union
+from pathlib import Path
+
+import nextcord
 from nextcord.ext import commands
-from typing import Tuple, Union, TextIO
-from utils import discord_utils, logging_utils, command_predicates
+
+import constants
 from modules.archive import archive_constants, archive_utils
+from utils import command_predicates, discord_utils, logging_utils
 
 """
 Archive module. Downloads a channel's history and sends it as a file
@@ -70,6 +73,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
             archive_constants.ARCHIVE,
             channel.name + "_" + archive_constants.TEXT_LOG_PATH,
         )
+        total_thread_txt_size = 0
         with open(text_log_path, "w") as f:
             async for msg in channel.history(limit=None, oldest_first=True):
                 await self.archive_message(f, msg)
@@ -103,6 +107,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                             limit=None, oldest_first=True
                         ):
                             await self.archive_message(thread_f, t_msg)
+                        total_thread_txt_size += f.tell()
 
             text_file_size = f.tell()
 
@@ -123,7 +128,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
             nextcord.File(ZIP_FILENAME),
             zf_file_size,
             nextcord.File(text_log_path),
-            text_file_size,
+            text_file_size + total_thread_txt_size,
         )
 
     def get_file_and_embed(
@@ -133,6 +138,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
         embed = discord_utils.create_embed()
 
         if zip_file_size > filesize_limit:
+            # Note that this is an underestimate, since it's not compressed! But it takes a fair amount of text to hit
+            # limits.
             if textfile_size > filesize_limit:
                 embed.add_field(
                     name="ERROR: History Too Big",
@@ -163,6 +170,15 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         ),
                         compress_type=self.compression,
                     )
+
+                    thread_dir = Path(
+                        archive_constants.ARCHIVE,
+                        f"{channel.name}_{archive_constants.THREADS}",
+                    )
+
+                    # Glob only succeeds if thread_dir exists
+                    for thread_file in thread_dir.glob("*.txt"):
+                        zf.write(thread_file, compress_type=self.compression)
                 file = zip_file
         else:
             file = zip_file
