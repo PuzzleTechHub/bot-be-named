@@ -856,9 +856,9 @@ class LionCog(commands.Cog, name="Lion"):
     @command_predicates.is_solver()
     @commands.command(name="forumlion")
     async def forumlion(self, ctx: commands.Context, chan_name: str, *args):
-        """Creates a new tab and a new thread for a new feeder puzzle and then updates the info in the sheet accordingly.
+        """Creates a new tab and a new forum post for a new feeder puzzle and then updates the info in the sheet accordingly.
 
-        Requires that the sheet has Overview and Template tabs
+        Requires that the sheet has Overview and Template tabs. Works only from within a forum post.
 
         Permission Category : Solver Roles only.
         Usage: ~forumlion PuzzleName
@@ -888,9 +888,9 @@ class LionCog(commands.Cog, name="Lion"):
     @command_predicates.is_solver()
     @commands.command(name="metaforumlion")
     async def metaforumlion(self, ctx: commands.Context, chan_name: str, *args):
-        """Creates a new tab and a new thread for a new metapuzzle and then updates the info in the sheet accordingly.
+        """Creates a new tab and a new forum post for a new metapuzzle and then updates the info in the sheet accordingly.
 
-        Requires that the sheet has Overview and Meta Template tabs
+        Requires that the sheet has Overview and Meta Template tabs. Works only from within a forum post.
 
         Permission Category : Solver Roles only.
         Usage: ~metaforumlion PuzzleName
