@@ -136,6 +136,36 @@ async def createthreadgeneric(
     return thread
 
 
+async def createforumthreadgeneric(
+    ctx: commands.Context,
+    thread: nextcord.Thread,
+    name: str,
+    content: str,
+) -> nextcord.Thread | None:
+    """Command to create a forum thread in the parent channel
+    Arguments:
+        - guild (nextcord.Guild): the guild the channel is being created in
+        - thread (nextcord.Thread): the forum post to create a sibling of
+        - name (str): the name for the thread
+    Returns:
+        - thread (nextcord.Thread): The created thread, or none if the bot does not have sufficient perms.
+    """
+    if not await is_thread(ctx, thread):
+        print(f"not thread: {thread}")
+        return None
+    if not isinstance(thread.parent, nextcord.ForumChannel):
+        return None
+
+    try:
+        # create channel
+        new_thread = await thread.parent.create_thread(name=name, content=content)
+    except nextcord.Forbidden as e:
+        print(e)
+        return None
+
+    return new_thread
+
+
 async def createvoicechannelgeneric(
     guild: nextcord.Guild, category: nextcord.CategoryChannel, name: str
 ) -> nextcord.TextChannel:

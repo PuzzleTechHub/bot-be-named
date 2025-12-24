@@ -114,7 +114,7 @@ async def chancrabgeneric(
     gspread_client,
     ctx,
     chan_name: str,
-    chan_or_thread: str,
+    chan_type: str,
     is_meta: bool,
     text_to_pin: str = "",
 ):
@@ -122,7 +122,7 @@ async def chancrabgeneric(
     tab_name = chan_name.replace("#", "").replace("-", " ")
 
     # Cannot make a new channel if the category is full``
-    if chan_or_thread == "chan":
+    if chan_type == "chan":
         if discord_utils.category_is_full(ctx.channel.category):
             embed.add_field(
                 name=f"{constants.FAILED}!",
@@ -145,7 +145,7 @@ async def chancrabgeneric(
     else:
         tab_type = "Template"
 
-    if chan_or_thread == "thread" and await discord_utils.is_thread(ctx, ctx.channel):
+    if chan_type == "thread" and await discord_utils.is_thread(ctx, ctx.channel):
         embed.add_field(
             name=f"{constants.FAILED}!",
             value="Invalid! You cannot make a thread from inside another thread!",
@@ -166,13 +166,17 @@ async def chancrabgeneric(
     final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
 
     # new channel created (or None)
-    if chan_or_thread == "chan":
+    if chan_type == "chan":
         new_chan = await discord_utils.createchannelgeneric(
             ctx.guild, ctx.channel.category, chan_name
         )
-    elif chan_or_thread == "thread":
+    elif chan_type == "thread":
         new_chan = await discord_utils.createthreadgeneric(
             ctx, ctx.message, ctx.channel, chan_name
+        )
+    elif chan_type == "forum":
+        new_chan = await discord_utils.createforumthreadgeneric(
+            ctx, ctx.channel, chan_name, f"Tab Link - {final_sheet_link}"
         )
 
     # Error creating channel
@@ -222,7 +226,7 @@ async def chancrabgeneric(
         else:
             await msg.add_reaction(emoji.emojize(":pushpin:"))
 
-    if chan_or_thread == "chan":
+    if chan_type == "chan":
         await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
 
     embed = discord_utils.create_embed()
