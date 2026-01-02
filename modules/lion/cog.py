@@ -35,6 +35,30 @@ class LionCog(commands.Cog, name="Lion"):
         self.gspread_client = google_utils.create_gspread_client()
 
     ################################
+    # HELPER METHODS FOR LION COG  #
+    ################################
+
+    def unhide_sheet(self, worksheet: gspread.Worksheet):
+        """Unhides a sheet."""
+        try:
+            unhide_request = {
+            "requests": [
+                {
+                    "updateSheetProperties": {
+                        "properties": {
+                            "sheetId": worksheet.id,
+                            "hidden": False,
+                        },
+                        "fields": "hidden",
+                    }
+                }
+            ]
+        }
+            worksheet.spreadsheet.batch_update(unhide_request)
+        except gspread.exceptions.APIError:
+            pass
+
+    ################################
     # SOLVED COMMANDS WITHOUT LION #
     ################################
 
@@ -620,6 +644,8 @@ class LionCog(commands.Cog, name="Lion"):
         """Does the final touches on the sheet after creating a puzzle"""
         try:
             embed = discord_utils.create_embed()
+
+            await asyncio.to_thread(self.unhide_sheet, newsheet)
 
             tab_name = chan_name.replace("#", "").replace("-", " ")
 
