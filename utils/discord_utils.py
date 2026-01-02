@@ -394,47 +394,33 @@ async def find_guild(
 
 
 async def find_category(
-    ctx: commands.Context, category_name: Union[nextcord.CategoryChannel, str]
-) -> nextcord.CategoryChannel:
+    ctx: commands.Context,
+    category_name: nextcord.CategoryChannel | str,
+) -> nextcord.CategoryChannel | None:
     """Uses nextcord.py's CategoryChannelConverter to convert the name to a discord CategoryChannel
     Arguments:
         - ctx (nextcord.ext.commands.Context): The command's context
         - category_name (str): The name of the category
     Returns:
         - category (nextcord.CategoryChannel): the category or None if not found"""
-    if (isinstance(category_name, nextcord.CategoryChannel)) or category_name is None:
+    if isinstance(category_name, nextcord.CategoryChannel) or category_name is None:
         return category_name
-    try:
-        category = await commands.CategoryChannelConverter().convert(ctx, category_name)
-    except ChannelNotFound:
-        # Discord category finding is case specific, but the GUI displays all caps
-        # Try to search with uppercase, first word capitalized, each word capitalized, and lowercase
-        try:
-            # Uppercase
-            category = await commands.CategoryChannelConverter().convert(
-                ctx, category_name.upper()
-            )
-        except ChannelNotFound:
-            try:
-                # Capitalize each word
-                category = await commands.CategoryChannelConverter().convert(
-                    ctx, category_name.title()
-                )
-            except ChannelNotFound:
-                try:
-                    # Capitalize first word
-                    category = await commands.CategoryChannelConverter().convert(
-                        ctx, category_name.capitalize()
-                    )
-                except ChannelNotFound:
-                    try:
-                        # Lowercase
-                        category = await commands.CategoryChannelConverter().convert(
-                            ctx, category_name.lower()
-                        )
-                    except ChannelNotFound:
-                        category = None
-    return category
+
+    # Since we have a lot of lookups, collect categories first
+    # We do want to find the most specific category first, so we search unnormalized
+    cat_names = set(cat.name for cat in ctx.guild.categories)
+    candidates = (
+        category_name,
+        category_name.upper(),
+        category_name.title(),
+        category_name.capitalize(),
+        category_name.lower(),
+    )
+    for cand in candidates:
+        if cand in cat_names:
+            return await commands.CategoryChannelConverter().convert(ctx, cand)
+
+    return None
 
 
 async def find_chan_or_thread(
