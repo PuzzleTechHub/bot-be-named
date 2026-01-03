@@ -98,7 +98,7 @@ class LionCog(commands.Cog, name="Lion"):
         embed = await solved_utils.status_remove(ctx)
         await discord_utils.send_message(ctx, embed)
 
-    async def movetoarchive_generic(self, ctx, archive_name: str):
+    async def movetoarchive_generic(self, ctx: commands.Context, archive_name: str):
         embed = discord_utils.create_embed()
         # Handling if mta is called from a thread
         if await discord_utils.is_thread(ctx, ctx.channel):
@@ -123,19 +123,21 @@ class LionCog(commands.Cog, name="Lion"):
 
         # Otherwise mta is called from a regular channel
         archive_category = None
+        candidates = []
         if archive_name is None:
             # Find category with same name + Archive (or select combinations)
-            archive_category = (
-                await discord_utils.find_category(
-                    ctx, f"{ctx.channel.category.name} Archive"
-                )
-                or await discord_utils.find_category(
-                    ctx, f"Archive: {ctx.channel.category.name}"
-                )
-                or await discord_utils.find_category(
-                    ctx, f"{ctx.channel.category.name} archive"
-                )
-            )
+            cat_name = ctx.channel.category.name
+            while cat_name:
+                candidates.append(f"{cat_name} Archive")
+                candidates.append(f"Archive: {cat_name}")
+                candidates.append(f"{cat_name} archive")
+                cat_name, _, _ = cat_name.rpartition(" ")
+
+            for cand in candidates:
+                archive_category = await discord_utils.find_category(ctx, cand)
+                if archive_category:
+                    break
+
         else:
             archive_category = await discord_utils.find_category(ctx, archive_name)
 
@@ -143,8 +145,9 @@ class LionCog(commands.Cog, name="Lion"):
             if archive_name is None:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
-                    value=f"There is no category named `{ctx.channel.category.name} Archive` or "
-                    f"`Archive: {ctx.channel.category.name}`, so I cannot move {ctx.channel.mention}.",
+                    value=f"I can't find the archive, so I cannot move {ctx.channel.mention}. "
+                    "I checked for the following categories: "
+                    + ", ".join(f"`{c}`" for c in candidates),
                     inline=False,
                 )
                 await discord_utils.send_message(ctx, embed)
