@@ -665,8 +665,9 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             name="Sort Started",
             value=f"Your sort of category `{category.name}` has begun! "
             f"This may take a while. If I run into any errors, I'll let you know.",
+            inline=False,
         )
-        start_embed_msgs = await discord_utils.send_message(ctx, embed)
+        start_embed_msgs = await discord_utils.send_message(ctx, start_embed)
         start_embed_msg = start_embed_msgs[0]
 
         for idx, channel in enumerate(channel_list):
