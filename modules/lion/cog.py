@@ -1,5 +1,6 @@
 import asyncio
 from typing import Union
+import shlex
 
 import emoji
 import gspread
@@ -726,35 +727,76 @@ class LionCog(commands.Cog, name="Lion"):
 
     @command_predicates.is_solver()
     @commands.command(name="chanlion")
-    async def chanlion(self, ctx: commands.Context, chan_name: str, *args):
+    async def chanlion(self, ctx: commands.Context, *, content: str = ''):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
 
-        Requires that the sheet has Overview and Template tabs
+        Requires that the sheet has Overview and Template tabs.
+        Supports creating multiple channels in parallel delimited by new lines (CTRL + Enter).
 
         Permission Category : Solver Roles only.
         Usage: ~chanlion "Puzzle Name"
         Usage: ~chanlion PuzzleName "http://www.linktopuzzle.com"
+        Usage: 
+        ~chanlion
+        APuzzle "http://linktoapuzzle.com"
+        "B Puzzle" "http://linktobpuzzle.com"
+        3rdPuzzle
         """
+
         await logging_utils.log_command("chanlion", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
-        curr_sheet_link, newsheet, new_chan = None, None, None
-        text_to_pin = " ".join(args)
+        content = content.strip()
 
-        curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
-            self.gspread_client,
-            ctx,
-            chan_name,
-            chan_type="chan",
-            is_meta=False,
-            text_to_pin=text_to_pin,
-        )
-
-        if curr_sheet_link is None or newsheet is None or new_chan is None:
+        if not content:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="You need to provide at least a puzzle name.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
             return
+        
+        lines = [line.strip() for line in content.split('\n') if line.strip()]
+        for line in lines:
+            try:
+                parts = shlex.split(line)
+            except ValueError as e:
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"Error parsing line `{line}`: {str(e)}",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+                continue
 
-        await self.puzzlelion(
-            ctx, chan_name, text_to_pin, curr_sheet_link, newsheet, new_chan
-        )
+            if not parts:
+                continue
+
+            chan_name = parts[0]
+            text_to_pin = ' '.join(parts[1]) if len(parts) > 1 else ''
+
+            curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
+                self.gspread_client,
+                ctx,
+                chan_name,
+                chan_type="chan",
+                is_meta=False,
+                text_to_pin=text_to_pin,
+            )
+
+            if curr_sheet_link is None or newsheet is None or new_chan is None:
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"Failed to create channel/tab for `{chan_name}`.",
+                    inline=False,
+                )
+                continue
+            
+            await self.puzzlelion(
+                ctx, chan_name, text_to_pin, curr_sheet_link, newsheet, new_chan
+            )
+            
 
     @command_predicates.is_solver()
     @commands.command(name="metalion", aliases=["metachanlion"])
