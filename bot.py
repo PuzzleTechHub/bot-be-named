@@ -45,7 +45,7 @@ def main():
         await logging_utils.open_session()
         await client.change_presence(
             activity=nextcord.Activity(
-                type=nextcord.ActivityType.watching, name="you solve👀 | ~help"
+                type=nextcord.ActivityType.watching, name="you solve👀 | ~about"
             )
         )
         for guild in client.guilds:
