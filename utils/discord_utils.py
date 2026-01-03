@@ -1,11 +1,11 @@
 import nextcord
 from nextcord.ext import commands
-from nextcord.ext.commands.errors import ChannelNotFound, ThreadNotFound
+from nextcord.ext.commands.errors import ChannelNotFound
 from typing import List, Union
 import constants
 
 """
-Discord utils. Lots of little functions required for making smoother discord operations, 
+Discord utils. Lots of little functions required for making smoother discord operations,
 or deduplicating important code that applies broadly to any Discord facing commands.
 Used throughout the bot.
 """
@@ -438,8 +438,9 @@ async def find_category(
 
 
 async def find_chan_or_thread(
-    ctx: commands.Context, chan_name: Union[nextcord.TextChannel, nextcord.Thread, str]
-) -> Union[nextcord.TextChannel, nextcord.Thread]:
+    ctx: commands.Context,
+    chan_name: Union[nextcord.TextChannel, nextcord.Thread, nextcord.ForumChannel, str],
+) -> Union[nextcord.TextChannel, nextcord.Thread, nextcord.ForumChannel]:
     """Convert the name to a nextcord Channel/Thread
     Arguments:
         - ctx (nextcord.ext.commands.Context): The command's context
@@ -449,20 +450,31 @@ async def find_chan_or_thread(
     """
 
     if (
-        isinstance(chan_name, nextcord.TextChannel)
-        or isinstance(chan_name, nextcord.Thread)
+        isinstance(
+            chan_name, nextcord.TextChannel | nextcord.Thread | nextcord.ForumChannel
+        )
         or chan_name is None
     ):
         return chan_name
-    try:
-        chan_or_thread = await commands.TextChannelConverter().convert(ctx, chan_name)
-        return chan_or_thread
-    except ChannelNotFound:
+
+    for converter in (
+        commands.TextChannelConverter,
+        commands.ThreadConverter,
+        commands.GuildChannelConverter,
+    ):
         try:
-            chan_or_thread = await commands.ThreadConverter().convert(ctx, chan_name)
+            chan_or_thread = await converter().convert(ctx, chan_name)
+
+            if not isinstance(
+                chan_or_thread,
+                nextcord.TextChannel | nextcord.Thread | nextcord.ForumChannel,
+            ):
+                continue
+
             return chan_or_thread
-        except ThreadNotFound:
-            return None
+        except commands.BadArgument:
+            continue
+    return None
 
 
 async def find_role(
