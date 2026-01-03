@@ -362,6 +362,43 @@ class DiscordCog(commands.Cog, name="Discord"):
                         )
         await discord_utils.send_message(ctx, embed)
 
+    #####################
+    # UNCATEGORIZED /   #
+    # TO BE CATEGORIZED #
+    #####################
+
+    @command_predicates.is_solver()
+    @commands.command(name="delete")
+    async def delete(self, ctx):
+        """Delete a message sent by me and only me by replying to it with `~delete`.
+        Designed to not return any success/error messages.
+        Will delete your message too.
+        An error is likely due to missing permissions or a problem fetching the referenced message.
+
+        Permission Category : Solver Roles only.
+        Usage: `~delete` (as a reply to a bot message)
+        """
+
+        await logging_utils.log_command("delete", ctx.guild, ctx.channel, ctx.author)
+        
+        ref = ctx.message.reference
+        if ref is None:
+            return
+        
+        try:
+            referenced_message = await ctx.channel.fetch_message(ref.message_id)
+        except Exception:
+            return
+        
+        if referenced_message.author.id != self.bot.user.id:
+            return
+        
+        try:
+            await referenced_message.delete()
+            await ctx.message.delete()
+        except Exception:
+            return
+
 
 def setup(bot):
     bot.add_cog(DiscordCog(bot))
