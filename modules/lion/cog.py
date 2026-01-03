@@ -774,7 +774,7 @@ class LionCog(commands.Cog, name="Lion"):
                 continue
 
             chan_name = parts[0]
-            text_to_pin = ' '.join(parts[1]) if len(parts) > 1 else ''
+            text_to_pin = parts[1] if len(parts) > 1 else ''
 
             curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
                 self.gspread_client,
