@@ -217,6 +217,7 @@ class LionCog(commands.Cog, name="Lion"):
     async def roundlion(self, ctx: commands.Context, round_name: str):
         """Sets or updates the round information on the Overview sheet.
 
+        Permission Category : Solver Roles only
         Usage: ~roundlion "Round Name"
         Usage: ~roundlion RoundName
         """
