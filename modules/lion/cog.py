@@ -430,9 +430,24 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~statuslion solved "answer"
         Usage: ~statuslion "custom-update-string" "answer"
         """
-        status = status.capitalize()
-        if status == "Inprogress":
+
+        # Very crude implementation to handle "in" + "progress" as a status
+        if (
+            status.lower() == "in"
+            and answer is not None
+            and answer.lower() == "progress"
+        ):
             status = "In Progress"
+            answer = None
+
+        # Handle "inprogress" note: no spaces
+        status_normalized = status.lower().replace(" ", "")
+
+        if status_normalized == "inprogress":
+            status = "In Progress"
+        else:
+            status = status.capitalize()
+
         embed = discord_utils.create_embed()
 
         try:
