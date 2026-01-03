@@ -35,30 +35,6 @@ class LionCog(commands.Cog, name="Lion"):
         self.gspread_client = google_utils.create_gspread_client()
 
     ################################
-    # HELPER METHODS FOR LION COG  #
-    ################################
-
-    def unhide_sheet(self, worksheet: gspread.Worksheet):
-        """Unhides a sheet."""
-        try:
-            unhide_request = {
-            "requests": [
-                {
-                    "updateSheetProperties": {
-                        "properties": {
-                            "sheetId": worksheet.id,
-                            "hidden": False,
-                        },
-                        "fields": "hidden",
-                    }
-                }
-            ]
-        }
-            worksheet.spreadsheet.batch_update(unhide_request)
-        except gspread.exceptions.APIError:
-            pass
-
-    ################################
     # SOLVED COMMANDS WITHOUT LION #
     ################################
 
@@ -645,8 +621,6 @@ class LionCog(commands.Cog, name="Lion"):
         try:
             embed = discord_utils.create_embed()
 
-            await asyncio.to_thread(self.unhide_sheet, newsheet)
-
             tab_name = chan_name.replace("#", "").replace("-", " ")
 
             sheet = self.gspread_client.open_by_url(curr_sheet_link)
@@ -711,6 +685,8 @@ class LionCog(commands.Cog, name="Lion"):
                 label=status_col + str(first_empty),
                 value=unstarted,
             )
+
+            batch_update_builder.unhide_sheet(sheet_id=newsheet.id)
 
             chan_name_for_sheet_ref = tab_name.replace("'", "''")
             tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
