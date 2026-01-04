@@ -10,6 +10,7 @@ from utils import (
     sheets_constants,
 )
 from utils import sheet_utils
+from collections import Counter
 
 """
 Hydra module. Module with more advanced GSheet-Discord interfacing. See module's README.md for more.
@@ -190,6 +191,91 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         if start_msg:
             await start_msg.delete()
+        await discord_utils.send_message(ctx, embed)
+
+    @command_predicates.is_solver()
+    @commands.command(name="watchcategoryhydra", aliases=["watchcategory"])
+    async def watchcategoryhydra(self, ctx, limit: int = 100):
+        """Summarise the last `limit` messages across a category:
+        `limit` caps off at 100. You can only call this in categories you have access to.
+        Note: Will pick up messages to which the command user does not have access to.
+
+        Permission Category : Solver Roles only.
+        Usage: `~watchcategoryhydra 100`
+        """
+
+        await logging_utils.log_command(
+            "watchcategoryhydra", ctx.guild, ctx.channel, ctx.author
+        )
+        embed = discord_utils.create_embed()
+
+        currcat = ctx.message.channel.category
+        if currcat is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="You must call this command from a channel in a category.",
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        msgs = []
+        try:
+            per_channel_limit = 100
+            for ch in currcat.text_channels:
+                try:
+                    async for m in ch.history(limit=per_channel_limit):
+                        msgs.append((m.created_at, ch, m.author, m.content))
+                except Exception as e:
+                    # Skip channels we can't read
+                    continue
+        except Exception as e:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="An error occurred while fetching messages." f" Error: {str(e)}",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        msgs.sort(key=lambda x: x[0], reverse=True)
+        msgs = msgs[:limit]
+
+        # aggregate
+        channel_counts = Counter()
+        author_counts = Counter()
+        for _, ch, author, _ in msgs:
+            channel_counts[ch.name] += 1
+            author_counts[author.name] += 1
+
+        total = len(msgs)
+        embed.add_field(
+            name="Summary",
+            value=f"Analyzed {total} messages across {len(currcat.text_channels)} channels in category `{currcat.name}`.",
+            inline=False,
+        )
+
+        if channel_counts:
+            ch_lines = [
+                f"- #{ch_name}: {count} message{'s' if count != 1 else ''}"
+                for ch_name, count in channel_counts.most_common()
+            ]
+            embed.add_field(
+                name="By channel",
+                value="\n".join(ch_lines),
+                inline=False,
+            )
+
+        if author_counts:
+            author_lines = [
+                f"- {author_name}: {count} message{'s' if count != 1 else ''}"
+                for author_name, count in author_counts.most_common()
+            ]
+            embed.add_field(
+                name="By author",
+                value="\n".join(author_lines),
+                inline=False,
+            )
+
         await discord_utils.send_message(ctx, embed)
 
 
