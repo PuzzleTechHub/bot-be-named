@@ -67,9 +67,6 @@ async def create_puzzle_channel_from_template(
             raise e
     desired_template_tab = f"{template_name.title()} Template"
 
-    if template_name == "":
-        desired_template_tab = "Template"
-
     template_ws = None
     template_id = None
     template_index = None
