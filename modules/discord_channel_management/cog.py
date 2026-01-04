@@ -192,7 +192,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     @command_predicates.is_verified()
     @commands.command(name="makethread", aliases=["createthread"])
     async def createthread(self, ctx, name: str):
-        """Command to create thread in same category with given name
+        """Command to create thread in same channel with given name
 
         Permission Category : Verified Roles only.
         Usage: `~createthread new-thread-name`
@@ -203,7 +203,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         )
         embed = discord_utils.create_embed()
 
-        if await discord_utils.is_thread(ctx.channel):
+        if await discord_utils.is_thread(ctx, ctx.channel):
             embed.add_field(
                 name=f"{constants.FAILED}!",
                 value="Invalid! You cannot make a thread from inside another thread!",
