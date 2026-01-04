@@ -150,10 +150,10 @@ class MiscCog(commands.Cog, name="Misc"):
             name="Start Solving!",
             value=f"To start solving with BBN, follow these steps!\n"
             f"1. Invite BBN to your server by clicking on me in the member list!\n"
-            f"2. Make your own copy of the template! (`~template`)\n"
-            f"3. Give permissions to people! (e.g. `~addperm Solver @Everyone`, `~addperm Admin @Mods` etc.)\n"
+            f"2. Make your own copy of the template! (Ask us in BBN server)\n"
+            f"3. Give permissions to people! (e.g. `~addperm Solver @everyone`, `~addperm Verified @everyone` etc.)\n"
             f"4. Create your category! Name it whatever you like, but make sure to make an archive category. (i.e. `My Category` and `My Category Archive`)\n"
-            f"5. Create channels in your category! Channels like `#round-discussion`, `#round-discussion`, `#round-announcements` maybe be useful to you!\n"
+            f"5. Create channels in your category! Channels like `#mycategory-discussion`, `#mycategory-bot-spam` maybe be useful to you!\n"
             f"6. Tether your sheet to your category! (`~tetherlion https://your.google.sheet.here`) Make sure you configure the sharing settings so I can edit it! \n"
             f"7. Start making puzzle channels! (`~chanlion 'Puzzle Name Here' 'puzzle.url.here.com'`)\n"
             f"8. Start solving! Mark puzzles as solved with `~solvedlion 'ANSWER'`, backsolved with `~backsolvedlion 'ANSWER'` and more!\n\n",
