@@ -149,6 +149,7 @@ class MiscCog(commands.Cog, name="Misc"):
         embed.add_field(
             name="Start Solving!",
             value=f"To start solving with BBN, follow these steps!\n"
+
             f"1. Invite BBN to your server by clicking on me in the member list!\n"
             f"2. Make your own copy of the template! (Ask us in BBN server)\n"
             f"3. Give permissions to people! (e.g. `{ctx.prefix}addperm Solver @everyone` should be enough)\n"
@@ -165,8 +166,11 @@ class MiscCog(commands.Cog, name="Misc"):
         embed.add_field(
             name="Need Help?",
             value=f"When in doubt, use `{ctx.prefix}help commandname` to get more info about a specific command!\n\n"
+
             f"Refer to `{ctx.prefix}info` for additional information (I can do a lot more than Google Sheets management, y'know)!\n\n"
+
             f"[Bot Github Link (I'm open source!)](https://github.com/PuzzleTechHub/bot-be-named)  - [Bot Discord Link](https://discord.gg/x8f2ywHUky)\n\n"
+
             f"Any problems? Let {owner.mention} know.",
             inline=False,
         )
@@ -197,11 +201,19 @@ class MiscCog(commands.Cog, name="Misc"):
         embed = discord_utils.create_embed()
         embed.add_field(
             name="Permissions!",
-            value=f"I have a simple permisison system to manage who can use what commands. Most commands are restricted to certain roles. There are five permission levels:\n"
+            value=f"I have a simple permisison system to manage who can use what commands. Most commands are restricted to certain permissions. "
+            f"There are five permission categories:\n"
+
+            f"- `@everyone`: Default level. Can use basic commands like `{ctx.prefix}about`, `{ctx.prefix}help` etc.\n"
             f"- `Solver`: Basic level. Can use most puzzle management commands.\n"
-            f"- `Verified`: Mid level. Can also use commands like `{ctx.prefix}stats`, and commands that involve creating channels outside of puzzles `{ctx.prefix}createchan`.\n"
-            f"- `Trusted`: High level. Can also create custom commands and manage channel permissions.\n"
-            f"- `(admin)`: Actual server admins. This role is generally for destructive commands like `{ctx.prefix}deletecategory`.\n\n",
+
+            f"- `Verified`: Mid level. Can use commands like `{ctx.prefix}stats`, and commands that involve creating channels "
+            f"outside of puzzles `{ctx.prefix}createchan`.\n"
+
+            f"- `Trusted`: High level. Can create custom commands and manage channel permissions.\n"
+            
+            f"- `(admin)`: Users who have a role with administrator privileges (this permission can not be assigned via command). "
+            f"This permission is generally for destructive commands like `{ctx.prefix}deletecategory`.\n\n",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
@@ -211,7 +223,9 @@ class MiscCog(commands.Cog, name="Misc"):
             name="Assigning them!",
             value=f"- Use `{ctx.prefix}addperm level role` to add a permission to a role. Keep in mind only server admins or owners can use this command.\n"
             f"- Use `{ctx.prefix}removeperm level role` to remove a permission from a role.\n"
-            f"- Example usage: `{ctx.prefix}addperm Solver @everyone`, `{ctx.prefix}addperm Trusted @Mods` etc.\n\n",
+            f"- Example usage: `{ctx.prefix}addperm Solver @everyone`, `{ctx.prefix}addperm Trusted @Mods` etc.\n\n"
+            f"- Note: Even though permission categories *seem* like they're ordered, they're actually not! You may be the owner of the server but you'll still need "
+            f"to assign yourself the Verified/Trusted roles to use those commands!\n\n",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
