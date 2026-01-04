@@ -152,7 +152,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
             f"1. Invite BBN to your server by clicking on me in the member list!\n"
             f"2. Make your own copy of the template! (Ask us in BBN server)\n"
-            f"3. Give permissions to people! (e.g. `{ctx.prefix}addperm Solver @everyone` should be enough)\n"
+            f"3. Give permissions to people! (e.g. `{ctx.prefix}addperm Solver @everyone` or `{ctx.prefix}addperm Verified @everyone` etc.)\n"
             f"4. Create your category! Name it whatever you like, but make sure to make an archive category. (i.e. `My Category` and `My Category Archive`)\n"
             f"5. Create channels in your category! Channels like `#mycategory-discussion`, `#mycategory-bot-spam` maybe be useful to you!\n"
             f"6. Tether your sheet to your category! (`{ctx.prefix}tetherlion https://your.google.sheet.here`) Make sure you configure the sharing settings so I can edit it! \n"
