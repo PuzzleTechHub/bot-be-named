@@ -204,7 +204,7 @@ class MiscCog(commands.Cog, name="Misc"):
             name="Permissions!",
             value=f"I have a simple permisison system to manage who can use what commands. Most commands are restricted to certain permissions. "
             f"There are five permission categories:\n"
-            f"- `@everyone`: Can use basic commands like `{ctx.prefix}about`, `{ctx.prefix}help` etc.\n"
+            f"- `(everyone)`: Can use basic commands like `{ctx.prefix}about`, `{ctx.prefix}help` etc.\n"
             f"- `Solver`: Can use most puzzle management commands.\n"
             f"- `Verified`: Can use generalised server or channel management commands like `{ctx.prefix}stats` or `{ctx.prefix}createchan`.\n"
             f"- `Trusted`: Can create custom commands, manage roles and channels.\n"
