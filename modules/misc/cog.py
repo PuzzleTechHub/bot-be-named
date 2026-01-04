@@ -151,12 +151,13 @@ class MiscCog(commands.Cog, name="Misc"):
             value=f"To start solving with BBN, follow these steps!\n"
             f"1. Invite BBN to your server by clicking on me in the member list!\n"
             f"2. Make your own copy of the template! (Ask us in BBN server)\n"
-            f"3. Give permissions to people! (e.g. `{ctx.prefix}addperm Solver @everyone`, `{ctx.prefix}addperm Verified @everyone` etc.)\n"
+            f"3. Give permissions to people! (e.g. `{ctx.prefix}addperm Solver @everyone` should be enough)\n"
             f"4. Create your category! Name it whatever you like, but make sure to make an archive category. (i.e. `My Category` and `My Category Archive`)\n"
             f"5. Create channels in your category! Channels like `#mycategory-discussion`, `#mycategory-bot-spam` maybe be useful to you!\n"
             f"6. Tether your sheet to your category! (`{ctx.prefix}tetherlion https://your.google.sheet.here`) Make sure you configure the sharing settings so I can edit it! \n"
             f"7. Start making puzzle channels! (`{ctx.prefix}chanlion 'Puzzle Name Here' 'puzzle.url.here.com'`)\n"
-            f"8. Start solving! Mark puzzles as solved with `{ctx.prefix}solvedlion 'ANSWER'`, backsolved with `{ctx.prefix}backsolvedlion 'ANSWER'` and more!\n\n",
+            f"8. Start solving! Mark puzzles as solved with `{ctx.prefix}solvedlion 'ANSWER'`, backsolved with `{ctx.prefix}backsolvedlion 'ANSWER'`,"
+            f" move to archive with `{ctx.prefix}mtalion` and more! and more!\n\n",
         )
         await discord_utils.send_message(ctx, embed)
 
@@ -164,59 +165,53 @@ class MiscCog(commands.Cog, name="Misc"):
         embed.add_field(
             name="Need Help?",
             value=f"When in doubt, use `{ctx.prefix}help commandname` to get more info about a specific command!\n\n"
-            f"Refer to `{ctx.prefix}startup` for a small list of very useful commands to get you started!\n\n"
+            f"Refer to `{ctx.prefix}info` for additional information (I can do a lot more than Google Sheets management, y'know)!\n\n"
             f"[Bot Github Link (I'm open source!)](https://github.com/PuzzleTechHub/bot-be-named)  - [Bot Discord Link](https://discord.gg/x8f2ywHUky)\n\n"
             f"Any problems? Let {owner.mention} know.",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
 
-    @commands.command(name="startup")
-    async def startup(self, ctx):
+    @commands.command(name="info", aliases=["startup", "permcathelp", "permcatlion"])
+    async def info(self, ctx):
         """A quick primer about helpful BBN functions
 
-        Usage : `~startup`
+        Usage : `~info`
         """
-        await logging_utils.log_command("startup", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("info", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         embed.add_field(
             name="Helpful commands!",
-            value=f"Some of the useful bot commands are -\n"
-            f"- `{ctx.prefix}about` as a reference on how to start using the bot\n"
-            f"- `{ctx.prefix}help` for a list of commands\n"
+            value=f"Here are some of the things I can do:\n"
+            f"- `{ctx.prefix}about` a quick reference on how to start using the bot\n"
+            f"- `{ctx.prefix}help` for a list of commands (warning: textwall)\n"
             f"- `{ctx.prefix}help commandname` for a description of a command (and its limitations). \n **When in doubt, use this command**.\n"
-            f"- `{ctx.prefix}chanlion` and `{ctx.prefix}sheetlion` for making Google Sheet tabs for your current hunt\n"
+            f"- `{ctx.prefix}chanlion` for making Google Sheet tabs for your current hunt\n"
             f"- `{ctx.prefix}solvedlion` etc for marking puzzle channels as solved etc, and `{ctx.prefix}mtalion` for cleaning up the channels. \n"
-            f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply.\n\n"
-            f"Note that most commands are only restricted to certain Permission Categories. The current categories for those are - Verified/Trusted/Solver/Tester. These need to be configured accordingly.\n"
-            f"- `{ctx.prefix}addperm` for setting up Permission Categories on your server (see `{ctx.prefix}help addperm` and `{ctx.prefix}permcathelp`for an explanation)\n",
+            f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply (as of right now, custom commands cannot set off other commands).\n\n",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
 
-    @commands.command(name="permcathelp")
-    async def permcathelp(self, ctx):
-        """A quick primer about permissions in BBN, and what they do.
-
-        Usage : `~permcathelp`
-        """
-        await logging_utils.log_command(
-            "permcathelp", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
-
         embed.add_field(
-            name="Permission Categories!",
-            value=f"In BBN, nearly every command is restricted to some Permission Category or the other. This allows server owners and admins to control what commands are available to users.\n"
-            f"So you need to use `{ctx.prefix}addperm` before you can do almost anything else.\n"
-            f"The Permission Categories available are - Verified, Trusted, Solver, Tester.\n\n"
-            f"- Solver - All 'regular' solving and sheet functions\n"
-            f"- Verified - All channel management functions + some archive functions\n"
-            f"- Trusted - Can edit customcommands, and use any role commands\n"
-            f"- Tester - Used internally.\n"
-            f"- (admin) - Delete roles, categories and more. Not an actual Permission category, but restricted to server admins.\n\n"
-            f"So your first command in any server is probably `{ctx.prefix}addperm Solver @Rolename` or so. See `{ctx.prefix}help addperm` `for more info.\n",
+            name="Permissions!",
+            value=f"I have a simple permisison system to manage who can use what commands. Most commands are restricted to certain roles. There are five permission levels:\n"
+            f"- `Solver`: Basic level. Can use most puzzle management commands.\n"
+            f"- `Verified`: Mid level. Can also use commands like `{ctx.prefix}stats`, and commands that involve creating channels outside of puzzles `{ctx.prefix}createchan`.\n"
+            f"- `Trusted`: High level. Can also create custom commands and manage channel permissions.\n"
+            f"- `(admin)`: Actual server admins. This role is generally for destructive commands like `{ctx.prefix}deletecategory`.\n\n",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name="Permissions",
+            value=f"- Use `{ctx.prefix}addperm level role` to add a permission to a role. Keep in mind only server admins or owners can use this command.\n"
+            f"- Use `{ctx.prefix}removeperm level role` to remove a permission from a role.\n"
+            f"- Example usage: `{ctx.prefix}addperm Solver @everyone`, `{ctx.prefix}addperm Trusted @Mods` etc.\n\n",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
