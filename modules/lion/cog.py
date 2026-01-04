@@ -690,6 +690,8 @@ class LionCog(commands.Cog, name="Lion"):
                 value=unstarted,
             )
 
+            batch_update_builder.unhide_sheet(sheet_id=newsheet.id)
+
             chan_name_for_sheet_ref = tab_name.replace("'", "''")
             tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
             chan_name_loc = sheets_constants.TAB_CHAN_NAME_LOCATION
