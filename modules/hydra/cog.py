@@ -1,6 +1,7 @@
 import constants
 import gspread
 import asyncio
+import shlex
 from nextcord.ext import commands
 from utils import (
     discord_utils,
@@ -196,31 +197,44 @@ class HydraCog(commands.Cog, name="Hydra"):
 
 
     @command_predicates.is_solver()
-    @commands.command(name="chanhydra")
+    @commands.command(name="anychanhydra")
     async def chanhydra(
         self,
         ctx,
         *,
-        flags: flag_converter.chanhydra,
+        args,
     ):
-        """Creates a new puzzle channel based on a template in the tethered GSheet.
+        """Creates a new puzzle channel based on a template in the tethered GSheet. Template must be passed in.
 
         Permission Category : Solver Roles only.
 
-        Usage: `~chanhydra puzzle_name: [puzzle name] template_name: [template name] puzzle_url: [puzzle url]`
-        Usage: `~chanhydra puzzle_name: [puzzle name] template_name: [template name]`
-        Usage: `~chanhydra puzzle_name: [puzzle name] puzzle_url: [puzzle url]`
-        Usage: `~chanhydra puzzle_name: [puzzle name]`
+        Usage: `~chanhydra [puzzle name] [template name] [puzzle url]`
         """
         await logging_utils.log_command(
             "chanhydra", ctx.guild, ctx.channel, ctx.author
         )
+
+        arg_list = shlex.split(args)
+        if len(arg_list) < 2 or len(arg_list) > 3:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Invalid arguments. Usage: `~chanhydra [puzzle name] [template name] [puzzle url (optional)]`",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        puzzle_name = arg_list[0]
+        template_name = arg_list[1]
+        puzzle_url = arg_list[2] if len(arg_list) > 2 else None
+
         await hydra_utils.create_puzzle_channel_from_template(
             self.bot,
             ctx,
-            flags.puzzle_name,
-            flags.template_name,
-            flags.puzzle_url,
+            puzzle_name,
+            template_name,
+            puzzle_url,
             self.gspread_client,
         )
 
