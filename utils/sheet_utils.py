@@ -100,7 +100,7 @@ async def sheetcrabgeneric(
 
     embed.add_field(
         name=f"{constants.SUCCESS}!",
-        value=f"Tab **{tab_name}** has been created at [{sheet_title}]({final_sheet_link}) sheet.",
+        value=f"Tab **{tab_name}** has been created at [{sheet_title}]({final_sheet_link}) worksheet.",
         inline=False,
     )
     msgs = await discord_utils.send_message(ctx, embed)
@@ -206,7 +206,7 @@ async def chancrabgeneric(
 
     embed.add_field(
         name=f"{constants.SUCCESS}!",
-        value=f"Tab **{tab_name}** has been created at [{sheet_title}]({final_sheet_link}) sheet.",
+        value=f"Tab **{tab_name}** has been created at [{sheet_title}]({final_sheet_link}) worksheet.",
         inline=False,
     )
 
