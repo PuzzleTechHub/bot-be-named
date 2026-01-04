@@ -11,7 +11,7 @@ Custom command module. Allows users to set their own "custom command" of saveabl
 """
 
 
-class CustomCommandCog(commands.Cog, name="Custom Command"):
+class CustomCommandCog(commands.Cog, name="Custom Commands"):
     """
     Customised commands saved for each server
     """
