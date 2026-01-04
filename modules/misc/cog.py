@@ -167,7 +167,7 @@ class MiscCog(commands.Cog, name="Misc"):
             name="Need Help?",
             value=f"When in doubt, use `{ctx.prefix}help commandname` to get more info about a specific command!\n\n"
 
-            f"Refer to `{ctx.prefix}info` for additional information (I can do a lot more than Google Sheets management, y'know)!\n\n"
+            f"Refer to `{ctx.prefix}info` for additional information!\n\n"
 
             f"[Bot Github Link (I'm open source!)](https://github.com/PuzzleTechHub/bot-be-named)  - [Bot Discord Link](https://discord.gg/x8f2ywHUky)\n\n"
 
@@ -176,7 +176,7 @@ class MiscCog(commands.Cog, name="Misc"):
         )
         await discord_utils.send_message(ctx, embed)
 
-    @commands.command(name="info", aliases=["startup", "permcathelp", "permcatlion"])
+    @commands.command(name="info", aliases=["startup","start"])
     async def info(self, ctx):
         """A quick primer about helpful BBN functions
 
@@ -189,11 +189,12 @@ class MiscCog(commands.Cog, name="Misc"):
             name="Helpful commands!",
             value=f"Here are some of the things I can do:\n"
             f"- `{ctx.prefix}about` a quick reference on how to start using the bot\n"
-            f"- `{ctx.prefix}help` for a list of commands (warning: textwall)\n"
+            f"- `{ctx.prefix}help` for a list of commands\n"
             f"- `{ctx.prefix}help commandname` for a description of a command (and its limitations). \n **When in doubt, use this command**.\n"
+            f"Commonly used commands include-\n"
             f"- `{ctx.prefix}chanlion` for making Google Sheet tabs for your current hunt\n"
             f"- `{ctx.prefix}solvedlion` etc for marking puzzle channels as solved etc, and `{ctx.prefix}mtalion` for cleaning up the channels. \n"
-            f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply (as of right now, custom commands cannot set off other commands).\n\n",
+            f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply.\n\n",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
@@ -203,15 +204,10 @@ class MiscCog(commands.Cog, name="Misc"):
             name="Permissions!",
             value=f"I have a simple permisison system to manage who can use what commands. Most commands are restricted to certain permissions. "
             f"There are five permission categories:\n"
-
-            f"- `@everyone`: Default level. Can use basic commands like `{ctx.prefix}about`, `{ctx.prefix}help` etc.\n"
-            f"- `Solver`: Basic level. Can use most puzzle management commands.\n"
-
-            f"- `Verified`: Mid level. Can use commands like `{ctx.prefix}stats`, and commands that involve creating channels "
-            f"outside of puzzles `{ctx.prefix}createchan`.\n"
-
-            f"- `Trusted`: High level. Can create custom commands and manage channel permissions.\n"
-            
+            f"- `@everyone`: Can use basic commands like `{ctx.prefix}about`, `{ctx.prefix}help` etc.\n"
+            f"- `Solver`: Can use most puzzle management commands.\n"
+            f"- `Verified`: Can use generalised server or channel management commands like `{ctx.prefix}stats` or `{ctx.prefix}createchan`.\n"
+            f"- `Trusted`: Can create custom commands, manage roles and channels.\n"
             f"- `(admin)`: Users who have a role with administrator privileges (this permission can not be assigned via command). "
             f"This permission is generally for destructive commands like `{ctx.prefix}deletecategory`.\n\n",
             inline=False,
@@ -225,7 +221,7 @@ class MiscCog(commands.Cog, name="Misc"):
             f"- Use `{ctx.prefix}removeperm level role` to remove a permission from a role.\n"
             f"- Example usage: `{ctx.prefix}addperm Solver @everyone`, `{ctx.prefix}addperm Trusted @Mods` etc.\n\n"
             f"- Note: Even though permission categories *seem* like they're ordered, they're actually not! You may be the owner of the server but you'll still need "
-            f"to assign yourself the Verified/Trusted roles to use those commands!\n\n",
+            f"to assign yourself the Verified/Solver/Trusted roles to use those commands!\n\n",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
