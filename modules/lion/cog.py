@@ -401,11 +401,14 @@ class LionCog(commands.Cog, name="Lion"):
 
     @command_predicates.is_solver()
     @commands.command(name="unsolvedlion", aliases=["unlion"])
-    async def unsolvedlion(self, ctx: commands.Context, answer: str = None):
+    async def unsolvedlion(self, ctx: commands.Context, answer: str = ""):
         """Sets the puzzle to in progress and updates the sheet and channel name accordingly
 
         Permission Category : Solver Roles only.
-        Usage: ~unsolvedlion
+
+        Usage: ~unsolvedlion (Removes the answer from the sheet)
+        Usage: ~unsolvedlion "answer" (Updates the answer from the sheet to "answer")
+
         """
         await logging_utils.log_command(
             "unsolvedlion", ctx.guild, ctx.channel, str(ctx.author)
@@ -414,16 +417,14 @@ class LionCog(commands.Cog, name="Lion"):
 
     @command_predicates.is_solver()
     @commands.command(name="statuslion", aliases=["statlion", "stat", "puzzstatus"])
-    async def statuslion(
-        self, ctx: commands.Context, status: str, answer: str | None = None
-    ):
+    async def statuslion(self, ctx: commands.Context, status: str, answer: str = None):
         """Adds a status to the puzzle and updates the sheet and channel name accordingly
 
-        You may pick one of [solved, solvedish, backsolved, postsolved, unstarted, unsolvable, stuck, abandoned, in progress] as statuses.
+        You may pick one of [solved, solvedish, backsolved, postsolved, unstarted, unsolvable, stuck, abandoned, "In Progress"] as statuses.
         Alternatively, you can give a custom status.
 
-        For statuses [solved, solvedish, postsolved, backsolved, custom] users have the option to add an answer
-        For statuses  [solved, solvedish, backsolved, postsolved] the channel name gets updated
+        For statuses [solved, solvedish, postsolved, backsolved, "In Progress", custom] users have the option to add an answer
+        For statuses  [solved, solvedish, backsolved, postsolved, "In Progress"] the channel name gets updated
 
         Permission Category : Solver Roles only.
         Usage: ~statuslion status
@@ -431,7 +432,7 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~statuslion "custom-update-string" "answer"
         """
         status = status.capitalize()
-        if status == "Inprogress":
+        if status == "In progress":
             status = "In Progress"
         embed = discord_utils.create_embed()
 
@@ -478,7 +479,7 @@ class LionCog(commands.Cog, name="Lion"):
 
             batch_update_builder = batch_update_utils.BatchUpdateBuilder()
 
-            if answer and status_info.get("update_ans"):
+            if answer is not None and status_info.get("update_ans"):
                 batch_update_builder.update_cell_by_label(
                     puzzle_tab.id, tab_ans_loc, answer.upper()
                 )
