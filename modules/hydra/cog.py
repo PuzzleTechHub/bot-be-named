@@ -218,6 +218,19 @@ class HydraCog(commands.Cog, name="Hydra"):
             await discord_utils.send_message(ctx, embed)
             return
 
+        start_embed = discord_utils.create_embed()
+        start_embed.add_field(
+            name="Summary Started",
+            value=f"Your summarizing of category `{currcat.name}`"
+            f" has begun! This may take a while. If I run into "
+            f"any errors, I'll let you know.",
+            inline=False,
+        )
+
+        start_msg = (await discord_utils.send_message(ctx, start_embed))[0]
+
+
+        embed = discord_utils.create_embed()
         msgs = []
         try:
             per_channel_limit = 100
@@ -240,12 +253,16 @@ class HydraCog(commands.Cog, name="Hydra"):
         msgs.sort(key=lambda x: x[0], reverse=True)
         msgs = msgs[:limit]
 
+        # Delete start message
+        if start_msg:
+            await start_msg.delete()
+
         # aggregate
         channel_counts = Counter()
         author_counts = Counter()
         for _, ch, author, _ in msgs:
-            channel_counts[ch.name] += 1
-            author_counts[author.name] += 1
+            channel_counts[ch.mention] += 1
+            author_counts[author.mention] += 1
 
         total = len(msgs)
         embed.add_field(
@@ -256,8 +273,8 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         if channel_counts:
             ch_lines = [
-                f"- #{ch_name}: {count} message{'s' if count != 1 else ''}"
-                for ch_name, count in channel_counts.most_common()
+                f"- {ch_mention}: {count} message{'s' if count != 1 else ''}"
+                for ch_mention, count in channel_counts.most_common()
             ]
             embed.add_field(
                 name="By channel",
@@ -267,8 +284,8 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         if author_counts:
             author_lines = [
-                f"- {author_name}: {count} message{'s' if count != 1 else ''}"
-                for author_name, count in author_counts.most_common()
+                f"- {author_mention}: {count} message{'s' if count != 1 else ''}"
+                for author_mention, count in author_counts.most_common()
             ]
             embed.add_field(
                 name="By author",
@@ -283,7 +300,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         for created_at, ch, author, content in msgs:
             timestamp_str = created_at.strftime("%Y-%m-%d %H:%M:%S")
             message_content.append(
-                f"[{timestamp_str}] #{ch.name} - {author.name}: {content}"
+                f"[{timestamp_str}] {ch.mention} - {author.mention}: {content}"
             )
 
         if message_content:
