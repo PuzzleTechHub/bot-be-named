@@ -8,8 +8,10 @@ from utils import (
     logging_utils,
     command_predicates,
     sheets_constants,
+    sheet_utils,
 )
-from utils import sheet_utils
+
+from modules.hydra import flag_converter, hydra_utils
 
 """
 Hydra module. Module with more advanced GSheet-Discord interfacing. See module's README.md for more.
@@ -192,6 +194,35 @@ class HydraCog(commands.Cog, name="Hydra"):
             await start_msg.delete()
         await discord_utils.send_message(ctx, embed)
 
+
+    @command_predicates.is_solver()
+    @commands.command(name="chanhydra")
+    async def chanhydra(
+        self,
+        ctx,
+        *,
+        flags: flag_converter.chanhydra,
+    ):
+        """Creates a new puzzle channel based on a template in the tethered GSheet.
+
+        Permission Category : Solver Roles only.
+
+        Usage: `~chanhydra puzzle_name: [puzzle name] template_name: [template name] puzzle_url: [puzzle url]`
+        Usage: `~chanhydra puzzle_name: [puzzle name] template_name: [template name]`
+        Usage: `~chanhydra puzzle_name: [puzzle name] puzzle_url: [puzzle url]`
+        Usage: `~chanhydra puzzle_name: [puzzle name]`
+        """
+        await logging_utils.log_command(
+            "chanhydra", ctx.guild, ctx.channel, ctx.author
+        )
+        await hydra_utils.create_puzzle_channel_from_template(
+            self.bot,
+            ctx,
+            flags.puzzle_name,
+            flags.template_name,
+            flags.puzzle_url,
+            self.gspread_client,
+        )
 
 def setup(bot):
     bot.add_cog(HydraCog(bot))
