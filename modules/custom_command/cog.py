@@ -1,10 +1,12 @@
 import database
 import constants
 import os
+import shlex
 from utils import discord_utils, logging_utils, command_predicates
 from nextcord.ext import commands
 from sqlalchemy.orm import Session
 from sqlalchemy import insert
+from constants import CUSTOM_RESPONSE_PREFIX
 
 """
 Custom command module. Allows users to set their own "custom command" of saveable image/embed/messages making a lot of easy to retrieve utility.
@@ -363,6 +365,36 @@ class CustomCommandCog(commands.Cog, name="Custom Command"):
             )
         await discord_utils.send_message(ctx, embed)
 
+    @command_predicates.is_trusted()
+    @commands.command(
+        name="addcresponse",
+        aliases=["addcustomresponse", "addembedresponse", "customresponse", "addcr"],
+    )
+    async def addcustomresponse(self, ctx, command_name: str, *args):
+        """A custom command that picks a random response from a list of responses.
+        Arguments must be delimited by spaces/gropued together in quotes.
 
+        Permission Category : Trusted Roles only.
+        Usage: `~addcustomresponse command_name "Response 1" "Response 2" "Response 3"`
+        """
+
+        await logging_utils.log_command(
+            "addcustomresponse", ctx.guild, ctx.channel, ctx.author
+        )
+        embed = discord_utils.create_embed()
+
+        args_list = shlex.split(" ".join(args))
+        
+        if len(args_list) < 2:
+            embed = discord_utils.create_no_argument_embed("At least two responses are required")
+            await discord_utils.send_message(ctx, embed)
+            return
+        
+        command_name = command_name.lower()
+        command_return = CUSTOM_RESPONSE_PREFIX +", ".join(args_list)  # Use || as a delimiter for responses
+
+        await self.add_cc_generic(
+            ctx, command_name, command_return, is_image=False, is_global=False
+        )
 def setup(bot):
     bot.add_cog(CustomCommandCog(bot))
