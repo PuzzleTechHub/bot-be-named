@@ -60,7 +60,7 @@ status_dict = {
     },
     "In Progress": {
         "color": [230, 145, 56],
-        "update_ans": False,
+        "update_ans": True,
         "prefix": False,
     },
     "None": {

@@ -410,7 +410,7 @@ class LionCog(commands.Cog, name="Lion"):
         await logging_utils.log_command(
             "unsolvedlion", ctx.guild, ctx.channel, str(ctx.author)
         )
-        await self.statuslion(ctx, "in progress", answer)
+        await self.statuslion(ctx, "In Progress", answer)
 
     @command_predicates.is_solver()
     @commands.command(name="statuslion", aliases=["statlion", "stat", "puzzstatus"])
