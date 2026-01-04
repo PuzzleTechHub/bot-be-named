@@ -208,7 +208,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
         embed = discord_utils.create_embed()
         embed.add_field(
-            name="Permissions",
+            name="Assigning them!",
             value=f"- Use `{ctx.prefix}addperm level role` to add a permission to a role. Keep in mind only server admins or owners can use this command.\n"
             f"- Use `{ctx.prefix}removeperm level role` to remove a permission from a role.\n"
             f"- Example usage: `{ctx.prefix}addperm Solver @everyone`, `{ctx.prefix}addperm Trusted @Mods` etc.\n\n",
