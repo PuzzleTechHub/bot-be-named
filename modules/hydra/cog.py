@@ -198,7 +198,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="anychanhydra")
-    async def chanhydra(
+    async def anychanhydra(
         self,
         ctx,
         *,
