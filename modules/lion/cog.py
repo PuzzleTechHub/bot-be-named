@@ -726,7 +726,7 @@ class LionCog(commands.Cog, name="Lion"):
                 return
 
     @command_predicates.is_solver()
-    @commands.command(name="chanlion")
+    @commands.command(name="chanlion", aliases=["chanhydra"])
     async def chanlion(self, ctx: commands.Context, *, content: str = ''):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
 
