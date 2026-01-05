@@ -193,10 +193,17 @@ class DiscordCog(commands.Cog, name="Discord"):
         embed.add_field(name="Members", value=f"{guild.member_count}", inline=False)
         embed.add_field(name="Roles", value=f"{len(guild.roles)}", inline=False)
         embed.add_field(
-            name="Emoji (limit)",
-            value=f"{len(guild.emojis)} ({guild.emoji_limit})",
+            name="Regular emoji (limit)",
+            value=f"{sum(1 for emoji in guild.emojis if not emoji.animated)} ({guild.emoji_limit})",
             inline=False,
         )
+
+        embed.add_field(
+            name="Animated emoji (limit)",
+            value=f"{sum(1 for emoji in guild.emojis if emoji.animated)} ({guild.emoji_limit})",
+            inline=False,
+        )
+
         embed.add_field(
             name="Categories/Channels/VCs (limit)",
             value=f"{len(guild.channels)} (500)",
