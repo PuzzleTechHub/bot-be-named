@@ -1,6 +1,7 @@
 import constants
 import gspread
 import asyncio
+import heapq
 from nextcord.ext import commands
 from utils import (
     discord_utils,
@@ -199,6 +200,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         """Summarise the last `limit` messages across a category:
         `limit` caps off at 100. You can only call this in categories you have access to.
         Note: Will pick up messages to which the command user does not have access to.
+        Only counts messages from humans (not bots).
 
         Permission Category : Solver Roles only.
         Usage: `~watchcategoryhydra 100`
@@ -229,18 +231,70 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         start_msg = (await discord_utils.send_message(ctx, start_embed))[0]
 
-
         embed = discord_utils.create_embed()
-        msgs = []
+
         try:
-            per_channel_limit = 100
+            # 1. Fetch initial messages from each channel
+            channel_histories = []
             for ch in currcat.text_channels:
                 try:
-                    async for m in ch.history(limit=per_channel_limit):
-                        msgs.append((m.created_at, ch, m.author, m.content))
-                except Exception as e:
+                    history = []
+                    async for m in ch.history(limit=100):
+                        history.append(m)
+                    if history:
+                        channel_histories.append(
+                            (ch, history, 0)
+                        )  # (channel, messages, current_index)
+                except Exception:
                     # Skip channels we can't read
                     continue
+
+            # 2. Initialize Min-Heap with the first message from each channel
+            min_heap = []
+            for ch, history, idx in channel_histories:
+                if history:
+                    msg = history[idx]
+                    # Push (timestamp, channel_index, message) - using negative timestamp for max-heap behavior
+                    heapq.heappush(
+                        min_heap,
+                        (-msg.created_at.timestamp(), len(min_heap), ch, history, idx),
+                    )
+
+            # 3. Extract human messages until we have enough
+            msgs = []
+            channel_indices = {ch: i for i, (ch, _, _) in enumerate(channel_histories)}
+
+            while min_heap and len(msgs) < limit:
+                # Get the most recent message
+                _, _, ch, history, idx = heapq.heappop(min_heap)
+                current_msg = history[idx]
+
+                # Check if it's from a human (not a bot)
+                if not current_msg.author.bot:
+                    msgs.append(
+                        (
+                            current_msg.created_at,
+                            ch,
+                            current_msg.author,
+                            current_msg.content,
+                        )
+                    )
+
+                # Refill the heap from the same channel
+                next_idx = idx + 1
+                if next_idx < len(history):
+                    next_msg = history[next_idx]
+                    heapq.heappush(
+                        min_heap,
+                        (
+                            -next_msg.created_at.timestamp(),
+                            channel_indices.get(ch, 0),
+                            ch,
+                            history,
+                            next_idx,
+                        ),
+                    )
+
         except Exception as e:
             embed.add_field(
                 name=f"{constants.FAILED}",
@@ -249,9 +303,6 @@ class HydraCog(commands.Cog, name="Hydra"):
             )
             await discord_utils.send_message(ctx, embed)
             return
-
-        msgs.sort(key=lambda x: x[0], reverse=True)
-        msgs = msgs[:limit]
 
         # Delete start message
         if start_msg:
@@ -267,7 +318,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         total = len(msgs)
         embed.add_field(
             name="Summary",
-            value=f"Analyzed {total} messages across {len(currcat.text_channels)} channels in category `{currcat.name}`.",
+            value=f"Analyzed {total} human messages across {len(currcat.text_channels)} channels in category `{currcat.name}`.",
             inline=False,
         )
 
@@ -294,5 +345,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             )
 
         await discord_utils.send_message(ctx, embed)
+
+
 def setup(bot):
     bot.add_cog(HydraCog(bot))
