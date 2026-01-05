@@ -555,7 +555,7 @@ class LionCog(commands.Cog, name="Lion"):
                 await discord_utils.send_message(ctx, embed)
                 return
 
-    async def sheetmtageneric(self, ctx: commands.Context):
+    async def sheetmta_generic(self, ctx: commands.Context):
         """Just handles the sheet aspect of mtalion, moving the tab associated with ctx.channel to the end of the sheet"""
         embed = discord_utils.create_embed()
         result, _ = sheet_utils.findsheettether(
@@ -570,7 +570,7 @@ class LionCog(commands.Cog, name="Lion"):
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
-            return (None, None)
+            return
 
         curr_sheet_link = str(result.sheet_link)
         overview_sheet = await self.get_overview(ctx, curr_sheet_link)
@@ -581,13 +581,13 @@ class LionCog(commands.Cog, name="Lion"):
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
-            return (None, None)
+            return
 
         row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
         if err_embed is not None:
             await discord_utils.send_message(ctx, err_embed)
-            return (None, None)
-        # return (overview_sheet,row_to_find)
+            return
+
         sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
         tab_id = overview_sheet.get_cell_value(sheet_tab_id_col + str(row_to_find))
 
@@ -643,17 +643,13 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: `~mtalion`
         Usage: `~mtalion archive_category_name`
         """
-        embed = discord_utils.create_embed()
-
         await logging_utils.log_command(
             "mtalion", ctx.guild, ctx.channel, str(ctx.author)
         )
-
-        await self.sheetmtageneric(ctx)  # Attempt to move sheet stuff
+        await self.sheetmta_generic(ctx)  # Attempt to move sheet stuff
         await self.movetoarchive_generic(
             ctx, archive_name
-        )  # Attempt to move channel regardless
-        await discord_utils.send_message(ctx, embed)
+        )  # Attempt to move channel stuff
 
     ###############################
     # LION CHANNEL/SHEET CREATION #
