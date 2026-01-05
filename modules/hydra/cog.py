@@ -54,7 +54,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             await discord_utils.send_message(ctx, embed)
             return None
 
-        except gspread.exceptions.SpreadsheetNotFound as e:
+        except gspread.exceptions.SpreadsheetNotFound:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}",
@@ -175,7 +175,9 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: ~noteshydra "Notes about the puzzle"
         """
 
-        await logging_utils.log_command("noteshydra", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "noteshydra", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         result, _ = sheet_utils.findsheettether(
@@ -342,7 +344,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                         )
                     continue
 
-                overview_col = sheets_constants.OVERVIEW_COLUMN
+                overview_col = sheets_constants.NOTES_COLUMN
                 _, sample_overview, sample_values = next(
                     (t for t in list_chan_cells_overview if t[1] is not None),
                     (None, None, None),
@@ -375,9 +377,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                             f"- {currchan.mention} - {overview_desc[:100] + '...' if len(overview_desc) > 100 else overview_desc}"
                         )
                     else:
-                        messages.append(
-                            f"- {currchan.mention} - *(empty description)*"
-                        )
+                        messages.append(f"- {currchan.mention} - *(empty description)*")
         except Exception as e:
             embed = discord_utils.create_embed()
             embed.add_field(
@@ -404,13 +404,12 @@ class HydraCog(commands.Cog, name="Hydra"):
         # Split into multiple messages
         chunk_size = 12
         for i in range(0, len(messages), chunk_size):
-
             final_embed = discord_utils.create_embed()
             chunk = messages[i : i + chunk_size]
 
             for j, msg in enumerate(chunk):
                 parts = msg.split(" - ", 1)
-                channel_part = parts[0].replace('- ', '').strip()
+                channel_part = parts[0].replace("- ", "").strip()
                 desc_part = parts[1].strip() if len(parts) > 1 else "\u200b"
 
                 final_embed.add_field(name=channel_part, value=desc_part, inline=True)
@@ -421,7 +420,6 @@ class HydraCog(commands.Cog, name="Hydra"):
             await discord_utils.send_message(ctx, final_embed)
 
         await initial_message.delete()
-
 
     @command_predicates.is_solver()
     @commands.command(name="anychanhydra")
@@ -437,16 +435,14 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         Usage: `~chanhydra [puzzle name] [template name] [puzzle url]`
         """
-        await logging_utils.log_command(
-            "chanhydra", ctx.guild, ctx.channel, ctx.author
-        )
+        await logging_utils.log_command("chanhydra", ctx.guild, ctx.channel, ctx.author)
 
         arg_list = shlex.split(args)
         if len(arg_list) < 2 or len(arg_list) > 3:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value=f"Invalid arguments. Usage: `~chanhydra [puzzle name] [template name] [puzzle url (optional)]`",
+                value="Invalid arguments. Usage: `~chanhydra [puzzle name] [template name] [puzzle url (optional)]`",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -464,6 +460,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             puzzle_url,
             self.gspread_client,
         )
+
 
 def setup(bot):
     bot.add_cog(HydraCog(bot))
