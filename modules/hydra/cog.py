@@ -423,7 +423,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         await initial_message.delete()
 
     @command_predicates.is_solver()
-    @commands.command(name="anychanhydra")
+    @commands.command(name="anychanhydra", aliases=["templatechanhydra"])
     async def anychanhydra(
         self,
         ctx,
@@ -504,7 +504,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             except ValueError as e:
                 embed.add_field(
                     name=f"{constants.FAILED}",
-                    value=f"Error parsing line `{line}`: {str(e)}",
+                    value=f"Error parsing line `{line}`... continuing parsing the rest.\nError: {str(e)}",
                     inline=False,
                 )
                 await discord_utils.send_message(ctx, embed)
@@ -538,6 +538,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         success_count = sum(1 for r in results if r[0] is not None)
 
         if success_count > 0:
+            embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.SUCCESS}",
                 value=f"Successfully created {success_count} puzzle channel(s)!",

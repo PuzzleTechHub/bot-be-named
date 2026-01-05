@@ -442,78 +442,89 @@ async def batch_create_puzzle_channels(
     for idx, (puzzle_name, tab_name, puzzle_url, channel) in enumerate(channels):
         if worksheets[idx] is None:
             continue
-
-        row_num = first_empty_row + idx
-        newsheet = worksheets[idx]
-        final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
-
-        # Batch update overview row
-        overview_updates = {
-            puzzle_name_col
-            + str(row_num): (
-                f'=HYPERLINK("{final_sheet_link}", "{puzzle_name}")',
-                True,  # is_formula
-            ),
-            discord_channel_id_col + str(row_num): (str(channel.id), False),
-            sheet_tab_id_col + str(row_num): (str(newsheet.id), False),
-            status_col + str(row_num): (sheets_constants.UNSTARTED_NAME, False),
-            answer_col
-            + str(row_num): (
-                "='{}'!{}".format(
-                    tab_name.replace("'", "''"), sheets_constants.TAB_ANSWER_LOCATION
-                ),
-                True,  # is_formula
-            ),
-        }
-
-        for label, (value, is_formula) in overview_updates.items():
-            batch.update_cell_by_label(
-                sheet_id=overview_id,
-                label=label,
-                value=value,
-                is_formula=is_formula,
-            )
-
-        # Batch update new sheet
-        new_sheet_updates = {
-            sheets_constants.TAB_CHAN_NAME_LOCATION: puzzle_name,
-        }
-        if puzzle_url:
-            new_sheet_updates[sheets_constants.TAB_URL_LOCATION] = puzzle_url
-
-        for label, value in new_sheet_updates.items():
-            batch.update_cell_by_label(
-                sheet_id=newsheet.id,
-                label=label,
-                value=value,
-            )
-
-        # Tether channel
-        addsheettethergeneric(gspread_client, curr_sheet_link, ctx.guild, channel)
-
-        # Update channel topic
-        await channel.edit(topic=f"Tab Link - {final_sheet_link}")
-
-        # Send messages to channel
         try:
+            row_num = first_empty_row + idx
+            newsheet = worksheets[idx]
+            final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
+
+            # Batch update overview row
+            overview_updates = {
+                puzzle_name_col
+                + str(row_num): (
+                    f'=HYPERLINK("{final_sheet_link}", "{puzzle_name}")',
+                    True,  # is_formula
+                ),
+                discord_channel_id_col + str(row_num): (str(channel.id), False),
+                sheet_tab_id_col + str(row_num): (str(newsheet.id), False),
+                status_col + str(row_num): (sheets_constants.UNSTARTED_NAME, False),
+                answer_col
+                + str(row_num): (
+                    "='{}'!{}".format(
+                        tab_name.replace("'", "''"), sheets_constants.TAB_ANSWER_LOCATION
+                    ),
+                    True,  # is_formula
+                ),
+            }
+
+            for label, (value, is_formula) in overview_updates.items():
+                batch.update_cell_by_label(
+                    sheet_id=overview_id,
+                    label=label,
+                    value=value,
+                    is_formula=is_formula,
+                )
+
+            # Batch update new sheet
+            new_sheet_updates = {
+                sheets_constants.TAB_CHAN_NAME_LOCATION: puzzle_name,
+            }
+            if puzzle_url:
+                new_sheet_updates[sheets_constants.TAB_URL_LOCATION] = puzzle_url
+
+            for label, value in new_sheet_updates.items():
+                batch.update_cell_by_label(
+                    sheet_id=newsheet.id,
+                    label=label,
+                    value=value,
+                )
+
+            # Tether channel
+            addsheettethergeneric(gspread_client, curr_sheet_link, ctx.guild, channel)
+
+            # Update channel topic
+            await channel.edit(topic=f"Tab Link - {final_sheet_link}")
+
+            # Send messages to channel
+            try:
+                embed = discord_utils.create_embed()
+                embed.add_field(
+                    name=f"{constants.SUCCESS}!",
+                    value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
+                    inline=False,
+                )
+                msg = await channel.send(embed=embed)
+                await discord_utils.pin_message(msg)
+
+                if puzzle_url:
+                    embed = discord_utils.create_embed()
+                    embed.description = puzzle_url
+                    msg2 = await channel.send(embed=embed)
+                    embed_or_none = await discord_utils.pin_message(msg2)
+                    if embed_or_none is None:
+                        await msg2.add_reaction(emoji.emojize(":pushpin:"))
+            except Exception:
+                pass
+        except Exception as e:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
-                value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
+                name=f"{constants.FAILED}!",
+                value=f"Error processing `{puzzle_name}`. Error: {str(e)}",
                 inline=False,
             )
-            msg = await channel.send(embed=embed)
-            await discord_utils.pin_message(msg)
 
-            if puzzle_url:
-                embed = discord_utils.create_embed()
-                embed.description = puzzle_url
-                msg2 = await channel.send(embed=embed)
-                embed_or_none = await discord_utils.pin_message(msg2)
-                if embed_or_none is None:
-                    await msg2.add_reaction(emoji.emojize(":pushpin:"))
-        except Exception:
-            pass
+            await discord_utils.send_message(ctx, embed)
+            worksheets[idx] = None
+            continue
 
     # Execute single batch update for ALL changes
     try:
