@@ -568,6 +568,8 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: `~mtalion`
         Usage: `~mtalion archive_category_name`
         """
+        embed = discord_utils.create_embed()
+
         await logging_utils.log_command(
             "mtalion", ctx.guild, ctx.channel, str(ctx.author)
         )
@@ -600,19 +602,44 @@ class LionCog(commands.Cog, name="Lion"):
         sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
         tab_id = overview_sheet.get_cell_value(sheet_tab_id_col + str(row_to_find))
 
-        # Grab worksheets all at once to avoid issuing 2 read requests
-        worksheets = overview_sheet.spreadsheet.worksheets()
-        puzzle_tab = next(w for w in worksheets if w.id == int(tab_id))
-        puzzle_tab.update_index(len(overview_sheet.spreadsheet.worksheets()))
+        # Track sheet move success
+        sheet_move_success = False
+        sheet_move_error = None
 
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.SUCCESS}!",
-            value="Moved sheet to the end of the spreadsheet!",
-            inline=False,
-        )
+        try:
+            worksheets = overview_sheet.spreadsheet.worksheets()
+            puzzle_tab = next((w for w in worksheets if w.id == int(tab_id)), None)
 
-        await self.movetoarchive_generic(ctx, archive_name)
+            if puzzle_tab is None:
+                sheet_move_error = "Could not find puzzle tab in spreadsheet."
+            else:
+                puzzle_tab.update_index(len(worksheets))
+                sheet_move_success = True
+        except gspread.exceptions.APIError as e:
+            error_json = e.response.json()
+            error_message = error_json.get("error", {}).get("message")
+            sheet_move_error = f"Google Sheets API Error: {error_message}"
+        except StopIteration:
+            sheet_move_error = "Could not find puzzle tab in spreadsheet."
+        except Exception as e:
+            sheet_move_error = f"Unknown error: {str(e)}"
+
+        await self.movetoarchive_generic(ctx, archive_name) # Attempt to move channel regardless 
+
+        if sheet_move_success:
+            embed.add_field(
+                name=f"{constants.SUCCESS}!",
+                value="Moved sheet to the end of the spreadsheet!",
+                inline=False,
+            )
+        else:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Failed to move sheet tab: {sheet_move_error}",
+                inline=False,
+            )
+
+        await discord_utils.send_message(ctx, embed)
 
     ###############################
     # LION CHANNEL/SHEET CREATION #
