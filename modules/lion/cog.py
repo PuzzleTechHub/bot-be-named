@@ -171,6 +171,15 @@ class LionCog(commands.Cog, name="Lion"):
             await discord_utils.send_message(ctx, embed)
             return
 
+        if archive_category == ctx.channel.category:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Archive category `{archive_category.name}` is the same as current category `{ctx.channel.category.name}`. No need to move channel!",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
         try:
             # move channel
             await ctx.channel.edit(category=archive_category)
