@@ -369,6 +369,90 @@ class DiscordCog(commands.Cog, name="Discord"):
                         )
         await discord_utils.send_message(ctx, embed)
 
+    #####################
+    # UNCATEGORIZED /   #
+    # TO BE CATEGORIZED #
+    #####################
+
+    @command_predicates.is_solver()
+    @commands.command(name="delete")
+    async def delete(self, ctx, to_delete: str = ""):
+        """Delete a message sent by me and only me by replying to it with `~delete`.
+        
+        If you say del after the command, it deletes the original message that called the command too.
+
+        Permission Category : Solver Roles only.
+        Usage: `~delete` (as a reply to a bot message)
+        Usage: `~delete del` (delete both the bot message and the command message)
+        """
+
+        await logging_utils.log_command("delete", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+        
+        if not ctx.message.reference:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value="Command `~delete` can only be called as a reply to a message sent by me.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        
+        try:
+            referenced_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+        except nextcord.NotFound:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value="I couldn't find the message you're replying to. It may have been deleted already.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        except nextcord.Forbidden:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value="I don't have permission to access that message.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        
+        if referenced_message.author.id != self.bot.user.id:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value="I can only delete messages that I sent myself.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        
+        try:
+            await referenced_message.delete()
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+        except nextcord.Forbidden:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value="I don't have permission to delete that message. Do I have `manage_messages` permissions?",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        except nextcord.NotFound:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value="The message was already deleted.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        try:
+            if to_delete.lower()[:3] == "del":
+                await ctx.message.delete()
+        except nextcord.Forbidden:
+            # Silent fail for command deletion since the main action succeeded
+            pass
+
 
 def setup(bot):
     bot.add_cog(DiscordCog(bot))
