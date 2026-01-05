@@ -2,7 +2,7 @@ import nextcord
 import os
 import constants
 from nextcord.ext import commands
-from emoji import EMOJI_DATA
+from emoji import EMOJI_DATA, emojize
 import emoji
 from typing import Union
 from utils import discord_utils, logging_utils, command_predicates
@@ -55,73 +55,170 @@ class MiscCog(commands.Cog, name="Misc"):
         await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
 
     @commands.command(name="emoji")
-    async def emoji(
-        self, ctx, emojiname: Union[nextcord.Emoji, str], to_delete: str = ""
-    ):
+    async def emoji(self, ctx, *args):
         """Finds the custom emoji mentioned and uses it.
         This command works for normal as well as animated emojis, as long as the bot is in one server with that emoji.
 
-        If you say delete after the emoji name, it deletes original message
+        Can accept multiple emojis delimited by spaces.
+
+        If you say `delete` after the emoji name, it deletes the original message (the message you used to call ~emoji).
 
         If this command is a reply to another message, it'll instead be a react to that message.
 
         Usage : `~emoji snoo_glow delete`
         Usage : `~emoji :snoo_grin:`
+        Usage : `~emoji :an_emoji: sunglasses`
         """
+
         await logging_utils.log_command("emoji", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        try:
-            if to_delete.lower()[0:3] == "del":
-                await ctx.message.delete()
-        except nextcord.Forbidden:
+        if not args:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value="Unable to delete original message. Do I have `manage_messages` permissions?",
+                value="You need to specify at least one emoji name!",
+                inline=False,
             )
             await discord_utils.send_message(ctx, embed)
             return
 
-        emoji = None
-        hasurl = False
+        should_delete = False
+        emoji_args = list(args)
 
-        # custom emoji
-        if isinstance(emojiname, nextcord.Emoji):
-            emoji = emojiname
-            hasurl = True
-        # default emoji
-        elif isinstance(emojiname, str) and emojiname in EMOJI_DATA:
-            emoji = emojiname
-            hasurl = False
-        elif emojiname[0] == ":" and emojiname[-1] == ":":
-            emojiname = emojiname[1:-1]
-            for guild in self.bot.guilds:
-                emoji = nextcord.utils.get(guild.emojis, name=emojiname)
-                if emoji is not None:
-                    break
-                hasurl = True
+        if emoji_args[-1].lower() in ["delete", "del"]:
+            should_delete = True
+            emoji_args = emoji_args[:-1]
 
-        if emoji is None:
+        if not emoji_args:  # no emojis after removing delete
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Emoji named {emojiname} not found",
+                value="You need to specify at least one emoji name!",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        if should_delete:
+            try:
+                await ctx.message.delete()
+            except nextcord.Forbidden:
+                embed.add_field(
+                    name=f"{constants.FAILED}!",
+                    value="I don't have permission to delete messages!",
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+
+        emojis = []
+        failed_emojis = []
+
+        for emojiname in emoji_args:
+            emoji = None
+            hasurl = False
+
+            if emojiname.startswith("<") and emojiname.endswith(">"): # custom emoji format
+                try:
+                    emoji_id = int(emojiname.split(":")[-1][:-1])
+                    for guild in self.bot.guilds:
+                        emoji = nextcord.utils.get(guild.emojis, id=emoji_id)
+                        if emoji is not None:
+                            hasurl = True
+                            break
+                except (ValueError, IndexError):
+                    pass
+
+            elif isinstance(emojiname, str) and emojiname in EMOJI_DATA: # standard unicode emoji
+                emoji = emojiname
+                hasurl = False
+
+            elif emojiname.startswith(":") and emojiname.endswith(":"): # :emoji_name: format
+                unicode_emoji = emojize(emojiname, language="alias")
+                if unicode_emoji != emojiname:
+                    emoji = unicode_emoji
+                    hasurl = False
+                else: # try custom emoji
+                    emojiname_clean = emojiname[1:-1]
+                    for guild in self.bot.guilds:
+                        emoji = nextcord.utils.get(guild.emojis, name=emojiname_clean)
+                        if emoji is not None:
+                            hasurl = True
+                            break
+
+            else: # try both unicode and custom emoji
+                emoji_with_colons = f":{emojiname}:"
+                unicode_emoji = emojize(emoji_with_colons, language="alias")
+
+                if unicode_emoji != emoji_with_colons:
+                    emoji = unicode_emoji
+                    hasurl = False
+                else:
+                    for guild in self.bot.guilds:
+                        emoji = nextcord.utils.get(guild.emojis, name=emojiname)
+                        if emoji is not None:
+                            hasurl = True
+                            break
+
+            if emoji is None:
+                failed_emojis.append(emojiname)
+            else:
+                emojis.append((emoji, hasurl))
+
+        if not emojis: 
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"No valid emojis found. Failed: {', '.join(failed_emojis)}",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
             return
 
         if ctx.message.reference:
-            # If it's replying to a message
             orig_msg = ctx.message.reference.resolved
-            await orig_msg.add_reaction(emoji)
-            return
+
+            if orig_msg is None:
+                try:
+                    orig_msg = await ctx.channel.fetch_message(
+                        ctx.message.reference.message_id
+                    )
+                except (nextcord.NotFound, nextcord.Forbidden, nextcord.HTTPException):
+                    embed.add_field(
+                        name=f"{constants.FAILED}!",
+                        value="Could not find the referenced message.",
+                        inline=False,
+                    )
+                    await discord_utils.send_message(ctx, embed)
+                    return
+
+            for emoji, _ in emojis:
+                try:
+                    await orig_msg.add_reaction(emoji)
+                except (nextcord.Forbidden, nextcord.HTTPException):
+                    pass
+
+            if failed_emojis:
+                embed.add_field(
+                    name="Partial success!",
+                    value=f"Some emojis could not be found: {', '.join(failed_emojis)}",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
         else:
-            # Just a normal command
-            if hasurl:
-                await ctx.send(emoji.url)
-            else:
-                await ctx.send(emoji)
-            return
+            emoji_output = []
+            for emoji, hasurl in emojis:
+                if hasurl:
+                    emoji_output.append(str(emoji.url))
+                else:
+                    emoji_output.append(str(emoji))
+
+            await ctx.send(" ".join(emoji_output))
+
+            if failed_emojis:
+                embed.add_field(
+                    name="Partial success!",
+                    value=f"Some emojis could not be found: {', '.join(failed_emojis)}",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="about", aliases=["aboutthebot", "github"])
     async def about(self, ctx):
