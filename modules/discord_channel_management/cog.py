@@ -82,17 +82,50 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 channels_to_move.append(chan)
 
         # Strip duplicates
+        duplicates = [
+            chan for chan in channels_to_move if channels_to_move.count(chan) > 1
+        ]
         channels_to_move = list(set(channels_to_move))
+
+        # Identify channels aready in category
+        channels_already_in_category = [
+            chan for chan in channels_to_move if chan.category == new_category
+        ]
 
         # Strip channels that are already in the new category
         channels_to_move = [
             chan for chan in channels_to_move if chan.category != new_category
         ]
 
+        # Notify user of duplicates
+        if len(duplicates) > 0:
+            unique_duplicates = list(set(duplicates))
+            embed.add_field(
+                name="Duplicate channels!",
+                value=f"The following channels were specified multiple times and will only be moved once:\n"
+                f"{'\n'.join([f"- {chan.mention}" for chan in unique_duplicates])}",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+
+        # Notify user of channels already in category
+        if len(channels_already_in_category) > 0:
+            unique_already_in_category = list(set(channels_already_in_category))
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name="Channels already in category!",
+                value=f"The following channels are already in category `{new_category.name}` and will not be moved:\n"
+                f"{'\n'.join([f"- {chan.mention}" for chan in unique_already_in_category])}",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+
         # Calculate available capacity upfront
         initial_channel_count = len(new_category.channels)
         max_capacity = 50
         available_capacity = max_capacity - initial_channel_count
+
+        embed = discord_utils.create_embed()
 
         # Check if category is already full
         if available_capacity == 0:
@@ -102,7 +135,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
-            return 
+            return
 
         channels_moved = []
         category_full_reached = False  # Track if we hit limit
