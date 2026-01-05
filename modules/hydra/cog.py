@@ -1,6 +1,7 @@
 import constants
 import gspread
 import asyncio
+import emoji
 from nextcord.ext import commands
 from utils import (
     discord_utils,
@@ -81,6 +82,178 @@ class HydraCog(commands.Cog, name="Hydra"):
     ###################
     # HYDRA COMMANDS  #
     ###################
+
+    @command_predicates.is_solver()
+    @commands.command(name="roundhydra")
+    async def roundlion(self, ctx: commands.Context, round_name: str):
+        """Sets or updates the round information on the Overview sheet.
+
+        Permission Category : Solver Roles only
+        Usage: ~roundhydra "Round Name"
+        Usage: ~roundhydra RoundName
+        """
+        await logging_utils.log_command("roundlion", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        result, _ = sheet_utils.findsheettether(
+            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
+        )
+
+        if result is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
+                f"are tethered to any Google sheet.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        curr_sheet_link = str(result.sheet_link)
+        overview_sheet = await self.get_overview(ctx, curr_sheet_link)
+        if overview_sheet is None:
+            return
+
+        row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
+        if err_embed is not None:
+            await discord_utils.send_message(ctx, err_embed)
+            return
+
+        round_col = sheets_constants.ROUND_COLUMN
+
+        try:
+            overview_sheet.worksheet.update_acell(
+                round_col + str(row_to_find), round_name
+            )
+
+            embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value=f"Successfully updated round for {ctx.channel.mention} to `{round_name}`",
+                inline=False,
+            )
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+            await discord_utils.send_message(ctx, embed)
+
+        except gspread.exceptions.APIError as e:
+            error_json = e.response.json()
+            error_status = error_json.get("error", {}).get("status")
+            if error_status == "PERMISSION_DENIED":
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value="Could not update the sheet. Permission denied.",
+                    inline=False,
+                )
+            else:
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"Unknown GSheets API Error - `{error_json.get('error', {}).get('message')}`",
+                    inline=False,
+                )
+            await discord_utils.send_message(ctx, embed)
+
+    @command_predicates.is_solver()
+    @commands.command(name="noteshydra")
+    async def noteshydra(self, ctx: commands.Context, *, notes: str):
+        """Sets or updates the notes information on the Overview sheet.
+
+        If you wrap your note in quotes, it will appear that way in the sheet. Quotes are not required.
+
+        Permission Category : Solver Roles only
+        Usage: ~noteshydra "Notes about the puzzle"
+        """
+
+        await logging_utils.log_command("noteshydra", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        result, _ = sheet_utils.findsheettether(
+            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
+        )
+
+        if result is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
+                f"are tethered to any Google sheet.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        curr_sheet_link = str(result.sheet_link)
+        overview_sheet = await self.get_overview(ctx, curr_sheet_link)
+        if overview_sheet is None:
+            return
+
+        row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
+        if err_embed is not None:
+            await discord_utils.send_message(ctx, err_embed)
+            return
+
+        notes_col = sheets_constants.OVERVIEW_COLUMN
+
+        try:
+            overview_sheet.worksheet.update_acell(notes_col + str(row_to_find), notes)
+
+            embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value=f"Successfully updated notes for {ctx.channel.mention} to `{notes}`",
+                inline=False,
+            )
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+            await discord_utils.send_message(ctx, embed)
+
+        except gspread.exceptions.APIError as e:
+            error_json = e.response.json()
+            error_status = error_json.get("error", {}).get("status")
+            if error_status == "PERMISSION_DENIED":
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value="Could not update the sheet. Permission denied.",
+                    inline=False,
+                )
+            else:
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"Unknown GSheets API Error - `{error_json.get('error', {}).get('message')}`",
+                    inline=False,
+                )
+            await discord_utils.send_message(ctx, embed)
+
+    async def get_overview(
+        self, ctx: commands.Context, sheet_link: str
+    ) -> sheet_utils.OverviewSheet | None:
+        try:
+            overview_sheet = sheet_utils.OverviewSheet(self.gspread_client, sheet_link)
+
+        # Error when we can't open the curr sheet link
+        except gspread.exceptions.APIError as e:
+            error_json = e.response.json()
+            error_status = error_json.get("error", {}).get("status")
+            if error_status == "PERMISSION_DENIED":
+                embed = discord_utils.create_embed()
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"I'm unable to open the tethered [sheet]({sheet_link}). "
+                    f"Did the permissions change?",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+                return None
+            else:
+                raise e
+        # Error when the sheet has no template tab
+        except gspread.exceptions.WorksheetNotFound:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
+                f"Did you forget to add one?",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return None
+
+        return overview_sheet
 
     @command_predicates.is_solver()
     @commands.command(name="catsummaryhydra", aliases=["categorysummaryhydra"])
