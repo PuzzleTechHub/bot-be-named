@@ -217,9 +217,6 @@ class LionCog(commands.Cog, name="Lion"):
         )
         await self.movetoarchive_generic(ctx, archive_name)
 
-    #################
-    # LION COMMANDS #
-    #################
 
     ########################
     # LION STATUS COMMANDS #
