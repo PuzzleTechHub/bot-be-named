@@ -37,7 +37,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Usage: `~movechannel "CatA" #chan1 "chan2" "chan3"` (Moves all listed channels to CatA. Note - This does not move current channel unless listed)
         Usage: `~movechannel "CatA" all` (Moves all channels in current category to CatA.)
 
-        Note that channels may be mentioned or named, but a channel is named "all", then it must be mentioned to avoid issues. Duplicates and channels already in the target category are ignored.
+        Note that channels may be mentioned or named, but a channel is named "all", then it must be mentioned to avoid issues.
         """
         await logging_utils.log_command(
             "movechannel", ctx.guild, ctx.channel, ctx.author
