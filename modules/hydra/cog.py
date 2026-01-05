@@ -294,26 +294,5 @@ class HydraCog(commands.Cog, name="Hydra"):
             )
 
         await discord_utils.send_message(ctx, embed)
-
-        # Send last `limit` messages
-        message_content = []
-        for created_at, ch, author, content in msgs:
-            timestamp_str = created_at.strftime("%Y-%m-%d %H:%M:%S")
-            message_content.append(
-                f"[{timestamp_str}] {ch.mention} - {author.mention}: {content}"
-            )
-
-        if message_content:
-            for i in range(0, len(message_content), 10):
-                for j in range(i, min(i + 10, len(message_content)), 1):
-                    if len(message_content[j]) > 250:
-                        message_content[j] = message_content[j][:247] + "..."
-                chunk = "\n".join(message_content[i : i + 10])
-                embed = discord_utils.create_embed()
-                embed.add_field(
-                    name=f"Messages {i + 1} to {min(i + 10, len(message_content))}",
-                    value=f"{chunk}",
-                )
-                await discord_utils.send_message(ctx, embed)
 def setup(bot):
     bot.add_cog(HydraCog(bot))
