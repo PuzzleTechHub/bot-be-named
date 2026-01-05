@@ -78,7 +78,7 @@ solved_prefixes = [y for y in solved_prefixes if y is not None]
 DISCORD_CHANNEL_ID_COLUMN = "A"
 SHEET_TAB_ID_COLUMN = "B"
 ROUND_COLUMN = "C"
-OVERVIEW_COLUMN = "G"
+NOTES_COLUMN = "G"
 
 PUZZLE_NAME_COLUMN_LOCATION = "A1"  # C in TM sheet
 STATUS_COLUMN_LOCATION = "B1"  # D in TM sheet
