@@ -135,13 +135,13 @@ class MiscCog(commands.Cog, name="Misc"):
         owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
         embed.add_field(
             name="About Me!",
-            value=f"Hello!\n"
-            f"I am Bot Be Named (BBN) - a bot to help with puzzle hunts (more specifically, Google Sheets) on Discord!\n"
-            f"BBN is designed to make puzzle hunts run more smoothly on Discord by:\n"
-            f"- Creating and managing channels and sheets\n"
-            f"- Talking with Google Sheets to easily collaborate with your fellow solvers on one central worksheet\n"
-            f"- Marking puzzles as solved, unsolved, stuck, and more with easy commands\n"
-            f"- And much more...!\n\n",
+            value="Hello!\n"
+            "I am Bot Be Named (BBN) - a bot to help with puzzle hunts (more specifically, Google Sheets) on Discord!\n"
+            "BBN is designed to make puzzle hunts run more smoothly on Discord by:\n"
+            "- Creating and managing channels and sheets\n"
+            "- Talking with Google Sheets to easily collaborate with your fellow solvers on one central worksheet\n"
+            "- Marking puzzles as solved, unsolved, stuck, and more with easy commands\n"
+            "- And much more...!\n\n",
         )
         await discord_utils.send_message(ctx, embed)
 
@@ -149,7 +149,6 @@ class MiscCog(commands.Cog, name="Misc"):
         embed.add_field(
             name="Start Solving!",
             value=f"To start solving with BBN, follow these steps!\n"
-
             f"1. Invite BBN to your server by clicking on me in the member list!\n"
             f"2. Make your own copy of the template! (Ask us in BBN server)\n"
             f"3. Give permissions to people! (e.g. `{ctx.prefix}addperm Solver @everyone` or `{ctx.prefix}addperm Verified @everyone` etc.)\n"
@@ -166,17 +165,14 @@ class MiscCog(commands.Cog, name="Misc"):
         embed.add_field(
             name="Need Help?",
             value=f"When in doubt, use `{ctx.prefix}help commandname` to get more info about a specific command!\n\n"
-
             f"Refer to `{ctx.prefix}info` for additional information!\n\n"
-
             f"[Bot Github Link (I'm open source!)](https://github.com/PuzzleTechHub/bot-be-named)  - [Bot Discord Link](https://discord.gg/x8f2ywHUky)\n\n"
-
             f"Any problems? Let {owner.mention} know.",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
 
-    @commands.command(name="info", aliases=["startup","start"])
+    @commands.command(name="info", aliases=["startup", "start"])
     async def info(self, ctx):
         """A quick primer about helpful BBN functions
 

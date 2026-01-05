@@ -117,8 +117,8 @@ class LionCog(commands.Cog, name="Lion"):
                 value=f"Archived {ctx.channel.mention} thread",
                 inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             await ctx.channel.edit(archived=True)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # Otherwise mta is called from a regular channel
@@ -166,6 +166,15 @@ class LionCog(commands.Cog, name="Lion"):
                 name=f"{constants.FAILED}!",
                 value=f"`{archive_category.name}` is already full, max limit is 50 channels. Consider renaming"
                 f" `{archive_category.name}` and creating a new `{archive_category.name}`.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        if archive_category == ctx.channel.category:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Archive category `{archive_category.name}` is the same as current category `{ctx.channel.category.name}`. No need to move channel!",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -555,8 +564,84 @@ class LionCog(commands.Cog, name="Lion"):
                 await discord_utils.send_message(ctx, embed)
                 return
 
+    async def sheetmta_generic(self, ctx: commands.Context):
+        """Just handles the sheet aspect of mtalion, moving the tab associated with ctx.channel to the end of the sheet"""
+        embed = discord_utils.create_embed()
+        result, _ = sheet_utils.findsheettether(
+            ctx.message.channel.category_id, ctx.message.channel.id
+        )
+
+        if result is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
+                f"are tethered to any Google sheet.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        curr_sheet_link = str(result.sheet_link)
+        overview_sheet = await self.get_overview(ctx, curr_sheet_link)
+        if overview_sheet is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="Error! Overview tab not found in the sheet! Did you accidentally delete it?",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
+        if err_embed is not None:
+            await discord_utils.send_message(ctx, err_embed)
+            return
+
+        sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
+        tab_id = overview_sheet.get_cell_value(sheet_tab_id_col + str(row_to_find))
+
+        try:
+            worksheets = overview_sheet.spreadsheet.worksheets()
+            puzzle_tab = next((w for w in worksheets if w.id == int(tab_id)), None)
+            if puzzle_tab is None:
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value="Could not find associated tab for puzzle in the tethered sheet.",
+                    inline=False,
+                )
+            else:
+                puzzle_tab.update_index(len(worksheets))
+                embed.add_field(
+                    name=f"{constants.SUCCESS}!",
+                    value="Moved tab to the end of the sheet!",
+                    inline=False,
+                )
+        except gspread.exceptions.APIError as e:
+            error_json = e.response.json()
+            error_message = error_json.get("error", {}).get("message")
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Google Sheets API Error: `{error_message}`",
+                inline=False,
+            )
+        except StopIteration:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="Could not find associated tab for puzzle in the tethered sheet.",
+                inline=False,
+            )
+        except Exception as e:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Unknown error: `{str(e)}`",
+                inline=False,
+            )
+        await discord_utils.send_message(ctx, embed)
+
     @command_predicates.is_solver()
-    @commands.command(name="mtalion", aliases=["movetoarchivelion", "archivelion"])
+    @commands.command(
+        name="mtalion", aliases=["movetoarchivelion", "archivelion", "mtahydra"]
+    )
     async def mtalion(self, ctx: commands.Context, archive_name: str = None):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
@@ -571,48 +656,10 @@ class LionCog(commands.Cog, name="Lion"):
         await logging_utils.log_command(
             "mtalion", ctx.guild, ctx.channel, str(ctx.author)
         )
-
-        result, _ = sheet_utils.findsheettether(
-            ctx.message.channel.category_id, ctx.message.channel.id
-        )
-
-        if result is None:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
-                f"are tethered to any Google sheet.",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        curr_sheet_link = str(result.sheet_link)
-        overview_sheet = await self.get_overview(ctx, curr_sheet_link)
-        if overview_sheet is None:
-            return
-
-        row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
-        if err_embed is not None:
-            await discord_utils.send_message(ctx, err_embed)
-            return
-
-        sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
-        tab_id = overview_sheet.get_cell_value(sheet_tab_id_col + str(row_to_find))
-
-        # Grab worksheets all at once to avoid issuing 2 read requests
-        worksheets = overview_sheet.spreadsheet.worksheets()
-        puzzle_tab = next(w for w in worksheets if w.id == int(tab_id))
-        puzzle_tab.update_index(len(overview_sheet.spreadsheet.worksheets()))
-
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.SUCCESS}!",
-            value="Moved sheet to the end of the spreadsheet!",
-            inline=False,
-        )
-
-        await self.movetoarchive_generic(ctx, archive_name)
+        await self.sheetmta_generic(ctx)  # Attempt to move sheet stuff
+        await self.movetoarchive_generic(
+            ctx, archive_name
+        )  # Attempt to move channel stuff
 
     ###############################
     # LION CHANNEL/SHEET CREATION #
