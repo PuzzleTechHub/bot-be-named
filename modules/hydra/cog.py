@@ -365,13 +365,15 @@ class HydraCog(commands.Cog, name="Hydra"):
                         )
                         continue
 
-                    row_to_find = chan_cell.row
-                    overview_col = sheets_constants.NOTES_COLUMN
-                    overview_desc = overview.acell(
-                        overview_col + str(row_to_find)
-                    ).value
-                    if overview_desc is not None:
-                        messages.append(f"- {currchan.mention} - {overview_desc[:100]}")
+                    # Safe get overview values
+                    try:
+                        overview_desc = overview_values[rownum - 1][col_idx - 1]
+                    except Exception:
+                        overview_desc = None
+                    if overview_desc:
+                        messages.append(
+                            f"- {currchan.mention} - {overview_desc[:100] + '...' if len(overview_desc) > 100 else overview_desc}"
+                        )
                     else:
                         messages.append(
                             f"- {currchan.mention} - *(empty description)*"
