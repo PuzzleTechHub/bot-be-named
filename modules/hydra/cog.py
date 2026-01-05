@@ -12,7 +12,7 @@ from utils import (
     sheet_utils,
 )
 
-from modules.hydra import flag_converter, hydra_utils
+from modules.hydra import hydra_utils
 
 """
 Hydra module. Module with more advanced GSheet-Discord interfacing. See module's README.md for more.
