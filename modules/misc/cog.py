@@ -85,7 +85,7 @@ class MiscCog(commands.Cog, name="Misc"):
         should_delete = False
         emoji_args = list(args)
 
-        if emoji_args[-1].lower() == "delete":
+        if emoji_args[-1].lower() in ["delete", "del"]:
             should_delete = True
             emoji_args = emoji_args[:-1]
 
