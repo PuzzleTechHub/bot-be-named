@@ -12,6 +12,7 @@ from utils import (
 )
 from utils import sheet_utils
 from collections import Counter
+import constants
 
 """
 Hydra module. Module with more advanced GSheet-Discord interfacing. See module's README.md for more.
@@ -260,7 +261,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                         (-msg.created_at.timestamp(), len(min_heap), ch, history, idx),
                     )
 
-            # 3. Extract human messages until we have enough
+            # 3. Extract human messages and non bot calls until we have enough
             msgs = []
             channel_indices = {ch: i for i, (ch, _, _) in enumerate(channel_histories)}
 
@@ -270,7 +271,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                 current_msg = history[idx]
 
                 # Check if it's from a human (not a bot)
-                if not current_msg.author.bot:
+                if not current_msg.author.bot and not current_msg.content.startswith(constants.DEFAULT_BOT_PREFIX):
                     msgs.append(
                         (
                             current_msg.created_at,
