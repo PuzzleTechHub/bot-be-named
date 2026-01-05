@@ -189,7 +189,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             await discord_utils.send_message(ctx, err_embed)
             return
 
-        notes_col = sheets_constants.OVERVIEW_COLUMN
+        notes_col = sheets_constants.NOTES_COLUMN
 
         try:
             overview_sheet.worksheet.update_acell(notes_col + str(row_to_find), notes)
@@ -328,7 +328,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                         continue
 
                     row_to_find = chan_cell.row
-                    overview_col = sheets_constants.OVERVIEW_COLUMN
+                    overview_col = sheets_constants.NOTES_COLUMN
                     overview_desc = overview.acell(
                         overview_col + str(row_to_find)
                     ).value
