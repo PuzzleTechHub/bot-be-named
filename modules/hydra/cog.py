@@ -98,12 +98,14 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="roundhydra")
-    async def roundlion(self, ctx: commands.Context, round_name: str):
-        """Sets or updates the round information on the Overview sheet.
+    async def roundlion(self, ctx: commands.Context, *, round_name: str = None):
+        """Sets or updates the round information on the Overview sheet. Passing no argument retrieves the current round.
+
+        If you wrap the round name in quotes, it will appear that way in the sheet. Quotes are not required.
 
         Permission Category : Solver Roles only
-        Usage: ~roundhydra "Round Name"
-        Usage: ~roundhydra RoundName
+        Usage: `~roundhydra`
+        Usage: `~roundhydra Round Name`
         """
         await logging_utils.log_command("roundlion", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -135,17 +137,37 @@ class HydraCog(commands.Cog, name="Hydra"):
         round_col = sheets_constants.ROUND_COLUMN
 
         try:
-            overview_sheet.worksheet.update_acell(
-                round_col + str(row_to_find), round_name
-            )
+            if round_name is None:
+                # If no arg passed, retrieve current round and tell user
+                current_round = overview_sheet.worksheet.acell(
+                    round_col + str(row_to_find)
+                ).value
+                if current_round is None:
+                    embed.add_field(
+                        name="Current Round",
+                        value=f"The current round for {ctx.channel.mention} is not set.",
+                        inline=False,
+                    )
+                else:
+                    embed.add_field(
+                        name="Current Round",
+                        value=f"The current round for {ctx.channel.mention} is `{current_round}`.",
+                        inline=False,
+                    )
+                await discord_utils.send_message(ctx, embed)
+            else:
+                # Update round instead
+                overview_sheet.worksheet.update_acell(
+                    round_col + str(row_to_find), round_name
+                )
 
-            embed.add_field(
-                name=f"{constants.SUCCESS}",
-                value=f"Successfully updated round for {ctx.channel.mention} to `{round_name}`",
-                inline=False,
-            )
-            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
-            await discord_utils.send_message(ctx, embed)
+                embed.add_field(
+                    name=f"{constants.SUCCESS}",
+                    value=f"Successfully updated round for {ctx.channel.mention} to `{round_name}`",
+                    inline=False,
+                )
+                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+                await discord_utils.send_message(ctx, embed)
 
         except gspread.exceptions.APIError as e:
             error_json = e.response.json()
@@ -166,13 +188,14 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="noteshydra")
-    async def noteshydra(self, ctx: commands.Context, *, notes: str):
-        """Sets or updates the notes information on the Overview sheet.
+    async def noteshydra(self, ctx: commands.Context, *, notes: str = None):
+        """Sets or updates the notes information on the Overview sheet. Passing no argument retrieves the current notes.
 
         If you wrap your note in quotes, it will appear that way in the sheet. Quotes are not required.
 
         Permission Category : Solver Roles only
-        Usage: ~noteshydra "Notes about the puzzle"
+        Usage: `~noteshydra`
+        Usage: `~noteshydra` This puzzle has unclued anagrams.
         """
 
         await logging_utils.log_command(
@@ -207,15 +230,36 @@ class HydraCog(commands.Cog, name="Hydra"):
         notes_col = sheets_constants.NOTES_COLUMN
 
         try:
-            overview_sheet.worksheet.update_acell(notes_col + str(row_to_find), notes)
+            if notes is None:
+                # If no arg passed, retrieve current notes and tell user
+                current_notes = overview_sheet.worksheet.acell(
+                    notes_col + str(row_to_find)
+                ).value
+                if current_notes is None:
+                    embed.add_field(
+                        name="Current Notes",
+                        value=f"The current notes for {ctx.channel.mention} are not set.",
+                        inline=False,
+                    )
+                else:
+                    embed.add_field(
+                        name="Current Notes",
+                        value=f"The current notes for {ctx.channel.mention} are `{current_notes}`.",
+                        inline=False,
+                    )
+                await discord_utils.send_message(ctx, embed)
+            else:
+                overview_sheet.worksheet.update_acell(
+                    notes_col + str(row_to_find), notes
+                )
 
-            embed.add_field(
-                name=f"{constants.SUCCESS}",
-                value=f"Successfully updated notes for {ctx.channel.mention} to `{notes}`",
-                inline=False,
-            )
-            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
-            await discord_utils.send_message(ctx, embed)
+                embed.add_field(
+                    name=f"{constants.SUCCESS}",
+                    value=f"Successfully updated notes for {ctx.channel.mention} to `{notes}`",
+                    inline=False,
+                )
+                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+                await discord_utils.send_message(ctx, embed)
 
         except gspread.exceptions.APIError as e:
             error_json = e.response.json()
