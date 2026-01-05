@@ -57,15 +57,15 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             await discord_utils.send_message(ctx, embed)
             return
 
-        channelstomove = []
+        channels_to_move = []
 
         # No arg given. Move only current channel
         if len(args) == 0:
-            channelstomove.append(channel)
+            channels_to_move.append(channel)
         # Only one arg given, "All". Move all channels in category
         elif len(args) == 1 and args[0] == "all":
             for chan in ctx.channel.category.channels:
-                channelstomove.append(chan)
+                channels_to_move.append(chan)
         # One or more args given. All processed as channels.
         else:
             # Process as N channels then add
@@ -79,10 +79,86 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                         inline=False,
                     )
                     continue
-                channelstomove.append(chan)
+                channels_to_move.append(chan)
+
+        # Strip duplicates
+        duplicates = [
+            chan for chan in channels_to_move if channels_to_move.count(chan) > 1
+        ]
+        channels_to_move = list(set(channels_to_move))
+
+        # Identify channels aready in category
+        channels_already_in_category = [
+            chan for chan in channels_to_move if chan.category == new_category
+        ]
+
+        # Strip channels that are already in the new category
+        channels_to_move = [
+            chan for chan in channels_to_move if chan.category != new_category
+        ]
+
+        # Notify user of duplicates
+        if len(duplicates) > 0:
+            unique_duplicates = list(set(duplicates))
+            embed.add_field(
+                name="Duplicate channels!",
+                value=f"The following channels were specified multiple times and will only be moved once:\n"
+                f"{'\n'.join([f"- {chan.mention}" for chan in unique_duplicates])}",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+
+        # Notify user of channels already in category
+        if len(channels_already_in_category) > 0:
+            unique_already_in_category = list(set(channels_already_in_category))
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name="Channels already in category!",
+                value=f"The following channels are already in category `{new_category.name}` and will not be moved:\n"
+                f"{'\n'.join([f"- {chan.mention}" for chan in unique_already_in_category])}",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+
+        # Calculate available capacity upfront
+        initial_channel_count = len(new_category.channels)
+        max_capacity = 50
+        available_capacity = max_capacity - initial_channel_count
+
+        embed = discord_utils.create_embed()
+
+        # Check if category is already full
+        if available_capacity == 0:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Category `{new_category.name}` is already full, max limit is 50 channels!",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
 
         channels_moved = []
-        for chan in channelstomove:
+        category_full_reached = False  # Track if we hit limit
+
+        for chan in channels_to_move:
+            if len(channels_moved) >= available_capacity:
+                if not category_full_reached:
+                    category_full_reached = True
+                    remaining_channels = [
+                        c.mention
+                        for c in channels_to_move
+                        if c not in channels_moved and c.category != new_category
+                    ]
+                    if remaining_channels:
+                        embed.add_field(
+                            name=f"{constants.FAILED}!",
+                            value=f"Category `{new_category.name}` reached max limit of 50 channels.\n"
+                            f"Could not move: {', '.join(remaining_channels[:10])}"
+                            f"{'...' if len(remaining_channels) > 10 else ''}",
+                            inline=False,
+                        )
+                continue
+
             if chan.category == new_category:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
@@ -105,11 +181,32 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 embed.insert_field_at(
                     0,
                     name=f"{constants.FAILED}!",
-                    value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                    value="Forbidden! Have you checked if the bot has the required permissions?",
                     inline=False,
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
+
+            except (
+                nextcord.HTTPException
+            ) as e:  # If category was filled externally/some other error
+                if "Maximum number of channels in category reached (50)" in str(e):
+                    embed.insert_field_at(
+                        0,
+                        name=f"{constants.FAILED}!",
+                        value=f"Someone filled up category `{new_category}` while I was moving channels!",
+                        inline=False,
+                    )
+                    await discord_utils.send_message(ctx, embed)
+                else:
+                    embed.insert_field_at(
+                        0,
+                        name=f"{constants.FAILED}!",
+                        value=f"Could not move channel {chan.mention}: {str(e)}",
+                        inline=False,
+                    )
+                    await discord_utils.send_message(ctx, embed)
+            continue
 
         if len(channels_moved) < 1:
             embed.insert_field_at(
@@ -177,7 +274,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permisisons?",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -192,7 +289,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     @command_predicates.is_verified()
     @commands.command(name="makethread", aliases=["createthread"])
     async def createthread(self, ctx, name: str):
-        """Command to create thread in same category with given name
+        """Command to create thread in same channel with given name
 
         Permission Category : Verified Roles only.
         Usage: `~createthread new-thread-name`
@@ -203,10 +300,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         )
         embed = discord_utils.create_embed()
 
-        if await discord_utils.is_thread(ctx.channel):
+        if await discord_utils.is_thread(ctx, ctx.channel):
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Invalid! You cannot make a thread from inside another thread!",
+                value="Invalid! You cannot make a thread from inside another thread!",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -223,7 +320,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         else:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permisisons?",
             )
         await discord_utils.send_message(ctx, embed)
 
@@ -301,7 +398,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         else:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permisisons?",
             )
         await discord_utils.send_message(ctx, embed)
 
@@ -312,8 +409,8 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         ctx,
         chan_a: Union[nextcord.TextChannel, str],
         chan_b: str = "",
-        origRoleorUser: Union[nextcord.Role, nextcord.Member, str] = None,
-        targetRoleorUser: Union[nextcord.Role, nextcord.Member, str] = None,
+        origRoleorUser: Union[nextcord.Role, nextcord.Member, str, None] = None,
+        targetRoleorUser: Union[nextcord.Role, nextcord.Member, str, None] = None,
     ):
         """Command to create channel in same category with given name.
         If user/role is specified, then syncs permissions as well.
@@ -350,7 +447,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             return
 
         if isinstance(origRoleorUser, str):
-            origUser = await discord_utils.find_user(ctx, origUser)
+            origUser = await discord_utils.find_user(ctx, origRoleorUser)
             if origUser is None:
                 origRole = await discord_utils.find_role(ctx, origRoleorUser)
                 if origRole is None:
@@ -426,7 +523,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permisisons?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -462,7 +559,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 except nextcord.Forbidden:
                     embed.add_field(
                         name=f"{constants.FAILED}!",
-                        value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                        value="Forbidden! Have you checked if the bot has the required permisisons?",
                         inline=False,
                     )
                     await discord_utils.send_message(ctx, embed)
@@ -550,7 +647,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permisisons?",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -609,7 +706,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permisisons?",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -662,11 +759,12 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
         start_embed = discord_utils.create_embed()
         start_embed.add_field(
-            name=f"Sort Started",
+            name="Sort Started",
             value=f"Your sort of category `{category.name}` has begun! "
             f"This may take a while. If I run into any errors, I'll let you know.",
+            inline=False,
         )
-        start_embed_msgs = await discord_utils.send_message(ctx, embed)
+        start_embed_msgs = await discord_utils.send_message(ctx, start_embed)
         start_embed_msg = start_embed_msgs[0]
 
         for idx, channel in enumerate(channel_list):
@@ -756,7 +854,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         except nextcord.Forbidden:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Forbidden! Have you checked if the bot has the `manage_channels` permisisons?",
+                value="Forbidden! Have you checked if the bot has the `manage_channels` permisisons?",
                 inline=False,
             )
             # reply to user
@@ -820,7 +918,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 await start_msg.delete()
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permisisons?",
                 inline=False,
             )
             # reply to user
@@ -983,7 +1081,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         ):
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value=f"Next time, please supply both `origRole` and `targetRole`, or neither.",
+                value="Next time, please supply both `origRole` and `targetRole`, or neither.",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -997,7 +1095,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"Cannot find role {origRole}, are you sure it exists? Retry this command with @{origRole} "
-                + f"if it does.",
+                + "if it does.",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -1148,7 +1246,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         if cat_name == "":
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"No category given",
+                value="No category given",
                 inline=False,
             )
             # reply to user
@@ -1183,7 +1281,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             value=f"This will delete the category `{category.name}` and all its channels. This is not reversable. Make sure you archive the category first before continuing. You have 15 seconds to confirm.",
         )
         embed.add_field(
-            name=f"Channels to delete", value=f"{chr(10).join(channels)}", inline=False
+            name="Channels to delete", value=f"{chr(10).join(channels)}", inline=False
         )
 
         embs = await discord_utils.send_message(ctx, embed)
@@ -1217,7 +1315,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                         inline=False,
                     )
                     final_embed.add_field(
-                        name=f"Channels deleted",
+                        name="Channels deleted",
                         value=f"{chr(10).join(channels)}",
                         inline=False,
                     )

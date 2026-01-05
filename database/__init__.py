@@ -1,3 +1,5 @@
+# ruff: noqa: F401
+
 from database.models import (
     DATABASE_ENGINE,
     VERIFIED_CATEGORIES,

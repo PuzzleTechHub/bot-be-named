@@ -84,8 +84,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
         else:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Sorry, we can't find a sheet there. "
-                f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
+                value="Sorry, we can't find a sheet there. "
+                "Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -135,8 +135,8 @@ class SheetsCog(commands.Cog, name="Sheets"):
         else:
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Sorry, we can't find a sheet there. "
-                f"Did you forget to set your sheet as 'Anyone with the link can edit'?",
+                value="Sorry, we can't find a sheet there. "
+                "Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -292,28 +292,28 @@ class SheetsCog(commands.Cog, name="Sheets"):
             curr_sheet_link = curr_chan_or_cat_row.sheet_link
             if tether_type == sheets_constants.THREAD and curr_thread_id is not None:
                 embed.add_field(
-                    name=f"Result",
+                    name="Result",
                     value=f"The channel {curr_chan.mention} is currently tethered to the "
                     f"[Google sheet at link]({curr_sheet_link})",
                     inline=False,
                 )
             elif tether_type == sheets_constants.CHANNEL and curr_thread_id is not None:
                 embed.add_field(
-                    name=f"Result",
+                    name="Result",
                     value=f"The channel {curr_chan.parent.mention} is currently tethered to the "
                     f"[Google sheet at link]({curr_sheet_link})",
                     inline=False,
                 )
             elif tether_type == sheets_constants.CHANNEL:
                 embed.add_field(
-                    name=f"Result",
+                    name="Result",
                     value=f"The channel {curr_chan.mention} is currently tethered to the "
                     f"[Google sheet at link]({curr_sheet_link})",
                     inline=False,
                 )
             elif tether_type == sheets_constants.CATEGORY:
                 embed.add_field(
-                    name=f"Result",
+                    name="Result",
                     value=f"The category **{curr_cat}** is currently tethered to the "
                     f"[Google sheet at link]({curr_sheet_link})",
                     inline=False,
@@ -321,7 +321,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             # Generic catch
             else:
                 embed.add_field(
-                    name=f"Result",
+                    name="Result",
                     value=f"There is a tether to [Google sheet at link]({curr_sheet_link})",
                     inline=False,
                 )
@@ -387,7 +387,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         except googleapiclient.errors.HttpError:
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value=f"Sorry, your sheet is too large and cannot be downloaded.",
+                value="Sorry, your sheet is too large and cannot be downloaded.",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -409,7 +409,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     embed = discord_utils.create_embed()
                     embed.add_field(
                         name=f"{constants.FAILED}",
-                        value=f"Sorry, your sheet is {(file_size/constants.BYTES_TO_MEGABYTES):.2f}MB big, "
+                        value=f"Sorry, your sheet is {(file_size / constants.BYTES_TO_MEGABYTES):.2f}MB big, "
                         "but I can only send files of up to "
                         "{(ctx.guild.filesize_limit*0+constants.HARDCODED_FILE_SIZE/constants.BYTES_TO_MEGABYTES):.2f}MB.",
                         inline=False,

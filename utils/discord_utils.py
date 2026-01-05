@@ -1,11 +1,10 @@
 import nextcord
 from nextcord.ext import commands
-from nextcord.ext.commands.errors import ChannelNotFound, ThreadNotFound
 from typing import List, Union
 import constants
 
 """
-Discord utils. Lots of little functions required for making smoother discord operations, 
+Discord utils. Lots of little functions required for making smoother discord operations,
 or deduplicating important code that applies broadly to any Discord facing commands.
 Used throughout the bot.
 """
@@ -136,6 +135,36 @@ async def createthreadgeneric(
     return thread
 
 
+async def createforumthreadgeneric(
+    ctx: commands.Context,
+    thread: nextcord.Thread,
+    name: str,
+    content: str,
+) -> nextcord.Thread | None:
+    """Command to create a forum thread in the parent channel
+    Arguments:
+        - guild (nextcord.Guild): the guild the channel is being created in
+        - thread (nextcord.Thread): the forum post to create a sibling of
+        - name (str): the name for the thread
+    Returns:
+        - thread (nextcord.Thread): The created thread, or none if the bot does not have sufficient perms.
+    """
+    if not await is_thread(ctx, thread):
+        print(f"not thread: {thread}")
+        return None
+    if not isinstance(thread.parent, nextcord.ForumChannel):
+        return None
+
+    try:
+        # create channel
+        new_thread = await thread.parent.create_thread(name=name, content=content)
+    except nextcord.Forbidden as e:
+        print(e)
+        return None
+
+    return new_thread
+
+
 async def createvoicechannelgeneric(
     guild: nextcord.Guild, category: nextcord.CategoryChannel, name: str
 ) -> nextcord.TextChannel:
@@ -197,9 +226,9 @@ def create_no_argument_embed(arg_name: str = "argument") -> nextcord.Embed:
 
 def populate_embed(names: list, values: list, inline: bool = False) -> nextcord.Embed:
     """Populate an embed with a list of names and values"""
-    assert len(names) == len(
-        values
-    ), "Tried to populate an embed with uneven numbers of names and values"
+    assert len(names) == len(values), (
+        "Tried to populate an embed with uneven numbers of names and values"
+    )
     embed = nextcord.Embed(color=constants.EMBED_COLOR)
     for idx in range(len(names)):
         embed.add_field(name=names[idx], value=values[idx], inline=inline)
@@ -213,23 +242,19 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
     Returns
         - embed_list (List[nextcord.Embed]):
     """
-    if embed.title is None:
-        embed_title = ""
-    else:
-        embed_title = embed.title
+    embed_title = embed.title or ""
+    embed_description = embed.description or ""
 
     EMBED_CHARACTER_LIMIT = 2000  # Actual limit is 2000.
     FIELD_CHARACTER_LIMIT = 1000  # Actual limit is 1000.
     embed_list = []
 
-    character_count = len(embed_title) + (
-        0 if (embed.description == None) else len(embed.description)
-    )
+    character_count = len(embed_title) + len(embed_description)
     # If the title + description exceeds the character limit, we must break up the description into smaller parts.
     if character_count > EMBED_CHARACTER_LIMIT:
         print(f"Title and description are too long with {character_count} characters")
         characters_remaining = character_count
-        description = embed.description
+        description = embed_description
         while description != "":
             embed_list.append(
                 nextcord.Embed(
@@ -254,9 +279,10 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
     else:
         embed_list.append(
             nextcord.Embed(
-                title=embed_title, description=embed.description, color=embed.color
+                title=embed_title, description=embed_description, color=embed.color
             )
         )
+
     character_count = len(embed_list[-1].title) + len(embed_list[-1].description)
 
     # Iterate over all the proposed fields in the embed
@@ -361,58 +387,45 @@ async def find_guild(
             if guild_name == currguild.name:
                 guild = currguild
                 break
-    except Exception as e:
+    except Exception:
         pass
     return guild
 
 
 async def find_category(
-    ctx: commands.Context, category_name: Union[nextcord.CategoryChannel, str]
-) -> nextcord.CategoryChannel:
+    ctx: commands.Context,
+    category_name: nextcord.CategoryChannel | str,
+) -> nextcord.CategoryChannel | None:
     """Uses nextcord.py's CategoryChannelConverter to convert the name to a discord CategoryChannel
     Arguments:
         - ctx (nextcord.ext.commands.Context): The command's context
         - category_name (str): The name of the category
     Returns:
         - category (nextcord.CategoryChannel): the category or None if not found"""
-    if (isinstance(category_name, nextcord.CategoryChannel)) or category_name is None:
+    if isinstance(category_name, nextcord.CategoryChannel) or category_name is None:
         return category_name
-    try:
-        category = await commands.CategoryChannelConverter().convert(ctx, category_name)
-    except ChannelNotFound:
-        # Discord category finding is case specific, but the GUI displays all caps
-        # Try to search with uppercase, first word capitalized, each word capitalized, and lowercase
-        try:
-            # Uppercase
-            category = await commands.CategoryChannelConverter().convert(
-                ctx, category_name.upper()
-            )
-        except ChannelNotFound:
-            try:
-                # Capitalize each word
-                category = await commands.CategoryChannelConverter().convert(
-                    ctx, category_name.title()
-                )
-            except ChannelNotFound:
-                try:
-                    # Capitalize first word
-                    category = await commands.CategoryChannelConverter().convert(
-                        ctx, category_name.capitalize()
-                    )
-                except ChannelNotFound:
-                    try:
-                        # Lowercase
-                        category = await commands.CategoryChannelConverter().convert(
-                            ctx, category_name.lower()
-                        )
-                    except ChannelNotFound:
-                        category = None
-    return category
+
+    # Since we have a lot of lookups, collect categories first
+    # We do want to find the most specific category first, so we search unnormalized
+    cat_names = set(cat.name for cat in ctx.guild.categories)
+    candidates = (
+        category_name,
+        category_name.upper(),
+        category_name.title(),
+        category_name.capitalize(),
+        category_name.lower(),
+    )
+    for cand in candidates:
+        if cand in cat_names:
+            return await commands.CategoryChannelConverter().convert(ctx, cand)
+
+    return None
 
 
 async def find_chan_or_thread(
-    ctx: commands.Context, chan_name: Union[nextcord.TextChannel, nextcord.Thread, str]
-) -> Union[nextcord.TextChannel, nextcord.Thread]:
+    ctx: commands.Context,
+    chan_name: Union[nextcord.TextChannel, nextcord.Thread, nextcord.ForumChannel, str],
+) -> Union[nextcord.TextChannel, nextcord.Thread, nextcord.ForumChannel]:
     """Convert the name to a nextcord Channel/Thread
     Arguments:
         - ctx (nextcord.ext.commands.Context): The command's context
@@ -422,20 +435,31 @@ async def find_chan_or_thread(
     """
 
     if (
-        isinstance(chan_name, nextcord.TextChannel)
-        or isinstance(chan_name, nextcord.Thread)
+        isinstance(
+            chan_name, nextcord.TextChannel | nextcord.Thread | nextcord.ForumChannel
+        )
         or chan_name is None
     ):
         return chan_name
-    try:
-        chan_or_thread = await commands.TextChannelConverter().convert(ctx, chan_name)
-        return chan_or_thread
-    except ChannelNotFound:
+
+    for converter in (
+        commands.TextChannelConverter,
+        commands.ThreadConverter,
+        commands.GuildChannelConverter,
+    ):
         try:
-            chan_or_thread = await commands.ThreadConverter().convert(ctx, chan_name)
+            chan_or_thread = await converter().convert(ctx, chan_name)
+
+            if not isinstance(
+                chan_or_thread,
+                nextcord.TextChannel | nextcord.Thread | nextcord.ForumChannel,
+            ):
+                continue
+
             return chan_or_thread
-        except ThreadNotFound:
-            return None
+        except commands.BadArgument:
+            continue
+    return None
 
 
 async def find_role(
@@ -526,7 +550,7 @@ async def pin_message(message: nextcord.Message) -> nextcord.Embed:
         embed = create_embed()
         embed.add_field(
             name=f"{constants.FAILED} to pin!",
-            value=f"Cannot pin system messages (e.g. **Bot-Be-Named** pinned **a message** to this channel.)",
+            value="Cannot pin system messages (e.g. **Bot-Be-Named** pinned **a message** to this channel.)",
         )
         return embed
 
