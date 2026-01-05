@@ -1,6 +1,5 @@
 import nextcord
 from nextcord.ext import commands
-from nextcord.ext.commands.errors import ChannelNotFound
 from typing import List, Union
 import constants
 
@@ -196,7 +195,7 @@ def create_embed() -> nextcord.Embed:
     Create an empty discord embed with color.
     :return: (nextcord.Embed)
     """
-    return nextcord.Embed(description="", color=constants.EMBED_COLOR)
+    return nextcord.Embed(description=" ", color=constants.EMBED_COLOR)
 
 
 def merge_embed(orig: nextcord.Embed, to_merge: nextcord.Embed) -> nextcord.Embed:
