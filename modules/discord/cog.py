@@ -61,7 +61,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Unable to delete original message. Do I have `manage_messages` permissions?",
+                value="Unable to delete original message. Do I have `manage_messages` permissions?",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -134,7 +134,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
-                    value=f"I do not have permissions to unpin that message. Please check my perms and try again?",
+                    value="I do not have permissions to unpin that message. Please check my perms and try again?",
                     inline=False,
                 )
                 await discord_utils.send_message(ctx, embed)
@@ -168,8 +168,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         embed.add_field(
             name=f"{constants.SUCCESS}!",
-            value=f"There are {len(pins)} pinned posts on this channel."
-            f"\n{strmsg[:-3]}",
+            value=f"There are {len(pins)} pinned posts on this channel.\n{strmsg[:-3]}",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
@@ -194,10 +193,17 @@ class DiscordCog(commands.Cog, name="Discord"):
         embed.add_field(name="Members", value=f"{guild.member_count}", inline=False)
         embed.add_field(name="Roles", value=f"{len(guild.roles)}", inline=False)
         embed.add_field(
-            name="Emoji (limit)",
-            value=f"{len(guild.emojis)} ({guild.emoji_limit})",
+            name="Regular emoji (limit)",
+            value=f"{sum(1 for emoji in guild.emojis if not emoji.animated)} ({guild.emoji_limit})",
             inline=False,
         )
+
+        embed.add_field(
+            name="Animated emoji (limit)",
+            value=f"{sum(1 for emoji in guild.emojis if emoji.animated)} ({guild.emoji_limit})",
+            inline=False,
+        )
+
         embed.add_field(
             name="Categories/Channels/VCs (limit)",
             value=f"{len(guild.channels)} (500)",
@@ -273,11 +279,12 @@ class DiscordCog(commands.Cog, name="Discord"):
         await logging_utils.log_command(
             "listreacts", ctx.guild, ctx.channel, ctx.author
         )
+        embed = discord_utils.create_embed()
 
         if not ctx.message.reference:
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value=f"Command `~listreacts` can only be called as a reply to another message.",
+                value="Command `~listreacts` can only be called as a reply to another message.",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -292,7 +299,6 @@ class DiscordCog(commands.Cog, name="Discord"):
                 + f" {reaction.emoji} - {' : '.join([user.mention for user in await reaction.users().flatten()])}"
             )
 
-        embed = discord_utils.create_embed()
         embed.add_field(
             name=f"Reactions to message = {len(message.reactions)}",
             value=embed_message,
@@ -326,22 +332,22 @@ class DiscordCog(commands.Cog, name="Discord"):
         await logging_utils.log_command("steal", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        for emoji in emojis:
-            url = str(emoji.url)
-            name = emoji.name
+        for to_steal in emojis:
+            url = str(to_steal.url)
+            name = to_steal.name
             async with aiohttp.ClientSession() as ses:
                 async with ses.get(url) as r:
                     try:
                         img_or_gif = io.BytesIO(await r.read())
                         b_value = img_or_gif.getvalue()
                         try:
-                            emoji = await ctx.guild.create_custom_emoji(
+                            to_steal = await ctx.guild.create_custom_emoji(
                                 image=b_value, name=name
                             )
 
                             embed.add_field(
                                 name=f"{constants.SUCCESS}",
-                                value=f"Added {emoji} with name {emoji.name}",
+                                value=f"Added {to_steal} with name {to_steal.name}",
                             )
                             await ses.close()
                         except nextcord.Forbidden:
@@ -362,6 +368,90 @@ class DiscordCog(commands.Cog, name="Discord"):
                             value=f"Could not find emote `:{name}:`.",
                         )
         await discord_utils.send_message(ctx, embed)
+
+    #####################
+    # UNCATEGORIZED /   #
+    # TO BE CATEGORIZED #
+    #####################
+
+    @command_predicates.is_solver()
+    @commands.command(name="delete")
+    async def delete(self, ctx, to_delete: str = ""):
+        """Delete a message sent by me and only me by replying to it with `~delete`.
+        
+        If you say del after the command, it deletes the original message that called the command too.
+
+        Permission Category : Solver Roles only.
+        Usage: `~delete` (as a reply to a bot message)
+        Usage: `~delete del` (delete both the bot message and the command message)
+        """
+
+        await logging_utils.log_command("delete", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+        
+        if not ctx.message.reference:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value="Command `~delete` can only be called as a reply to a message sent by me.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        
+        try:
+            referenced_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+        except nextcord.NotFound:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value="I couldn't find the message you're replying to. It may have been deleted already.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        except nextcord.Forbidden:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value="I don't have permission to access that message.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        
+        if referenced_message.author.id != self.bot.user.id:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value="I can only delete messages that I sent myself.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        
+        try:
+            await referenced_message.delete()
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+        except nextcord.Forbidden:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value="I don't have permission to delete that message. Do I have `manage_messages` permissions?",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        except nextcord.NotFound:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value="The message was already deleted.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        try:
+            if to_delete.lower()[:3] == "del":
+                await ctx.message.delete()
+        except nextcord.Forbidden:
+            # Silent fail for command deletion since the main action succeeded
+            pass
 
 
 def setup(bot):

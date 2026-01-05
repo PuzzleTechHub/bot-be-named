@@ -34,8 +34,8 @@ class ErrorLogCog(commands.Cog):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name="Error!",
-                value=f"Is this an error? Is it a blessing in disguise? I don't know, but there have been "
-                f"no errors since I've last started!",
+                value="Is this an error? Is it a blessing in disguise? I don't know, but there have been "
+                "no errors since I've last started!",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -66,7 +66,7 @@ async def on_error(event, *args, **kwargs):
         "on_message_discarded",
         "on_command_error",
     ]:
-        msg = f"**Error while handling a message**"
+        msg = "**Error while handling a message**"
         user_error = ErrorHandler(arg, error, msg).handle_error()
         if user_error:
             embed.add_field(name="Error!", value=user_error, inline=False)

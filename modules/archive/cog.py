@@ -1,14 +1,17 @@
-import nextcord
-import constants
-import os
-import zipfile
 import asyncio
-import unicodedata
+import os
 import re
+import unicodedata
+import zipfile
+from typing import TextIO, Tuple, Union, cast
+from pathlib import Path
+
+import nextcord
 from nextcord.ext import commands
-from typing import Tuple, Union, TextIO
-from utils import discord_utils, logging_utils, command_predicates
+
+import constants
 from modules.archive import archive_constants, archive_utils
+from utils import command_predicates, discord_utils, logging_utils
 
 """
 Archive module. Downloads a channel's history and sends it as a file
@@ -27,7 +30,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
         archive_utils.reset_archive_dir()
 
-    async def archive_message(self, f: TextIO, msg: nextcord.Message):
+    @staticmethod
+    async def archive_message(f: TextIO, msg: nextcord.Message):
         f.write(
             f"[ {msg.created_at.strftime('%m-%d-%Y, %H:%M:%S')} ] "
             f"{msg.author.display_name.rjust(25, ' ')}: "
@@ -61,8 +65,36 @@ class ArchiveCog(commands.Cog, name="Archive"):
         # Important: Write the newline after each comment is done
         f.write("\n")
 
+    @staticmethod
+    async def archive_thread(f: TextIO, thread: nextcord.Thread) -> int:
+        thread_txt_size = 0
+        f.write(f"[  {thread.id} ] {'THREAD'.rjust(25, ' ')}: ")
+        f.write(thread.name + "\n")
+        thread_dir = os.path.join(
+            archive_constants.ARCHIVE,
+            f"{thread.parent.name}_{archive_constants.THREADS}",
+        )
+        # The thread "name" is by default the original message content. Slugify and truncate if necessary
+        norm_thread_name = (
+            unicodedata.normalize("NFKD", f"{thread.id}_{thread.name}")
+            .encode("ascii", "ignore")
+            .decode("ascii")
+        )
+        norm_thread_name = re.sub(r"[^\w\s-]", "", norm_thread_name.lower())
+        norm_thread_name = re.sub(r"[-\s]+", "-", norm_thread_name).strip("-_")
+        norm_thread_name = norm_thread_name[:250]
+        os.makedirs(thread_dir, exist_ok=True)
+        thread_log_path = os.path.join(thread_dir, norm_thread_name + ".txt")
+        with open(thread_log_path, "w") as thread_f:
+            async for t_msg in thread.history(limit=None, oldest_first=True):
+                await ArchiveCog.archive_message(thread_f, t_msg)
+            thread_txt_size += f.tell()
+
+        return thread_txt_size
+
     async def archive_one_channel(
-        self, channel: Union[nextcord.TextChannel, nextcord.Thread]
+        self,
+        channel: Union[nextcord.TextChannel, nextcord.ForumChannel, nextcord.Thread],
     ) -> Tuple[nextcord.File, int, nextcord.File, int]:
         """Download a channel's history"""
         # Write the chat log. Replace attachments with their filename (for easy reference)
@@ -70,39 +102,24 @@ class ArchiveCog(commands.Cog, name="Archive"):
             archive_constants.ARCHIVE,
             channel.name + "_" + archive_constants.TEXT_LOG_PATH,
         )
+        total_thread_txt_size = 0
         with open(text_log_path, "w") as f:
-            async for msg in channel.history(limit=None, oldest_first=True):
-                await self.archive_message(f, msg)
-                # Threads are attached to normal messages
-                if msg.flags.has_thread and msg.thread:
-                    f.write(f"[  {msg.thread.id} ] {'THREAD'.rjust(25, ' ')}: ")
-                    f.write(msg.thread.name + "\n")
-                    thread_dir = os.path.join(
-                        archive_constants.ARCHIVE,
-                        f"{channel.name}_{archive_constants.THREADS}",
-                    )
-                    # The thread "name" is by default the original message content. Slugify and truncate if necessary
-                    norm_thread_name = (
-                        unicodedata.normalize(
-                            "NFKD", f"{msg.thread.id}_{msg.thread.name}"
+            if hasattr(channel, "history"):
+                channel = cast(nextcord.TextChannel | nextcord.Thread, channel)
+                async for msg in channel.history(limit=None, oldest_first=True):
+                    await self.archive_message(f, msg)
+                    # Threads are attached to normal messages
+                    if msg.flags.has_thread and msg.thread:
+                        total_thread_txt_size += await self.archive_thread(
+                            f, msg.thread
                         )
-                        .encode("ascii", "ignore")
-                        .decode("ascii")
-                    )
-                    norm_thread_name = re.sub(r"[^\w\s-]", "", norm_thread_name.lower())
-                    norm_thread_name = re.sub(r"[-\s]+", "-", norm_thread_name).strip(
-                        "-_"
-                    )
-                    norm_thread_name = norm_thread_name[:250]
-                    os.makedirs(thread_dir, exist_ok=True)
-                    thread_log_path = os.path.join(
-                        thread_dir, norm_thread_name + ".txt"
-                    )
-                    with open(thread_log_path, "w") as thread_f:
-                        async for t_msg in msg.thread.history(
-                            limit=None, oldest_first=True
-                        ):
-                            await self.archive_message(thread_f, t_msg)
+
+            elif channel.type == nextcord.ChannelType.forum:
+                channel = cast(nextcord.ForumChannel, channel)
+                for thread in channel.threads:
+                    total_thread_txt_size += await self.archive_thread(f, thread)
+                async for thread in channel.archived_threads(limit=None):
+                    total_thread_txt_size += await self.archive_thread(f, thread)
 
             text_file_size = f.tell()
 
@@ -123,7 +140,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
             nextcord.File(ZIP_FILENAME),
             zf_file_size,
             nextcord.File(text_log_path),
-            text_file_size,
+            text_file_size + total_thread_txt_size,
         )
 
     def get_file_and_embed(
@@ -133,13 +150,15 @@ class ArchiveCog(commands.Cog, name="Archive"):
         embed = discord_utils.create_embed()
 
         if zip_file_size > filesize_limit:
+            # Note that this is an underestimate, since it's not compressed! But it takes a fair amount of text to hit
+            # limits.
             if textfile_size > filesize_limit:
                 embed.add_field(
                     name="ERROR: History Too Big",
                     value=f"Sorry about that! The chat log in {channel.mention} is too big for me to send.\n"
                     f"The max file size I can send in this server is "
-                    f"`{(filesize_limit/constants.BYTES_TO_MEGABYTES):.2f}MB`, but the chat log is "
-                    f"`{(textfile_size/constants.BYTES_TO_MEGABYTES):.2f}MB`",
+                    f"`{(filesize_limit / constants.BYTES_TO_MEGABYTES):.2f}MB`, but the chat log is "
+                    f"`{(textfile_size / constants.BYTES_TO_MEGABYTES):.2f}MB`",
                     inline=False,
                 )
                 file = None
@@ -148,8 +167,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     name="WARNING: Attachments Too Big",
                     value=f"There are too many photos in {channel.mention} for me to send. The max file size "
                     f"I can send in this server is "
-                    f"`{(filesize_limit/constants.BYTES_TO_MEGABYTES):.2f}MB` but the zip is "
-                    f"`{(zip_file_size/constants.BYTES_TO_MEGABYTES):.2f}MB`. I'll only be able to send you the chat log.",
+                    f"`{(filesize_limit / constants.BYTES_TO_MEGABYTES):.2f}MB` but the zip is "
+                    f"`{(zip_file_size / constants.BYTES_TO_MEGABYTES):.2f}MB`. I'll only be able to send you the chat log.",
                     inline=False,
                 )
                 ZIP_FILENAME = os.path.join(
@@ -163,6 +182,15 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         ),
                         compress_type=self.compression,
                     )
+
+                    thread_dir = Path(
+                        archive_constants.ARCHIVE,
+                        f"{channel.name}_{archive_constants.THREADS}",
+                    )
+
+                    # Glob only succeeds if thread_dir exists
+                    for thread_file in thread_dir.glob("*.txt"):
+                        zf.write(thread_file, compress_type=self.compression)
                 file = zip_file
         else:
             file = zip_file
@@ -216,9 +244,12 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         )
                         await discord_utils.send_message(ctx, embed)
                         return
-                    if not (
-                        channel.type.name in ["text", "public_thread", "private_thread"]
-                    ):
+                    if channel.type.name not in [
+                        "text",
+                        "public_thread",
+                        "private_thread",
+                        "forum",
+                    ]:
                         embed.add_field(
                             name="ERROR: Cannot archive non-text channels",
                             value=f"Sorry! I can only archive text channels, but "

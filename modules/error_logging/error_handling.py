@@ -4,7 +4,6 @@ from nextcord import logging
 from nextcord.ext.commands import errors
 from modules.error_logging import error_constants
 from utils import logging_utils
-import os
 
 
 # Big thanks to denvercoder1 and his professor-vector-discord-bot repo
@@ -26,7 +25,7 @@ class ErrorHandler:
     def handle_error(self):
         """Send error to user and error log channel"""
         error_details = self.trace if self.trace != "NoneType: None\n" else self.error
-        print(f"In handle_error")
+        print("In handle_error")
         logging.warning(error_details)
         print(f"Printing from handle_error: {error_details}")
 
@@ -51,23 +50,23 @@ class ErrorHandler:
         elif isinstance(self.error, errors.MissingRequiredArgument):
             return f"Argument {self.error.param} required."
         elif isinstance(self.error, errors.TooManyArguments):
-            return f"Too many arguments given."
+            return "Too many arguments given."
         elif isinstance(self.error, errors.BadArgument):
             return f"Bad argument: {self.error}"
         elif isinstance(self.error, errors.NoPrivateMessage):
-            return f"That command cannot be used in DMs."
+            return "That command cannot be used in DMs."
         elif isinstance(self.error, errors.MissingPermissions):
             return (
                 "You are missing the following permissions required to run the"
-                f' command: {", ".join(self.error.missing_perms)}.'
+                f" command: {', '.join(self.error.missing_perms)}."
             )
         elif isinstance(self.error, errors.DisabledCommand):
-            return f"That command is disabled or under maintenance."
+            return "That command is disabled or under maintenance."
         elif isinstance(self.error, errors.CommandInvokeError):
-            return f"Error while executing the command."
+            return "Error while executing the command."
         elif isinstance(self.error, errors.CheckFailure):
             return (
-                f"You do not have the required perms to use this command. Please speak with a server "
+                "You do not have the required perms to use this command. Please speak with a server "
                 "admin to get the relevant role."
             )
         elif isinstance(self.error, errors.MissingAnyRole):
@@ -91,8 +90,8 @@ class ErrorHandler:
             # This would happen if the perm is not available in that server.
             else:
                 return (
-                    f"You don't have the necessary permissions to use that command! Speak with a bot owner or a server administrator to "
-                    f"get your permissions set up for that."
+                    "You don't have the necessary permissions to use that command! Speak with a bot owner or a server administrator to "
+                    "get your permissions set up for that."
                 )
         # elif isinstance(self.error, errors.HTTPException):
         #    return f"Some HTTPException (We don't know what's going on)"

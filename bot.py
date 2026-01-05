@@ -1,16 +1,17 @@
-from dotenv.main import load_dotenv
-
-load_dotenv(override=True)
-
 import os
 import constants
-import database
 import sqlalchemy
 import nextcord
 from nextcord.ext import commands
 from sqlalchemy import insert
 from sqlalchemy.orm import Session
-from utils import logging_utils
+
+from dotenv.main import load_dotenv
+
+load_dotenv(override=True)
+
+import database  # noqa: E402
+from utils import logging_utils  # noqa: E402
 
 
 def get_prefix(client, message):
@@ -44,7 +45,7 @@ def main():
         await logging_utils.open_session()
         await client.change_presence(
             activity=nextcord.Activity(
-                type=nextcord.ActivityType.watching, name="you solve👀 | ~help"
+                type=nextcord.ActivityType.watching, name="you solve👀 | ~about"
             )
         )
         for guild in client.guilds:

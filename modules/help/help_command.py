@@ -29,9 +29,11 @@ class HelpCommand(commands.MinimalHelpCommand):
 
         # no_category_commands = await self.filter_commands(mapping[None], sort=True)
         del mapping[None]
-        for cog, commands in sorted(mapping.items(), key=lambda x: x[0].qualified_name):
+        for cog, cog_commands in sorted(
+            mapping.items(), key=lambda x: x[0].qualified_name
+        ):
             name = "No Category" if cog is None else cog.qualified_name
-            filtered = await self.filter_commands(commands, sort=True)
+            filtered = await self.filter_commands(cog_commands, sort=True)
             if filtered:
                 value = f"{chr(10)}".join(f"{prefix}{c.name}" for c in filtered)
                 if cog and cog.description:

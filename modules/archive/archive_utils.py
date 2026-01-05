@@ -1,6 +1,7 @@
 from modules.archive import archive_constants
 from utils import discord_utils
-import os, shutil
+import os
+import shutil
 
 
 def get_delay_embed():

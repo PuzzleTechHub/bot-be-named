@@ -1,4 +1,3 @@
-from http.client import FORBIDDEN
 from utils import sheets_constants
 from utils import discord_utils
 import constants
@@ -9,6 +8,8 @@ from sqlalchemy.sql.expression import insert
 from sqlalchemy.orm import Session
 from typing import Union
 import emoji
+
+from nextcord.ext.commands import Context
 
 """
 Sheets utils. Useful for any commands that require Google Sheets.
@@ -90,9 +91,11 @@ async def sheetcrabgeneric(
     # This link is customized for the newly made tab
     final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
 
+    # get spreadsheet title for nicer embed
+
     embed.add_field(
         name=f"{constants.SUCCESS}!",
-        value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
+        value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
         inline=False,
     )
     msgs = await discord_utils.send_message(ctx, embed)
@@ -113,7 +116,7 @@ async def chancrabgeneric(
     gspread_client,
     ctx,
     chan_name: str,
-    chan_or_thread: str,
+    chan_type: str,
     is_meta: bool,
     text_to_pin: str = "",
 ):
@@ -121,7 +124,7 @@ async def chancrabgeneric(
     tab_name = chan_name.replace("#", "").replace("-", " ")
 
     # Cannot make a new channel if the category is full``
-    if chan_or_thread == "chan":
+    if chan_type == "chan":
         if discord_utils.category_is_full(ctx.channel.category):
             embed.add_field(
                 name=f"{constants.FAILED}!",
@@ -144,10 +147,10 @@ async def chancrabgeneric(
     else:
         tab_type = "Template"
 
-    if chan_or_thread == "thread" and await discord_utils.is_thread(ctx, ctx.channel):
+    if chan_type == "thread" and await discord_utils.is_thread(ctx, ctx.channel):
         embed.add_field(
             name=f"{constants.FAILED}!",
-            value=f"Invalid! You cannot make a thread from inside another thread!",
+            value="Invalid! You cannot make a thread from inside another thread!",
         )
         await discord_utils.send_message(ctx, embed)
         return None, None, None
@@ -165,28 +168,35 @@ async def chancrabgeneric(
     final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
 
     # new channel created (or None)
-    if chan_or_thread == "chan":
+    if chan_type == "chan":
         new_chan = await discord_utils.createchannelgeneric(
             ctx.guild, ctx.channel.category, chan_name
         )
-    elif chan_or_thread == "thread":
+    elif chan_type == "thread":
         new_chan = await discord_utils.createthreadgeneric(
             ctx, ctx.message, ctx.channel, chan_name
+        )
+    elif chan_type == "forum":
+        new_chan = await discord_utils.createforumthreadgeneric(
+            ctx, ctx.channel, chan_name, f"Tab Link - {final_sheet_link}"
         )
 
     # Error creating channel
     if not new_chan:
         embed.add_field(
             name=f"{constants.FAILED}!",
-            value=f"Forbidden! Have you checked if the bot has the required permisisons?",
+            value="Forbidden! Have you checked if the bot has the required permisisons?",
         )
         await discord_utils.send_message(ctx, embed)
         return None, None, None
 
     embed = discord_utils.create_embed()
+
+    # get spreadsheet title for nicer embed
+
     embed.add_field(
         name=f"{constants.SUCCESS}!",
-        value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
+        value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
         inline=False,
     )
 
@@ -221,7 +231,7 @@ async def chancrabgeneric(
         else:
             await msg.add_reaction(emoji.emojize(":pushpin:"))
 
-    if chan_or_thread == "chan":
+    if chan_type == "chan":
         await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
 
     embed = discord_utils.create_embed()
@@ -407,3 +417,39 @@ async def sheetcreatetabgeneric(
             )
             await discord_utils.send_message(ctx, embed)
             return
+
+
+class OverviewSheet:
+    def __init__(self, gspread_client: gspread.Client, sheet_url: str):
+        self.gspread_client = gspread_client
+        self.sheet_url = sheet_url
+        self.exception = None
+
+        self.spreadsheet = self.gspread_client.open_by_url(sheet_url)
+        self.worksheet = self.spreadsheet.worksheet("Overview")
+
+        # Cache all data on the overview sheet
+        self.overview_data = self.worksheet.get()
+
+    def get_cell_value(self, label: str) -> str:
+        row, col = gspread.utils.a1_to_rowcol(label)
+        return self.overview_data[row - 1][col - 1]
+
+    def find_row_of_channel(
+        self, ctx: Context
+    ) -> tuple[int, None] | tuple[None, nextcord.Embed]:
+        chan_id = str(ctx.channel.id)
+        for i, row in enumerate(self.overview_data):
+            if chan_id == row[0]:
+                # Users expect 1-indexed rows
+                return i + 1, None
+
+        # I don't like Go-style errors, but I also don't want to make this async...
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED}!",
+            value=f"I couldn't find the channel {ctx.channel.mention} in the sheet."
+            f" Are you sure this channel is linked to a puzzle?",
+            inline=False,
+        )
+        return None, embed

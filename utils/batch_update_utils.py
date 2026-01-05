@@ -28,6 +28,19 @@ class BatchUpdateBuilder:
             }
         )
 
+    def unhide_sheet(self, sheet_id):
+        """Unhides a sheet."""
+        self.requests.append(
+            {
+                "updateSheetProperties": {
+                    "properties": {
+                        "sheetId": sheet_id,
+                        "hidden": False,
+                    },
+                    "fields": "hidden",
+                }
+            }
+        )
     def update_cell_by_label(self, sheet_id, label, value, is_formula=False):
         row, col = gspread.utils.a1_to_rowcol(label)
         self.update_cell_by_index(

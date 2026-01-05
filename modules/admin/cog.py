@@ -38,7 +38,7 @@ class AdminCog(commands.Cog, name="Admin"):
         This command is necessary before most to all bot commands. Nearly all commands are restricted to some Permission Category or the other.
         The Permission Categories available are - Verified, Trusted, Solver, Tester.
 
-        See `~permcathelp` for more info.
+        See `~info` for more info.
 
         Permission Category : Admin or Bot Owner Roles only.
         Usage: `~addperm Verified @VerifiedRoleName`
@@ -63,7 +63,7 @@ class AdminCog(commands.Cog, name="Admin"):
         if role_to_assign is None:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"Error!",
+                name="Error!",
                 value=f"I couldn't find role {role_or_rolename}",
                 inline=False,
             )
@@ -328,14 +328,14 @@ class AdminCog(commands.Cog, name="Admin"):
 
         if len(members_common) > 0:
             embed.add_field(
-                name=f"Members common",
+                name="Members common",
                 value=f"Members common in `{guild_1}` and `{guild_2}`\n"
                 f"{' '.join([member.mention for member in members_common])}",
                 inline=False,
             )
         else:
             embed.add_field(
-                name=f"No members in common",
+                name="No members in common",
                 value=f"The bot has no members in common between `{guild_1}` and `{guild_2}`",
                 inline=False,
             )
@@ -375,7 +375,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         owner = guild.owner
         embed.add_field(
-            name=f"Guild owner : ",
+            name="Guild owner : ",
             value=f"Guild owner for `{guild}` : {owner.mention} : `{owner.display_name}` : `{owner.name}`",
             inline=False,
         )
@@ -402,12 +402,12 @@ class AdminCog(commands.Cog, name="Admin"):
             guilds_string = " ".join(["`" + guild.name + "` - \n" for guild in guilds])
             embed.add_field(
                 name=f"Guilds for {ctx.bot.user.name} = {len(guilds)}",
-                value=f"Guilds for {ctx.bot.user.mention}\n" f"{guilds_string}",
+                value=f"Guilds for {ctx.bot.user.mention}\n{guilds_string}",
                 inline=False,
             )
         else:
             embed.add_field(
-                name=f"No guilds for the bot",
+                name="No guilds for the bot",
                 value="The bot is currently not in any guilds.",
                 inline=False,
             )

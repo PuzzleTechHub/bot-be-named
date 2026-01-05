@@ -23,7 +23,7 @@ Bot-Be-Named is currently set up with our own configurations and environment var
 
 - There is an instance of the bot currently on that server, named `~Bot Be Named`. Click on that name - Add App - Add it to your discord server.  Note that you need "Manage Server" permission to do that.
 
-- Use `~about` to get a quick guide to the bot, and `~startup` for all the commands that will come in very handy for you.
+- Use `~about` to get a quick guide to the bot, and `~info` for all the commands that will come in very handy for you.
 
 - In case of any problems, message us on discord or [open a new issue on Github](https://github.com/PuzzleTechHub/bot-be-named/issues/new)
 
