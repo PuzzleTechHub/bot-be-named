@@ -91,9 +91,11 @@ async def sheetcrabgeneric(
     # This link is customized for the newly made tab
     final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
 
+    # get spreadsheet title for nicer embed
+
     embed.add_field(
         name=f"{constants.SUCCESS}!",
-        value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
+        value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
         inline=False,
     )
     msgs = await discord_utils.send_message(ctx, embed)
@@ -189,9 +191,12 @@ async def chancrabgeneric(
         return None, None, None
 
     embed = discord_utils.create_embed()
+
+    # get spreadsheet title for nicer embed
+
     embed.add_field(
         name=f"{constants.SUCCESS}!",
-        value=f"Tab **{tab_name}** has been created at [Tab link]({final_sheet_link}).",
+        value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
         inline=False,
     )
 

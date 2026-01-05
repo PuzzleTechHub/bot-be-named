@@ -175,7 +175,9 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: ~noteshydra "Notes about the puzzle"
         """
 
-        await logging_utils.log_command("noteshydra", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "noteshydra", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         result, _ = sheet_utils.findsheettether(
@@ -375,9 +377,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                             f"- {currchan.mention} - {overview_desc[:100] + '...' if len(overview_desc) > 100 else overview_desc}"
                         )
                     else:
-                        messages.append(
-                            f"- {currchan.mention} - *(empty description)*"
-                        )
+                        messages.append(f"- {currchan.mention} - *(empty description)*")
         except Exception as e:
             embed = discord_utils.create_embed()
             embed.add_field(
@@ -410,7 +410,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
             for j, msg in enumerate(chunk):
                 parts = msg.split(" - ", 1)
-                channel_part = parts[0].replace('- ', '').strip()
+                channel_part = parts[0].replace("- ", "").strip()
                 desc_part = parts[1].strip() if len(parts) > 1 else "\u200b"
 
                 final_embed.add_field(name=channel_part, value=desc_part, inline=True)
@@ -421,7 +421,6 @@ class HydraCog(commands.Cog, name="Hydra"):
             await discord_utils.send_message(ctx, final_embed)
 
         await initial_message.delete()
-
 
     @command_predicates.is_solver()
     @commands.command(name="anychanhydra")
@@ -437,9 +436,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         Usage: `~chanhydra [puzzle name] [template name] [puzzle url]`
         """
-        await logging_utils.log_command(
-            "chanhydra", ctx.guild, ctx.channel, ctx.author
-        )
+        await logging_utils.log_command("chanhydra", ctx.guild, ctx.channel, ctx.author)
 
         arg_list = shlex.split(args)
         if len(arg_list) < 2 or len(arg_list) > 3:
@@ -467,7 +464,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="chanhydra")
-    async def chanhydra(self, ctx: commands.Context, *, content: str = ''):
+    async def chanhydra(self, ctx: commands.Context, *, content: str = ""):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
 
         Requires that the sheet has Overview and Template tabs.
@@ -476,7 +473,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         Permission Category : Solver Roles only.
         Usage: ~chanhydra "Puzzle Name"
         Usage: ~chanhydra PuzzleName "http://www.linktopuzzle.com"
-        Usage: 
+        Usage:
         ~chanhydra
         APuzzle "http://linktoapuzzle.com"
         "B Puzzle" "http://linktobpuzzle.com"
@@ -496,8 +493,11 @@ class HydraCog(commands.Cog, name="Hydra"):
             )
             await discord_utils.send_message(ctx, embed)
             return
-        
-        lines = [line.strip() for line in content.split('\n') if line.strip()]
+
+        # Parse all puzzle configurations
+        puzzle_configs = []
+        lines = [line.strip() for line in content.split("\n") if line.strip()]
+
         for line in lines:
             try:
                 parts = shlex.split(line)
@@ -513,29 +513,49 @@ class HydraCog(commands.Cog, name="Hydra"):
             if not parts:
                 continue
 
-            chan_name = parts[0]
-            text_to_pin = parts[1] if len(parts) > 1 else ''
+            puzzle_name = parts[0]
+            puzzle_url = parts[1] if len(parts) > 1 else ""
+            puzzle_configs.append((puzzle_name, puzzle_url))
 
-            curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
-                self.gspread_client,
-                ctx,
-                chan_name,
-                chan_type="chan",
-                is_meta=False,
-                text_to_pin=text_to_pin,
+        if not puzzle_configs:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="No data passed into the command!",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        # Batch create all channels and sheets
+        results = await hydra_utils.batch_create_puzzle_channels(
+            self.bot,
+            ctx,
+            self.gspread_client,
+            puzzle_configs,
+        )
+
+        # Report results
+        success_count = sum(1 for r in results if r[0] is not None)
+
+        if success_count > 0:
+            embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value=f"Successfully created {success_count} puzzle channel(s)!",
+                inline=False,
+            )
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+
+        if success_count < len(puzzle_configs):
+            failed_count = len(puzzle_configs) - success_count
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Failed to create {failed_count} puzzle channel(s). Check earlier messages for details.",
+                inline=False,
             )
 
-            if curr_sheet_link is None or newsheet is None or new_chan is None:
-                embed.add_field(
-                    name=f"{constants.FAILED}",
-                    value=f"Failed to create channel/tab for `{chan_name}`.",
-                    inline=False,
-                )
-                continue
-            
-            await self.puzzlelion(
-                ctx, chan_name, text_to_pin, curr_sheet_link, newsheet, new_chan
-            )
+        if embed.fields:
+            await discord_utils.send_message(ctx, embed)
+
 
 def setup(bot):
     bot.add_cog(HydraCog(bot))
