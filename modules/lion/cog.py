@@ -217,7 +217,6 @@ class LionCog(commands.Cog, name="Lion"):
         )
         await self.movetoarchive_generic(ctx, archive_name)
 
-
     ########################
     # LION STATUS COMMANDS #
     ########################
@@ -364,7 +363,7 @@ class LionCog(commands.Cog, name="Lion"):
         await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="solvedlion")
+    @commands.command(name="solvedlion", aliases=["solvedhydra"])
     async def solvedlion(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to solved and updates the sheet and channel name accordingly
 
@@ -378,7 +377,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "solved", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="backsolvedlion", aliases=["backlion"])
+    @commands.command(name="backsolvedlion", aliases=["backlion", "backsolvedhydra"])
     async def backsolvedlion(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to backsolved and updates the sheet and channel name accordingly
 
@@ -392,7 +391,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "backsolved", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="solvedishlion")
+    @commands.command(name="solvedishlion", aliases=["solvedishhydra"])
     async def solvedishlion(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly
 
@@ -406,7 +405,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "solvedish", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="unsolvedlion", aliases=["unlion"])
+    @commands.command(name="unsolvedlion", aliases=["unlion", "unsolvedhydra"])
     async def unsolvedlion(self, ctx: commands.Context, answer: str = ""):
         """Sets the puzzle to in progress and updates the sheet and channel name accordingly
 
@@ -422,7 +421,9 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "In Progress", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="statuslion", aliases=["statlion", "stat", "puzzstatus"])
+    @commands.command(
+        name="statuslion", aliases=["statlion", "stat", "puzzstatus", "statushydra"]
+    )
     async def statuslion(self, ctx: commands.Context, status: str, answer: str = None):
         """Adds a status to the puzzle and updates the sheet and channel name accordingly
 
@@ -836,7 +837,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="threadlion")
+    @commands.command(name="threadlion", aliases=["threadhydra"])
     async def threadlion(self, ctx: commands.Context, chan_name: str, *args):
         """Creates a new tab and a new thread for a new feeder puzzle and then updates the info in the sheet accordingly.
 
@@ -870,7 +871,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="metathreadlion")
+    @commands.command(name="metathreadlion", aliases=["metathreadhydra"])
     async def metathreadlion(self, ctx: commands.Context, chan_name: str, *args):
         """Creates a new tab and a new thread for a new metapuzzle and then updates the info in the sheet accordingly.
 
@@ -904,7 +905,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="forumlion")
+    @commands.command(name="forumlion", aliases=["forumhydra"])
     async def forumlion(self, ctx: commands.Context, chan_name: str, *args):
         """Creates a new tab and a new forum post for a new feeder puzzle and then updates the info in the sheet accordingly.
 
@@ -936,7 +937,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="metaforumlion")
+    @commands.command(name="metaforumlion", aliases=["metaforumhydra"])
     async def metaforumlion(self, ctx: commands.Context, chan_name: str, *args):
         """Creates a new tab and a new forum post for a new metapuzzle and then updates the info in the sheet accordingly.
 
@@ -970,7 +971,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="sheetlion")
+    @commands.command(name="sheetlion", aliases=["sheethydra"])
     async def sheetlion(self, ctx: commands.Context, tab_name: str, url: str = None):
         """Creates a new tab for a new feeder puzzle and then updates the info in the sheet accordingly.
 
@@ -995,7 +996,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="metasheetlion")
+    @commands.command(name="metasheetlion", aliases=["metasheethydra"])
     async def metasheetlion(
         self, ctx: commands.Context, tab_name: str, url: str = None
     ):
@@ -1412,7 +1413,7 @@ class LionCog(commands.Cog, name="Lion"):
         return new_sheet
 
     @command_predicates.is_solver()
-    @commands.command(name="tetherlion")
+    @commands.command(name="tetherlion", aliases=["tetherhydra"])
     async def tetherlion(self, ctx, sheet_key_or_link: str):
         """Tethers a sheet to the category and also checks that it is the correct format to be used by the lion commands
 
