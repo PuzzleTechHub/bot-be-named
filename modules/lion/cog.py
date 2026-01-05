@@ -636,11 +636,12 @@ class LionCog(commands.Cog, name="Lion"):
                 value=f"Unknown error: `{str(e)}`",
                 inline=False,
             )
-        finally:
-            await discord_utils.send_message(ctx, embed)
+        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="mtalion", aliases=["movetoarchivelion", "archivelion"])
+    @commands.command(
+        name="mtalion", aliases=["movetoarchivelion", "archivelion", "mtahydra"]
+    )
     async def mtalion(self, ctx: commands.Context, archive_name: str = None):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
