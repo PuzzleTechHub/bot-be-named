@@ -422,18 +422,25 @@ class HydraCog(commands.Cog, name="Hydra"):
         await initial_message.delete()
 
     @command_predicates.is_solver()
-    @commands.command(name="anychanhydra")
+    @commands.command(name="anychanhydra", aliases=["anyhydra"])
     async def anychanhydra(
         self,
         ctx,
         *,
         args,
     ):
-        """Creates a new puzzle channel based on a template in the tethered GSheet. Template must be passed in.
+        """Creates a new tab from a template, and a new channel for a puzzle. Then updates the info in the sheet accordingly.
+
+        Creates a new puzzle channel based on a template in the tethered GSheet. Template must be passed in.
+
+        Requires that the sheet has Overview following Hydra rules (FIXME).
+        Requires that there is a template tab on the sheet with that name, for example passing "Acrostics" uses "Acrostics Template".
+        Requires that Template tab follows Hydra rules (Cell B4 must be used for answer).
 
         Permission Category : Solver Roles only.
 
-        Usage: `~chanhydra [puzzle name] [template name] [puzzle url]`
+        Usage: ~anychanhydra "Puzzle Name" "TemplateName" (uses "TemplateName Template" from the sheet)
+        Usage: ~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" (uses "Square Template" from the sheet)
         """
         await logging_utils.log_command("chanhydra", ctx.guild, ctx.channel, ctx.author)
 
