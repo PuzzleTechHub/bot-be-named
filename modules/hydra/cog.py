@@ -423,7 +423,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         await initial_message.delete()
 
     @command_predicates.is_solver()
-    @commands.command(name="anychanhydra")
+    @commands.command(name="anychanhydra", aliases=["templatechanhydra"])
     async def anychanhydra(
         self,
         ctx,
@@ -434,7 +434,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         Permission Category : Solver Roles only.
 
-        Usage: `~anychanhydra [puzzle name] [template name] [puzzle url]`
+        Usage: `~anychanhydra [puzzle name] [template name (don't include template in argument)] [puzzle url]`
         """
         await logging_utils.log_command(
             "anychanhydra", ctx.guild, ctx.channel, ctx.author
