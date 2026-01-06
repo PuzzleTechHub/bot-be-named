@@ -321,8 +321,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                     str(currchan.category_id), str(currchan.id)
                 )
                 if result is None:
-                    messages.append(f"- {currchan.mention} - **No sheet tethered!**")
-                    continue
+                    continue  # Silently skip channels with no tether
                 curr_sheet_link = result.sheet_link
                 allsheets.append((curr_sheet_link, currchan))
 
