@@ -117,8 +117,8 @@ class LionCog(commands.Cog, name="Lion"):
                 value=f"Archived {ctx.channel.mention} thread",
                 inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             await ctx.channel.edit(archived=True)
+            await discord_utils.send_message(ctx, embed)
             return
 
         # Otherwise mta is called from a regular channel
@@ -171,6 +171,15 @@ class LionCog(commands.Cog, name="Lion"):
             await discord_utils.send_message(ctx, embed)
             return
 
+        if archive_category == ctx.channel.category:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Archive category `{archive_category.name}` is the same as current category `{ctx.channel.category.name}`. No need to move channel!",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
         try:
             # move channel
             await ctx.channel.edit(category=archive_category)
@@ -199,6 +208,9 @@ class LionCog(commands.Cog, name="Lion"):
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
         If called from thread (instead of channel), closes the thread instead of moving channel.
 
+        Attempts to search smart, for example `~mta "MH21 Students"` will search for "MH21 Students Archive" and "MH21 Archive" categories.
+        Some other common variants for "Archive" will also be attempted.
+
         Permission Category : Solver Roles only.
         Usage: `~mta`
         Usage: `~movetoarchive archive_category_name`
@@ -207,10 +219,6 @@ class LionCog(commands.Cog, name="Lion"):
             "movetoarchive", ctx.guild, ctx.channel, ctx.author
         )
         await self.movetoarchive_generic(ctx, archive_name)
-
-    #################
-    # LION COMMANDS #
-    #################
 
     ########################
     # LION STATUS COMMANDS #
@@ -358,7 +366,7 @@ class LionCog(commands.Cog, name="Lion"):
         await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="solvedlion")
+    @commands.command(name="solvedlion", aliases=["solvedhydra"])
     async def solvedlion(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to solved and updates the sheet and channel name accordingly
 
@@ -372,7 +380,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "solved", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="backsolvedlion", aliases=["backlion"])
+    @commands.command(name="backsolvedlion", aliases=["backlion", "backsolvedhydra"])
     async def backsolvedlion(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to backsolved and updates the sheet and channel name accordingly
 
@@ -386,7 +394,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "backsolved", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="solvedishlion")
+    @commands.command(name="solvedishlion", aliases=["solvedishhydra"])
     async def solvedishlion(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly
 
@@ -400,30 +408,33 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "solvedish", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="unsolvedlion", aliases=["unlion"])
-    async def unsolvedlion(self, ctx: commands.Context, answer: str = None):
+    @commands.command(name="unsolvedlion", aliases=["unlion", "unsolvedhydra"])
+    async def unsolvedlion(self, ctx: commands.Context, answer: str = ""):
         """Sets the puzzle to in progress and updates the sheet and channel name accordingly
 
         Permission Category : Solver Roles only.
-        Usage: ~unsolvedlion
+
+        Usage: ~unsolvedlion (Removes the answer from the sheet)
+        Usage: ~unsolvedlion "answer" (Updates the answer from the sheet to "answer")
+
         """
         await logging_utils.log_command(
             "unsolvedlion", ctx.guild, ctx.channel, str(ctx.author)
         )
-        await self.statuslion(ctx, "in progress", answer)
+        await self.statuslion(ctx, "In Progress", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="statuslion", aliases=["statlion", "stat", "puzzstatus"])
-    async def statuslion(
-        self, ctx: commands.Context, status: str, answer: str | None = None
-    ):
+    @commands.command(
+        name="statuslion", aliases=["statlion", "stat", "puzzstatus", "statushydra"]
+    )
+    async def statuslion(self, ctx: commands.Context, status: str, answer: str = None):
         """Adds a status to the puzzle and updates the sheet and channel name accordingly
 
-        You may pick one of [solved, solvedish, backsolved, postsolved, unstarted, unsolvable, stuck, abandoned, in progress] as statuses.
+        You may pick one of [solved, solvedish, backsolved, postsolved, unstarted, unsolvable, stuck, abandoned, "In Progress"] as statuses.
         Alternatively, you can give a custom status.
 
-        For statuses [solved, solvedish, postsolved, backsolved, custom] users have the option to add an answer
-        For statuses  [solved, solvedish, backsolved, postsolved] the channel name gets updated
+        For statuses [solved, solvedish, postsolved, backsolved, "In Progress", custom] users have the option to add an answer
+        For statuses  [solved, solvedish, backsolved, postsolved, "In Progress"] the channel name gets updated
 
         Permission Category : Solver Roles only.
         Usage: ~statuslion status
@@ -431,7 +442,7 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~statuslion "custom-update-string" "answer"
         """
         status = status.capitalize()
-        if status == "Inprogress":
+        if status == "In progress":
             status = "In Progress"
         embed = discord_utils.create_embed()
 
@@ -478,7 +489,7 @@ class LionCog(commands.Cog, name="Lion"):
 
             batch_update_builder = batch_update_utils.BatchUpdateBuilder()
 
-            if answer and status_info.get("update_ans"):
+            if answer is not None and status_info.get("update_ans"):
                 batch_update_builder.update_cell_by_label(
                     puzzle_tab.id, tab_ans_loc, answer.upper()
                 )
@@ -554,29 +565,14 @@ class LionCog(commands.Cog, name="Lion"):
                 await discord_utils.send_message(ctx, embed)
                 return
 
-    @command_predicates.is_solver()
-    @commands.command(name="mtalion", aliases=["movetoarchivelion", "archivelion"])
-    async def mtalion(self, ctx: commands.Context, archive_name: str = None):
-        """Finds a category with `<category_name> Archive`, and moves the channel to that category.
-        Fails if there is no such category, or is the category is full (i.e. 50 Channels).
-        If called from thread (instead of channel), closes the thread instead of moving channel.
-
-        Also moves the tab to the end of the list of tabs on the Google Sheet.
-
-        Permission Category : Solver Roles only.
-        Usage: `~mtalion`
-        Usage: `~mtalion archive_category_name`
-        """
-        await logging_utils.log_command(
-            "mtalion", ctx.guild, ctx.channel, str(ctx.author)
-        )
-
+    async def sheetmta_generic(self, ctx: commands.Context):
+        """Just handles the sheet aspect of mtalion, moving the tab associated with ctx.channel to the end of the sheet"""
+        embed = discord_utils.create_embed()
         result, _ = sheet_utils.findsheettether(
             ctx.message.channel.category_id, ctx.message.channel.id
         )
 
         if result is None:
-            embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
@@ -589,6 +585,12 @@ class LionCog(commands.Cog, name="Lion"):
         curr_sheet_link = str(result.sheet_link)
         overview_sheet = await self.get_overview(ctx, curr_sheet_link)
         if overview_sheet is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="Error! Overview tab not found in the sheet! Did you accidentally delete it?",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
             return
 
         row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
@@ -599,19 +601,69 @@ class LionCog(commands.Cog, name="Lion"):
         sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
         tab_id = overview_sheet.get_cell_value(sheet_tab_id_col + str(row_to_find))
 
-        # Grab worksheets all at once to avoid issuing 2 read requests
-        worksheets = overview_sheet.spreadsheet.worksheets()
-        puzzle_tab = next(w for w in worksheets if w.id == int(tab_id))
-        puzzle_tab.update_index(len(overview_sheet.spreadsheet.worksheets()))
+        try:
+            worksheets = overview_sheet.spreadsheet.worksheets()
+            puzzle_tab = next((w for w in worksheets if w.id == int(tab_id)), None)
+            if puzzle_tab is None:
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value="Could not find associated tab for puzzle in the tethered sheet.",
+                    inline=False,
+                )
+            else:
+                puzzle_tab.update_index(len(worksheets))
+                embed.add_field(
+                    name=f"{constants.SUCCESS}!",
+                    value="Moved tab to the end of the sheet!",
+                    inline=False,
+                )
+        except gspread.exceptions.APIError as e:
+            error_json = e.response.json()
+            error_message = error_json.get("error", {}).get("message")
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Google Sheets API Error: `{error_message}`",
+                inline=False,
+            )
+        except StopIteration:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="Could not find associated tab for puzzle in the tethered sheet.",
+                inline=False,
+            )
+        except Exception as e:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Unknown error: `{str(e)}`",
+                inline=False,
+            )
+        await discord_utils.send_message(ctx, embed)
 
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name=f"{constants.SUCCESS}!",
-            value="Moved sheet to the end of the spreadsheet!",
-            inline=False,
+    @command_predicates.is_solver()
+    @commands.command(
+        name="mtalion", aliases=["movetoarchivelion", "archivelion", "mtahydra"]
+    )
+    async def mtalion(self, ctx: commands.Context, archive_name: str = None):
+        """Finds a category with `<category_name> Archive`, and moves the channel to that category.
+        Fails if there is no such category, or is the category is full (i.e. 50 Channels).
+        If called from thread (instead of channel), closes the thread instead of moving channel.
+
+        Also moves the tab to the end of the list of tabs on the Google Sheet.
+
+        Attempts to search smart, for example `~mtalion "MH21 Students"` will search for "MH21 Students Archive" and "MH21 Archive" categories.
+        Some other common variants for "Archive" will also be attempted.
+
+        Permission Category : Solver Roles only.
+        Usage: `~mtalion`
+        Usage: `~mtalion archive_category_name`
+        """
+        await logging_utils.log_command(
+            "mtalion", ctx.guild, ctx.channel, str(ctx.author)
         )
-
-        await self.movetoarchive_generic(ctx, archive_name)
+        await self.sheetmta_generic(ctx)  # Attempt to move sheet stuff
+        await self.movetoarchive_generic(
+            ctx, archive_name
+        )  # Attempt to move channel stuff
 
     ###############################
     # LION CHANNEL/SHEET CREATION #
@@ -689,6 +741,8 @@ class LionCog(commands.Cog, name="Lion"):
                 value=unstarted,
             )
 
+            batch_update_builder.unhide_sheet(sheet_id=newsheet.id)
+
             chan_name_for_sheet_ref = tab_name.replace("'", "''")
             tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
             chan_name_loc = sheets_constants.TAB_CHAN_NAME_LOCATION
@@ -725,7 +779,7 @@ class LionCog(commands.Cog, name="Lion"):
                 return
 
     @command_predicates.is_solver()
-    @commands.command(name="chanlion")
+    @commands.command(name="chanlion", aliases=["chanhydra"])
     async def chanlion(self, ctx: commands.Context, chan_name: str, *args):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
 
@@ -757,7 +811,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="metalion", aliases=["metachanlion"])
+    @commands.command(name="metalion", aliases=["metachanlion", "metachanhydra"])
     async def metalion(self, ctx: commands.Context, chan_name: str, *args):
         """Creates a new tab and a new channel for a new metapuzzle and then updates the info in the sheet accordingly.
 
@@ -789,7 +843,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="threadlion")
+    @commands.command(name="threadlion", aliases=["threadhydra"])
     async def threadlion(self, ctx: commands.Context, chan_name: str, *args):
         """Creates a new tab and a new thread for a new feeder puzzle and then updates the info in the sheet accordingly.
 
@@ -823,7 +877,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="metathreadlion")
+    @commands.command(name="metathreadlion", aliases=["metathreadhydra"])
     async def metathreadlion(self, ctx: commands.Context, chan_name: str, *args):
         """Creates a new tab and a new thread for a new metapuzzle and then updates the info in the sheet accordingly.
 
@@ -857,7 +911,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="forumlion")
+    @commands.command(name="forumlion", aliases=["forumhydra"])
     async def forumlion(self, ctx: commands.Context, chan_name: str, *args):
         """Creates a new tab and a new forum post for a new feeder puzzle and then updates the info in the sheet accordingly.
 
@@ -889,7 +943,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="metaforumlion")
+    @commands.command(name="metaforumlion", aliases=["metaforumhydra"])
     async def metaforumlion(self, ctx: commands.Context, chan_name: str, *args):
         """Creates a new tab and a new forum post for a new metapuzzle and then updates the info in the sheet accordingly.
 
@@ -923,7 +977,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="sheetlion")
+    @commands.command(name="sheetlion", aliases=["sheethydra"])
     async def sheetlion(self, ctx: commands.Context, tab_name: str, url: str = None):
         """Creates a new tab for a new feeder puzzle and then updates the info in the sheet accordingly.
 
@@ -948,7 +1002,7 @@ class LionCog(commands.Cog, name="Lion"):
         )
 
     @command_predicates.is_solver()
-    @commands.command(name="metasheetlion")
+    @commands.command(name="metasheetlion", aliases=["metasheethydra"])
     async def metasheetlion(
         self, ctx: commands.Context, tab_name: str, url: str = None
     ):
@@ -1365,7 +1419,7 @@ class LionCog(commands.Cog, name="Lion"):
         return new_sheet
 
     @command_predicates.is_solver()
-    @commands.command(name="tetherlion")
+    @commands.command(name="tetherlion", aliases=["tetherhydra"])
     async def tetherlion(self, ctx, sheet_key_or_link: str):
         """Tethers a sheet to the category and also checks that it is the correct format to be used by the lion commands
 

@@ -57,15 +57,15 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             await discord_utils.send_message(ctx, embed)
             return
 
-        channelstomove = []
+        channels_to_move = []
 
         # No arg given. Move only current channel
         if len(args) == 0:
-            channelstomove.append(channel)
+            channels_to_move.append(channel)
         # Only one arg given, "All". Move all channels in category
         elif len(args) == 1 and args[0] == "all":
             for chan in ctx.channel.category.channels:
-                channelstomove.append(chan)
+                channels_to_move.append(chan)
         # One or more args given. All processed as channels.
         else:
             # Process as N channels then add
@@ -79,10 +79,86 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                         inline=False,
                     )
                     continue
-                channelstomove.append(chan)
+                channels_to_move.append(chan)
+
+        # Strip duplicates
+        duplicates = [
+            chan for chan in channels_to_move if channels_to_move.count(chan) > 1
+        ]
+        channels_to_move = list(set(channels_to_move))
+
+        # Identify channels aready in category
+        channels_already_in_category = [
+            chan for chan in channels_to_move if chan.category == new_category
+        ]
+
+        # Strip channels that are already in the new category
+        channels_to_move = [
+            chan for chan in channels_to_move if chan.category != new_category
+        ]
+
+        # Notify user of duplicates
+        if len(duplicates) > 0:
+            unique_duplicates = list(set(duplicates))
+            embed.add_field(
+                name="Duplicate channels!",
+                value=f"The following channels were specified multiple times and will only be moved once:\n"
+                f"{'\n'.join([f"- {chan.mention}" for chan in unique_duplicates])}",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+
+        # Notify user of channels already in category
+        if len(channels_already_in_category) > 0:
+            unique_already_in_category = list(set(channels_already_in_category))
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name="Channels already in category!",
+                value=f"The following channels are already in category `{new_category.name}` and will not be moved:\n"
+                f"{'\n'.join([f"- {chan.mention}" for chan in unique_already_in_category])}",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+
+        # Calculate available capacity upfront
+        initial_channel_count = len(new_category.channels)
+        max_capacity = 50
+        available_capacity = max_capacity - initial_channel_count
+
+        embed = discord_utils.create_embed()
+
+        # Check if category is already full
+        if available_capacity == 0:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Category `{new_category.name}` is already full, max limit is 50 channels!",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
 
         channels_moved = []
-        for chan in channelstomove:
+        category_full_reached = False  # Track if we hit limit
+
+        for chan in channels_to_move:
+            if len(channels_moved) >= available_capacity:
+                if not category_full_reached:
+                    category_full_reached = True
+                    remaining_channels = [
+                        c.mention
+                        for c in channels_to_move
+                        if c not in channels_moved and c.category != new_category
+                    ]
+                    if remaining_channels:
+                        embed.add_field(
+                            name=f"{constants.FAILED}!",
+                            value=f"Category `{new_category.name}` reached max limit of 50 channels.\n"
+                            f"Could not move: {', '.join(remaining_channels[:10])}"
+                            f"{'...' if len(remaining_channels) > 10 else ''}",
+                            inline=False,
+                        )
+                continue
+
             if chan.category == new_category:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
@@ -105,11 +181,32 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 embed.insert_field_at(
                     0,
                     name=f"{constants.FAILED}!",
-                    value="Forbidden! Have you checked if the bot has the required permisisons?",
+                    value="Forbidden! Have you checked if the bot has the required permissions?",
                     inline=False,
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
+
+            except (
+                nextcord.HTTPException
+            ) as e:  # If category was filled externally/some other error
+                if "Maximum number of channels in category reached (50)" in str(e):
+                    embed.insert_field_at(
+                        0,
+                        name=f"{constants.FAILED}!",
+                        value=f"Someone filled up category `{new_category}` while I was moving channels!",
+                        inline=False,
+                    )
+                    await discord_utils.send_message(ctx, embed)
+                else:
+                    embed.insert_field_at(
+                        0,
+                        name=f"{constants.FAILED}!",
+                        value=f"Could not move channel {chan.mention}: {str(e)}",
+                        inline=False,
+                    )
+                    await discord_utils.send_message(ctx, embed)
+            continue
 
         if len(channels_moved) < 1:
             embed.insert_field_at(
