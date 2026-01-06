@@ -1,25 +1,17 @@
-from utils import (
-    batch_update_utils,
-    sheets_constants,
-    discord_utils,
-    sheets_constants,
-)
+from utils import batch_update_utils, sheets_constants
 from utils import discord_utils
 import constants
 import nextcord
 import gspread
-import constants
-from typing import Any
-from utils import sheet_utils
 from utils.sheet_utils import OverviewSheet, findsheettether, addsheettethergeneric
 import emoji
+from gspread.worksheet import Worksheet
 
 from nextcord.ext.commands import Context
 
 ########################
 # RESERVED HYDRA UTILS #
 ########################
-
 
 async def create_puzzle_channel_from_template(
     bot,
@@ -29,7 +21,7 @@ async def create_puzzle_channel_from_template(
     puzzle_url: str | None,
     gspread_client,
 ):
-    """Create a puzzle channel and a new tab from `template_name` template, and update in overview. Reserved for `anychanhydra`. Based off chancrabgeneric."""
+    """Create a puzzle channel and a new tab from `template_name` template, and update in overview. Based off chancrabgeneric."""
     embed = discord_utils.create_embed()
     tab_name = puzzle_name.replace("#", "").replace("-", " ")
 
@@ -261,7 +253,9 @@ async def create_puzzle_channel_from_template(
         )
         if puzzle_url:
             batch.update_cell_by_label(
-                sheet_id=newsheet.id, label=url_loc, value=puzzle_url
+                sheet_id=newsheet.id, 
+                label=url_loc, 
+                value=puzzle_url
             )
 
         gspread_client.open_by_url(curr_sheet_link).batch_update(batch.build())
@@ -281,6 +275,88 @@ async def create_puzzle_channel_from_template(
             return curr_sheet_link, newsheet, new_chan
 
     await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+
+async def findchanidcell(gspread_client, ctx, sheet_link, list_channel_id) -> list[tuple[int, Worksheet, list]] | None:
+    """Find the cell with the discord channel id based on lion overview (moved from HydraCog)."""
+    try:
+        overview_wrapper = OverviewSheet(gspread_client, sheet_link)
+    except gspread.exceptions.APIError as e:
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED}",
+            value=f"I'm unable to open the tethered sheet. Error: {str(e)}",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+        return None
+    except gspread.exceptions.SpreadsheetNotFound:
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED}",
+            value=f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
+            f"Did you forget to add one?",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+        return None
+    except Exception as e:
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED}",
+            value=f"An unknown error occurred when trying to open the tethered sheet. Error: {str(e)}",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+        return None
+
+    overview_values = overview_wrapper.overview_data
+    id_to_row = {
+        str(row[0]): idx + 1
+        for idx, row in enumerate(overview_values)
+        if row and row[0]
+    }
+
+    all_chan_ids = []
+    for channel_id in list_channel_id:
+        rownum = id_to_row.get(str(channel_id))
+        all_chan_ids.append((rownum, overview_wrapper.worksheet, overview_values))
+    return all_chan_ids
+
+def firstemptyrow(worksheet):
+    """Finds the first empty row in a worksheet (moved from HydraCog)."""
+    return len(worksheet.get_values()) + 1
+
+async def get_overview(gspread_client, ctx: Context, sheet_link: str) -> OverviewSheet | None:
+    """Open an OverviewSheet with improved error messages (moved from HydraCog)."""
+    try:
+        overview_sheet = OverviewSheet(gspread_client, sheet_link)
+    except gspread.exceptions.APIError as e:
+        error_json = e.response.json()
+        error_status = error_json.get("error", {}).get("status")
+        if error_status == "PERMISSION_DENIED":
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"I'm unable to open the tethered [sheet]({sheet_link}). "
+                f"Did the permissions change?",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return None
+        else:
+            raise e
+    except gspread.exceptions.WorksheetNotFound:
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED}",
+            value=f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
+            f"Did you forget to add one?",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+        return None
+
+    return overview_sheet
 
 
 async def batch_create_puzzle_channels(
