@@ -195,7 +195,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         Permission Category : Solver Roles only
         Usage: `~noteshydra`
-        Usage: `~noteshydra` This puzzle has unclued anagrams.
+        Usage: `~noteshydra This puzzle has unclued anagrams.`
         """
 
         await logging_utils.log_command(
