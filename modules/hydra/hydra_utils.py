@@ -12,7 +12,6 @@ from nextcord.ext.commands import Context
 # RESERVED HYDRA UTILS #
 ########################
 
-
 async def create_puzzle_channel_from_template(
     bot,
     ctx,
@@ -253,7 +252,9 @@ async def create_puzzle_channel_from_template(
         )
         if puzzle_url:
             batch.update_cell_by_label(
-                sheet_id=newsheet.id, label=url_loc, value=puzzle_url
+                sheet_id=newsheet.id, 
+                label=url_loc, 
+                value=puzzle_url
             )
 
         gspread_client.open_by_url(curr_sheet_link).batch_update(batch.build())
@@ -273,90 +274,3 @@ async def create_puzzle_channel_from_template(
             return curr_sheet_link, newsheet, new_chan
 
     await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
-
-
-async def process_sheet(
-    gspread_client,
-    ctx: Context,
-    sheet_link: str,
-    channels: list[tuple[str, nextcord.TextChannel]],
-) -> list[tuple[str, nextcord.TextChannel, str]]:
-    """Given a sheet link and a list of (category_name, channel) tuples, return a list of messages with overview descriptions."""
-    messages = []
-    try:
-        # Use OverviewSheet to get the data
-        overview_sheet = OverviewSheet(gspread_client, sheet_link)
-        overview_values = overview_sheet.overview_data
-        id_to_row = {
-            str(row[0]): idx + 1
-            for idx, row in enumerate(overview_values)
-            if row and row[0]
-        }
-
-        overview_col = sheets_constants.NOTES_COLUMN
-        _, col_idx = gspread.utils.a1_to_rowcol(overview_col + "1")
-
-        for cat_name, currchan in channels:
-            rownum = id_to_row.get(str(currchan.id))
-
-            if rownum is None:
-                messages.append(
-                    (
-                        cat_name,
-                        currchan,
-                        f"- {currchan.mention} - **Channel not found in sheet!**",
-                    )
-                )
-                continue
-
-            try:
-                overview_desc = overview_values[rownum - 1][col_idx - 1]
-            except (IndexError, Exception):
-                overview_desc = None
-
-            if overview_desc:
-                messages.append(
-                    (
-                        cat_name,
-                        currchan,
-                        f"- {currchan.mention} - {overview_desc[:100] + '...' if len(overview_desc) > 100 else overview_desc}",
-                    )
-                )
-            else:
-                messages.append(
-                    (
-                        cat_name,
-                        currchan,
-                        f"- {currchan.mention} - *(empty description)*",
-                    )
-                )
-
-    except gspread.exceptions.APIError as e:
-        for cat_name, currchan in channels:
-            messages.append(
-                (
-                    cat_name,
-                    currchan,
-                    f"- {currchan.mention} - **API Error: Failed to access sheet**",
-                )
-            )
-    except gspread.exceptions.WorksheetNotFound:
-        for cat_name, currchan in channels:
-            messages.append(
-                (
-                    cat_name,
-                    currchan,
-                    f"- {currchan.mention} - **No Overview tab found**",
-                )
-            )
-    except Exception as e:
-        for cat_name, currchan in channels:
-            messages.append(
-                (
-                    cat_name,
-                    currchan,
-                    f"- {currchan.mention} - **Error: {str(e)[:50]}**",
-                )
-            )
-
-    return messages
