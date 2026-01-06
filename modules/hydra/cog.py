@@ -223,31 +223,21 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="catsummaryhydra", aliases=["categorysummaryhydra"])
-    async def catsummaryhydra(self, ctx, cat_name: str = "") -> None:
-        """For all channels in the current category, gets a summary of the channels via the Ovewview column. Pastes the summary already in there.
+    async def catsummaryhydra(self, ctx) -> None:
+        """Collates all the notes on the overview sheet for each text channel in the category the command was
+        called in. Silently skips channels not on the overview. The sheet will need to follow the Hydra
+        requirements for this to work as expected.
 
         Permission Category : Solver Roles only.
 
         Usage: `~catsummaryhydra`
-        Usage: `~catsummaryhydra "Cat Name"` (Named category)
         """
         await logging_utils.log_command(
             "catsummaryhydra", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
 
-        # Make sure it's a valid category to summarise
-        if cat_name == "":
-            currcat = ctx.message.channel.category
-        else:
-            currcat = await discord_utils.find_category(ctx, cat_name)
-        if currcat is None:
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"I cannot find category `{cat_name}`. Perhaps check your spelling and try again.",
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
+        currcat = ctx.message.channel.category
 
         start_embed = discord_utils.create_embed()
         start_embed.add_field(
