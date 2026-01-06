@@ -104,8 +104,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         If you wrap the round name in quotes, it will appear that way in the sheet. Quotes are not required.
 
         Permission Category : Solver Roles only
-        Usage: `~roundhydra`
-        Usage: `~roundhydra Round Name`
+        Usage: `~roundhydra` (retrieves current round)
+        Usage: `~roundhydra Round Name` (sets round)
         """
         await logging_utils.log_command("roundlion", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -194,8 +194,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         If you wrap your note in quotes, it will appear that way in the sheet. Quotes are not required.
 
         Permission Category : Solver Roles only
-        Usage: `~noteshydra`
-        Usage: `~noteshydra This puzzle has unclued anagrams.`
+        Usage: `~noteshydra` (retrieves current notes)
+        Usage: `~noteshydra This puzzle has unclued anagrams.` (sets notes)
         """
 
         await logging_utils.log_command(
