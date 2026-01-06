@@ -208,6 +208,9 @@ class LionCog(commands.Cog, name="Lion"):
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
         If called from thread (instead of channel), closes the thread instead of moving channel.
 
+        Attempts to search smart, for example `~mta "MH21 Students"` will search for "MH21 Students Archive" and "MH21 Archive" categories.
+        Some other common variants for "Archive" will also be attempted.
+
         Permission Category : Solver Roles only.
         Usage: `~mta`
         Usage: `~movetoarchive archive_category_name`
@@ -646,6 +649,9 @@ class LionCog(commands.Cog, name="Lion"):
         If called from thread (instead of channel), closes the thread instead of moving channel.
 
         Also moves the tab to the end of the list of tabs on the Google Sheet.
+
+        Attempts to search smart, for example `~mtalion "MH21 Students"` will search for "MH21 Students Archive" and "MH21 Archive" categories.
+        Some other common variants for "Archive" will also be attempted.
 
         Permission Category : Solver Roles only.
         Usage: `~mtalion`
