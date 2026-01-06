@@ -351,21 +351,14 @@ class HydraCog(commands.Cog, name="Hydra"):
                 )
 
                 if sample_overview is None or sample_values is None:
-                    for currchan in list_curr_sheet_chans:
-                        messages.append(
-                            f"- {currchan.mention} - **Sheet ID unavailable!**"
-                        )
-                    continue
+                    continue  # Silently skip if no valid overview found
 
                 _, col_idx = gspread.utils.a1_to_rowcol(overview_col + "1")
                 for i in range(len(list_curr_sheet_chans)):
                     currchan = list_curr_sheet_chans[i]
                     rownum, overview, overview_values = list_chan_cells_overview[i]
                     if rownum is None or overview is None:
-                        messages.append(
-                            f"- {currchan.mention} - **Channel not found in sheet!**"
-                        )
-                        continue
+                        continue  # Silently skip again
 
                     # Safe get overview values
                     try:
