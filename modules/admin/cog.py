@@ -38,7 +38,7 @@ class AdminCog(commands.Cog, name="Admin"):
         This command is necessary before most to all bot commands. Nearly all commands are restricted to some Permission Category or the other.
         The Permission Categories available are - Verified, Trusted, Solver, Tester.
 
-        See `~permcathelp` for more info.
+        See `~info` for more info.
 
         Permission Category : Admin or Bot Owner Roles only.
         Usage: `~addperm Verified @VerifiedRoleName`
