@@ -37,7 +37,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="roundhydra")
-    async def roundlion(self, ctx: commands.Context, *, round_name: str = None):
+    async def roundhydra(self, ctx: commands.Context, *, round_name: str = None):
         """Sets or updates the round information on the Overview sheet. Passing no argument retrieves the current round.
 
         If you wrap the round name in quotes, it will appear that way in the sheet. Quotes are not required.
@@ -46,7 +46,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~roundhydra` (retrieves current round)
         Usage: `~roundhydra Round Name` (sets round)
         """
-        await logging_utils.log_command("roundlion", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("roundhydra", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         result, _ = sheet_utils.findsheettether(
