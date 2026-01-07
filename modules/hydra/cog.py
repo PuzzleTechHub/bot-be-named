@@ -430,6 +430,40 @@ class HydraCog(commands.Cog, name="Hydra"):
         await logging_utils.log_command("mtahydra", ctx.guild, ctx.channel, ctx.author)
         await hydra_utils.sheet_move_to_archive(self.gspread_client, ctx)
         await hydra_utils.category_move_to_archive(ctx, category_name)
+        
+    @commands.command(name="slainhydra", aliases=["donehydra"])
+    async def slainhydra(self, ctx, *, answer: str = None):
+        """Runs `~solvedhydra` "ANSWER" then `~mtahydra`.
+        
+        Permission Category : Solver Roles only.
+        Usage: `~slainhydra ANSWER`
+        """
+        await logging_utils.log_command("slainhydra", ctx.guild, ctx.channel, ctx.author)
+
+        solvedhydra = self.bot.get_command("solvedhydra")
+        mtahydra = self.bot.get_command("mtahydra")
+
+        await ctx.invoke(solvedhydra, answer=answer)
+        await ctx.invoke(mtahydra)
+
+    @command_predicates.is_solver()
+    @commands.command(name="backslainhydra")
+    async def backslainhydra(self, ctx, *, answer: str = None):
+        """Runs `~backsolvedhydra` "ANSWER" then `~mtahydra`.
+        
+        Permission Category : Solver Roles only.
+        Usage: `~backslainhydra ANSWER`
+        """
+        await logging_utils.log_command(
+            "backslainhydra", ctx.guild, ctx.channel, ctx.author
+        )
+
+        backsolvedhydra = self.bot.get_command("backsolvedhydra")
+        mtahydra = self.bot.get_command("mtahydra")
+
+        await ctx.invoke(backsolvedhydra, answer=answer)
+        await ctx.invoke(mtahydra)
+
 
 
 def setup(bot):
