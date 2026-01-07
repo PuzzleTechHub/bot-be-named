@@ -410,6 +410,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         """Runs `~solvedhydra` "ANSWER" then `~mtahydra`.
         
         Permission Category : Solver Roles only.
+        Usage: `~slainhydra`
         Usage: `~slainhydra ANSWER`
         """
         await logging_utils.log_command("slainhydra", ctx.guild, ctx.channel, ctx.author)
@@ -426,6 +427,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         """Runs `~backsolvedhydra` "ANSWER" then `~mtahydra`.
         
         Permission Category : Solver Roles only.
+        Usage: `~backslainhydra`
         Usage: `~backslainhydra ANSWER`
         """
         await logging_utils.log_command(
