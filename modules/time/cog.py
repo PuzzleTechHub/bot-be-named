@@ -2,6 +2,8 @@ import geopy
 import datetime
 import os
 import constants
+import zoneinfo
+
 from modules.time import time_utils
 from nextcord.ext import commands
 from utils import logging_utils, discord_utils
@@ -65,6 +67,10 @@ class TimeCog(commands.Cog, name="Time"):
         """Return the time in the specified location
 
         Usage: `~time Mumbai`
+        Usage: `~time New York`
+        Usage: `~time Perth, Australia`
+        Usage: `~time Boston, Massachusetts, USA`
+        Usage: `~time Tokyo, Japan`
         """
         await logging_utils.log_command("time", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
@@ -89,10 +95,10 @@ class TimeCog(commands.Cog, name="Time"):
             return
 
         names = ["Location", "Timezone", "Current Time"]
-        # The DB provides a - (GMT) for west timezones but not a + for the east
+        # The DB provides a - (UTC) for west timezones but not a + for the east
         values = [
             f"{location.title()}",
-            format_gmt_offset(timezone_dict),
+            format_utc_offset(timezone_dict),
             format_time(timezone_dict["time"]),
         ]
         embed = discord_utils.populate_embed(names, values, inline=False)
@@ -117,24 +123,48 @@ def format_time(time):
     return date.strftime("%B %d, %H:%M")
 
 
-def format_gmt_offset(timezone_dict):
-    """Find GMT offset (include dst if applicable)"""
-    raw_offset = timezone_dict["gmtOffset"]
-    dst_offset = timezone_dict["dstOffset"]
-    if raw_offset == dst_offset:
-        return (
-            f"{timezone_dict['timezoneId']} ("
-            + ("+" if timezone_dict["gmtOffset"] > 0 else "")
-            + f"{timezone_dict['gmtOffset']})"
+def format_utc_offset(timezone_dict):
+    """Find UTC offset (include dst if applicable)"""
+    # Determine if DST is in effect
+    current_time = datetime.datetime.strptime(timezone_dict["time"], "%Y-%m-%d %H:%M")
+
+    # Get the timezone object
+    try:
+        timezone = zoneinfo.ZoneInfo(timezone_dict["timezoneId"])
+
+        # Make datetime timezone-aware
+        localized_time = current_time.replace(tzinfo=timezone)
+
+        # Get the timezone abbreviation
+        tz_abbr = localized_time.strftime("%Z")
+
+        # Ge the actual offset at this time
+        seconds_offset = localized_time.utcoffset().total_seconds()
+        hours_offset = int(seconds_offset // 3600)
+        minutes_offset = int((seconds_offset % 3600) // 60)
+
+        # Format the offset string
+        offset_str = (
+            f"{'+' if hours_offset >= 0 else ''}{hours_offset:02d}:{minutes_offset:02d}"
         )
-    else:
-        return (
-            f"{timezone_dict['timezoneId']} ("
-            + ("+" if timezone_dict["gmtOffset"] > 0 else "")
-            + f"{timezone_dict['gmtOffset']}/"
-            + ("+" if timezone_dict["dstOffset"] > 0 else "")
-            + f"{timezone_dict['dstOffset']})"
-        )
+
+        return f"{tz_abbr} (UTC{offset_str})"
+    except Exception as e:
+        # Fallback in case of error
+        raw_offset = timezone_dict["gmtOffset"]
+        dst_offset = timezone_dict["dstOffset"]
+        if raw_offset == dst_offset:
+            return (
+                f"{timezone_dict['timezoneId']} ("
+                + ("+" if timezone_dict["gmtOffset"] > 0 else "")
+                + f"{timezone_dict['gmtOffset']})"
+            )
+        else:
+            return (
+                f"{timezone_dict['timezoneId']} ("
+                + ("+" if timezone_dict["dstOffset"] > 0 else "")
+                + f"{timezone_dict['dstOffset']})"
+            )
 
 
 def setup(bot):
