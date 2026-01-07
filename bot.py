@@ -11,7 +11,7 @@ from dotenv.main import load_dotenv
 load_dotenv(override=True)
 
 import database  # noqa: E402
-from utils import logging_utils  # noqa: E402
+from utils import logging_utils, discord_utils  # noqa: E402
 
 
 def get_prefix(client, message):
@@ -206,6 +206,29 @@ def main():
     @client.event
     async def on_close():
         await logging_utils.close_session()
+
+    
+    @client.event
+    async def on_command_error(self, ctx, error):
+        """Intercept ~help a_custom_command errors"""
+        if isinstance(error, commands.CommandNotFound):
+            command_name = str(ctx.invoked_with).lower() if ctx.invoked_with else None
+
+            if command_name:
+                if ctx.guild and command_name in database.CUSTOM_COMMANDS.get(ctx.guild.id, {}):
+                    embed = discord_utils.create_embed()
+                    embed.add_field(
+                        name="Thats a custom command!",
+                        value=f'The command "{command_name}" is a custom command created for this server! '
+                        f"Use `~help Custom Commands` to see how they work!"
+                        f"Your custom command response is: {database.CUSTOM_COMMANDS[ctx.guild.id][command_name]}",
+                        inline=False,
+                    )
+                    await discord_utils.send_message(ctx, embed)
+                    return
+        # If not a custom command, let the error propagate normally
+        # TODO global custom commands
+
 
 
 if __name__ == "__main__":
