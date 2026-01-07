@@ -82,16 +82,24 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.message.add_reaction(emoji.emojize(":pushpin:"))
 
     @commands.command(name="unpin")
-    async def unpin(self, ctx, num_to_unpin: int = 1):
-        """Unpins a specific message from a channel, or a given number of pins
+    async def unpin(self, ctx, num_to_unpin: int = 1, delete_argument: str = ""):
+        """Unpins a specific message from a channel, or a given number of pins.
+
+        If `delete` is passed in as the last argument, it deletes the original message that called the command and
+        no bot messages are sent.
 
         Usage: `~unpin 2` (unpins latest 2 pins)
         Usage: `~unpin` (as a reply to pinned message)
+        Usage: `~unpin 3 delete` (unpins latest 3 pins and deletes command message)
         """
         await logging_utils.log_command("unpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        if num_to_unpin < 1 or not isinstance(num_to_unpin, int):
+        to_delete = False # Use this to decide whether to delete extra messages or not
+        if delete_argument.lower()[0:3] in ["del", "delete"]:
+            to_delete = True
+
+        if not isinstance(num_to_unpin, int) or num_to_unpin < 1:
             embed = discord_utils.create_no_argument_embed(
                 "number of messages to unpin"
             )
@@ -124,13 +132,15 @@ class DiscordCog(commands.Cog, name="Discord"):
             else:
                 messages_to_unpin = pins
 
-        i = 1
-        for pin in messages_to_unpin:
+
+        description_to_send = []
+        for i, pin in enumerate(messages_to_unpin):
             try:
                 await pin.unpin()
                 await pin.remove_reaction(emoji.emojize(":pushpin:"), ctx.me)
-                strmsg = strmsg + f"[Msg{i}]({pin.jump_url}) : "
-                i = i + 1
+
+                description_to_send.append(f"- [Message {i + 1}]({pin.jump_url})")
+
             except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}!",
@@ -142,12 +152,15 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         embed.add_field(
             name=f"{constants.SUCCESS}!",
-            value=f"Unpinned {'the most recent' if not reply else ''} {i - 1} {'messages' if i - 1 != 1 else 'message'}\n"
-            + f"{strmsg[:-3]}",
+            value=f"Unpinned {'the most recent' if not reply else ''} {len(messages_to_unpin) if len(messages_to_unpin) != 1 else ''} {'messages' if len(messages_to_unpin) != 1 else 'message'}\n"
+             f"{''.join(description_to_send)}",
             inline=False,
         )
-        await discord_utils.send_message(ctx, embed)
-        await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+        if to_delete:
+            await ctx.message.delete()
+        else:
+            await discord_utils.send_message(ctx, embed)
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
 
     @commands.command(name="lspin", aliases=["lspins", "listpin", "listpins"])
     async def listpin(self, ctx):

@@ -1,4 +1,5 @@
 from nextcord.ext import commands
+import database
 from utils import discord_utils
 
 
@@ -14,6 +15,38 @@ class HelpCommand(commands.MinimalHelpCommand):
     def get_command_signature(self, command: commands.core.Command):
         """Retrieves the signature portion of the help page."""
         return f"{command.qualified_name} {command.signature}"
+
+    def command_not_found(self, string):
+        """Intercept ~help a_custom_command errors"""
+        command_name = string.lower()
+
+        if self.context.guild and command_name in database.CUSTOM_COMMANDS.get(
+            self.context.guild.id, {}
+        ):
+            # Return special marker that we'll catch in send_error_message
+            return f"__CUSTOM_COMMAND__{command_name}"
+
+        return f"No command called '{string}' found."
+        # TODO global custom commands
+
+    async def send_error_message(self, error):
+        """Override to send custom command info as embed"""
+        if error.startswith("__CUSTOM_COMMAND__"):
+            command_name = error.replace("__CUSTOM_COMMAND__", "")
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name="That's a custom command!",
+                value=f'The command "{command_name}" is a custom command created for this server!\n\n'
+                f"Use `~help Custom Commands` to see how they work!\n\n"
+                f"Your custom command response is: {database.CUSTOM_COMMANDS[self.context.guild.id][command_name]}",
+                inline=False,
+            )
+            await self.get_destination().send(embed=embed)
+        else:
+            # Send regular error message
+            embed = discord_utils.create_embed()
+            embed.description = error
+            await self.get_destination().send(embed=embed)
 
     async def send_bot_help(self, mapping: dict):
         """implements bot command help page"""

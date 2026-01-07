@@ -1,6 +1,5 @@
 import asyncio
 from typing import Union
-
 import emoji
 import gspread
 import nextcord
@@ -368,7 +367,7 @@ class LionCog(commands.Cog, name="Lion"):
     @command_predicates.is_solver()
     @commands.command(name="solvedlion", aliases=["solvedhydra"])
     async def solvedlion(self, ctx: commands.Context, answer: str = None):
-        """Sets the puzzle to solved and updates the sheet and channel name accordingly
+        """Sets the puzzle to solved and updates the sheet and channel name accordingly.
 
         Permission Category : Solver Roles only.
         Usage: ~solvedlion
@@ -382,9 +381,10 @@ class LionCog(commands.Cog, name="Lion"):
     @command_predicates.is_solver()
     @commands.command(name="backsolvedlion", aliases=["backlion", "backsolvedhydra"])
     async def backsolvedlion(self, ctx: commands.Context, answer: str = None):
-        """Sets the puzzle to backsolved and updates the sheet and channel name accordingly
+        """Sets the puzzle to backsolved and updates the sheet and channel name accordingly.
 
         Permission Category : Solver Roles only.
+
         Usage: ~backsolvedlion
         Usage: ~backsolvedlion "answer"
         """
@@ -399,6 +399,7 @@ class LionCog(commands.Cog, name="Lion"):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly
 
         Permission Category : Solver Roles only.
+
         Usage: ~solvedishlion
         Usage: ~solvedishlion "answer"
         """
@@ -437,6 +438,7 @@ class LionCog(commands.Cog, name="Lion"):
         For statuses  [solved, solvedish, backsolved, postsolved, "In Progress"] the channel name gets updated
 
         Permission Category : Solver Roles only.
+
         Usage: ~statuslion status
         Usage: ~statuslion solved "answer"
         Usage: ~statuslion "custom-update-string" "answer"
@@ -779,7 +781,7 @@ class LionCog(commands.Cog, name="Lion"):
                 return
 
     @command_predicates.is_solver()
-    @commands.command(name="chanlion", aliases=["chanhydra"])
+    @commands.command(name="chanlion")
     async def chanlion(self, ctx: commands.Context, chan_name: str, *args):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
 
