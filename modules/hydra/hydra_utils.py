@@ -434,7 +434,14 @@ async def sheet_move_to_archive(gspread_client, ctx: Context):
 
 async def category_move_to_archive(ctx: Context, archive_name: str):
         """Moves the current channel to an archive category, or archives the thread if called from a thread.
-        If the archive category is full, it will create a new one."""
+        1. Takes the current channel's category name, and splits it into words. Looks for (all words) Archive, then (all but last word) Archive, 
+        then (all but last two words) Archive etc.
+        
+        2. Once it finds a candidate category, moves the channel to that category.
+        
+        3. If the candidate category is full, create a new category with the same name, but with 2 appended to the end.
+        
+        4. If the candidate category is full but the category with 2 appended to the end also exists and is full, try with 3, etc."""
         embed = discord_utils.create_embed()
         # Handling if mta is called from a thread
         if await discord_utils.is_thread(ctx, ctx.channel):
@@ -463,11 +470,11 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
         if archive_name is None:
             # Find category with same name + Archive (or select combinations)
             cat_name = ctx.channel.category.name
-            while cat_name:
-                candidates.append(f"{cat_name} Archive")
-                candidates.append(f"Archive: {cat_name}")
-                candidates.append(f"{cat_name} archive")
-                cat_name, _, _ = cat_name.rpartition(" ")
+            cat_name_words = cat_name.split(" ")
+
+            for i in range(len(cat_name_words), 0, -1):
+                candidate = " ".join(cat_name_words[:i]) + " Archive"
+                candidates.append(candidate)
 
             for cand in candidates:
                 archive_category = await discord_utils.find_category(ctx, cand)
@@ -498,51 +505,27 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
                 return
 
         if discord_utils.category_is_full(archive_category):
-            # 1. Rename full category. Get all categories starting with the current category name, then look for suffix Old 1, Old 2, etc.
-            base_name = archive_category.name
-            suffix_num = 1
-            while True:
-                new_name = f"{base_name} Old {suffix_num}"
-                existing_cat = await discord_utils.find_category(ctx, new_name)
-                if existing_cat is None:
-                    try:
-                        await archive_category.edit(name=new_name)
-                    except nextcord.Forbidden:
-                        embed.add_field(
-                            name=f"{constants.FAILED}!",
-                            value=f"Can you check my permissions? Your archive category is full, so I'm trying to make a new one for you, "
-                            f"but I can't seem to be able to rename "
-                            f"the full archive category `{archive_category.name}` to `{new_name}`",
-                            inline=False,
-                        )
-                        await discord_utils.send_message(ctx, embed)
-                        return
-                    break
-                else:
-                    suffix_num += 1
+            # Search for all categories that start with archive_category.name.
+            categories_starting_with_name = []
 
-            # 2. Duplicate category with the original name
-            clone_category_command = ctx.bot.get_command("clonecat")
-            if clone_category_command is None:
-                embed.add_field(
-                    name=f"{constants.FAILED}!",
-                    value="Error: Could not find clonecat command to duplicate category.",
-                    inline=False,
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
-            archive_category = await ctx.invoke(
-                clone_category_command, archive_category, base_name
-            )
+            for category in ctx.guild.categories:
+                if category.name.startswith(archive_category.name):
+                    categories_starting_with_name.append(category)
 
+            clonecat = ctx.bot.get_command("clonecat")
+            category_to_make = f"{archive_category.name} {len(categories_starting_with_name) + 1}"
+
+            await ctx.invoke(clonecat, origCatName=archive_category.name, targetCatName=category_to_make)
             embed.add_field(
-                name=f"Successfully created another archive category `{base_name}`!",
-                value=f"Your previous archive category was full, so I created a new one for you, called `{base_name}`!",
+                name=f"Created new archive category!",
+                value=f"Archive category `{archive_category.name}` is full, so created new category `{category_to_make}`!",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
 
-
+            embed = discord_utils.create_embed()  # Reset embed
+            archive_category = await discord_utils.find_category(ctx, category_to_make) # Change it to the new one!
+            
 
         if archive_category == ctx.channel.category:
             embed.add_field(

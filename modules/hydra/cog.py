@@ -413,6 +413,11 @@ class HydraCog(commands.Cog, name="Hydra"):
         Fails if there is no such category. If the category is full (50 channels), I will make a new one.
         If called from thread (instead of channel), closes the thread instead of moving channel.
 
+        In the hydra implementation of ~mta, the archive category name is stardardized.
+
+        It must be in the form of `<category_name> Archive`, e.g. `MH21 Students Archive`.
+        Your solving category should not end with Archive.
+
         Also moves the tab to the end of the list of tabs on the Google Sheet.
 
         Attempts to search smart, for example `~mtalion "MH21 Students"` will search for "MH21 Students Archive" and "MH21 Archive" categories.
