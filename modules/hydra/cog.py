@@ -38,7 +38,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="roundhydra")
-    async def roundlion(self, ctx: commands.Context, *, round_name: str = None):
+    async def roundhydra(self, ctx: commands.Context, *, round_name: str = None):
         """Sets or updates the round information on the Overview sheet. Passing no argument retrieves the current round.
 
         If you wrap the round name in quotes, it will appear that way in the sheet. Quotes are not required.
@@ -47,7 +47,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~roundhydra` (retrieves current round)
         Usage: `~roundhydra Round Name` (sets round)
         """
-        await logging_utils.log_command("roundlion", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command("roundhydra", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         result, _ = sheet_utils.findsheettether(
@@ -681,6 +681,41 @@ class HydraCog(commands.Cog, name="Hydra"):
                     inline=False,
                 )
                 await discord_utils.send_message(ctx, embed)
+    @commands.command(name="slainhydra", aliases=["donehydra"])
+    async def slainhydra(self, ctx, *, answer: str = None):
+        """Runs `~solvedhydra` "ANSWER" then `~mtahydra`.
+        
+        Permission Category : Solver Roles only.
+        Usage: `~slainhydra`
+        Usage: `~slainhydra ANSWER`
+        """
+        await logging_utils.log_command("slainhydra", ctx.guild, ctx.channel, ctx.author)
+
+        solvedhydra = self.bot.get_command("solvedhydra")
+        mtahydra = self.bot.get_command("mtahydra")
+
+        await ctx.invoke(solvedhydra, answer=answer)
+        await ctx.invoke(mtahydra)
+
+    @command_predicates.is_solver()
+    @commands.command(name="backslainhydra")
+    async def backslainhydra(self, ctx, *, answer: str = None):
+        """Runs `~backsolvedhydra` "ANSWER" then `~mtahydra`.
+        
+        Permission Category : Solver Roles only.
+        Usage: `~backslainhydra`
+        Usage: `~backslainhydra ANSWER`
+        """
+        await logging_utils.log_command(
+            "backslainhydra", ctx.guild, ctx.channel, ctx.author
+        )
+
+        backsolvedhydra = self.bot.get_command("backsolvedhydra")
+        mtahydra = self.bot.get_command("mtahydra")
+
+        await ctx.invoke(backsolvedhydra, answer=answer)
+        await ctx.invoke(mtahydra)
+
 
 
 def setup(bot):

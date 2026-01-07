@@ -431,10 +431,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
         if chan_b == "":
             old_channel_name = ctx.channel
-            new_channel_name = chan_a
+            new_channel_name = str(chan_a)
         else:
-            old_channel_name = chan_a
-            new_channel_name = chan_b
+            old_channel_name = await discord_utils.find_chan_or_thread(ctx, chan_a)
+            new_channel_name = str(chan_b)
 
         old_channel = await discord_utils.find_chan_or_thread(ctx, old_channel_name)
 
