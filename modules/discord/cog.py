@@ -90,6 +90,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         Usage: `~unpin 2` (unpins latest 2 pins)
         Usage: `~unpin` (as a reply to pinned message)
+        Usage: `~unpin 3 delete` (unpins latest 3 pins and deletes command message)
         """
         await logging_utils.log_command("unpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
