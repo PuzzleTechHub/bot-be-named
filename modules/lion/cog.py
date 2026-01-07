@@ -1,5 +1,6 @@
 import asyncio
 from typing import Union
+import shlex
 
 import emoji
 import gspread
@@ -779,7 +780,7 @@ class LionCog(commands.Cog, name="Lion"):
                 return
 
     @command_predicates.is_solver()
-    @commands.command(name="chanlion", aliases=["chanhydra"])
+    @commands.command(name="chanlion")
     async def chanlion(self, ctx: commands.Context, chan_name: str, *args):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
 
@@ -809,6 +810,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.puzzlelion(
             ctx, chan_name, text_to_pin, curr_sheet_link, newsheet, new_chan
         )
+            
 
     @command_predicates.is_solver()
     @commands.command(name="metalion", aliases=["metachanlion", "metachanhydra"])

@@ -357,3 +357,283 @@ async def get_overview(gspread_client, ctx: Context, sheet_link: str) -> Overvie
         return None
 
     return overview_sheet
+
+
+async def batch_create_puzzle_channels(
+    bot,
+    ctx,
+    gspread_client,
+    puzzle_configs: list[tuple[str, str | None]],
+):
+    """Batch creates multiple puzzle channels and tabs from template. Reserved for `chanhydra`."""
+    result, _ = findsheettether(str(ctx.channel.category.id), str(ctx.channel.id))
+
+    if result is None:
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED}!",
+            value=f"Neither the category **{ctx.channel.category.name}** nor the channel **{ctx.channel.name}** "
+            "are tethered to a sheet.",
+        )
+        await discord_utils.send_message(ctx, embed)
+        return []
+
+    curr_sheet_link = str(result.sheet_link)
+
+    try:
+        spreadsheet = gspread_client.open_by_url(curr_sheet_link)
+        template_sheet = spreadsheet.worksheet("Template")
+        overview_sheet = spreadsheet.worksheet("Overview")
+    except gspread.exceptions.WorksheetNotFound:
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED}!",
+            value=f"The sheet is missing either the 'Template' or 'Overview' tab.",
+        )
+        await discord_utils.send_message(ctx, embed)
+        return []
+    except gspread.exceptions.APIError as e:
+        error_json = e.response.json()
+        error_status = error_json.get("error", {}).get("status")
+        if error_status == "PERMISSION_DENIED":
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
+                f"Did the permissions change?",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return []
+        else:
+            raise e
+    except Exception as e:
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED}!",
+            value=f"Could not open the sheet. Error: {str(e)}",
+        )
+        await discord_utils.send_message(ctx, embed)
+        return []
+
+    # Create discord channels
+    channels = []
+    for puzzle_name, puzzle_url in puzzle_configs:
+        tab_name = puzzle_name.replace("#", "").replace("-", " ")
+        try:
+            new_channel = await discord_utils.createchannelgeneric(
+                ctx.guild, ctx.channel.category, puzzle_name
+            )
+
+            if new_channel is None:
+                raise Exception("Channel creation returned None")
+
+            channels.append((puzzle_name, tab_name, puzzle_url, new_channel))
+
+        except Exception as e:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Could not create channel for `{puzzle_name}`. Error: {str(e)}",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            continue
+
+    if not channels:
+        return []
+
+    # Batch create all worksheets
+    requests = []
+    for puzzle_name, tab_name, _, _ in channels:
+        requests.append(
+            {
+                "duplicateSheet": {
+                    "sourceSheetId": template_sheet.id,
+                    "insertSheetIndex": template_sheet.index + 1,
+                    "newSheetName": tab_name,
+                }
+            }
+        )
+
+    try:
+        batch_response = spreadsheet.batch_update({"requests": requests})
+    except gspread.exceptions.APIError as e:
+        error_json = e.response.json()
+        error_status = error_json.get("error", {}).get("status")
+        if error_status == "PERMISSION_DENIED":
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Could not duplicate tabs. Is the permission set to 'Anyone with link can edit'?",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return []
+        else:
+            raise e
+    except Exception as e:
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED}!",
+            value=f"Could not create sheets. Error: {str(e)}",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+        return []
+
+    # Refresh and get the newly created sheets
+    spreadsheet = gspread_client.open_by_url(curr_sheet_link)
+    worksheets = []
+
+    for _, tab_name, _, _ in channels:
+        try:
+            ws = spreadsheet.worksheet(tab_name)
+            worksheets.append(ws)
+        except Exception:
+            worksheets.append(None)
+
+    # Get overview wrapper and constants
+    overview_wrapper = OverviewSheet(gspread_client, curr_sheet_link)
+    overview_values = overview_wrapper.overview_data
+    first_empty_row = len(overview_values) + 1
+    overview_id = overview_wrapper.worksheet.id
+
+    # Get column labels
+    puzzle_name_col = overview_wrapper.get_cell_value(
+        sheets_constants.PUZZLE_NAME_COLUMN_LOCATION
+    )
+    status_col = overview_wrapper.get_cell_value(
+        sheets_constants.STATUS_COLUMN_LOCATION
+    )
+    answer_col = overview_wrapper.get_cell_value(
+        sheets_constants.ANSWER_COLUMN_LOCATION
+    )
+    discord_channel_id_col = sheets_constants.DISCORD_CHANNEL_ID_COLUMN
+    sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
+
+    # Build batch update for overview and new sheets
+    batch = batch_update_utils.BatchUpdateBuilder()
+
+    for idx, (puzzle_name, tab_name, puzzle_url, channel) in enumerate(channels):
+        if worksheets[idx] is None:
+            continue
+        try:
+            row_num = first_empty_row + idx
+            newsheet = worksheets[idx]
+            final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
+
+            # Batch update overview row
+            overview_updates = {
+                puzzle_name_col
+                + str(row_num): (
+                    f'=HYPERLINK("{final_sheet_link}", "{puzzle_name}")',
+                    True,  # is_formula
+                ),
+                discord_channel_id_col + str(row_num): (str(channel.id), False),
+                sheet_tab_id_col + str(row_num): (str(newsheet.id), False),
+                status_col + str(row_num): (sheets_constants.UNSTARTED_NAME, False),
+                answer_col
+                + str(row_num): (
+                    "='{}'!{}".format(
+                        tab_name.replace("'", "''"), sheets_constants.TAB_ANSWER_LOCATION
+                    ),
+                    True,  # is_formula
+                ),
+            }
+
+            for label, (value, is_formula) in overview_updates.items():
+                batch.update_cell_by_label(
+                    sheet_id=overview_id,
+                    label=label,
+                    value=value,
+                    is_formula=is_formula,
+                )
+
+            # Batch update new sheet
+            new_sheet_updates = {
+                sheets_constants.TAB_CHAN_NAME_LOCATION: puzzle_name,
+            }
+            if puzzle_url:
+                new_sheet_updates[sheets_constants.TAB_URL_LOCATION] = puzzle_url
+
+            for label, value in new_sheet_updates.items():
+                batch.update_cell_by_label(
+                    sheet_id=newsheet.id,
+                    label=label,
+                    value=value,
+                )
+
+            # Tether channel
+            addsheettethergeneric(gspread_client, curr_sheet_link, ctx.guild, channel)
+
+            # Update channel topic
+            await channel.edit(topic=f"Tab Link - {final_sheet_link}")
+
+            # Send messages to channel
+            try:
+                embed = discord_utils.create_embed()
+                embed.add_field(
+                    name=f"{constants.SUCCESS}!",
+                    value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
+                    inline=False,
+                )
+                msg = await channel.send(embed=embed)
+                await discord_utils.pin_message(msg)
+
+                if puzzle_url:
+                    embed = discord_utils.create_embed()
+                    embed.description = puzzle_url
+                    msg2 = await channel.send(embed=embed)
+                    embed_or_none = await discord_utils.pin_message(msg2)
+                    if embed_or_none is None:
+                        await msg2.add_reaction(emoji.emojize(":pushpin:"))
+            except Exception:
+                pass
+        except Exception as e:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Error processing `{puzzle_name}`. Error: {str(e)}",
+                inline=False,
+            )
+
+            await discord_utils.send_message(ctx, embed)
+            worksheets[idx] = None
+            continue
+
+    # Execute single batch update for ALL changes
+    try:
+        spreadsheet.batch_update(batch.build())
+    except gspread.exceptions.APIError as e:
+        if hasattr(e, "response"):
+            error_json = e.response.json()
+            error_message = error_json.get("error", {}).get("message")
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Unknown GSheets API Error - `{error_message}`",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return []
+    except Exception as e:
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"{constants.FAILED}!",
+            value=f"Could not update sheets. Error: {str(e)}",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+        return []
+
+    # Return results
+    results = []
+    for idx, (puzzle_name, tab_name, puzzle_url, channel) in enumerate(channels):
+        if worksheets[idx] is not None:
+            final_link = curr_sheet_link + "/edit#gid=" + str(worksheets[idx].id)
+            results.append((final_link, worksheets[idx], channel))
+        else:
+            results.append((None, None, None))
+
+    return results
