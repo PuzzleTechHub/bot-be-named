@@ -1,3 +1,4 @@
+import nextcord
 import constants
 import gspread
 import asyncio
@@ -12,7 +13,6 @@ from utils import (
     sheets_constants,
     sheet_utils,
 )
-from gspread.worksheet import Worksheet
 from modules.hydra import hydra_utils
 
 """
@@ -46,7 +46,9 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~roundhydra` (retrieves current round)
         Usage: `~roundhydra Round Name` (sets round)
         """
-        await logging_utils.log_command("roundhydra", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "roundhydra", ctx.guild, ctx.channel, ctx.author
+        )
         embed = discord_utils.create_embed()
 
         result, _ = sheet_utils.findsheettether(
@@ -378,14 +380,16 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: ~anychanhydra "Puzzle Name" "TemplateName" (uses "TemplateName Template" from the sheet)
         Usage: ~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" (uses "Square Template" from the sheet)
         """
-        await logging_utils.log_command("chanhydra", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "anychanhydra", ctx.guild, ctx.channel, ctx.author
+        )
 
         arg_list = shlex.split(args)
         if len(arg_list) < 2 or len(arg_list) > 3:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value="Invalid arguments. Usage: `~chanhydra [puzzle name] [template name] [puzzle url (optional)]`",
+                value="Invalid arguments. Usage: `~anychanhydra [puzzle name] [template name] [puzzle url (optional)]`",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -498,15 +502,18 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         if embed.fields:
             await discord_utils.send_message(ctx, embed)
+
     @commands.command(name="slainhydra", aliases=["donehydra"])
     async def slainhydra(self, ctx, *, answer: str = None):
         """Runs `~solvedhydra` "ANSWER" then `~mtahydra`.
-        
+
         Permission Category : Solver Roles only.
         Usage: `~slainhydra`
         Usage: `~slainhydra ANSWER`
         """
-        await logging_utils.log_command("slainhydra", ctx.guild, ctx.channel, ctx.author)
+        await logging_utils.log_command(
+            "slainhydra", ctx.guild, ctx.channel, ctx.author
+        )
 
         solvedhydra = self.bot.get_command("solvedhydra")
         mtahydra = self.bot.get_command("mtahydra")
@@ -518,7 +525,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     @commands.command(name="backslainhydra")
     async def backslainhydra(self, ctx, *, answer: str = None):
         """Runs `~backsolvedhydra` "ANSWER" then `~mtahydra`.
-        
+
         Permission Category : Solver Roles only.
         Usage: `~backslainhydra`
         Usage: `~backslainhydra ANSWER`
@@ -533,6 +540,196 @@ class HydraCog(commands.Cog, name="Hydra"):
         await ctx.invoke(backsolvedhydra, answer=answer)
         await ctx.invoke(mtahydra)
 
+    @command_predicates.is_solver()
+    @commands.command(name="unmtahydra")
+    async def unmtahydra(self, ctx: commands.Context, category_name: str = ""):
+        """Does the rough opposite of ~mtahydra (~mtalion). Moves the channel into the main hunt category and moves the sheet into the active section.
+        If I cannot find the main hunt category, I will ask the user to specify it.
+
+        Permission Category : Solver Roles only.
+        Usage: `~unmtahydra`
+        Usage: `~unmtahydra "Main Hunt Category Name"` (If I cannot find the main hunt category automatically)
+        """
+        await logging_utils.log_command(
+            "unmtahydra", ctx.guild, ctx.channel, ctx.author
+        )
+        embed = discord_utils.create_embed()
+
+        result, _ = sheet_utils.findsheettether(
+            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
+        )
+
+        if result is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The channel {ctx.message.channel.mention} is not tethered to any Google sheet.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        curr_sheet_link = str(result.sheet_link)
+
+        overview_sheet = await self.get_overview(ctx, curr_sheet_link)
+        if overview_sheet is None:
+            return
+
+        row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
+        if err_embed is not None:
+            await discord_utils.send_message(ctx, err_embed)
+            return
+
+        sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
+        try:
+            overview_values = overview_sheet.overview_data
+            _, col_idx = gspread.utils.a1_to_rowcol(sheet_tab_id_col + "1")
+            sheet_tab_id = overview_values[row_to_find - 1][col_idx - 1]
+        except Exception:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Could not find the Sheet Tab ID for channel {ctx.message.channel.mention} in the Overview sheet.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        if ctx.channel.category is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"The channel {ctx.message.channel.mention} is not in a category.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        # Find the main hunt category. We will first check if an argument was passed. Then, look for a category tethered to the
+        # same sheet. If that fails, we get the current category's name, and remove "Archive" and look for that. Else, we will
+        # just ask the user for the category name.
+
+        main_category = None
+
+        if category_name != "":
+            main_category = await discord_utils.find_category(ctx, category_name)
+            if main_category is None:
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value=f"I cannot find category `{category_name}`. Perhaps check your spelling and try again.",
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+
+        if main_category is None:
+            for category in ctx.guild.categories:
+                if category.id == ctx.channel.category.id:
+                    continue  # Skip current category
+                cat_result, _ = sheet_utils.findsheettether(str(category.id), None)
+                if (
+                    cat_result is not None
+                    and str(cat_result.sheet_link) == curr_sheet_link
+                ):
+                    main_category = category
+                    break
+
+        if main_category is None:
+            possible_name_candidates = [  # These are the category names this command *should* get called from, where [x] is anything.
+                "[x] Archive",
+                "Archive: [x]",
+                "[x] archive",
+            ]
+            curr_cat_name = ctx.channel.category.name
+            for candidate in possible_name_candidates:
+                if candidate.replace("[x]", "").strip() in curr_cat_name:
+                    possible_main_cat_name = curr_cat_name.replace(
+                        candidate.replace("[x]", "").strip(), ""
+                    ).strip()
+                    main_category = await discord_utils.find_category(
+                        ctx, possible_main_cat_name
+                    )
+                    if main_category is not None:
+                        break
+
+        if main_category is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="I could not automatically find the main hunt category. \n"
+                "Please specify the main hunt category name as an argument.",
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        # Try to move the channel
+        channel_embed = discord_utils.create_embed()
+        try:
+            await ctx.channel.edit(category=main_category)
+            channel_embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value=f"Successfully moved channel {ctx.channel.mention} to category `{main_category.name}`.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, channel_embed)
+        except nextcord.Forbidden:
+            channel_embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"I do not have permission to move the channel {ctx.channel.mention} to category `{main_category.name}`.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, channel_embed)
+            return
+        except Exception as e:
+            channel_embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Could not move channel {ctx.channel.mention} to category `{main_category.name}`. Error: {str(e)}",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, channel_embed)
+            return
+
+        # Move the sheet tab into the active section
+        tab_embed = discord_utils.create_embed()
+        try:
+            curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+
+            # Find index by looking for last occurrence of a sheet ending with "Template".
+
+            template_index = 0
+            found_template = False
+            for sheet in curr_sheet.worksheets():
+                if sheet.title.endswith("Template"):
+                    template_index = sheet.index
+                    found_template = True
+                else:
+                    if found_template:
+                        break  # We found the last template already
+
+            if not found_template:
+                template_index = 0  # Move to start if no templates found
+
+            tab_to_move = curr_sheet.get_worksheet_by_id(int(sheet_tab_id))
+            tab_to_move.update_index(template_index + 1)  # Move to after last template
+            tab_embed.add_field(
+                name=f"{constants.SUCCESS}",
+                value=f"Successfully moved the sheet tab for {ctx.channel.mention} to the active section.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, tab_embed)
+        except gspread.exceptions.APIError as e:
+            error_json = e.response.json()
+            error_message = error_json.get("error", {}).get("message")
+            tab_embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Google Sheets API Error when moving tab: `{error_message}`",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, tab_embed)
+            return
+        except Exception as e:
+            tab_embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Unknown error when moving tab: `{str(e)}`",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, tab_embed)
+            return
 
 
 def setup(bot):
