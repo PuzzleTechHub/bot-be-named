@@ -404,6 +404,41 @@ class HydraCog(commands.Cog, name="Hydra"):
             self.gspread_client,
         )
 
+    @command_predicates.is_solver()
+    @commands.command(name="slainhydra", aliases=["donehydra"])
+    async def slainhydra(self, ctx, *, answer: str = None):
+        """Runs `~solvedhydra` "ANSWER" then `~mtahydra`.
+        
+        Permission Category : Solver Roles only.
+        Usage: `~slainhydra ANSWER`
+        """
+        await logging_utils.log_command("slainhydra", ctx.guild, ctx.channel, ctx.author)
+
+        solvedhydra = self.bot.get_command("solvedhydra")
+        mtahydra = self.bot.get_command("mtahydra")
+
+        await ctx.invoke(solvedhydra, answer=answer)
+        await ctx.invoke(mtahydra)
+
+    @command_predicates.is_solver()
+    @commands.command(name="backslainhydra")
+    async def backslainhydra(self, ctx, *, answer: str = None):
+        """Runs `~backsolvedhydra` "ANSWER" then `~mtahydra`.
+        
+        Permission Category : Solver Roles only.
+        Usage: `~backslainhydra ANSWER`
+        """
+        await logging_utils.log_command(
+            "backslainhydra", ctx.guild, ctx.channel, ctx.author
+        )
+
+        backsolvedhydra = self.bot.get_command("backsolvedhydra")
+        mtahydra = self.bot.get_command("mtahydra")
+
+        await ctx.invoke(backsolvedhydra, answer=answer)
+        await ctx.invoke(mtahydra)
+
+
 
 def setup(bot):
     bot.add_cog(HydraCog(bot))
