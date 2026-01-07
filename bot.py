@@ -2,6 +2,7 @@ import os
 import constants
 import sqlalchemy
 import nextcord
+import random
 from nextcord.ext import commands
 from sqlalchemy import insert
 from sqlalchemy.orm import Session
@@ -12,6 +13,7 @@ load_dotenv(override=True)
 
 import database  # noqa: E402
 from utils import logging_utils  # noqa: E402
+from constants import CUSTOM_RESPONSE_PREFIX  # noqa: E402
 
 
 def get_prefix(client, message):
@@ -153,6 +155,15 @@ def main():
 
                 # Command found in cache
                 if command_return is not None:
+                    # Check for random response and send in plain text
+                    if command_return.startswith(CUSTOM_RESPONSE_PREFIX):
+                        responses = command_return[len(CUSTOM_RESPONSE_PREFIX) :].split(
+                            ", "
+                        )
+                        command_return = random.choice(responses)
+                        await message.channel.send(command_return)
+                        return
+
                     # Image, so we use normal text.
                     if database.CUSTOM_COMMANDS[message.guild.id][command_name][1]:
                         await message.channel.send(command_return)
@@ -186,6 +197,14 @@ def main():
                             .first()
                         )
                     if result is not None:
+                        # Pick random and send in plain text
+                        if result.command_return.startswith(CUSTOM_RESPONSE_PREFIX):
+                            responses = result.command_return[
+                                len(CUSTOM_RESPONSE_PREFIX) :
+                            ].split(", ")
+                            to_send = random.choice(responses)
+                            await message.channel.send(to_send)
+
                         if result.image:
                             await message.channel.send(result.command_return)
                             return
