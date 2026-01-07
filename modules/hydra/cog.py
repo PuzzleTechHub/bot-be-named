@@ -645,9 +645,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                     )
 
                 if row_moved:
-                    status_lines.append(f"- ✅ Overview row moved to bottom.")
+                    status_lines.append(f"- ✅ Overview row deleted.")
                 else:
-                    status_lines.append(f"- ❌ Failed to move overview row.")
+                    status_lines.append(f"- ❌ Failed to delete overview row.")
 
                 success_embed.add_field(
                     name=f"Report of deletion",
