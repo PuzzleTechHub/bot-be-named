@@ -848,7 +848,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         curr_sheet_link = str(result.sheet_link)
 
-        overview_sheet = await self.get_overview(ctx, curr_sheet_link)
+        overview_sheet = await hydra_utils.get_overview(self.gspread_client, ctx, curr_sheet_link)
         if overview_sheet is None:
             return
 
