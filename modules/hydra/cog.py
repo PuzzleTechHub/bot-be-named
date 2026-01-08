@@ -37,14 +37,12 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="roundhydra")
-    async def roundhydra(self, ctx: commands.Context, *, round_name: str = None):
+    async def roundhydra(self, ctx: commands.Context, round_name: str = None):
         """Sets or updates the round information on the Overview sheet. Passing no argument retrieves the current round.
-
-        If you wrap the round name in quotes, it will appear that way in the sheet. Quotes are not required.
 
         Permission Category : Solver Roles only
         Usage: `~roundhydra` (retrieves current round)
-        Usage: `~roundhydra Round Name` (sets round)
+        Usage: `~roundhydra "Round Name"` (sets round)
         """
         await logging_utils.log_command(
             "roundhydra", ctx.guild, ctx.channel, ctx.author
@@ -131,14 +129,12 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="noteshydra")
-    async def noteshydra(self, ctx: commands.Context, *, notes: str = None):
+    async def noteshydra(self, ctx: commands.Context, notes: str = None):
         """Sets or updates the notes information on the Overview sheet. Passing no argument retrieves the current notes.
-
-        If you wrap your note in quotes, it will appear that way in the sheet. Quotes are not required.
 
         Permission Category : Solver Roles only
         Usage: `~noteshydra` (retrieves current notes)
-        Usage: `~noteshydra This puzzle has unclued anagrams.` (sets notes)
+        Usage: `~noteshydra "This puzzle has unclued anagrams."` (sets notes)
         """
 
         await logging_utils.log_command(
@@ -782,12 +778,13 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="slainhydra", aliases=["donehydra"])
-    async def slainhydra(self, ctx, *, answer: str = None):
+    async def slainhydra(self, ctx, answer: str = None):
         """Runs `~solvedhydra` "ANSWER" then `~mtahydra`.
 
         Permission Category : Solver Roles only.
         Usage: `~slainhydra`
         Usage: `~slainhydra ANSWER`
+        Usage: `~slainhydra "A MULTIWORD ANSWER"`
         """
         await logging_utils.log_command(
             "slainhydra", ctx.guild, ctx.channel, ctx.author
@@ -801,12 +798,13 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="backslainhydra")
-    async def backslainhydra(self, ctx, *, answer: str = None):
+    async def backslainhydra(self, ctx, answer: str = None):
         """Runs `~backsolvedhydra` "ANSWER" then `~mtahydra`.
 
         Permission Category : Solver Roles only.
         Usage: `~backslainhydra`
         Usage: `~backslainhydra ANSWER`
+        Usage: `~backslainhydra "A MULTIWORD ANSWER"`
         """
         await logging_utils.log_command(
             "backslainhydra", ctx.guild, ctx.channel, ctx.author
