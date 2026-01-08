@@ -16,7 +16,9 @@ from utils import (
     sheets_constants,
     sheet_utils,
 )
-from modules.hydra import hydra_utils
+from modules.hydra.hydra_utils import hydra_utils
+from modules.hydra.hydra_utils import discord_utils as hydra_discord_utils
+from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
 
 """
 Hydra module. Module with more advanced GSheet-Discord interfacing. See module's README.md for more.
@@ -67,7 +69,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             return
 
         curr_sheet_link = str(result.sheet_link)
-        overview_sheet = await hydra_utils.get_overview(
+        overview_sheet = await hydra_sheet_utils.get_overview(
             self.gspread_client, ctx, curr_sheet_link
         )
         if overview_sheet is None:
@@ -172,7 +174,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             return
 
         curr_sheet_link = str(result.sheet_link)
-        overview_sheet = await hydra_utils.get_overview(
+        overview_sheet = await hydra_sheet_utils.get_overview(
             self.gspread_client, ctx, curr_sheet_link
         )
         if overview_sheet is None:
@@ -299,7 +301,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                     x[1] for x in allsheets if x[0] == curr_sheet_link
                 ]
 
-                list_chan_cells_overview = await hydra_utils.findchanidcell(
+                list_chan_cells_overview = await hydra_sheet_utils.findchanidcell(
                     self.gspread_client,
                     ctx,
                     curr_sheet_link,
@@ -423,7 +425,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         template_name = arg_list[1]
         puzzle_url = arg_list[2] if len(arg_list) > 2 else None
 
-        await hydra_utils.create_puzzle_channel_from_template(
+        await hydra_sheet_utils.create_puzzle_channel_from_template(
             self.bot,
             ctx,
             puzzle_name,
@@ -454,8 +456,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~mtalion archive_category_name`
         """
         await logging_utils.log_command("mtahydra", ctx.guild, ctx.channel, ctx.author)
-        await hydra_utils.sheet_move_to_archive(self.gspread_client, ctx)
-        await hydra_utils.category_move_to_archive(ctx, category_name)
+        await hydra_sheet_utils.sheet_move_to_archive(self.gspread_client, ctx)
+        await hydra_discord_utils.category_move_to_archive(ctx, category_name)
 
     @commands.command(name="chanhydra")
     async def chanhydra(self, ctx: commands.Context, *, content: str = ""):
@@ -521,7 +523,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             return
 
         # Batch create all channels and sheets
-        results = await hydra_utils.batch_create_puzzle_channels(
+        results = await hydra_sheet_utils.batch_create_puzzle_channels(
             self.bot,
             ctx,
             self.gspread_client,
@@ -689,7 +691,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                     await discord_utils.send_message(ctx, fallback_embed)
 
                 # 2. Get overview and find the row for this channel
-                overview_sheet = await hydra_utils.get_overview(
+                overview_sheet = await hydra_sheet_utils.get_overview(
                     self.gspread_client, ctx, curr_sheet_link
                 )
 
@@ -700,7 +702,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
                 if overview_sheet is not None:
                     # We need to find the row by channel ID
-                    list_chan_cells = await hydra_utils.findchanidcell(
+                    list_chan_cells = await hydra_sheet_utils.findchanidcell(
                         self.gspread_client,
                         ctx,
                         curr_sheet_link,
@@ -1096,7 +1098,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         curr_sheet_link = str(result.sheet_link)
 
-        overview_sheet = await hydra_utils.get_overview(
+        overview_sheet = await hydra_sheet_utils.get_overview(
             self.gspread_client, ctx, curr_sheet_link
         )
         if overview_sheet is None:
