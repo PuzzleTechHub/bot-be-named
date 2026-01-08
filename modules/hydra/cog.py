@@ -101,15 +101,27 @@ class HydraCog(commands.Cog, name="Hydra"):
                 await discord_utils.send_message(ctx, embed)
             else:
                 # Update round instead
+                current_round = overview_sheet.worksheet.acell(
+                    round_col + str(row_to_find)
+                ).value
+
                 overview_sheet.worksheet.update_acell(
                     round_col + str(row_to_find), round_name
                 )
 
-                embed.add_field(
-                    name=f"{constants.SUCCESS}",
-                    value=f"Successfully updated round for {ctx.channel.mention} to `{round_name}`",
-                    inline=False,
-                )
+                if current_round:
+                    embed.add_field(
+                        name=f"{constants.SUCCESS}",
+                        value=f"Successfully updated round for {ctx.channel.mention} from `{current_round}` to `{round_name}`",
+                        inline=False,
+                    )
+                else:
+                    embed.add_field(
+                        name=f"{constants.SUCCESS}",
+                        value=f"Successfully updated round for {ctx.channel.mention} to `{round_name}`",
+                        inline=False,
+                    )
+
                 await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
                 await discord_utils.send_message(ctx, embed)
 
@@ -193,15 +205,28 @@ class HydraCog(commands.Cog, name="Hydra"):
                     )
                 await discord_utils.send_message(ctx, embed)
             else:
+                # Update notes instead
+                current_notes = overview_sheet.worksheet.acell(
+                    notes_col + str(row_to_find)
+                ).value
+
                 overview_sheet.worksheet.update_acell(
                     notes_col + str(row_to_find), notes
                 )
 
-                embed.add_field(
-                    name=f"{constants.SUCCESS}",
-                    value=f"Successfully updated notes for {ctx.channel.mention} to `{notes}`",
-                    inline=False,
-                )
+                if current_notes:
+                    embed.add_field(
+                        name=f"{constants.SUCCESS}",
+                        value=f"Successfully updated notes for {ctx.channel.mention} from `{current_notes}` to `{notes}`",
+                        inline=False,
+                    )
+                else:
+                    embed.add_field(
+                        name=f"{constants.SUCCESS}",
+                        value=f"Successfully updated notes for {ctx.channel.mention} to `{notes}`",
+                        inline=False,
+                    )
+
                 await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
                 await discord_utils.send_message(ctx, embed)
 
@@ -431,7 +456,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         await logging_utils.log_command("mtahydra", ctx.guild, ctx.channel, ctx.author)
         await hydra_utils.sheet_move_to_archive(self.gspread_client, ctx)
         await hydra_utils.category_move_to_archive(ctx, category_name)
-        
+
     @commands.command(name="chanhydra")
     async def chanhydra(self, ctx: commands.Context, *, content: str = ""):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
