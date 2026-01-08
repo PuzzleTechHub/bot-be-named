@@ -507,24 +507,33 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
         if discord_utils.category_is_full(archive_category):
             # Search for all categories that start with archive_category.name.
             categories_starting_with_name = []
+            category_found = False
 
             for category in ctx.guild.categories:
                 if category.name.startswith(archive_category.name):
                     categories_starting_with_name.append(category)
 
-            clonecat = ctx.bot.get_command("clonecat")
-            category_to_make = f"{archive_category.name} {len(categories_starting_with_name) + 1}"
 
-            await ctx.invoke(clonecat, origCatName=archive_category.name, targetCatName=category_to_make)
-            embed.add_field(
-                name=f"Created new archive category!",
-                value=f"Archive category `{archive_category.name}` is full, so created new category `{category_to_make}`!",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
+            for category in categories_starting_with_name:
+                if not discord_utils.category_is_full(category):
+                    archive_category = category
+                    category_found = True   
+                    break
 
-            embed = discord_utils.create_embed()  # Reset embed
-            archive_category = await discord_utils.find_category(ctx, category_to_make) # Change it to the new one!
+            if not category_found:
+                clonecat = ctx.bot.get_command("clonecat")
+                category_to_make = f"{archive_category.name} {len(categories_starting_with_name) + 1}"
+
+                await ctx.invoke(clonecat, origCatName=archive_category.name, targetCatName=category_to_make)
+                embed.add_field(
+                    name=f"Created new archive category!",
+                    value=f"Archive category `{archive_category.name}` is full, so created new category `{category_to_make}`!",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+
+                embed = discord_utils.create_embed()  # Reset embed
+                archive_category = await discord_utils.find_category(ctx, category_to_make) # Change it to the new one!
             
 
         if archive_category == ctx.channel.category:
