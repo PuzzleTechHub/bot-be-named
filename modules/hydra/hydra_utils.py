@@ -358,6 +358,204 @@ async def get_overview(gspread_client, ctx: Context, sheet_link: str) -> Overvie
 
     return overview_sheet
 
+async def sheet_move_to_archive(gspread_client, ctx: Context):
+        """Handles the sheet aspect of mtahydra."""
+        embed = discord_utils.create_embed()
+        result, _ = findsheettether(
+            ctx.message.channel.category_id, ctx.message.channel.id
+        )
+
+        if result is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
+                f"are tethered to any Google sheet.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        curr_sheet_link = str(result.sheet_link)
+        overview_sheet = await get_overview(gspread_client, ctx, curr_sheet_link)
+        if overview_sheet is None:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="Error! Overview tab not found in the sheet! Did you accidentally delete it?",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
+        if err_embed is not None:
+            await discord_utils.send_message(ctx, err_embed)
+            return
+
+        sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
+        tab_id = overview_sheet.get_cell_value(sheet_tab_id_col + str(row_to_find))
+
+        try:
+            worksheets = overview_sheet.spreadsheet.worksheets()
+            puzzle_tab = next((w for w in worksheets if w.id == int(tab_id)), None)
+            if puzzle_tab is None:
+                embed.add_field(
+                    name=f"{constants.FAILED}",
+                    value="Could not find associated tab for puzzle in the tethered sheet.",
+                    inline=False,
+                )
+            else:
+                puzzle_tab.update_index(len(worksheets))
+                embed.add_field(
+                    name=f"{constants.SUCCESS}!",
+                    value="Moved tab to the end of the sheet!",
+                    inline=False,
+                )
+        except gspread.exceptions.APIError as e:
+            error_json = e.response.json()
+            error_message = error_json.get("error", {}).get("message")
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Google Sheets API Error: `{error_message}`",
+                inline=False,
+            )
+        except StopIteration:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value="Could not find associated tab for puzzle in the tethered sheet.",
+                inline=False,
+            )
+        except Exception as e:
+            embed.add_field(
+                name=f"{constants.FAILED}",
+                value=f"Unknown error: `{str(e)}`",
+                inline=False,
+            )
+        await discord_utils.send_message(ctx, embed)
+
+async def category_move_to_archive(ctx: Context, archive_name: str):
+        """Moves the current channel to an archive category, or archives the thread if called from a thread.
+        1. Takes the current channel's category name, and splits it into words. Looks for (all words) Archive, then (all but last word) Archive, 
+        then (all but last two words) Archive etc.
+        
+        2. Once it finds a candidate category, moves the channel to that category.
+        
+        3. If the candidate category is full, create a new category with the same name, but with 2 appended to the end.
+        
+        4. If the candidate category is full but the category with 2 appended to the end also exists and is full, try with 3, etc."""
+        embed = discord_utils.create_embed()
+        # Handling if mta is called from a thread
+        if await discord_utils.is_thread(ctx, ctx.channel):
+            # Checking if thread can be archived by the bot
+            try:
+                await ctx.channel.edit(archived=True)
+            except nextcord.Forbidden:
+                embed.add_field(
+                    name=f"{constants.FAILED}!",
+                    value="Forbidden! Have you checked if the bot has the required permisisons?",
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+            embed.add_field(
+                name=f"{constants.SUCCESS}!",
+                value=f"Archived {ctx.channel.mention} thread",
+                inline=False,
+            )
+            await ctx.channel.edit(archived=True)
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        # Otherwise mta is called from a regular channel
+        archive_category = None
+        candidates = []
+        if archive_name is None:
+            # Find category with same name + Archive (or select combinations)
+            cat_name = ctx.channel.category.name
+            cat_name_words = cat_name.split(" ")
+
+            for i in range(len(cat_name_words), 0, -1):
+                candidate = " ".join(cat_name_words[:i]) + " Archive"
+                candidates.append(candidate)
+
+            for cand in candidates:
+                archive_category = await discord_utils.find_category(ctx, cand)
+                if archive_category:
+                    break
+
+        else:
+            archive_category = await discord_utils.find_category(ctx, archive_name)
+
+        if archive_category is None:
+            if archive_name is None:
+                embed.add_field(
+                    name=f"{constants.FAILED}!",
+                    value=f"I can't find the archive, so I cannot move {ctx.channel.mention}. "
+                    "I checked for the following categories: "
+                    + ", ".join(f"`{c}`" for c in candidates),
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+            else:
+                embed.add_field(
+                    name=f"{constants.FAILED}!",
+                    value=f"There is no category named `{archive_name}`, so I cannot move {ctx.channel.mention}.",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+
+        if discord_utils.category_is_full(archive_category):
+            # Search for all categories that start with archive_category.name.
+            categories_starting_with_name = []
+
+            for category in ctx.guild.categories:
+                if category.name.startswith(archive_category.name):
+                    categories_starting_with_name.append(category)
+
+            clonecat = ctx.bot.get_command("clonecat")
+            category_to_make = f"{archive_category.name} {len(categories_starting_with_name) + 1}"
+
+            await ctx.invoke(clonecat, origCatName=archive_category.name, targetCatName=category_to_make)
+            embed.add_field(
+                name=f"Created new archive category!",
+                value=f"Archive category `{archive_category.name}` is full, so created new category `{category_to_make}`!",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+
+            embed = discord_utils.create_embed()  # Reset embed
+            archive_category = await discord_utils.find_category(ctx, category_to_make) # Change it to the new one!
+            
+
+        if archive_category == ctx.channel.category:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Archive category `{archive_category.name}` is the same as current category `{ctx.channel.category.name}`. No need to move channel!",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        try:
+            # move channel
+            await ctx.channel.edit(category=archive_category)
+            await ctx.channel.edit(position=1)
+        except nextcord.Forbidden:
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"Can you check my permissions? I can't seem to be able to move "
+                f"{ctx.channel.mention} to `{archive_category.name}`",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        embed.add_field(
+            name=f"{constants.SUCCESS}!",
+            value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
 
 async def batch_create_puzzle_channels(
     bot,

@@ -643,7 +643,7 @@ class LionCog(commands.Cog, name="Lion"):
 
     @command_predicates.is_solver()
     @commands.command(
-        name="mtalion", aliases=["movetoarchivelion", "archivelion", "mtahydra"]
+        name="mtalion", aliases=["movetoarchivelion", "archivelion"]
     )
     async def mtalion(self, ctx: commands.Context, archive_name: str = None):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
