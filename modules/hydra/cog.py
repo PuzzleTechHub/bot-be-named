@@ -407,6 +407,30 @@ class HydraCog(commands.Cog, name="Hydra"):
         )
 
     @command_predicates.is_solver()
+    @commands.command(name="mtahydra", aliases=["movetoarchivehydra"])
+    async def mtahydra(self, ctx, *, category_name: str = None):
+        """Finds a category with `<category_name> Archive`, and moves the channel to that category.
+        Fails if there is no such category. If the category is full (50 channels), I will make a new one.
+        If called from thread (instead of channel), closes the thread instead of moving channel.
+
+        In the hydra implementation of ~mta, the archive category name is stardardized.
+
+        It must be in the form of `<category_name> Archive`, e.g. `MH21 Students Archive`.
+        Your solving category should not end with Archive.
+
+        Also moves the tab to the end of the list of tabs on the Google Sheet.
+
+        Attempts to search smart, for example `~mtalion "MH21 Students"` will search for "MH21 Students Archive" and "MH21 Archive" categories.
+        Some other common variants for "Archive" will also be attempted.
+
+        Permission Category : Solver Roles only.
+        Usage: `~mtalion`
+        Usage: `~mtalion archive_category_name`
+        """
+        await logging_utils.log_command("mtahydra", ctx.guild, ctx.channel, ctx.author)
+        await hydra_utils.sheet_move_to_archive(self.gspread_client, ctx)
+        await hydra_utils.category_move_to_archive(ctx, category_name)
+        
     @commands.command(name="chanhydra")
     async def chanhydra(self, ctx: commands.Context, *, content: str = ""):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
