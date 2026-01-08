@@ -910,12 +910,6 @@ class HydraCog(commands.Cog, name="Hydra"):
                     break
 
         if main_category is None:
-            # ~mtahydra just got refactored so I need to fix this.
-            # ~mtahydra works by, adding archive to the current category name and looking for that.
-            # If that doesn't work, it removes the last word and adds archive, if that doesn't work, it removes the last two words and adds archive, etc.
-            # If it finds an archive, it moves it there, but if it is full, it looks for the same name but with a 2 at the end. If that fails, it looks for a 3, etc.
-            # If they are all full, it creates a new one with the next number.
-
             curr_cat_name = ctx.channel.category.name
             base_name = re.sub(r"\s*Archive\s*\d*$", "", curr_cat_name).strip()
             split_base_names = base_name.split()
