@@ -4,6 +4,7 @@ import gspread
 import asyncio
 import emoji
 import shlex
+import re
 from nextcord.ext import commands
 from utils import (
     discord_utils,
@@ -846,7 +847,9 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         curr_sheet_link = str(result.sheet_link)
 
-        overview_sheet = await hydra_utils.get_overview(self.gspread_client, ctx, curr_sheet_link)
+        overview_sheet = await hydra_utils.get_overview(
+            self.gspread_client, ctx, curr_sheet_link
+        )
         if overview_sheet is None:
             return
 
@@ -907,22 +910,48 @@ class HydraCog(commands.Cog, name="Hydra"):
                     break
 
         if main_category is None:
-            possible_name_candidates = [  # These are the category names this command *should* get called from, where [x] is anything.
-                "[x] Archive",
-                "Archive: [x]",
-                "[x] archive",
-            ]
+            # ~mtahydra just got refactored so I need to fix this.
+            # ~mtahydra works by, adding archive to the current category name and looking for that.
+            # If that doesn't work, it removes the last word and adds archive, if that doesn't work, it removes the last two words and adds archive, etc.
+            # If it finds an archive, it moves it there, but if it is full, it looks for the same name but with a 2 at the end. If that fails, it looks for a 3, etc.
+            # If they are all full, it creates a new one with the next number.
+
             curr_cat_name = ctx.channel.category.name
-            for candidate in possible_name_candidates:
-                if candidate.replace("[x]", "").strip() in curr_cat_name:
-                    possible_main_cat_name = curr_cat_name.replace(
-                        candidate.replace("[x]", "").strip(), ""
-                    ).strip()
-                    main_category = await discord_utils.find_category(
-                        ctx, possible_main_cat_name
-                    )
-                    if main_category is not None:
-                        break
+            base_name = re.sub(r"\s*Archive\s*\d*$", "", curr_cat_name).strip()
+            split_base_names = base_name.split()
+            possible_category_prefixes = [
+                " ".join(split_base_names[: len(split_base_names) - i])
+                for i, _ in enumerate(split_base_names)
+            ]
+
+            possible_solving_categories = []
+            # Look for categories that begin with the exact base name, then the bas name minus last word, etc.
+            for possible_base_name in possible_category_prefixes:
+                to_add_candidates = [
+                    category
+                    for category in ctx.guild.categories
+                    if category.name.startswith(possible_base_name)
+                    and not re.match(r".*Archive\s*\d*$", category.name)
+                ]
+
+                for candidate in to_add_candidates:
+                    if candidate not in possible_solving_categories:
+                        possible_solving_categories.append(candidate)
+
+            if len(possible_solving_categories) == 1:
+                main_category = possible_solving_categories[0]
+            elif len(possible_solving_categories) > 1:
+                # Collate list into embed so user can pick
+                selection_embed = discord_utils.create_embed()
+                selection_embed.add_field(
+                    name="Multiple possible main hunt categories found",
+                    value='Please specify which category to move the channel to by using `~unmtahydra "Category Name"`.\n\n'
+                    + "\n".join(
+                        [f"- {cat.name}" for cat in possible_solving_categories]
+                    ),
+                )
+                await discord_utils.send_message(ctx, selection_embed)
+                return
 
         if main_category is None:
             embed.add_field(
