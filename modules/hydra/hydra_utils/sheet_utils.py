@@ -198,7 +198,7 @@ async def create_puzzle_channel_from_template(
     # tether channel
     addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
 
-    # update overview and new sheet(similar to lion)
+    # update overview and new sheet
     try:
         overview = OverviewSheet(gspread_client, curr_sheet_link)
         overview_id = overview.worksheet.id
@@ -290,7 +290,7 @@ async def create_puzzle_channel_from_template(
 async def findchanidcell(
     gspread_client, ctx, sheet_link, list_channel_id
 ) -> list[tuple[int, Worksheet, list]] | None:
-    """Find the cell with the discord channel id based on lion overview (moved from HydraCog)."""
+    """Find the cell with the discord channel id based on overview (moved from HydraCog)."""
     try:
         overview_wrapper = OverviewSheet(gspread_client, sheet_link)
     except gspread.exceptions.APIError as e:
@@ -473,7 +473,6 @@ async def batch_create_puzzle_channels(
     try:
         spreadsheet = gspread_client.open_by_url(curr_sheet_link)
         template_sheet = spreadsheet.worksheet("Template")
-        overview_sheet = spreadsheet.worksheet("Overview")
 
         # Fetch all existing worksheet names once (single API call)
         existing_sheet_names = {ws.title for ws in spreadsheet.worksheets()}
@@ -481,7 +480,7 @@ async def batch_create_puzzle_channels(
         embed = discord_utils.create_embed()
         embed.add_field(
             name=f"{constants.FAILED}!",
-            value=f"The sheet is missing either the 'Template' or 'Overview' tab.",
+            value="The sheet is missing either the 'Template' or 'Overview' tab.",
         )
         await discord_utils.send_message(ctx, embed)
         return []
@@ -567,7 +566,7 @@ async def batch_create_puzzle_channels(
         )
 
     try:
-        batch_response = spreadsheet.batch_update({"requests": requests})
+        batch_response = spreadsheet.batch_update({"requests": requests})  # noqa: F841
     except gspread.exceptions.APIError as e:
         error_json = e.response.json()
         error_status = error_json.get("error", {}).get("status")
@@ -587,7 +586,7 @@ async def batch_create_puzzle_channels(
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Could not duplicate tabs. Is the permission set to 'Anyone with link can edit'?",
+                value="Could not duplicate tabs. Is the permission set to 'Anyone with link can edit'?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -647,16 +646,14 @@ async def batch_create_puzzle_channels(
 
             # Batch update overview row
             overview_updates = {
-                puzzle_name_col
-                + str(row_num): (
+                puzzle_name_col + str(row_num): (
                     f'=HYPERLINK("{final_sheet_link}", "{puzzle_name}")',
                     True,  # is_formula
                 ),
                 discord_channel_id_col + str(row_num): (str(channel.id), False),
                 sheet_tab_id_col + str(row_num): (str(newsheet.id), False),
                 status_col + str(row_num): (sheets_constants.UNSTARTED_NAME, False),
-                answer_col
-                + str(row_num): (
+                answer_col + str(row_num): (
                     "='{}'!{}".format(
                         tab_name.replace("'", "''"),
                         sheets_constants.TAB_ANSWER_LOCATION,

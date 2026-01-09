@@ -48,7 +48,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         For any Google sheets commands, a tether to either category or channel (See `~chantether`) is necessary.
 
-        See also `~sheetcrab` and `~sheetlion`.
+        See also `~sheetcrab` and `~sheethydra`.
 
         Permission Category : Solver Roles only.
         Usage : `~tether SheetLink`
@@ -109,7 +109,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         For any Google sheets commands, a tether to either category (See `~tether`) or channel is necessary.
 
-        See also `~sheetcrab` and `~sheetlion`.
+        See also `~sheetcrab` and `~sheethydra`.
 
         Permission Category : Solver Roles only.
         Usage : `~chantether SheetLink`
@@ -149,15 +149,15 @@ class SheetsCog(commands.Cog, name="Sheets"):
             "deletetether",
             "untether",
             "deltether",
-            "removetetherlion",
-            "deltetherlion",
+            "removetetherhydra",
+            "deltetherhydra",
         ],
     )
     async def removesheettether(self, ctx):
         """Remove the Category or Channel tethering to the sheet.
 
         If a channel tether and a category tether both exist, the channel tether will always be removed first.
-        See also `~tether` and `~sheetcrab` and `~sheetlion`.
+        See also `~tether` and `~sheetcrab` and `~sheethydra`.
 
         Permission Category : Solver Roles only.
         Usage : `~removetether`
