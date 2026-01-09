@@ -1,10 +1,8 @@
 import nextcord
 import os
-import constants
 from nextcord.ext import commands
 from emoji import EMOJI_DATA, emojize
 import emoji
-from typing import Union
 from utils import discord_utils, logging_utils, command_predicates
 
 """
@@ -40,7 +38,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
         if not ctx.message.reference:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="You need to reply to a message to use emojiall",
             )
             await discord_utils.send_message(ctx, embed)
@@ -75,7 +73,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
         if not args:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="You need to specify at least one emoji name!",
                 inline=False,
             )
@@ -91,7 +89,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
         if not emoji_args:  # no emojis after removing delete
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="You need to specify at least one emoji name!",
                 inline=False,
             )
@@ -103,7 +101,7 @@ class MiscCog(commands.Cog, name="Misc"):
                 await ctx.message.delete()
             except nextcord.Forbidden:
                 embed.add_field(
-                    name=f"{constants.FAILED}!",
+                    name="Failed",
                     value="I don't have permission to delete messages!",
                 )
                 await discord_utils.send_message(ctx, embed)
@@ -116,7 +114,9 @@ class MiscCog(commands.Cog, name="Misc"):
             emoji = None
             hasurl = False
 
-            if emojiname.startswith("<") and emojiname.endswith(">"): # custom emoji format
+            if emojiname.startswith("<") and emojiname.endswith(
+                ">"
+            ):  # custom emoji format
                 try:
                     emoji_id = int(emojiname.split(":")[-1][:-1])
                     for guild in self.bot.guilds:
@@ -127,16 +127,20 @@ class MiscCog(commands.Cog, name="Misc"):
                 except (ValueError, IndexError):
                     pass
 
-            elif isinstance(emojiname, str) and emojiname in EMOJI_DATA: # standard unicode emoji
+            elif (
+                isinstance(emojiname, str) and emojiname in EMOJI_DATA
+            ):  # standard unicode emoji
                 emoji = emojiname
                 hasurl = False
 
-            elif emojiname.startswith(":") and emojiname.endswith(":"): # :emoji_name: format
+            elif emojiname.startswith(":") and emojiname.endswith(
+                ":"
+            ):  # :emoji_name: format
                 unicode_emoji = emojize(emojiname, language="alias")
                 if unicode_emoji != emojiname:
                     emoji = unicode_emoji
                     hasurl = False
-                else: # try custom emoji
+                else:  # try custom emoji
                     emojiname_clean = emojiname[1:-1]
                     for guild in self.bot.guilds:
                         emoji = nextcord.utils.get(guild.emojis, name=emojiname_clean)
@@ -144,7 +148,7 @@ class MiscCog(commands.Cog, name="Misc"):
                             hasurl = True
                             break
 
-            else: # try both unicode and custom emoji
+            else:  # try both unicode and custom emoji
                 emoji_with_colons = f":{emojiname}:"
                 unicode_emoji = emojize(emoji_with_colons, language="alias")
 
@@ -163,9 +167,9 @@ class MiscCog(commands.Cog, name="Misc"):
             else:
                 emojis.append((emoji, hasurl))
 
-        if not emojis: 
+        if not emojis:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"No valid emojis found. Failed: {', '.join(failed_emojis)}",
                 inline=False,
             )
@@ -182,7 +186,7 @@ class MiscCog(commands.Cog, name="Misc"):
                     )
                 except (nextcord.NotFound, nextcord.Forbidden, nextcord.HTTPException):
                     embed.add_field(
-                        name=f"{constants.FAILED}!",
+                        name="Failed",
                         value="Could not find the referenced message.",
                         inline=False,
                     )
@@ -345,7 +349,7 @@ class MiscCog(commands.Cog, name="Misc"):
         channel = await discord_utils.find_chan_or_thread(ctx, channel_id_or_name)
         if channel is None:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Error! The channel `{channel_id_or_name}` was not found",
             )
             await discord_utils.send_message(ctx, embed)
@@ -355,7 +359,7 @@ class MiscCog(commands.Cog, name="Misc"):
             await channel.send(message)
         except nextcord.Forbidden:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
                 f"the bot has the required permisisons?",
             )
@@ -363,7 +367,7 @@ class MiscCog(commands.Cog, name="Misc"):
             return
 
         embed.add_field(
-            name=f"{constants.SUCCESS}!",
+            name="Success",
             value=f"Message sent to {channel.mention}: {message}!",
         )
         # reply to user
@@ -393,7 +397,7 @@ class MiscCog(commands.Cog, name="Misc"):
         channel = await discord_utils.find_chan_or_thread(ctx, channel_id_or_name)
         if channel is None:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Error! The channel `{channel_id_or_name}` was not found",
             )
             await discord_utils.send_message(ctx, embed)
@@ -405,7 +409,7 @@ class MiscCog(commands.Cog, name="Misc"):
             await channel.send(embed=sent_embed)
         except nextcord.Forbidden:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
                 f"the bot has the required permisisons?",
             )
@@ -414,7 +418,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
         # reply to user
         sent_embed.add_field(
-            name=f"{constants.SUCCESS}!",
+            name="Success",
             value=f"Embed sent to {channel.mention}",
             inline=False,
         )

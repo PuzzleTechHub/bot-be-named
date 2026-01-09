@@ -8,10 +8,6 @@ EMBED_COLOR = 0xD4E4FF
 DEFAULT_COMMANDS = []
 CUSTOM_COMMANDS = {}
 
-# Command success/fail
-SUCCESS = "Success"
-FAILED = "Failed"
-
 # File size restriction
 BYTES_TO_MEGABYTES = 1_048_576  # 1024 squared
 HARDCODED_FILE_SIZE = 10_485_760

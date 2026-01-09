@@ -1,5 +1,4 @@
 from utils import discord_utils
-import constants
 import nextcord
 from nextcord.ext.commands import Context
 
@@ -23,13 +22,13 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
             await ctx.channel.edit(archived=True)
         except nextcord.Forbidden:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="Forbidden! Have you checked if the bot has the required permissions?",
             )
             await discord_utils.send_message(ctx, embed)
             return
         embed.add_field(
-            name=f"{constants.SUCCESS}!",
+            name="Success",
             value=f"Archived {ctx.channel.mention} thread",
             inline=False,
         )
@@ -60,7 +59,7 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
     if archive_category is None:
         if archive_name is None:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"I can't find the archive, so I cannot move {ctx.channel.mention}. "
                 "I checked for the following categories: "
                 + ", ".join(f"`{c}`" for c in candidates),
@@ -70,7 +69,7 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
             return
         else:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"There is no category named `{archive_name}`, so I cannot move {ctx.channel.mention}.",
                 inline=False,
             )
@@ -104,7 +103,7 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
                 targetCatName=category_to_make,
             )
             embed.add_field(
-                name=f"Created new archive category!",
+                name="Created new archive category!",
                 value=f"Archive category `{archive_category.name}` is full, so created new category `{category_to_make}`!",
                 inline=False,
             )
@@ -117,7 +116,7 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
 
     if archive_category == ctx.channel.category:
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value=f"Archive category `{archive_category.name}` is the same as current category `{ctx.channel.category.name}`. No need to move channel!",
             inline=False,
         )
@@ -130,7 +129,7 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
         await ctx.channel.edit(position=1)
     except nextcord.Forbidden:
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value=f"Can you check my permissions? I can't seem to be able to move "
             f"{ctx.channel.mention} to `{archive_category.name}`",
             inline=False,
@@ -139,7 +138,7 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
         return
 
     embed.add_field(
-        name=f"{constants.SUCCESS}!",
+        name="Success",
         value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`",
         inline=False,
     )

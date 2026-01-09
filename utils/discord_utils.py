@@ -218,9 +218,7 @@ def create_no_argument_embed(arg_name: str = "argument") -> nextcord.Embed:
     :param arg_name: (str) The type of argument needed (e.g. channel)
     """
     embed = create_embed()
-    embed.add_field(
-        name=f"{constants.FAILED}!", value=f"You need to supply a {arg_name}!"
-    )
+    embed.add_field(name="Failed", value=f"You need to supply a {arg_name}!")
     return embed
 
 
@@ -527,7 +525,7 @@ async def pin_message(message: nextcord.Message) -> nextcord.Embed:
     if len(pins) >= 50:
         embed = create_embed()
         embed.add_field(
-            name=f"{constants.FAILED} to pin!",
+            name="Failed to pin!",
             value="This channel already has max. number of pins (50)!",
         )
         return embed
@@ -541,7 +539,7 @@ async def pin_message(message: nextcord.Message) -> nextcord.Embed:
     except nextcord.Forbidden:
         embed = create_embed()
         embed.add_field(
-            name=f"{constants.FAILED} to pin!",
+            name="Failed to pin!",
             value=f"I don't have permissions to pin a message in {message.channel.mention}. Please check "
             "my permissions and try again.",
         )
@@ -549,7 +547,7 @@ async def pin_message(message: nextcord.Message) -> nextcord.Embed:
     except nextcord.HTTPException:
         embed = create_embed()
         embed.add_field(
-            name=f"{constants.FAILED} to pin!",
+            name="Failed to pin!",
             value="Cannot pin system messages (e.g. **Bot-Be-Named** pinned **a message** to this channel.)",
         )
         return embed

@@ -1,6 +1,5 @@
 from utils import discord_utils, sheet_utils
 from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
-import constants
 
 
 class SheetCommandBase:
@@ -19,7 +18,7 @@ class SheetCommandBase:
 
         if result is None:
             self.embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Neither the category **{self.ctx.message.channel.category.name}** "
                 f"nor the channel {self.ctx.message.channel.mention} are tethered to any Google sheet.",
                 inline=False,

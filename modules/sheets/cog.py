@@ -60,7 +60,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         if ctx.channel.category is None:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Sorry, tether is used for categories, there is no category for this channel. "
                 f"Consider adding a category to this channel or using `{ctx.prefix}chantether`",
                 inline=False,
@@ -74,7 +74,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         if proposed_sheet:
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value=f"The category **{ctx.channel.category.name}** is now tethered to the "
                 f"[Google sheet at link]({proposed_sheet.url})",
                 inline=False,
@@ -83,7 +83,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         # If we can't open the sheet, send an error and return
         else:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="Sorry, we can't find a sheet there. "
                 "Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
@@ -125,7 +125,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         if proposed_sheet:
             embed.add_field(
-                name=f"{constants.SUCCESS}",
+                name="Success",
                 value=f"The channel {ctx.channel.mention} is now tethered to the "
                 f"[Google sheet at link]({proposed_sheet.url})",
                 inline=False,
@@ -134,7 +134,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         # If we can't open the sheet, send an error and return
         else:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="Sorry, we can't find a sheet there. "
                 "Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
@@ -192,39 +192,39 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 session.commit()
             if tether_type == sheets_constants.THREAD and curr_thread_id is not None:
                 embed.add_field(
-                    name=f"{constants.SUCCESS}",
+                    name="Success",
                     value=f"{ctx.channel.mention}'s tether to [sheet]({sheet_link}) has been removed!",
                     inline=False,
                 )
             elif tether_type == sheets_constants.CHANNEL and curr_thread_id is not None:
                 embed.add_field(
-                    name=f"{constants.SUCCESS}",
+                    name="Success",
                     value=f"{ctx.channel.parent.mention}'s tether to [sheet]({sheet_link}) has been removed!",
                     inline=False,
                 )
             elif tether_type == sheets_constants.CHANNEL:
                 embed.add_field(
-                    name=f"{constants.SUCCESS}",
+                    name="Success",
                     value=f"{ctx.channel.mention}'s tether to [sheet]({sheet_link}) has been removed!",
                     inline=False,
                 )
             elif tether_type == sheets_constants.CATEGORY:
                 embed.add_field(
-                    name=f"{constants.SUCCESS}",
+                    name="Success",
                     value=f"The category **{ctx.channel.category}**'s tether to [sheet]({sheet_link}) has been removed!",
                     inline=False,
                 )
             # Else: Generic catch
             else:
                 embed.add_field(
-                    name=f"{constants.SUCCESS}",
+                    name="Success",
                     value=f"The tether to [sheet]({sheet_link}) has been removed!",
                     inline=False,
                 )
             await discord_utils.send_message(ctx, embed)
         else:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"The category **{curr_cat}** or the channel {curr_chan.mention} "
                 f"are not tethered to any Google sheet.",
                 inline=False,
@@ -252,7 +252,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         to_delete = await self.prune_tethers()
 
         embed.add_field(
-            name=f"{constants.SUCCESS}!",
+            name="Success",
             value=f"**{len(to_delete)}** tethers deleted.",
             inline=False,
         )
@@ -328,7 +328,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await discord_utils.send_message(ctx, embed)
         else:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Neither the category **{curr_cat}** nor the channel {curr_chan.mention} "
                 f"are tethered to any Google sheet.",
                 inline=False,
@@ -359,7 +359,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             )
             if tether_db_result is None:
                 embed.add_field(
-                    name=f"{constants.FAILED}",
+                    name="Failed",
                     value=f"There is no sheet tethered to {ctx.channel.mention} or the "
                     f"**{ctx.channel.category.name}** category. You'll need to supply a sheet link "
                     f"for me to download.",
@@ -371,7 +371,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         sheet = sheet_utils.get_sheet_from_key_or_link(self.gspread_client, sheet_url)
         if sheet is None:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value="I can't find that sheet. Are you sure the link is a valid sheet with permissions set to "
                 "'Anyone with the link can edit'?",
                 inline=False,
@@ -386,7 +386,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             response = request.execute()
         except googleapiclient.errors.HttpError:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value="Sorry, your sheet is too large and cannot be downloaded.",
                 inline=False,
             )
@@ -408,7 +408,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 ):
                     embed = discord_utils.create_embed()
                     embed.add_field(
-                        name=f"{constants.FAILED}",
+                        name="Failed",
                         value=f"Sorry, your sheet is {(file_size / constants.BYTES_TO_MEGABYTES):.2f}MB big, "
                         "but I can only send files of up to "
                         "{(ctx.guild.filesize_limit*0+constants.HARDCODED_FILE_SIZE/constants.BYTES_TO_MEGABYTES):.2f}MB.",
