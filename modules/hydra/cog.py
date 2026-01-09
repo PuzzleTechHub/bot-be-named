@@ -417,12 +417,12 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         Also moves the tab to the end of the list of tabs on the Google Sheet.
 
-        Attempts to search smart, for example `~mtalion "MH21 Students"` will search for "MH21 Students Archive" and "MH21 Archive" categories.
+        Attempts to search smart, for example `~mtahydra "MH21 Students"` will search for "MH21 Students Archive" and "MH21 Archive" categories.
         Some other common variants for "Archive" will also be attempted.
 
         Permission Category : Solver Roles only.
-        Usage: `~mtalion`
-        Usage: `~mtalion archive_category_name`
+        Usage: `~mtahydra`
+        Usage: `~mtahydra archive_category_name`
         """
         await logging_utils.log_command("mtahydra", ctx.guild, ctx.channel, ctx.author)
         await hydra_sheet_utils.sheet_move_to_archive(self.gspread_client, ctx)
@@ -501,25 +501,44 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         # Report results
         success_count = sum(1 for r in results if r[0] is not None)
+        success_messages = []
+        failed_messages = []
+
+        for result in results:
+            if result[0] is not None:  # Success
+                channel = result[2]
+                puzzle_name = result[3]
+                success_messages.append(
+                    f"- Channel `{puzzle_name}` created as {channel.mention}, posts pinned!"
+                )
+            else:  # Failed
+                puzzle_name = result[3]
+                failed_messages.append(f"- `{puzzle_name}`")
 
         if success_count > 0:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name="Success",
-                value=f"Successfully created {success_count} puzzle channel(s)!",
+                name="Sucess",
+                value=(
+                    f"Successfully created {success_count} puzzle channel(s):\n\n"
+                    "\n".join(success_messages)
+                    if success_messages
+                    else f"Successfully created {success_count} puzzle channel(s)!"
+                ),
                 inline=False,
             )
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+            await discord_utils.send_message(ctx, embed)
 
         if success_count < len(puzzle_configs):
             failed_count = len(puzzle_configs) - success_count
+            embed = discord_utils.create_embed()
             embed.add_field(
-                name="Failed",
-                value=f"Failed to create {failed_count} puzzle channel(s). Check earlier messages for details.",
+                name=f"Failed",
+                value=f"Failed to create {failed_count} puzzle channel(s). Check earlier messages for details.\n\n"
+                + "\n".join(failed_messages),
                 inline=False,
             )
-
-        if embed.fields:
             await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_trusted()
@@ -1055,7 +1074,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     @command_predicates.is_solver()
     @commands.command(name="unmtahydra")
     async def unmtahydra(self, ctx: commands.Context, category_name: str = ""):
-        """Does the rough opposite of ~mtahydra (~mtalion). Moves the channel into the main hunt category and moves the sheet into the active section.
+        """Does the rough opposite of ~mtahydra. Moves the channel into the main hunt category and moves the sheet into the active section.
         If I cannot find the main hunt category, I will ask the user to specify it.
 
         Permission Category : Solver Roles only.
