@@ -258,6 +258,21 @@ class LionCog(commands.Cog, name="Lion"):
 
         return overview_sheet
 
+    async def _get_overview_for_notification(
+        self, ctx: commands.Context
+    ) -> sheet_utils.OverviewSheet | None:
+        """Helper to get overview sheet for bot stream notification. Silently returns None on failure."""
+        try:
+            result, _ = sheet_utils.findsheettether(
+                str(ctx.message.channel.category_id), str(ctx.message.channel.id)
+            )
+            if result is None:
+                return None
+            curr_sheet_link = str(result.sheet_link)
+            return sheet_utils.OverviewSheet(self.gspread_client, curr_sheet_link)
+        except Exception:
+            return None
+
     async def findchanidcell(self, ctx: commands.Context, sheet_link):
         """Find the cell with the discord channel id based on lion overview"""
         curr_chan_id = ctx.channel.id

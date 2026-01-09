@@ -277,7 +277,7 @@ async def create_puzzle_channel_from_template(
     await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
     success_embed = discord_utils.create_embed()
     success_embed.add_field(
-        name=f"{constants.SUCCESS}!",
+        name="Success",
         value=f"Channel `{puzzle_name}` created as {new_chan.mention} from template `{template_name}`, posts pinned!",
         inline=False,
     )
@@ -507,6 +507,8 @@ async def batch_create_puzzle_channels(
 
     # Create discord channels
     channels = []
+    skipped_puzzles = []  # Track puzzles that were skipped
+
     for puzzle_name, puzzle_url in puzzle_configs:
         tab_name = puzzle_name.replace("#", "").replace("-", " ")
 
@@ -519,6 +521,7 @@ async def batch_create_puzzle_channels(
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
+            skipped_puzzles.append(puzzle_name)
             continue
 
         try:
@@ -542,7 +545,8 @@ async def batch_create_puzzle_channels(
             continue
 
     if not channels:
-        return []
+        # Return results for all skipped puzzles
+        return [(None, None, None, name) for name in skipped_puzzles]
 
     # Batch create all worksheets
     requests = []
@@ -744,8 +748,12 @@ async def batch_create_puzzle_channels(
     for idx, (puzzle_name, tab_name, puzzle_url, channel) in enumerate(channels):
         if worksheets[idx] is not None:
             final_link = curr_sheet_link + "/edit#gid=" + str(worksheets[idx].id)
-            results.append((final_link, worksheets[idx], channel))
+            results.append((final_link, worksheets[idx], channel, puzzle_name))
         else:
-            results.append((None, None, None))
+            results.append((None, None, None, puzzle_name))
+
+    # Add skipped puzzles to results
+    for puzzle_name in skipped_puzzles:
+        results.append((None, None, None, puzzle_name))
 
     return results

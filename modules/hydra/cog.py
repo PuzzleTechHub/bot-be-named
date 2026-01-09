@@ -532,14 +532,13 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         if success_count < len(puzzle_configs):
             failed_count = len(puzzle_configs) - success_count
+            embed = discord_utils.create_embed()
             embed.add_field(
                 name="Failed",
                 value=f"Failed to create {failed_count} puzzle channel(s). Check earlier messages for details.\n\n"
                 + "\n".join(failed_messages),
                 inline=False,
             )
-
-        if embed.fields:
             await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_trusted()
