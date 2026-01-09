@@ -5,6 +5,7 @@ import nextcord
 import gspread
 from utils.sheet_utils import OverviewSheet, findsheettether, addsheettethergeneric
 import emoji
+from datetime import datetime, timezone
 from gspread.worksheet import Worksheet
 
 from nextcord.ext.commands import Context
@@ -220,6 +221,10 @@ async def create_puzzle_channel_from_template(
         )
         status_col = overview.get_cell_value(sheets_constants.STATUS_COLUMN_LOCATION)
         answer_col = overview.get_cell_value(sheets_constants.ANSWER_COLUMN_LOCATION)
+        unlocked_timestamp_col = sheets_constants.PUZZLE_UNLOCKED_TIMESTAMP_COLUMN
+
+        # Get current timestamp in DD/MM/YY HH:MM:SS format
+        current_timestamp = datetime.now(timezone.utc).strftime("%d/%m/%y %H:%M:%S")
 
         batch = batch_update_utils.BatchUpdateBuilder()
         batch.update_cell_by_label(
@@ -245,6 +250,12 @@ async def create_puzzle_channel_from_template(
             sheet_id=overview_id,
             label=status_col + str(first_empty),
             value=unstarted,
+        )
+
+        batch.update_cell_by_label(
+            sheet_id=overview_id,
+            label=unlocked_timestamp_col + str(first_empty),
+            value=current_timestamp,
         )
 
         tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
@@ -642,6 +653,10 @@ async def batch_create_puzzle_channels(
     discord_channel_id_col = sheets_constants.DISCORD_CHANNEL_ID_COLUMN
     sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
 
+    # Get current timestamp for all puzzles in DD/MM/YY HH:MM:SS format
+    current_timestamp = datetime.now(timezone.utc).strftime("%d/%m/%y %H:%M:%S")
+    unlocked_timestamp_col = sheets_constants.PUZZLE_UNLOCKED_TIMESTAMP_COLUMN
+
     # Build batch update for overview and new sheets
     batch = batch_update_utils.BatchUpdateBuilder()
 
@@ -671,6 +686,7 @@ async def batch_create_puzzle_channels(
                     ),
                     True,  # is_formula
                 ),
+                unlocked_timestamp_col + str(row_num): (current_timestamp, False),
             }
 
             for label, (value, is_formula) in overview_updates.items():

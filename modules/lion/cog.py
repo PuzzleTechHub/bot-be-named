@@ -1,5 +1,6 @@
 import asyncio
 from typing import Union
+from datetime import datetime, timezone
 import emoji
 import gspread
 import nextcord
@@ -288,7 +289,9 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statushydra(ctx, "solved", answer)
 
         # Send notification to bot stream channel
-        await old_lion_command_helpers.send_solve_notification(self.bot, ctx, answer=answer)
+        await old_lion_command_helpers.send_solve_notification(
+            self.bot, ctx, answer=answer
+        )
 
     @command_predicates.is_solver()
     @commands.command(name="backsolvedhydra")
@@ -307,7 +310,9 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statushydra(ctx, "backsolved", answer)
 
         # Send notification to bot stream channel
-        await old_lion_command_helpers.send_solve_notification(self.bot, ctx, answer=answer)
+        await old_lion_command_helpers.send_solve_notification(
+            self.bot, ctx, answer=answer
+        )
 
     @command_predicates.is_solver()
     @commands.command(name="solvedishhydra")
@@ -423,6 +428,18 @@ class LionCog(commands.Cog, name="Lion"):
             batch_update_builder.update_cell_by_label(
                 overview_sheet.worksheet.id, status_col + str(row_to_find), status
             )
+
+            # Add solved timestamp for solved-type statuses
+            if answer is not None and status in ["Solved", "Backsolved"]:
+                solved_timestamp_col = sheets_constants.PUZZLE_SOLVED_TIMESTAMP_COLUMN
+                current_timestamp = datetime.now(timezone.utc).strftime(
+                    "%d/%m/%y %H:%M:%S"
+                )
+                batch_update_builder.update_cell_by_label(
+                    overview_sheet.worksheet.id,
+                    solved_timestamp_col + str(row_to_find),
+                    current_timestamp,
+                )
 
             color = status_info.get("color")
             batch_update_builder.color_update(tab_id, color)
