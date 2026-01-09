@@ -301,9 +301,14 @@ class HydraCog(commands.Cog, name="Hydra"):
                     except Exception:
                         overview_desc = None
                     if overview_desc:
-                        messages.append(
-                            f"- {currchan.mention} - {overview_desc[:100] + '...' if len(overview_desc) > 100 else overview_desc}"
+                        preview = (
+                            overview_desc[: hydra_constants.OVERVIEW_DESC_PREVIEW]
+                            + "..."
+                            if len(overview_desc)
+                            > hydra_constants.OVERVIEW_DESC_PREVIEW
+                            else overview_desc
                         )
+                        messages.append(f"- {currchan.mention} - {preview}")
                     else:
                         messages.append(f"- {currchan.mention} - *(empty description)*")
         except Exception as e:
@@ -330,7 +335,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             return
 
         # Split into multiple messages
-        chunk_size = 12
+        chunk_size = hydra_constants.SUMMARY_CHUNK_SIZE
         for i in range(0, len(messages), chunk_size):
             final_embed = discord_utils.create_embed()
             chunk = messages[i : i + chunk_size]
@@ -599,8 +604,8 @@ class HydraCog(commands.Cog, name="Hydra"):
             f"React with ✅ to confirm or ❌ to cancel.",
         )
 
-        confirm_emoji = "✅"
-        cancel_emoji = "❌"
+        confirm_emoji = hydra_constants.CONFIRM_EMOJI
+        cancel_emoji = hydra_constants.CANCEL_EMOJI
 
         confirm_message = (await discord_utils.send_message(ctx, confirm_embed))[0]
         await confirm_message.add_reaction(confirm_emoji)
@@ -610,12 +615,14 @@ class HydraCog(commands.Cog, name="Hydra"):
             return (
                 user == ctx.author
                 and reaction.message.id == confirm_message.id
-                and str(reaction.emoji) == "✅"
+                and str(reaction.emoji) == hydra_constants.CONFIRM_EMOJI
             )
 
         try:
             await self.bot.wait_for(
-                "reaction_add", timeout=15.0, check=check_correct_react
+                "reaction_add",
+                timeout=hydra_constants.DELETE_CONFIRM_TIMEOUT,
+                check=check_correct_react,
             )
         except asyncio.TimeoutError:
             timeout_embed = discord_utils.create_embed()
@@ -809,7 +816,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         embed = discord_utils.create_embed()
 
         # Parse arguments
-        limit = 100
+        limit = hydra_constants.WATCH_DEFAULT_LIMIT
         category_names = []
 
         if args:
@@ -821,8 +828,8 @@ class HydraCog(commands.Cog, name="Hydra"):
                 # Last arg is not an integer, all args are category names
                 category_names = list(args)
 
-        if limit > 250:
-            limit = 250
+        if limit > hydra_constants.WATCH_MAX_LIMIT:
+            limit = hydra_constants.WATCH_MAX_LIMIT
 
         # Determine which categories to watch
         categories = []
@@ -871,7 +878,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                 for ch in cat.text_channels:
                     try:
                         history = []
-                        async for m in ch.history(limit=100):
+                        async for m in ch.history(
+                            limit=hydra_constants.HISTORY_FETCH_LIMIT
+                        ):
                             history.append(m)
                         if history:
                             channel_histories.append(

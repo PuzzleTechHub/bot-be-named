@@ -1,6 +1,7 @@
 from utils import batch_update_utils, sheets_constants
 from utils import discord_utils
 import constants
+from modules.hydra import constants as hydra_constants
 import nextcord
 import gspread
 from utils.sheet_utils import OverviewSheet, findsheettether, addsheettethergeneric
@@ -125,7 +126,7 @@ async def create_puzzle_channel_from_template(
         newsheet = curr_sheet.duplicate_sheet(
             source_sheet_id=template_id,
             new_sheet_name=tab_name,
-            insert_sheet_index=template_index + 2,
+            insert_sheet_index=template_index + hydra_constants.TEMPLATE_DUPLICATE_INSERT_OFFSET,
         )
 
     except gspread.exceptions.APIError as e:
@@ -463,7 +464,7 @@ async def batch_create_puzzle_channels(
         spreadsheet = gspread_client.open_by_url(curr_sheet_link)
         template_sheet = spreadsheet.worksheet("Template")
         overview_sheet = spreadsheet.worksheet("Overview")
-        
+
         # Fetch all existing worksheet names once (single API call)
         existing_sheet_names = {ws.title for ws in spreadsheet.worksheets()}
     except gspread.exceptions.WorksheetNotFound:
