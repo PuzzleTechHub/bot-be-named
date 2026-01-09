@@ -454,7 +454,13 @@ class LionCog(commands.Cog, name="Lion"):
             past_prefix = curr_stat_info.get("prefix")
 
             if status == curr_status:
+                embed.add_field(
+                    name="Note",
+                    value=f"The puzzle status was already set to `{status}`. No changes were made to the channel name.",
+                    inline=False,
+                )
                 await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+                await discord_utils.send_message(ctx, embed)
                 return
 
             if add_prefix:
