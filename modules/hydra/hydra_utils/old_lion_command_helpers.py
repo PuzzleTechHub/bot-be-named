@@ -3,39 +3,41 @@ Hydra-specific versions of lion commands with additional features.
 These wrap or extend the lion commands with hydra-specific functionality.
 """
 
+import os
 import gspread
 from utils import discord_utils, google_utils
-from modules.hydra import constants as hydra_constants
 from modules.hydra.hydra_utils.hydra_helpers import get_ordinal_suffix
 
 
 async def send_solve_notification(bot, ctx, answer: str = None):
     """
     Send a notification to the bot stream channel when a puzzle is solved.
-    Counts solved puzzles from the big board URL and column specified in constants.
+    Counts solved puzzles from the big board URL and column specified in .env file.
 
     Args:
         bot: The bot instance
         ctx: The command context
         answer: The puzzle answer (optional)
     """
-    if hydra_constants.TM_BOT_STREAM_CHANNEL_ID is None:
+    # Read TM constants from environment variables
+    tm_bot_stream_channel_id = os.getenv("TM_BOT_STREAM_CHANNEL_ID")
+    tm_big_board_url = os.getenv("TM_BIG_BOARD_URL")
+    tm_big_board_status_column = os.getenv("TM_BIG_BOARD_STATUS_COLUMN")
+
+    if not tm_bot_stream_channel_id:
         return
 
     try:
-        bot_stream_channel = bot.get_channel(hydra_constants.TM_BOT_STREAM_CHANNEL_ID)
+        bot_stream_channel = bot.get_channel(int(tm_bot_stream_channel_id))
         if bot_stream_channel is None:
             return
 
         # Count solved puzzles from big board URL if configured
         solve_count = 0
-        if (
-            hydra_constants.TM_BIG_BOARD_URL
-            and hydra_constants.TM_BIG_BOARD_STATUS_COLUMN
-        ):
+        if tm_big_board_url and tm_big_board_status_column:
             try:
                 gspread_client = google_utils.create_gspread_client()
-                big_board = gspread_client.open_by_url(hydra_constants.TM_BIG_BOARD_URL)
+                big_board = gspread_client.open_by_url(tm_big_board_url)
                 big_board_sheet = big_board.sheet1
 
                 # Get all data from the big board
@@ -43,7 +45,7 @@ async def send_solve_notification(bot, ctx, answer: str = None):
 
                 # Convert column letter to index
                 _, status_col_idx = gspread.utils.a1_to_rowcol(
-                    hydra_constants.TM_BIG_BOARD_STATUS_COLUMN + "1"
+                    tm_big_board_status_column + "1"
                 )
 
                 # Count solved and backsolved puzzles
