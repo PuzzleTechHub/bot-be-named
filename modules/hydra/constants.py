@@ -15,9 +15,6 @@ CATEGORY_CHANNEL_LIMIT = 50  # max channels in a category before creating a new 
 # Text preview lengths
 OVERVIEW_DESC_PREVIEW = 100  # characters to show in category summary
 
-# Sheet duplication offsets
-TEMPLATE_DUPLICATE_INSERT_OFFSET = 2  # insert index offset when duplicating template
-
 # Reactions
 SUCCESS_REACTION = ":check_mark_button:"
 

@@ -121,12 +121,22 @@ async def create_puzzle_channel_from_template(
         pass
 
     # Try to duplicate the template tab and rename it to the given name
+    # Find the last template sheet to insert after it (in the active section)
+    insert_index = template_index + 1  # Default: right after current template
+    found_template = False
+    for sheet in curr_sheet.worksheets():
+        if sheet.title.endswith("Template"):
+            insert_index = sheet.index + 1
+            found_template = True
+        else:
+            if found_template:
+                break  # We found the last template already
+
     try:
         newsheet = curr_sheet.duplicate_sheet(
             source_sheet_id=template_id,
             new_sheet_name=tab_name,
-            insert_sheet_index=template_index
-            + hydra_constants.TEMPLATE_DUPLICATE_INSERT_OFFSET,
+            insert_sheet_index=insert_index,
         )
 
     except gspread.exceptions.APIError as e:
@@ -645,14 +655,16 @@ async def batch_create_puzzle_channels(
 
             # Batch update overview row
             overview_updates = {
-                puzzle_name_col + str(row_num): (
+                puzzle_name_col
+                + str(row_num): (
                     f'=HYPERLINK("{final_sheet_link}", "{puzzle_name}")',
                     True,  # is_formula
                 ),
                 discord_channel_id_col + str(row_num): (str(channel.id), False),
                 sheet_tab_id_col + str(row_num): (str(newsheet.id), False),
                 status_col + str(row_num): (sheets_constants.UNSTARTED_NAME, False),
-                answer_col + str(row_num): (
+                answer_col
+                + str(row_num): (
                     "='{}'!{}".format(
                         tab_name.replace("'", "''"),
                         sheets_constants.TAB_ANSWER_LOCATION,
