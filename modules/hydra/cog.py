@@ -615,11 +615,15 @@ class HydraCog(commands.Cog, name="Hydra"):
             return (
                 user == ctx.author
                 and reaction.message.id == confirm_message.id
-                and str(reaction.emoji) == hydra_constants.CONFIRM_EMOJI
+                and str(reaction.emoji)
+                in (
+                    hydra_constants.CONFIRM_EMOJI,
+                    hydra_constants.CANCEL_EMOJI,
+                )
             )
 
         try:
-            await self.bot.wait_for(
+            reaction, _ = await self.bot.wait_for(
                 "reaction_add",
                 timeout=hydra_constants.DELETE_CONFIRM_TIMEOUT,
                 check=check_correct_react,
@@ -633,6 +637,17 @@ class HydraCog(commands.Cog, name="Hydra"):
                 inline=False,
             )
             await discord_utils.send_message(ctx, timeout_embed)
+            return
+
+        # If the user reacted with the cancel emoji, abort immediately.
+        if str(reaction.emoji) == hydra_constants.CANCEL_EMOJI:
+            cancel_embed = discord_utils.create_embed()
+            cancel_embed.add_field(
+                name="Aborted!",
+                value=f"Deletion aborted. {target_channel.mention} will not be deleted.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, cancel_embed)
             return
 
         # Proceed with deletehydra
