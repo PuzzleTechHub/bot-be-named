@@ -463,6 +463,9 @@ async def batch_create_puzzle_channels(
         spreadsheet = gspread_client.open_by_url(curr_sheet_link)
         template_sheet = spreadsheet.worksheet("Template")
         overview_sheet = spreadsheet.worksheet("Overview")
+        
+        # Fetch all existing worksheet names once (single API call)
+        existing_sheet_names = {ws.title for ws in spreadsheet.worksheets()}
     except gspread.exceptions.WorksheetNotFound:
         embed = discord_utils.create_embed()
         embed.add_field(
@@ -500,15 +503,8 @@ async def batch_create_puzzle_channels(
     for puzzle_name, puzzle_url in puzzle_configs:
         tab_name = puzzle_name.replace("#", "").replace("-", " ")
 
-        # Check if a sheet with this name already exists
-        existing_sheet = None
-        try:
-            existing_sheet = spreadsheet.worksheet(tab_name)
-        except gspread.exceptions.WorksheetNotFound:
-            # Sheet doesn't exist, which is what we want
-            pass
-
-        if existing_sheet is not None:
+        # Check if a sheet with this name already exists (using cached list)
+        if tab_name in existing_sheet_names:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}!",
