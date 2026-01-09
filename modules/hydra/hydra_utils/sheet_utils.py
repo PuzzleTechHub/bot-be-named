@@ -126,7 +126,8 @@ async def create_puzzle_channel_from_template(
         newsheet = curr_sheet.duplicate_sheet(
             source_sheet_id=template_id,
             new_sheet_name=tab_name,
-            insert_sheet_index=template_index + hydra_constants.TEMPLATE_DUPLICATE_INSERT_OFFSET,
+            insert_sheet_index=template_index
+            + hydra_constants.TEMPLATE_DUPLICATE_INSERT_OFFSET,
         )
 
     except gspread.exceptions.APIError as e:
@@ -275,6 +276,13 @@ async def create_puzzle_channel_from_template(
             return curr_sheet_link, newsheet, new_chan
 
     await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+    success_embed = discord_utils.create_embed()
+    success_embed.add_field(
+        name=f"{constants.SUCCESS}!",
+        value=f"Channel `{puzzle_name}` created as {new_chan.mention} from template `{template_name}`, posts pinned!",
+        inline=False,
+    )
+    await discord_utils.send_message(ctx, success_embed)
 
 
 async def findchanidcell(
@@ -463,7 +471,6 @@ async def batch_create_puzzle_channels(
     try:
         spreadsheet = gspread_client.open_by_url(curr_sheet_link)
         template_sheet = spreadsheet.worksheet("Template")
-        overview_sheet = spreadsheet.worksheet("Overview")
 
         # Fetch all existing worksheet names once (single API call)
         existing_sheet_names = {ws.title for ws in spreadsheet.worksheets()}
@@ -471,7 +478,7 @@ async def batch_create_puzzle_channels(
         embed = discord_utils.create_embed()
         embed.add_field(
             name=f"{constants.FAILED}!",
-            value=f"The sheet is missing either the 'Template' or 'Overview' tab.",
+            value="The sheet is missing either the 'Template' or 'Overview' tab.",
         )
         await discord_utils.send_message(ctx, embed)
         return []
@@ -552,7 +559,7 @@ async def batch_create_puzzle_channels(
         )
 
     try:
-        batch_response = spreadsheet.batch_update({"requests": requests})
+        batch_response = spreadsheet.batch_update({"requests": requests})  # noqa: F841
     except gspread.exceptions.APIError as e:
         error_json = e.response.json()
         error_status = error_json.get("error", {}).get("status")
@@ -572,7 +579,7 @@ async def batch_create_puzzle_channels(
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}!",
-                value=f"Could not duplicate tabs. Is the permission set to 'Anyone with link can edit'?",
+                value="Could not duplicate tabs. Is the permission set to 'Anyone with link can edit'?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -632,16 +639,14 @@ async def batch_create_puzzle_channels(
 
             # Batch update overview row
             overview_updates = {
-                puzzle_name_col
-                + str(row_num): (
+                puzzle_name_col + str(row_num): (
                     f'=HYPERLINK("{final_sheet_link}", "{puzzle_name}")',
                     True,  # is_formula
                 ),
                 discord_channel_id_col + str(row_num): (str(channel.id), False),
                 sheet_tab_id_col + str(row_num): (str(newsheet.id), False),
                 status_col + str(row_num): (sheets_constants.UNSTARTED_NAME, False),
-                answer_col
-                + str(row_num): (
+                answer_col + str(row_num): (
                     "='{}'!{}".format(
                         tab_name.replace("'", "''"),
                         sheets_constants.TAB_ANSWER_LOCATION,

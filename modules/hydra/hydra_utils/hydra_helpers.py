@@ -1,6 +1,5 @@
 import gspread
 import emoji
-import shlex
 from utils import discord_utils
 import constants
 import nextcord
@@ -74,3 +73,10 @@ async def send_and_react_success(ctx, embed, reaction=":check_mark_button:"):
     """Send a message and react with a success reaction."""
     await ctx.message.add_reaction(emoji.emojize(reaction))
     await discord_utils.send_message(ctx, embed)
+
+
+def get_ordinal_suffix(n: int) -> str:
+    """Return the ordinal suffix for a number (1st, 2nd, 3rd, 4th, etc.)"""
+    if 11 <= (n % 100) <= 13:
+        return "th"
+    return {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")

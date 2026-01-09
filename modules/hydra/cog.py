@@ -501,21 +501,41 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         # Report results
         success_count = sum(1 for r in results if r[0] is not None)
+        success_messages = []
+        failed_messages = []
+
+        for result in results:
+            if result[0] is not None:  # Success
+                channel = result[2]
+                puzzle_name = result[3]
+                success_messages.append(
+                    f"- Channel `{puzzle_name}` created as {channel.mention}, posts pinned!"
+                )
+            else:  # Failed
+                puzzle_name = result[3]
+                failed_messages.append(f"- `{puzzle_name}`")
 
         if success_count > 0:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.SUCCESS}",
-                value=f"Successfully created {success_count} puzzle channel(s)!",
+                value=(
+                    f"Successfully created {success_count} puzzle channel(s):\n\n"
+                    "\n".join(success_messages)
+                    if success_messages
+                    else f"Successfully created {success_count} puzzle channel(s)!"
+                ),
                 inline=False,
             )
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+            await discord_utils.send_message(ctx, embed)
 
         if success_count < len(puzzle_configs):
             failed_count = len(puzzle_configs) - success_count
             embed.add_field(
                 name=f"{constants.FAILED}",
-                value=f"Failed to create {failed_count} puzzle channel(s). Check earlier messages for details.",
+                value=f"Failed to create {failed_count} puzzle channel(s). Check earlier messages for details.\n\n"
+                + "\n".join(failed_messages),
                 inline=False,
             )
 
