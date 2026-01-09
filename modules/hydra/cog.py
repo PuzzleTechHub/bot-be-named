@@ -16,9 +16,11 @@ from utils import (
     sheets_constants,
     sheet_utils,
 )
-from modules.hydra.hydra_utils import hydra_utils
+from modules.hydra.hydra_utils import hydra_helpers
 from modules.hydra.hydra_utils import discord_utils as hydra_discord_utils
 from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
+from modules.hydra.hydra_utils.sheet_command_base import SheetCommandBase
+from modules.hydra import constants as hydra_constants
 
 """
 Hydra module. Module with more advanced GSheet-Discord interfacing. See module's README.md for more.
@@ -52,33 +54,14 @@ class HydraCog(commands.Cog, name="Hydra"):
         await logging_utils.log_command(
             "roundhydra", ctx.guild, ctx.channel, ctx.author
         )
-        embed = discord_utils.create_embed()
 
-        result, _ = sheet_utils.findsheettether(
-            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
-        )
+        base = SheetCommandBase(ctx, self.gspread_client)
+        curr_sheet_link, overview_sheet, row_to_find = await base.get_sheet_context()
 
-        if result is None:
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
-                f"are tethered to any Google sheet.",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        curr_sheet_link = str(result.sheet_link)
-        overview_sheet = await hydra_sheet_utils.get_overview(
-            self.gspread_client, ctx, curr_sheet_link
-        )
         if overview_sheet is None:
             return
 
-        row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
-        if err_embed is not None:
-            await discord_utils.send_message(ctx, err_embed)
-            return
+        embed = discord_utils.create_embed()
 
         round_col = sheets_constants.ROUND_COLUMN
 
@@ -157,33 +140,14 @@ class HydraCog(commands.Cog, name="Hydra"):
         await logging_utils.log_command(
             "noteshydra", ctx.guild, ctx.channel, ctx.author
         )
-        embed = discord_utils.create_embed()
 
-        result, _ = sheet_utils.findsheettether(
-            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
-        )
+        base = SheetCommandBase(ctx, self.gspread_client)
+        curr_sheet_link, overview_sheet, row_to_find = await base.get_sheet_context()
 
-        if result is None:
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
-                f"are tethered to any Google sheet.",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        curr_sheet_link = str(result.sheet_link)
-        overview_sheet = await hydra_sheet_utils.get_overview(
-            self.gspread_client, ctx, curr_sheet_link
-        )
         if overview_sheet is None:
             return
 
-        row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
-        if err_embed is not None:
-            await discord_utils.send_message(ctx, err_embed)
-            return
+        embed = discord_utils.create_embed()
 
         notes_col = sheets_constants.NOTES_COLUMN
 
@@ -807,14 +771,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                 await discord_utils.send_message(ctx, success_embed)
 
             except gspread.exceptions.APIError as e:
-                error_json = e.response.json()
-                error_message = error_json.get("error", {}).get("message")
-                embed.add_field(
-                    name=f"{constants.FAILED}",
-                    value=f"Unknown GSheets API Error - `{error_message}`",
-                    inline=False,
-                )
-                await discord_utils.send_message(ctx, embed)
+                await hydra_helpers.handle_gspread_error(ctx, e, embed)
             except nextcord.Forbidden:
                 embed.add_field(
                     name=f"{constants.FAILED}",
@@ -1081,33 +1038,14 @@ class HydraCog(commands.Cog, name="Hydra"):
         await logging_utils.log_command(
             "unmtahydra", ctx.guild, ctx.channel, ctx.author
         )
-        embed = discord_utils.create_embed()
 
-        result, _ = sheet_utils.findsheettether(
-            str(ctx.message.channel.category_id), str(ctx.message.channel.id)
-        )
+        base = SheetCommandBase(ctx, self.gspread_client)
+        curr_sheet_link, overview_sheet, row_to_find = await base.get_sheet_context()
 
-        if result is None:
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"The channel {ctx.message.channel.mention} is not tethered to any Google sheet.",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        curr_sheet_link = str(result.sheet_link)
-
-        overview_sheet = await hydra_sheet_utils.get_overview(
-            self.gspread_client, ctx, curr_sheet_link
-        )
         if overview_sheet is None:
             return
 
-        row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
-        if err_embed is not None:
-            await discord_utils.send_message(ctx, err_embed)
-            return
+        embed = discord_utils.create_embed()
 
         sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
         try:
@@ -1263,14 +1201,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             )
             await discord_utils.send_message(ctx, tab_embed)
         except gspread.exceptions.APIError as e:
-            error_json = e.response.json()
-            error_message = error_json.get("error", {}).get("message")
-            tab_embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Google Sheets API Error when moving tab: `{error_message}`",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, tab_embed)
+            await hydra_helpers.handle_gspread_error(ctx, e, tab_embed)
             return
         except Exception as e:
             tab_embed.add_field(

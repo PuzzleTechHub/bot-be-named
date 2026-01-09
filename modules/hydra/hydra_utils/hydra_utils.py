@@ -1,1 +1,0 @@
-### To be used in: modules/hydra/cog.py for small helper functions

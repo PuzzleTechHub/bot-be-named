@@ -13,6 +13,7 @@ from nextcord.ext.commands import Context
 # RESERVED HYDRA UTILS #
 ########################
 
+
 async def create_puzzle_channel_from_template(
     bot,
     ctx,
@@ -253,9 +254,7 @@ async def create_puzzle_channel_from_template(
         )
         if puzzle_url:
             batch.update_cell_by_label(
-                sheet_id=newsheet.id, 
-                label=url_loc, 
-                value=puzzle_url
+                sheet_id=newsheet.id, label=url_loc, value=puzzle_url
             )
 
         gspread_client.open_by_url(curr_sheet_link).batch_update(batch.build())
@@ -276,7 +275,10 @@ async def create_puzzle_channel_from_template(
 
     await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
 
-async def findchanidcell(gspread_client, ctx, sheet_link, list_channel_id) -> list[tuple[int, Worksheet, list]] | None:
+
+async def findchanidcell(
+    gspread_client, ctx, sheet_link, list_channel_id
+) -> list[tuple[int, Worksheet, list]] | None:
     """Find the cell with the discord channel id based on lion overview (moved from HydraCog)."""
     try:
         overview_wrapper = OverviewSheet(gspread_client, sheet_link)
@@ -322,11 +324,15 @@ async def findchanidcell(gspread_client, ctx, sheet_link, list_channel_id) -> li
         all_chan_ids.append((rownum, overview_wrapper.worksheet, overview_values))
     return all_chan_ids
 
+
 def firstemptyrow(worksheet):
     """Finds the first empty row in a worksheet (moved from HydraCog)."""
     return len(worksheet.get_values()) + 1
 
-async def get_overview(gspread_client, ctx: Context, sheet_link: str) -> OverviewSheet | None:
+
+async def get_overview(
+    gspread_client, ctx: Context, sheet_link: str
+) -> OverviewSheet | None:
     """Open an OverviewSheet with improved error messages (moved from HydraCog)."""
     try:
         overview_sheet = OverviewSheet(gspread_client, sheet_link)
@@ -358,79 +364,79 @@ async def get_overview(gspread_client, ctx: Context, sheet_link: str) -> Overvie
 
     return overview_sheet
 
+
 async def sheet_move_to_archive(gspread_client, ctx: Context):
-        """Handles the sheet aspect of mtahydra."""
-        embed = discord_utils.create_embed()
-        result, _ = findsheettether(
-            ctx.message.channel.category_id, ctx.message.channel.id
+    """Handles the sheet aspect of mtahydra."""
+    embed = discord_utils.create_embed()
+    result, _ = findsheettether(ctx.message.channel.category_id, ctx.message.channel.id)
+
+    if result is None:
+        embed.add_field(
+            name=f"{constants.FAILED}",
+            value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
+            f"are tethered to any Google sheet.",
+            inline=False,
         )
+        await discord_utils.send_message(ctx, embed)
+        return
 
-        if result is None:
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
-                f"are tethered to any Google sheet.",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
+    curr_sheet_link = str(result.sheet_link)
+    overview_sheet = await get_overview(gspread_client, ctx, curr_sheet_link)
+    if overview_sheet is None:
+        embed.add_field(
+            name=f"{constants.FAILED}",
+            value="Error! Overview tab not found in the sheet! Did you accidentally delete it?",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+        return
 
-        curr_sheet_link = str(result.sheet_link)
-        overview_sheet = await get_overview(gspread_client, ctx, curr_sheet_link)
-        if overview_sheet is None:
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value="Error! Overview tab not found in the sheet! Did you accidentally delete it?",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
+    row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
+    if err_embed is not None:
+        await discord_utils.send_message(ctx, err_embed)
+        return
 
-        row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
-        if err_embed is not None:
-            await discord_utils.send_message(ctx, err_embed)
-            return
+    sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
+    tab_id = overview_sheet.get_cell_value(sheet_tab_id_col + str(row_to_find))
 
-        sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
-        tab_id = overview_sheet.get_cell_value(sheet_tab_id_col + str(row_to_find))
-
-        try:
-            worksheets = overview_sheet.spreadsheet.worksheets()
-            puzzle_tab = next((w for w in worksheets if w.id == int(tab_id)), None)
-            if puzzle_tab is None:
-                embed.add_field(
-                    name=f"{constants.FAILED}",
-                    value="Could not find associated tab for puzzle in the tethered sheet.",
-                    inline=False,
-                )
-            else:
-                puzzle_tab.update_index(len(worksheets))
-                embed.add_field(
-                    name=f"{constants.SUCCESS}!",
-                    value="Moved tab to the end of the sheet!",
-                    inline=False,
-                )
-        except gspread.exceptions.APIError as e:
-            error_json = e.response.json()
-            error_message = error_json.get("error", {}).get("message")
-            embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Google Sheets API Error: `{error_message}`",
-                inline=False,
-            )
-        except StopIteration:
+    try:
+        worksheets = overview_sheet.spreadsheet.worksheets()
+        puzzle_tab = next((w for w in worksheets if w.id == int(tab_id)), None)
+        if puzzle_tab is None:
             embed.add_field(
                 name=f"{constants.FAILED}",
                 value="Could not find associated tab for puzzle in the tethered sheet.",
                 inline=False,
             )
-        except Exception as e:
+        else:
+            puzzle_tab.update_index(len(worksheets))
             embed.add_field(
-                name=f"{constants.FAILED}",
-                value=f"Unknown error: `{str(e)}`",
+                name=f"{constants.SUCCESS}!",
+                value="Moved tab to the end of the sheet!",
                 inline=False,
             )
-        await discord_utils.send_message(ctx, embed)
+    except gspread.exceptions.APIError as e:
+        error_json = e.response.json()
+        error_message = error_json.get("error", {}).get("message")
+        embed.add_field(
+            name=f"{constants.FAILED}",
+            value=f"Google Sheets API Error: `{error_message}`",
+            inline=False,
+        )
+    except StopIteration:
+        embed.add_field(
+            name=f"{constants.FAILED}",
+            value="Could not find associated tab for puzzle in the tethered sheet.",
+            inline=False,
+        )
+    except Exception as e:
+        embed.add_field(
+            name=f"{constants.FAILED}",
+            value=f"Unknown error: `{str(e)}`",
+            inline=False,
+        )
+    await discord_utils.send_message(ctx, embed)
+
 
 async def batch_create_puzzle_channels(
     bot,
@@ -493,6 +499,25 @@ async def batch_create_puzzle_channels(
     channels = []
     for puzzle_name, puzzle_url in puzzle_configs:
         tab_name = puzzle_name.replace("#", "").replace("-", " ")
+
+        # Check if a sheet with this name already exists
+        existing_sheet = None
+        try:
+            existing_sheet = spreadsheet.worksheet(tab_name)
+        except gspread.exceptions.WorksheetNotFound:
+            # Sheet doesn't exist, which is what we want
+            pass
+
+        if existing_sheet is not None:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"A sheet with the name `{tab_name}` already exists. Skipping `{puzzle_name}`.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            continue
+
         try:
             new_channel = await discord_utils.createchannelgeneric(
                 ctx.guild, ctx.channel.category, puzzle_name
@@ -534,7 +559,19 @@ async def batch_create_puzzle_channels(
     except gspread.exceptions.APIError as e:
         error_json = e.response.json()
         error_status = error_json.get("error", {}).get("status")
-        if error_status == "PERMISSION_DENIED":
+        error_message = error_json.get("error", {}).get("message", "")
+
+        # Check for duplicate sheet name error
+        if "already exists" in error_message:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name=f"{constants.FAILED}!",
+                value=f"One or more sheets already exist with the given names. Error: {error_message}",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return []
+        elif error_status == "PERMISSION_DENIED":
             embed = discord_utils.create_embed()
             embed.add_field(
                 name=f"{constants.FAILED}!",
@@ -609,7 +646,8 @@ async def batch_create_puzzle_channels(
                 answer_col
                 + str(row_num): (
                     "='{}'!{}".format(
-                        tab_name.replace("'", "''"), sheets_constants.TAB_ANSWER_LOCATION
+                        tab_name.replace("'", "''"),
+                        sheets_constants.TAB_ANSWER_LOCATION,
                     ),
                     True,  # is_formula
                 ),
