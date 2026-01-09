@@ -275,6 +275,13 @@ async def create_puzzle_channel_from_template(
             return curr_sheet_link, newsheet, new_chan
 
     await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+    success_embed = discord_utils.create_embed()
+    success_embed.add_field(
+        name="Success",
+        value=f"Channel `{puzzle_name}` created as {new_chan.mention} from template `{template_name}`, posts pinned!",
+        inline=False,
+    )
+    await discord_utils.send_message(ctx, success_embed)
 
     # Send success message to the calling channel
     success_embed = discord_utils.create_embed()

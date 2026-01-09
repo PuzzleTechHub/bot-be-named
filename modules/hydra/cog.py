@@ -518,7 +518,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         if success_count > 0:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name="Sucess",
+                name="Success",
                 value=(
                     f"Successfully created {success_count} puzzle channel(s):\n\n"
                     "\n".join(success_messages)
@@ -534,7 +534,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             failed_count = len(puzzle_configs) - success_count
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"Failed",
+                name="Failed",
                 value=f"Failed to create {failed_count} puzzle channel(s). Check earlier messages for details.\n\n"
                 + "\n".join(failed_messages),
                 inline=False,
