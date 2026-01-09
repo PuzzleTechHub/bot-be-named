@@ -16,6 +16,7 @@ from utils import (
     sheets_constants,
     solved_utils,
 )
+from modules.hydra.hydra_utils import old_lion_command_helpers
 
 """
 Lion module. Module with GSheet-Discord interfacing. See module's README.md for more.
@@ -180,6 +181,21 @@ class LionCog(commands.Cog, name="Lion"):
 
         return overview_sheet
 
+    async def _get_overview_for_notification(
+        self, ctx: commands.Context
+    ) -> sheet_utils.OverviewSheet | None:
+        """Helper to get overview sheet for bot stream notification. Silently returns None on failure."""
+        try:
+            result, _ = sheet_utils.findsheettether(
+                str(ctx.message.channel.category_id), str(ctx.message.channel.id)
+            )
+            if result is None:
+                return None
+            curr_sheet_link = str(result.sheet_link)
+            return sheet_utils.OverviewSheet(self.gspread_client, curr_sheet_link)
+        except Exception:
+            return None
+
     async def findchanidcell(self, ctx: commands.Context, sheet_link):
         """Find the cell with the discord channel id based on lion overview"""
         curr_chan_id = ctx.channel.id
@@ -261,6 +277,7 @@ class LionCog(commands.Cog, name="Lion"):
     @commands.command(name="solvedhydra")
     async def solvedhydra(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to solved and updates the sheet and channel name accordingly.
+        Also sends a notification to the bot stream channel if configured.
 
         Permission Category : Solver Roles only.
         Usage: ~solvedhydra
@@ -271,10 +288,18 @@ class LionCog(commands.Cog, name="Lion"):
         )
         await self.statushydra(ctx, "solved", answer)
 
+        # Send notification to bot stream channel
+        overview_sheet = await self._get_overview_for_notification(ctx)
+        if overview_sheet is not None:
+            await old_lion_command_helpers.send_solve_notification(
+                self.bot, ctx, overview_sheet, answer
+            )
+
     @command_predicates.is_solver()
     @commands.command(name="backsolvedhydra")
     async def backsolvedhydra(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to backsolved and updates the sheet and channel name accordingly.
+        Also sends a notification to the bot stream channel if configured.
 
         Permission Category : Solver Roles only.
 
@@ -285,6 +310,13 @@ class LionCog(commands.Cog, name="Lion"):
             "backsolvedhydra", ctx.guild, ctx.channel, str(ctx.author)
         )
         await self.statushydra(ctx, "backsolved", answer)
+
+        # Send notification to bot stream channel
+        overview_sheet = await self._get_overview_for_notification(ctx)
+        if overview_sheet is not None:
+            await old_lion_command_helpers.send_solve_notification(
+                self.bot, ctx, overview_sheet, answer
+            )
 
     @command_predicates.is_solver()
     @commands.command(name="solvedishhydra")
