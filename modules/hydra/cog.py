@@ -522,7 +522,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         if embed.fields:
             await discord_utils.send_message(ctx, embed)
 
-    @command_predicates.is_solver()
+    @command_predicates.is_trusted()
     @commands.command(name="deletehydra")
     async def deletehydra(self, ctx: commands.Context, channel_mention: str = ""):
         """Deletes a puzzle channel, its corresponding tab, triggers archiving and cleans
@@ -532,7 +532,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         You'll need to confirm the deletion by reacting to the confirmation message within 15 seconds.
 
-        Permission Category : Solver Roles only.
+        Permission Category : Trusted Roles only.
 
         Usage: `~deletehydra #puzzle-channel` (deletes #puzzle-channel)
         """
@@ -810,7 +810,10 @@ class HydraCog(commands.Cog, name="Hydra"):
                 await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="watchcategoryhydra", aliases=["watchcategory"])
+    @commands.command(
+        name="watchcategoryhydra",
+        aliases=["watchcathydra", "watchcat", "watchcategory"],
+    )
     async def watchcategoryhydra(self, ctx, *args):
         """Summarise the last `limit` messages across one or more categories:
         `limit` caps off at 250.
