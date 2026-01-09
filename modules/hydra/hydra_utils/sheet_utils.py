@@ -197,7 +197,7 @@ async def create_puzzle_channel_from_template(
     # tether channel
     addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
 
-    # update overview and new sheet(similar to lion)
+    # update overview and new sheet
     try:
         overview = OverviewSheet(gspread_client, curr_sheet_link)
         overview_id = overview.worksheet.id
@@ -283,11 +283,20 @@ async def create_puzzle_channel_from_template(
     )
     await discord_utils.send_message(ctx, success_embed)
 
+    # Send success message to the calling channel
+    success_embed = discord_utils.create_embed()
+    success_embed.add_field(
+        name=f"{constants.SUCCESS}!",
+        value=f"Channel `{puzzle_name}` created as {new_chan.mention} from template `{template_name}`, posts pinned!",
+        inline=False,
+    )
+    await discord_utils.send_message(ctx, success_embed)
+
 
 async def findchanidcell(
     gspread_client, ctx, sheet_link, list_channel_id
 ) -> list[tuple[int, Worksheet, list]] | None:
-    """Find the cell with the discord channel id based on lion overview (moved from HydraCog)."""
+    """Find the cell with the discord channel id based on overview (moved from HydraCog)."""
     try:
         overview_wrapper = OverviewSheet(gspread_client, sheet_link)
     except gspread.exceptions.APIError as e:
@@ -542,6 +551,7 @@ async def batch_create_puzzle_channels(
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
+            skipped_puzzles.append(puzzle_name)
             continue
 
     if not channels:

@@ -417,12 +417,12 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         Also moves the tab to the end of the list of tabs on the Google Sheet.
 
-        Attempts to search smart, for example `~mtalion "MH21 Students"` will search for "MH21 Students Archive" and "MH21 Archive" categories.
+        Attempts to search smart, for example `~mtahydra "MH21 Students"` will search for "MH21 Students Archive" and "MH21 Archive" categories.
         Some other common variants for "Archive" will also be attempted.
 
         Permission Category : Solver Roles only.
-        Usage: `~mtalion`
-        Usage: `~mtalion archive_category_name`
+        Usage: `~mtahydra`
+        Usage: `~mtahydra archive_category_name`
         """
         await logging_utils.log_command("mtahydra", ctx.guild, ctx.channel, ctx.author)
         await hydra_sheet_utils.sheet_move_to_archive(self.gspread_client, ctx)
@@ -1074,7 +1074,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     @command_predicates.is_solver()
     @commands.command(name="unmtahydra")
     async def unmtahydra(self, ctx: commands.Context, category_name: str = ""):
-        """Does the rough opposite of ~mtahydra (~mtalion). Moves the channel into the main hunt category and moves the sheet into the active section.
+        """Does the rough opposite of ~mtahydra. Moves the channel into the main hunt category and moves the sheet into the active section.
         If I cannot find the main hunt category, I will ask the user to specify it.
 
         Permission Category : Solver Roles only.

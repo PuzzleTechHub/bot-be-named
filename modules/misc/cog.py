@@ -255,10 +255,10 @@ class MiscCog(commands.Cog, name="Misc"):
             f"3. Give permissions to people! (e.g. `{ctx.prefix}addperm Solver @everyone` or `{ctx.prefix}addperm Verified @everyone` etc.)\n"
             f"4. Create your category! Name it whatever you like, but make sure to make an archive category. (i.e. `My Category` and `My Category Archive`)\n"
             f"5. Create channels in your category! Channels like `#mycategory-discussion`, `#mycategory-bot-spam` maybe be useful to you!\n"
-            f"6. Tether your sheet to your category! (`{ctx.prefix}tetherlion https://your.google.sheet.here`) Make sure you configure the sharing settings so I can edit it! \n"
-            f"7. Start making puzzle channels! (`{ctx.prefix}chanlion 'Puzzle Name Here' 'puzzle.url.here.com'`)\n"
-            f"8. Start solving! Mark puzzles as solved with `{ctx.prefix}solvedlion 'ANSWER'`, backsolved with `{ctx.prefix}backsolvedlion 'ANSWER'`,"
-            f" move to archive with `{ctx.prefix}mtalion` and more! and more!\n\n",
+            f"6. Tether your sheet to your category! (`{ctx.prefix}tetherhydra https://your.google.sheet.here`) Make sure you configure the sharing settings so I can edit it! \n"
+            f"7. Start making puzzle channels! (`{ctx.prefix}chanhydra 'Puzzle Name Here' 'puzzle.url.here.com'`)\n"
+            f"8. Start solving! Mark puzzles as solved with `{ctx.prefix}solvedhydra 'ANSWER'`, backsolved with `{ctx.prefix}backsolvedhydra 'ANSWER'`,"
+            f" move to archive with `{ctx.prefix}mtahydra` and more! and more!\n\n",
         )
         await discord_utils.send_message(ctx, embed)
 
@@ -289,8 +289,8 @@ class MiscCog(commands.Cog, name="Misc"):
             f"- `{ctx.prefix}help` for a list of commands\n"
             f"- `{ctx.prefix}help commandname` for a description of a command (and its limitations). \n **When in doubt, use this command**.\n"
             f"Commonly used commands include-\n"
-            f"- `{ctx.prefix}chanlion` for making Google Sheet tabs for your current hunt\n"
-            f"- `{ctx.prefix}solvedlion` etc for marking puzzle channels as solved etc, and `{ctx.prefix}mtalion` for cleaning up the channels. \n"
+            f"- `{ctx.prefix}chanhydra` for making Google Sheet tabs for your current hunt\n"
+            f"- `{ctx.prefix}solvedhydra` etc for marking puzzle channels as solved etc, and `{ctx.prefix}mtahydra` for cleaning up the channels. \n"
             f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply.\n\n",
             inline=False,
         )
