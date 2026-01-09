@@ -594,7 +594,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         # Confirmation prompt
         confirm_embed = discord_utils.create_embed()
         confirm_embed.add_field(
-            name="Confirm deltetion?",
+            name="Confirm deletion?",
             value=f"You are about to delete the channel {target_channel.mention} and its corresponding tab in the sheet.\n\n"
             f"This will:\n"
             f"- Archive the channel contents\n"
@@ -628,7 +628,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             timeout_embed = discord_utils.create_embed()
             timeout_embed.add_field(
                 name="Cancelled!",
-                value="No conformation received in time. "
+                value="No confirmation received in time. "
                 f"{target_channel.mention} will not deleted.",
                 inline=False,
             )
