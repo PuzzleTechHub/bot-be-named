@@ -37,66 +37,6 @@ class LionCog(commands.Cog, name="Lion"):
     # SOLVED COMMANDS WITHOUT LION #
     ################################
 
-    @command_predicates.is_solver()
-    @commands.command(name="solved", aliases=["solvedcrab"])
-    async def solved(self, ctx: commands.Context):
-        """Changes channel name to solved-<channel-name>
-
-        Permission Category : Solver Roles only.
-        Usage: `~solved`
-
-        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
-        """
-        status = "Solved"
-        status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
-        embed = await solved_utils.status_channel(ctx, status_prefix)
-        await discord_utils.send_message(ctx, embed)
-
-    @command_predicates.is_solver()
-    @commands.command(name="solvedish", aliases=["solvedishcrab"])
-    async def solvedish(self, ctx: commands.Context):
-        """Changes channel name to solvedish-<channel-name>
-
-        Permission Category : Solver Roles only.
-        Usage: `~solvedish`
-
-        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
-        """
-        status = "Solvedish"
-        status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
-        embed = await solved_utils.status_channel(ctx, status_prefix)
-        await discord_utils.send_message(ctx, embed)
-
-    @command_predicates.is_solver()
-    @commands.command(name="backsolved", aliases=["backsolvedcrab"])
-    async def backsolved(self, ctx: commands.Context):
-        """Changes channel name to backsolved-<channel-name>
-
-        Permission Category : Solver Roles only.
-        Usage: `~backsolved`
-
-        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
-        """
-        status = "Backsolved"
-        status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
-        embed = await solved_utils.status_channel(ctx, status_prefix)
-        await discord_utils.send_message(ctx, embed)
-
-    @command_predicates.is_solver()
-    @commands.command(name="unsolved", aliases=["unsolvedcrab"])
-    async def unsolved(self, ctx: commands.context):
-        """removes one of the solved prefixes from channel name
-
-        Permission Category : Solver Roles only.
-        Usage: `~unsolved`
-
-        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
-        """
-        # log command in console
-        await logging_utils.log_command("unsolved", ctx.guild, ctx.channel, ctx.author)
-        embed = await solved_utils.status_remove(ctx)
-        await discord_utils.send_message(ctx, embed)
-
     async def movetoarchive_generic(self, ctx: commands.Context, archive_name: str):
         embed = discord_utils.create_embed()
         # Handling if mta is called from a thread
@@ -199,25 +139,6 @@ class LionCog(commands.Cog, name="Lion"):
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
-
-    @command_predicates.is_solver()
-    @commands.command(name="mta", aliases=["movetoarchive", "mtacrab"])
-    async def movetoarchive(self, ctx: commands.Context, archive_name: str = None):
-        """Finds a category with `<category_name> Archive`, and moves the channel to that category.
-        Fails if there is no such category, or is the category is full (i.e. 50 Channels).
-        If called from thread (instead of channel), closes the thread instead of moving channel.
-
-        Attempts to search smart, for example `~mta "MH21 Students"` will search for "MH21 Students Archive" and "MH21 Archive" categories.
-        Some other common variants for "Archive" will also be attempted.
-
-        Permission Category : Solver Roles only.
-        Usage: `~mta`
-        Usage: `~movetoarchive archive_category_name`
-        """
-        await logging_utils.log_command(
-            "movetoarchive", ctx.guild, ctx.channel, ctx.author
-        )
-        await self.movetoarchive_generic(ctx, archive_name)
 
     ########################
     # LION STATUS COMMANDS #
