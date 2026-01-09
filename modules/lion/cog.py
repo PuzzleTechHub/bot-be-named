@@ -289,11 +289,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statushydra(ctx, "solved", answer)
 
         # Send notification to bot stream channel
-        overview_sheet = await self._get_overview_for_notification(ctx)
-        if overview_sheet is not None:
-            await old_lion_command_helpers.send_solve_notification(
-                self.bot, ctx, overview_sheet, answer
-            )
+        await old_lion_command_helpers.send_solve_notification(self.bot, ctx, answer=answer)
 
     @command_predicates.is_solver()
     @commands.command(name="backsolvedhydra")
@@ -312,11 +308,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statushydra(ctx, "backsolved", answer)
 
         # Send notification to bot stream channel
-        overview_sheet = await self._get_overview_for_notification(ctx)
-        if overview_sheet is not None:
-            await old_lion_command_helpers.send_solve_notification(
-                self.bot, ctx, overview_sheet, answer
-            )
+        await old_lion_command_helpers.send_solve_notification(self.bot, ctx, answer=answer)
 
     @command_predicates.is_solver()
     @commands.command(name="solvedishhydra")

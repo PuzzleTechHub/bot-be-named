@@ -28,3 +28,5 @@ ARCHIVE_REGEX_PATTERN = r"\s*Archive\s*\d*$"
 
 # TM constants
 TM_BOT_STREAM_CHANNEL_ID = None  # FIXME change this during hunt
+TM_BIG_BOARD_URL = None  # FIXME change this during hunt
+TM_BIG_BOARD_STATUS_COLUMN = None  # FIXME change this during hunt
