@@ -1,6 +1,5 @@
 from utils import sheets_constants
 from utils import discord_utils
-import constants
 import nextcord
 import gspread
 import database
@@ -94,7 +93,7 @@ async def sheetcrabgeneric(
     # get spreadsheet title for nicer embed
 
     embed.add_field(
-        name=f"{constants.SUCCESS}!",
+        name="Success",
         value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
         inline=False,
     )
@@ -127,7 +126,7 @@ async def chancrabgeneric(
     if chan_type == "chan":
         if discord_utils.category_is_full(ctx.channel.category):
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Category `{ctx.channel.category.name}` is already full, max limit is 50 channels.",
             )
             # reply to user
@@ -135,7 +134,7 @@ async def chancrabgeneric(
             return None, None, None
         if discord_utils.server_is_full(ctx.channel.guild):
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Guild `{ctx.channel.guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
             )
             # reply to user
@@ -149,7 +148,7 @@ async def chancrabgeneric(
 
     if chan_type == "thread" and await discord_utils.is_thread(ctx, ctx.channel):
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value="Invalid! You cannot make a thread from inside another thread!",
         )
         await discord_utils.send_message(ctx, embed)
@@ -184,7 +183,7 @@ async def chancrabgeneric(
     # Error creating channel
     if not new_chan:
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value="Forbidden! Have you checked if the bot has the required permisisons?",
         )
         await discord_utils.send_message(ctx, embed)
@@ -195,7 +194,7 @@ async def chancrabgeneric(
     # get spreadsheet title for nicer embed
 
     embed.add_field(
-        name=f"{constants.SUCCESS}!",
+        name="Success",
         value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
         inline=False,
     )
@@ -205,7 +204,7 @@ async def chancrabgeneric(
         msg = await new_chan.send(embed=embed)
     except nextcord.Forbidden:
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value=f"Cannot send messages in `{chan_name}`!",
             inline=False,
         )
@@ -236,7 +235,7 @@ async def chancrabgeneric(
 
     embed = discord_utils.create_embed()
     embed.add_field(
-        name=f"{constants.SUCCESS}!",
+        name="Success",
         value=f"Channel `{chan_name}` created as {new_chan.mention}, posts pinned!",
         inline=False,
     )
@@ -317,7 +316,7 @@ async def sheetcreatetabgeneric(
         else:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"The category **{curr_cat.name}** nor the channel **{curr_chan.name}** are not "
                 f"tethered to any Google sheet.",
                 inline=False,
@@ -338,7 +337,7 @@ async def sheetcreatetabgeneric(
             if error_status == "PERMISSION_DENIED":
                 embed = discord_utils.create_embed()
                 embed.add_field(
-                    name=f"{constants.FAILED}",
+                    name="Failed",
                     value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
                     f"Did the permissions change?",
                     inline=False,
@@ -351,7 +350,7 @@ async def sheetcreatetabgeneric(
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"The [sheet]({curr_sheet_link}) has no tab named '{template_or_meta}'. "
                 f"Did you forget to add one?",
                 inline=False,
@@ -364,7 +363,7 @@ async def sheetcreatetabgeneric(
             # If there is a tab with the given name, that's an error!
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"The [Google sheet at link]({curr_sheet_link}) already has a tab named "
                 f"**{tab_name}**. Cannot create a tab with same name.",
                 inline=False,
@@ -394,7 +393,7 @@ async def sheetcreatetabgeneric(
             if error_status == "PERMISSION_DENIED":
                 embed = discord_utils.create_embed()
                 embed.add_field(
-                    name=f"{constants.FAILED}",
+                    name="Failed",
                     value=f"Could not duplicate '{template_or_meta}' tab in the "
                     f"[Google sheet at link]({curr_sheet_link}). "
                     f"Is the permission set up with 'Anyone with link can edit'?",
@@ -411,7 +410,7 @@ async def sheetcreatetabgeneric(
             error_json = e.response.json()
             error_message = error_json.get("error", {}).get("message")
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Unknown GSheets API Error - `{error_message}`",
                 inline=False,
             )
@@ -447,7 +446,7 @@ class OverviewSheet:
         # I don't like Go-style errors, but I also don't want to make this async...
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value=f"I couldn't find the channel {ctx.channel.mention} in the sheet."
             f" Are you sure this channel is linked to a puzzle?",
             inline=False,

@@ -1,6 +1,5 @@
 from utils import batch_update_utils, sheets_constants
 from utils import discord_utils
-import constants
 from modules.hydra import constants as hydra_constants
 import nextcord
 import gspread
@@ -30,7 +29,7 @@ async def create_puzzle_channel_from_template(
     # Find tether for this category/channel
     if ctx.channel.category is None:
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value="This command must be used in a channel inside a category!",
         )
         await discord_utils.send_message(ctx, embed)
@@ -41,7 +40,7 @@ async def create_puzzle_channel_from_template(
     )
     if tether_db_result is None:
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value=f"The category **{ctx.channel.category.name}** nor the channel **{ctx.channel.name}** are tethered to a sheet.",
             inline=False,
         )
@@ -59,7 +58,7 @@ async def create_puzzle_channel_from_template(
         if error_status == "PERMISSION_DENIED":
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
                 f"Did the permissions change?",
                 inline=False,
@@ -83,7 +82,7 @@ async def create_puzzle_channel_from_template(
             used_fallback = True
         except gspread.exceptions.WorksheetNotFound:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Neither the tab `{desired_template_tab}` nor `Template` exist on the tethered sheet",
                 inline=False,
             )
@@ -97,7 +96,7 @@ async def create_puzzle_channel_from_template(
     if used_fallback:
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value=f"The tab `{desired_template_tab}` does not exist on the tethered sheet. Using `Template` tab instead.",
             inline=False,
         )
@@ -109,7 +108,7 @@ async def create_puzzle_channel_from_template(
         # If there is a tab with the given name, that's an error!
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value=f"The [Google sheet at link]({curr_sheet_link}) already has a tab named "
             f"**{tab_name}**. Cannot create a tab with same name.",
             inline=False,
@@ -136,7 +135,7 @@ async def create_puzzle_channel_from_template(
         if error_status == "PERMISSION_DENIED":
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Could not duplicate '{desired_template_tab}' tab in the "
                 f"[Google sheet at link]({curr_sheet_link}). "
                 f"Is the permission set up with 'Anyone with link can edit'?",
@@ -156,7 +155,7 @@ async def create_puzzle_channel_from_template(
 
     if not new_chan:
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value="Forbidden! Have you checked if the bot has the required permisisons?",
         )
         await discord_utils.send_message(ctx, embed)
@@ -164,7 +163,7 @@ async def create_puzzle_channel_from_template(
 
     embed = discord_utils.create_embed()
     embed.add_field(
-        name=f"{constants.SUCCESS}!",
+        name="Success",
         value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
         inline=False,
     )
@@ -172,7 +171,7 @@ async def create_puzzle_channel_from_template(
         msg = await new_chan.send(embed=embed)
     except nextcord.Forbidden:
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value=f"Cannot send messages in `{puzzle_name}`!",
             inline=False,
         )
@@ -268,7 +267,7 @@ async def create_puzzle_channel_from_template(
             error_message = error_json.get("error", {}).get("message")
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Unknown GSheets API Error - `{error_message}`",
                 inline=False,
             )
@@ -294,7 +293,7 @@ async def findchanidcell(
     except gspread.exceptions.APIError as e:
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value=f"I'm unable to open the tethered sheet. Error: {str(e)}",
             inline=False,
         )
@@ -303,7 +302,7 @@ async def findchanidcell(
     except gspread.exceptions.SpreadsheetNotFound:
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value=f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
             f"Did you forget to add one?",
             inline=False,
@@ -313,7 +312,7 @@ async def findchanidcell(
     except Exception as e:
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value=f"An unknown error occurred when trying to open the tethered sheet. Error: {str(e)}",
             inline=False,
         )
@@ -351,7 +350,7 @@ async def get_overview(
         if error_status == "PERMISSION_DENIED":
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"I'm unable to open the tethered [sheet]({sheet_link}). "
                 f"Did the permissions change?",
                 inline=False,
@@ -363,7 +362,7 @@ async def get_overview(
     except gspread.exceptions.WorksheetNotFound:
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value=f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
             f"Did you forget to add one?",
             inline=False,
@@ -381,7 +380,7 @@ async def sheet_move_to_archive(gspread_client, ctx: Context):
 
     if result is None:
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
             f"are tethered to any Google sheet.",
             inline=False,
@@ -393,7 +392,7 @@ async def sheet_move_to_archive(gspread_client, ctx: Context):
     overview_sheet = await get_overview(gspread_client, ctx, curr_sheet_link)
     if overview_sheet is None:
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value="Error! Overview tab not found in the sheet! Did you accidentally delete it?",
             inline=False,
         )
@@ -413,14 +412,14 @@ async def sheet_move_to_archive(gspread_client, ctx: Context):
         puzzle_tab = next((w for w in worksheets if w.id == int(tab_id)), None)
         if puzzle_tab is None:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value="Could not find associated tab for puzzle in the tethered sheet.",
                 inline=False,
             )
         else:
             puzzle_tab.update_index(len(worksheets))
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value="Moved tab to the end of the sheet!",
                 inline=False,
             )
@@ -428,19 +427,19 @@ async def sheet_move_to_archive(gspread_client, ctx: Context):
         error_json = e.response.json()
         error_message = error_json.get("error", {}).get("message")
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value=f"Google Sheets API Error: `{error_message}`",
             inline=False,
         )
     except StopIteration:
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value="Could not find associated tab for puzzle in the tethered sheet.",
             inline=False,
         )
     except Exception as e:
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value=f"Unknown error: `{str(e)}`",
             inline=False,
         )
@@ -459,7 +458,7 @@ async def batch_create_puzzle_channels(
     if result is None:
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value=f"Neither the category **{ctx.channel.category.name}** nor the channel **{ctx.channel.name}** "
             "are tethered to a sheet.",
         )
@@ -477,7 +476,7 @@ async def batch_create_puzzle_channels(
     except gspread.exceptions.WorksheetNotFound:
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value="The sheet is missing either the 'Template' or 'Overview' tab.",
         )
         await discord_utils.send_message(ctx, embed)
@@ -488,7 +487,7 @@ async def batch_create_puzzle_channels(
         if error_status == "PERMISSION_DENIED":
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
                 f"Did the permissions change?",
                 inline=False,
@@ -500,7 +499,7 @@ async def batch_create_puzzle_channels(
     except Exception as e:
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value=f"Could not open the sheet. Error: {str(e)}",
         )
         await discord_utils.send_message(ctx, embed)
@@ -515,7 +514,7 @@ async def batch_create_puzzle_channels(
         if tab_name in existing_sheet_names:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"A sheet with the name `{tab_name}` already exists. Skipping `{puzzle_name}`.",
                 inline=False,
             )
@@ -535,7 +534,7 @@ async def batch_create_puzzle_channels(
         except Exception as e:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Could not create channel for `{puzzle_name}`. Error: {str(e)}",
                 inline=False,
             )
@@ -569,7 +568,7 @@ async def batch_create_puzzle_channels(
         if "already exists" in error_message:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"One or more sheets already exist with the given names. Error: {error_message}",
                 inline=False,
             )
@@ -578,7 +577,7 @@ async def batch_create_puzzle_channels(
         elif error_status == "PERMISSION_DENIED":
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="Could not duplicate tabs. Is the permission set to 'Anyone with link can edit'?",
                 inline=False,
             )
@@ -589,7 +588,7 @@ async def batch_create_puzzle_channels(
     except Exception as e:
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value=f"Could not create sheets. Error: {str(e)}",
             inline=False,
         )
@@ -687,7 +686,7 @@ async def batch_create_puzzle_channels(
             try:
                 embed = discord_utils.create_embed()
                 embed.add_field(
-                    name=f"{constants.SUCCESS}!",
+                    name="Success",
                     value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
                     inline=False,
                 )
@@ -706,7 +705,7 @@ async def batch_create_puzzle_channels(
         except Exception as e:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Error processing `{puzzle_name}`. Error: {str(e)}",
                 inline=False,
             )
@@ -724,7 +723,7 @@ async def batch_create_puzzle_channels(
             error_message = error_json.get("error", {}).get("message")
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Unknown GSheets API Error - `{error_message}`",
                 inline=False,
             )
@@ -733,7 +732,7 @@ async def batch_create_puzzle_channels(
     except Exception as e:
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value=f"Could not update sheets. Error: {str(e)}",
             inline=False,
         )

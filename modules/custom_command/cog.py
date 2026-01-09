@@ -25,7 +25,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         embed = discord_utils.create_embed()
         if command_name in constants.DEFAULT_COMMANDS:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Command {command_name} is a default command. Please use a different name.",
             )
             await discord_utils.send_message(ctx, embed)
@@ -33,7 +33,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
         if not is_global and command_name in database.CUSTOM_COMMANDS[ctx.guild.id]:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value "
                 f"`{database.CUSTOM_COMMANDS[ctx.guild.id][command_name][0]}`. If you'd like to replace "
                 f"`{ctx.prefix}{command_name}`, please use `{ctx.prefix}editcustomcommand {command_name} "
@@ -61,7 +61,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
                 session.commit()
 
                 embed.add_field(
-                    name=f"{constants.SUCCESS}",
+                    name="Success",
                     value=f"Added `{ctx.prefix}{command_name}` with value `{command_return}`",
                 )
             # Command exists in the DB but not in our constants.
@@ -213,7 +213,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             )
         else:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"No custom commands in `{guildid}`, why not use "
                 f"`{ctx.prefix}addcustomcommand` to create one?",
                 inline=False,
@@ -238,7 +238,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             )
         else:
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value=f"No global custom commands yet. Contact {owner.mention} to suggest one.",
                 inline=False,
             )
@@ -277,7 +277,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
                 ).update({"command_return": command_return})
                 session.commit()
             embed.add_field(
-                name=f"{constants.SUCCESS}",
+                name="Success",
                 value=f"Edited command `{ctx.prefix}{command_name}` to have return value "
                 f"`{command_return}`",
             )
@@ -303,7 +303,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
                 False,
             )
             embed.add_field(
-                name=f"{constants.SUCCESS}",
+                name="Success",
                 value=f"Added command `{ctx.prefix}{command_name}` with return value "
                 f"`{command_return}`",
             )
@@ -336,7 +336,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
                 ).delete()
                 session.commit()
             embed.add_field(
-                name=f"{constants.SUCCESS}",
+                name="Success",
                 value=f"Deleted custom command `{ctx.prefix}{command_name}`",
             )
         elif (
@@ -352,12 +352,12 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
                 ).delete()
                 session.commit()
             embed.add_field(
-                name=f"{constants.SUCCESS}",
+                name="Success",
                 value=f"Deleted global command `{ctx.prefix}{command_name}`",
             )
         else:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Command `{ctx.prefix}{command_name}` does not exist in {ctx.guild.name}",
                 # Technically it's the same error if no global command either, but no need to duplicate error fields yet
             )

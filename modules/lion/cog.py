@@ -5,7 +5,6 @@ import gspread
 import nextcord
 from nextcord.ext import commands
 
-import constants
 from utils import (
     batch_update_utils,
     command_predicates,
@@ -106,13 +105,13 @@ class LionCog(commands.Cog, name="Lion"):
                 await ctx.channel.edit(archived=True)
             except nextcord.Forbidden:
                 embed.add_field(
-                    name=f"{constants.FAILED}!",
+                    name="Failed",
                     value="Forbidden! Have you checked if the bot has the required permisisons?",
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value=f"Archived {ctx.channel.mention} thread",
                 inline=False,
             )
@@ -143,7 +142,7 @@ class LionCog(commands.Cog, name="Lion"):
         if archive_category is None:
             if archive_name is None:
                 embed.add_field(
-                    name=f"{constants.FAILED}!",
+                    name="Failed",
                     value=f"I can't find the archive, so I cannot move {ctx.channel.mention}. "
                     "I checked for the following categories: "
                     + ", ".join(f"`{c}`" for c in candidates),
@@ -153,7 +152,7 @@ class LionCog(commands.Cog, name="Lion"):
                 return
             else:
                 embed.add_field(
-                    name=f"{constants.FAILED}!",
+                    name="Failed",
                     value=f"There is no category named `{archive_name}`, so I cannot move {ctx.channel.mention}.",
                     inline=False,
                 )
@@ -162,7 +161,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         if discord_utils.category_is_full(archive_category):
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"`{archive_category.name}` is already full, max limit is 50 channels. Consider renaming"
                 f" `{archive_category.name}` and creating a new `{archive_category.name}`.",
                 inline=False,
@@ -172,7 +171,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         if archive_category == ctx.channel.category:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Archive category `{archive_category.name}` is the same as current category `{ctx.channel.category.name}`. No need to move channel!",
                 inline=False,
             )
@@ -185,7 +184,7 @@ class LionCog(commands.Cog, name="Lion"):
             await ctx.channel.edit(position=1)
         except nextcord.Forbidden:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Can you check my permissions? I can't seem to be able to move "
                 f"{ctx.channel.mention} to `{archive_category.name}`",
                 inline=False,
@@ -194,7 +193,7 @@ class LionCog(commands.Cog, name="Lion"):
             return
 
         embed.add_field(
-            name=f"{constants.SUCCESS}!",
+            name="Success",
             value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`",
             inline=False,
         )
@@ -236,7 +235,7 @@ class LionCog(commands.Cog, name="Lion"):
             if error_status == "PERMISSION_DENIED":
                 embed = discord_utils.create_embed()
                 embed.add_field(
-                    name=f"{constants.FAILED}",
+                    name="Failed",
                     value=f"I'm unable to open the tethered [sheet]({sheet_link}). "
                     f"Did the permissions change?",
                     inline=False,
@@ -249,7 +248,7 @@ class LionCog(commands.Cog, name="Lion"):
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
                 f"Did you forget to add one?",
                 inline=False,
@@ -274,7 +273,7 @@ class LionCog(commands.Cog, name="Lion"):
             if error_status == "PERMISSION_DENIED":
                 embed = discord_utils.create_embed()
                 embed.add_field(
-                    name=f"{constants.FAILED}",
+                    name="Failed",
                     value=f"I'm unable to open the tethered [sheet]({sheet_link}). "
                     f"Did the permissions change?",
                     inline=False,
@@ -287,7 +286,7 @@ class LionCog(commands.Cog, name="Lion"):
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
                 f"Did you forget to add one?",
                 inline=False,
@@ -302,7 +301,7 @@ class LionCog(commands.Cog, name="Lion"):
             # If there is no tether for the specific channel, check if there is one for the category.
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"I couldn't find the channel {ctx.channel.mention} in the sheet."
                 f" Are you sure this channel is linked to a puzzle?",
                 inline=False,
@@ -332,7 +331,7 @@ class LionCog(commands.Cog, name="Lion"):
         if result is None:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
                 f"are tethered to any Google sheet.",
                 inline=False,
@@ -358,7 +357,7 @@ class LionCog(commands.Cog, name="Lion"):
         embed = discord_utils.create_embed()
 
         embed.add_field(
-            name=f"{constants.SUCCESS}",
+            name="Success",
             value=f"The tab linked to {ctx.message.channel.mention} is at [tab link]({final_link})",
             inline=False,
         )
@@ -462,7 +461,7 @@ class LionCog(commands.Cog, name="Lion"):
 
             if result is None:
                 embed.add_field(
-                    name=f"{constants.FAILED}",
+                    name="Failed",
                     value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
                     f"are tethered to any Google sheet.",
                     inline=False,
@@ -522,7 +521,7 @@ class LionCog(commands.Cog, name="Lion"):
                 error_status = error_json.get("error", {}).get("status")
                 if error_status == "PERMISSION_DENIED":
                     embed.add_field(
-                        name=f"{constants.FAILED}",
+                        name="Failed",
                         value="Could not update the sheet.",
                         inline=False,
                     )
@@ -530,7 +529,7 @@ class LionCog(commands.Cog, name="Lion"):
                     raise e
 
             embed.add_field(
-                name=f"{constants.SUCCESS}",
+                name="Success",
                 value="The sheet was successfully updated.",
                 inline=False,
             )
@@ -560,7 +559,7 @@ class LionCog(commands.Cog, name="Lion"):
                 error_json = e.response.json()
                 error_message = error_json.get("error", {}).get("message")
                 embed.add_field(
-                    name=f"{constants.FAILED}",
+                    name="Failed",
                     value=f"Unknown GSheets API Error - `{error_message}`",
                     inline=False,
                 )
@@ -576,7 +575,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         if result is None:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
                 f"are tethered to any Google sheet.",
                 inline=False,
@@ -588,7 +587,7 @@ class LionCog(commands.Cog, name="Lion"):
         overview_sheet = await self.get_overview(ctx, curr_sheet_link)
         if overview_sheet is None:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value="Error! Overview tab not found in the sheet! Did you accidentally delete it?",
                 inline=False,
             )
@@ -608,14 +607,14 @@ class LionCog(commands.Cog, name="Lion"):
             puzzle_tab = next((w for w in worksheets if w.id == int(tab_id)), None)
             if puzzle_tab is None:
                 embed.add_field(
-                    name=f"{constants.FAILED}",
+                    name="Failed",
                     value="Could not find associated tab for puzzle in the tethered sheet.",
                     inline=False,
                 )
             else:
                 puzzle_tab.update_index(len(worksheets))
                 embed.add_field(
-                    name=f"{constants.SUCCESS}!",
+                    name="Success",
                     value="Moved tab to the end of the sheet!",
                     inline=False,
                 )
@@ -623,28 +622,26 @@ class LionCog(commands.Cog, name="Lion"):
             error_json = e.response.json()
             error_message = error_json.get("error", {}).get("message")
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Google Sheets API Error: `{error_message}`",
                 inline=False,
             )
         except StopIteration:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value="Could not find associated tab for puzzle in the tethered sheet.",
                 inline=False,
             )
         except Exception as e:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Unknown error: `{str(e)}`",
                 inline=False,
             )
         await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
-    @commands.command(
-        name="mtalion", aliases=["movetoarchivelion", "archivelion"]
-    )
+    @commands.command(name="mtalion", aliases=["movetoarchivelion", "archivelion"])
     async def mtalion(self, ctx: commands.Context, archive_name: str = None):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
@@ -686,7 +683,7 @@ class LionCog(commands.Cog, name="Lion"):
             # Error when the sheet has no Overview tab
             except gspread.exceptions.WorksheetNotFound:
                 embed.add_field(
-                    name=f"{constants.FAILED}",
+                    name="Failed",
                     value=f"The [sheet]({curr_sheet_link}) has no tab named 'Overview'. "
                     f"Did you forget to add one?",
                     inline=False,
@@ -773,7 +770,7 @@ class LionCog(commands.Cog, name="Lion"):
                 error_json = e.response.json()
                 error_message = error_json.get("error", {}).get("message")
                 embed.add_field(
-                    name=f"{constants.FAILED}",
+                    name="Failed",
                     value=f"Unknown GSheets API Error - `{error_message}`",
                     inline=False,
                 )
@@ -1047,7 +1044,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         if not proposed_template:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value="Sorry, we can't find a sheet there. "
                 "Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
@@ -1068,7 +1065,7 @@ class LionCog(commands.Cog, name="Lion"):
             if error_status == "PERMISSION_DENIED":
                 embed = discord_utils.create_embed()
                 embed.add_field(
-                    name=f"{constants.FAILED}",
+                    name="Failed",
                     value=f"I'm unable to open the tethered [sheet]({curr_link}). "
                     f"Did the permissions change?",
                     inline=False,
@@ -1081,7 +1078,7 @@ class LionCog(commands.Cog, name="Lion"):
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"The [sheet]({curr_link}) has no tab named 'Template'. "
                 f"Did you forget to add one?",
                 inline=False,
@@ -1097,7 +1094,7 @@ class LionCog(commands.Cog, name="Lion"):
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"The [sheet]({curr_link}) has no tab named 'Meta Template'. "
                 f"Did you forget to add one?",
                 inline=False,
@@ -1113,7 +1110,7 @@ class LionCog(commands.Cog, name="Lion"):
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"The [sheet]({curr_link}) has no tab named 'Overview'. "
                 f"Did you forget to add one?",
                 inline=False,
@@ -1182,7 +1179,7 @@ class LionCog(commands.Cog, name="Lion"):
             if cat is None:
                 embed = discord_utils.create_embed()
                 embed.add_field(
-                    name=f"{constants.FAILED}!",
+                    name="Failed",
                     value="Error! The hunt category was not correctly created.",
                 )
                 # reply to user
@@ -1225,7 +1222,7 @@ class LionCog(commands.Cog, name="Lion"):
         except nextcord.Forbidden:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value="Forbidden! Have you checked if the bot has the required permisisons?",
                 inline=False,
             )
@@ -1236,7 +1233,7 @@ class LionCog(commands.Cog, name="Lion"):
         channels = [f"{chan.mention}" for chan in channel_list]
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"{constants.SUCCESS}!",
+            name="Success",
             value="The hunt category was created.",
             inline=False,
         )
@@ -1257,7 +1254,7 @@ class LionCog(commands.Cog, name="Lion"):
         if proposed_sheet:
             new_embed = discord_utils.create_embed()
             new_embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value=f"The category **{cat.name}** is now tethered to the "
                 f"[Google sheet at link]({proposed_sheet.url})",
                 inline=False,
@@ -1267,7 +1264,7 @@ class LionCog(commands.Cog, name="Lion"):
         else:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="Sorry, we can't find a sheet there. "
                 "Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,
@@ -1278,7 +1275,7 @@ class LionCog(commands.Cog, name="Lion"):
         if await self.initoverview(ctx, hunturl, new_sheet):
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value="The sheet is now set up for use",
                 inline=False,
             )
@@ -1315,7 +1312,7 @@ class LionCog(commands.Cog, name="Lion"):
         if await self.initoverview(ctx, hunturl, new_sheet):
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value="The sheet is now set up for use",
                 inline=False,
             )
@@ -1331,7 +1328,7 @@ class LionCog(commands.Cog, name="Lion"):
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"The [sheet]({overview.url}) has no tab named 'Overview'. "
                 f"Did you forget to add one?",
                 inline=False,
@@ -1367,7 +1364,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         if result is None:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"This server **{ctx.guild.name}** does not have a template Google Sheet.",
                 inline=False,
             )
@@ -1396,7 +1393,7 @@ class LionCog(commands.Cog, name="Lion"):
             )
         except gspread.exceptions.APIError:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value="Invalid folder. Please check to see that you have the correct link and permissions.",
                 inline=False,
             )
@@ -1405,14 +1402,14 @@ class LionCog(commands.Cog, name="Lion"):
 
         if f_id:
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value=f"Cloned sheet located at [sheet link]({new_sheet.url}) "
                 f"in folder [GDrive folder link]({folderurl})",
                 inline=False,
             )
         else:
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value=f"Cloned sheet located at [sheet link]({new_sheet.url})",
                 inline=False,
             )
@@ -1443,7 +1440,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         if proposed_sheet:
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value=f"The category **{ctx.channel.category.name}** is now tethered to the "
                 f"[Google sheet at link]({proposed_sheet.url})",
                 inline=False,
@@ -1452,7 +1449,7 @@ class LionCog(commands.Cog, name="Lion"):
         # If we can't open the sheet, send an error and return
         else:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="Sorry, we can't find a sheet there. "
                 "Did you forget to set your sheet as 'Anyone with the link can edit'?",
                 inline=False,

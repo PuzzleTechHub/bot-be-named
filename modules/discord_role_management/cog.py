@@ -1,5 +1,4 @@
 import nextcord
-import constants
 from nextcord.ext import commands
 from typing import Union
 from utils import discord_utils, logging_utils, command_predicates
@@ -49,7 +48,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
         if isinstance(rolename, nextcord.Member):
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Role name given is same as {rolename.mention}. Did you forget to specify a rolename?",
                 inline=False,
             )
@@ -72,7 +71,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 is_new_role = True
             except nextcord.Forbidden:
                 embed.add_field(
-                    name=f"{constants.FAILED}!",
+                    name="Failed",
                     value=f"I couldn't find role `{rolename}`, so I tried to make it. But I don't have "
                     f"permission to add a role in this server. Do I have the `add_roles` permission?",
                     inline=False,
@@ -96,7 +95,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             and not is_new_role
         ):
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Not allowed! The role you're assigning ({role_to_assign.mention}) is higher than any of your current roles!"
                 f"\nPlease contact a server admin to reorder server roles first.",
                 inline=False,
@@ -148,7 +147,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             )
         else:
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value=f"Added the {role_to_assign.mention} role to {', '.join([user.mention for user in users_with_role_list])}",
                 inline=False,
             )
@@ -180,7 +179,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
         if not role_to_unassign:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"I can't find role `{rolename}` in this server. Make sure you check the spelling and punctuation!",
                 inline=False,
             )
@@ -192,7 +191,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
         if len(args) < 1:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="No users provided! You must give at least one user to unassign.",
                 inline=False,
             )
@@ -209,7 +208,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         # Role to be unassigned is higher than user's current roles.
         if max_rank_author_roles < all_guild_roles_ranks[role_to_unassign]:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Not allowed! The role you're unassigning ({role_to_unassign.mention}) is higher than any of your current roles!"
                 f"\nPlease contact a server admin to reorder server roles first.",
                 inline=False,
@@ -261,7 +260,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             )
         else:
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value=f"Removed the {role_to_unassign.mention} role from {', '.join([user.mention for user in users_with_role_list])}",
                 inline=False,
             )
@@ -295,7 +294,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
         if not oldrole_as_role:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"I couldn't find role `{oldrole}` to clone! Perhaps check your spelling and try again.",
                 inline=False,
             )
@@ -313,13 +312,13 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 )
 
                 embed.add_field(
-                    name=f"{constants.SUCCESS}!",
+                    name="Success",
                     value=f"Clone rolename {oldrole_as_role.mention} as {newrole_as_role.mention}.",
                     inline=False,
                 )
             except nextcord.Forbidden:
                 embed.add_field(
-                    name=f"{constants.FAILED}!",
+                    name="Failed",
                     value=f"I tried to make `{newrole}`, but I don't have "
                     f"permission to add a role in this server. Do I have the `add_roles` permission?",
                     inline=False,
@@ -334,13 +333,13 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                     mentionable=oldrole_as_role.mentionable,
                 )
                 embed.add_field(
-                    name=f"{constants.SUCCESS}!",
+                    name="Success",
                     value=f"{newrole_as_role.mention} already existed. Synced rolename {oldrole_as_role.mention}'s permissions in this server as {newrole_as_role.mention}.",
                     inline=False,
                 )
             except nextcord.Forbidden:
                 embed.add_field(
-                    name=f"{constants.FAILED}!",
+                    name="Failed",
                     value=f"I tried to edit {newrole_as_role.mention}, but I don't have "
                     f"permission to edit a role in this server. Do I have the `manage_roles` permission?",
                     inline=False,
@@ -367,7 +366,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
         if role_to_delete is None:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
                 inline=False,
             )
@@ -379,7 +378,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             role_name = role_to_delete.name
             await role_to_delete.delete()
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value=f"Removed role `{role_name}`",
                 inline=False,
             )
@@ -387,7 +386,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             return
         except nextcord.Forbidden:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="I don't have permission to add or remove a role in this server. Do I have the `add_roles` permission?",
                 inline=False,
             )
@@ -422,7 +421,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
         if role_to_list is None:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
                 inline=False,
             )
@@ -471,7 +470,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
         if len(members) == 0:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="No members to list. Check your roles again.",
                 inline=False,
             )
@@ -493,7 +492,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
         if len(reactors) == 0:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="No members reacted to the message. Check the message again.",
                 inline=False,
             )

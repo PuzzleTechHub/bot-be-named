@@ -1,7 +1,6 @@
 import geopy
 import datetime
 import os
-import constants
 import zoneinfo
 
 from modules.time import time_utils
@@ -43,7 +42,7 @@ class TimeCog(commands.Cog, name="Time"):
 
         if user_time is None:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Is {' '.join(args)} a valid time? We want a timezone too!",
                 inline=False,
             )
@@ -87,7 +86,7 @@ class TimeCog(commands.Cog, name="Time"):
         # Unable to find the location in the geonames database
         if timezone_dict is None:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Cannot find location `{location}`!",
                 inline=False,
             )
@@ -149,7 +148,7 @@ def format_utc_offset(timezone_dict):
         )
 
         return f"{tz_abbr} (UTC{offset_str})"
-    except Exception as e:
+    except Exception:
         # Fallback in case of error
         raw_offset = timezone_dict["gmtOffset"]
         dst_offset = timezone_dict["dstOffset"]

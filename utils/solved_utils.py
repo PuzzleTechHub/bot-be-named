@@ -1,5 +1,4 @@
 import nextcord
-import constants
 from nextcord.ext import commands
 from utils import sheets_constants
 from utils import discord_utils
@@ -54,19 +53,19 @@ async def status_channel(ctx: commands.Context, status_prefix):
             await ctx.channel.edit(name=new_channel_name)
         except nextcord.Forbidden:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"Unable to prepend `{status_prefix}` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?",
             )
             await discord_utils.send_message(ctx, embed)
             return
         embed.add_field(
-            name=f"{constants.SUCCESS}!",
+            name="Success",
             value=f"Marking {ctx.channel.mention} as {status_prefix}!",
             inline=False,
         )
     else:
         embed.add_field(
-            name=f"{constants.FAILED}!",
+            name="Failed",
             value=f"Channel already marked as {status_prefix}!",
             inline=False,
         )
@@ -82,13 +81,13 @@ async def status_remove(ctx: commands.Context):
         if new_channel_name:
             await channel.edit(name=new_channel_name)
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value=f"Marking {channel.mention} as un-{prefix}!",
                 inline=False,
             )
             return embed
     embed.add_field(
-        name=f"{constants.FAILED}!",
+        name="Failed",
         value=f"Channel is not marked as `{' / '.join(prefixes)}`!",
         inline=False,
     )

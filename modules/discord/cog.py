@@ -3,7 +3,6 @@ import nextcord
 import aiohttp
 import io
 import emoji
-import constants
 from nextcord.ext import commands
 from utils import discord_utils, logging_utils, command_predicates
 
@@ -60,7 +59,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         except nextcord.Forbidden:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="Unable to delete original message. Do I have `manage_messages` permissions?",
             )
             await discord_utils.send_message(ctx, embed)
@@ -95,7 +94,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         await logging_utils.log_command("unpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
-        to_delete = False # Use this to decide whether to delete extra messages or not
+        to_delete = False  # Use this to decide whether to delete extra messages or not
         if delete_argument.lower()[0:3] in ["del", "delete"]:
             to_delete = True
 
@@ -108,7 +107,6 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         pins = await ctx.message.channel.pins()
         messages_to_unpin = []
-        strmsg = ""
 
         reply = False
         # If unpin is in direct reply to another message, unpin only that message
@@ -117,7 +115,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             orig_msg = ctx.message.reference.resolved
             if not orig_msg.pinned:
                 embed.add_field(
-                    name=f"{constants.FAILED}!",
+                    name="Failed",
                     value=f"The linked message [Msg]({orig_msg.jump_url}) has not been pinned, there's nothing to unpin.",
                     inline=False,
                 )
@@ -132,7 +130,6 @@ class DiscordCog(commands.Cog, name="Discord"):
             else:
                 messages_to_unpin = pins
 
-
         description_to_send = []
         for i, pin in enumerate(messages_to_unpin):
             try:
@@ -143,7 +140,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
             except nextcord.Forbidden:
                 embed.add_field(
-                    name=f"{constants.FAILED}!",
+                    name="Failed",
                     value="I do not have permissions to unpin that message. Please check my perms and try again?",
                     inline=False,
                 )
@@ -151,9 +148,9 @@ class DiscordCog(commands.Cog, name="Discord"):
                 return
 
         embed.add_field(
-            name=f"{constants.SUCCESS}!",
+            name="Success",
             value=f"Unpinned {'the most recent' if not reply else ''} {len(messages_to_unpin) if len(messages_to_unpin) != 1 else ''} {'messages' if len(messages_to_unpin) != 1 else 'message'}\n"
-             f"{''.join(description_to_send)}",
+            f"{''.join(description_to_send)}",
             inline=False,
         )
         if to_delete:
@@ -180,7 +177,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             i += 1
 
         embed.add_field(
-            name=f"{constants.SUCCESS}!",
+            name="Success",
             value=f"There are {len(pins)} pinned posts on this channel.\n{strmsg[:-3]}",
             inline=False,
         )
@@ -253,7 +250,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         if cat is None:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"I cannot find category `{cat_name}`. Perhaps check your spelling and try again.",
             )
             await discord_utils.send_message(ctx, embed)
@@ -296,7 +293,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         if not ctx.message.reference:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value="Command `~listreacts` can only be called as a reply to another message.",
             )
             await discord_utils.send_message(ctx, embed)
@@ -359,25 +356,25 @@ class DiscordCog(commands.Cog, name="Discord"):
                             )
 
                             embed.add_field(
-                                name=f"{constants.SUCCESS}",
+                                name="Success",
                                 value=f"Added {to_steal} with name {to_steal.name}",
                             )
                             await ses.close()
                         except nextcord.Forbidden:
                             embed.add_field(
-                                name=f"{constants.FAILED}",
+                                name="Failed",
                                 value=f"Error adding `:{name}:` to server. Do I have the correct permissions to manage emotes in this server?",
                             )
                             await ses.close()
                         except:
                             embed.add_field(
-                                name=f"{constants.FAILED}",
+                                name="Failed",
                                 value=f"Could not add `:{name}:` to server. Do you have any emote slots left?",
                             )
                             await ses.close()
                     except:
                         embed.add_field(
-                            name=f"{constants.FAILED}",
+                            name="Failed",
                             value=f"Could not find emote `:{name}:`.",
                         )
         await discord_utils.send_message(ctx, embed)
@@ -391,7 +388,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     @commands.command(name="delete")
     async def delete(self, ctx, to_delete: str = ""):
         """Delete a message sent by me and only me by replying to it with `~delete`.
-        
+
         If you say del after the command, it deletes the original message that called the command too.
 
         Permission Category : Solver Roles only.
@@ -401,21 +398,23 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         await logging_utils.log_command("delete", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
-        
+
         if not ctx.message.reference:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="Command `~delete` can only be called as a reply to a message sent by me.",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
             return
-        
+
         try:
-            referenced_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            referenced_message = await ctx.channel.fetch_message(
+                ctx.message.reference.message_id
+            )
         except nextcord.NotFound:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="I couldn't find the message you're replying to. It may have been deleted already.",
                 inline=False,
             )
@@ -423,28 +422,28 @@ class DiscordCog(commands.Cog, name="Discord"):
             return
         except nextcord.Forbidden:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="I don't have permission to access that message.",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
             return
-        
+
         if referenced_message.author.id != self.bot.user.id:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="I can only delete messages that I sent myself.",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
             return
-        
+
         try:
             await referenced_message.delete()
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
         except nextcord.Forbidden:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="I don't have permission to delete that message. Do I have `manage_messages` permissions?",
                 inline=False,
             )
@@ -452,7 +451,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             return
         except nextcord.NotFound:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value="The message was already deleted.",
                 inline=False,
             )

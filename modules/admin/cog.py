@@ -50,7 +50,7 @@ class AdminCog(commands.Cog, name="Admin"):
         if role_permissions not in database.VERIFIED_CATEGORIES:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
                 f"but you supplied {role_permissions}",
             )
@@ -92,7 +92,7 @@ class AdminCog(commands.Cog, name="Admin"):
             else:
                 embed = discord_utils.create_embed()
                 embed.add_field(
-                    name=f"{constants.FAILED}!",
+                    name="Failed",
                     value=f"Role {role_to_assign.mention} is already `{result.permissions}`!",
                 )
                 await discord_utils.send_message(ctx, embed)
@@ -120,7 +120,7 @@ class AdminCog(commands.Cog, name="Admin"):
                 database.TESTERS[ctx.guild.id] = [role_to_assign.id]
 
         embed.add_field(
-            name=f"{constants.SUCCESS}",
+            name="Success",
             value=f"Added the role {role_to_assign.mention} for this server set to `{role_permissions}`",
             inline=False,
         )
@@ -149,7 +149,7 @@ class AdminCog(commands.Cog, name="Admin"):
         if role_permissions not in database.VERIFIED_CATEGORIES:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"`role_permissions` must be in `{', '.join(database.VERIFIED_CATEGORIES)}`, "
                 f"but you supplied `{role_permissions}`",
             )
@@ -202,7 +202,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         if role_permissions not in database.VERIFIED_CATEGORIES:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
                 f"but you supplied {role_permissions}",
             )
@@ -212,7 +212,7 @@ class AdminCog(commands.Cog, name="Admin"):
         role_to_remove = await discord_utils.find_role(ctx, role_or_rolename)
         if role_to_remove is None:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Sorry, I can't find role `{role_or_rolename}`.",
             )
             await discord_utils.send_message(ctx, embed)
@@ -229,7 +229,7 @@ class AdminCog(commands.Cog, name="Admin"):
             )
             if result is None:
                 embed.add_field(
-                    name=f"{constants.FAILED}",
+                    name="Failed",
                     value=f"Role {role_to_remove.mention} is not `{role_permissions}` in `{ctx.guild.name}`",
                 )
                 await discord_utils.send_message(ctx, embed)
@@ -268,7 +268,7 @@ class AdminCog(commands.Cog, name="Admin"):
             )
 
         embed.add_field(
-            name=f"{constants.SUCCESS}",
+            name="Success",
             value=f"Removed {role_to_remove.mention} from `{role_permissions}` in `{ctx.guild.name}`",
         )
         await discord_utils.send_message(ctx, embed)
@@ -305,7 +305,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         if guild_1_guild is None:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"There is no guild named `{guild_1}`. Please double check the spelling.",
             )
             await discord_utils.send_message(ctx, embed)
@@ -313,7 +313,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         if guild_2_guild is None:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"There is no guild named `{guild_2}`. Please double check the spelling.",
             )
             await discord_utils.send_message(ctx, embed)
@@ -367,7 +367,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         if guild is None:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"There is no guild named `{guild_name}`. Please double check the spelling.",
             )
             await discord_utils.send_message(ctx, embed)
@@ -430,7 +430,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         if guild is None:
             embed.add_field(
-                name=f"{constants.FAILED}!",
+                name="Failed",
                 value=f"There is no guild named `{guild_name}`. Please double check the spelling.",
             )
             await discord_utils.send_message(ctx, embed)
@@ -441,14 +441,14 @@ class AdminCog(commands.Cog, name="Admin"):
 
         except nextcord.HTTPException:
             embed.add_field(
-                name=f"{constants.FAILED}",
+                name="Failed",
                 value=f"Could not leave guild `{guild_name}`",
             )
             await discord_utils.send_message(ctx, embed)
             return
 
         embed.add_field(
-            name=f"{constants.SUCCESS}",
+            name="Success",
             value=f"Successfully left guild `{guild_name}`",
             inline=False,
         )
@@ -472,7 +472,7 @@ class AdminCog(commands.Cog, name="Admin"):
             session.commit()
         database.PREFIXES[ctx.message.guild.id] = prefix
         embed.add_field(
-            name=f"{constants.SUCCESS}",
+            name="Success",
             value=f"Prefix for this server set to {prefix}",
             inline=False,
         )
@@ -517,7 +517,7 @@ class AdminCog(commands.Cog, name="Admin"):
                         custom_command.command_name.lower()
                     ] = (custom_command.command_return, custom_command.image)
             embed.add_field(
-                name=f"{constants.SUCCESS}",
+                name="Success",
                 value="Successfully reloaded command cache.",
                 inline=False,
             )
@@ -538,7 +538,7 @@ class AdminCog(commands.Cog, name="Admin"):
                     elif verified.permissions == models.TESTER:
                         database.TESTERS[ctx.guild.id].append(verified.role_id)
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value="Successfully reloaded verifieds cache.",
                 inline=False,
             )
@@ -553,7 +553,7 @@ class AdminCog(commands.Cog, name="Admin"):
             else:
                 database.PREFIXES[ctx.guild.id] = constants.DEFAULT_BOT_PREFIX
             embed.add_field(
-                name=f"{constants.SUCCESS}!",
+                name="Success",
                 value="Successfully reloaded prefixes cache.",
                 inline=False,
             )

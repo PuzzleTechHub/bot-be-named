@@ -1,7 +1,6 @@
 import gspread
 import emoji
 from utils import discord_utils
-import constants
 import nextcord
 
 """Helper functions for hydra/cog.py. Holds small and reusable pieces of code. More sophisticated helpers to to
@@ -27,13 +26,13 @@ async def handle_gspread_error(ctx, e: gspread.exceptions.APIError, embed=None):
 
     if error_status == "PERMISSION_DENIED":
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value="Could not update the Google Sheet because permission was denied.",
             inline=False,
         )
     else:
         embed.add_field(
-            name=f"{constants.FAILED}",
+            name="Failed",
             value=f"Unknown GSheets API Error - `{error_json.get('error', {}).get('message')}`",
             inline=False,
         )
@@ -51,7 +50,7 @@ def create_success_embed(message: str) -> nextcord.Embed:
     """Create a standardized success embed."""
     embed = discord_utils.create_embed()
     embed.add_field(
-        name=f"{constants.SUCCESS}!",
+        name="Success",
         value=message,
         inline=False,
     )
@@ -62,7 +61,7 @@ def create_failure_embed(message: str) -> nextcord.Embed:
     """Create a standardized failure embed."""
     embed = discord_utils.create_embed()
     embed.add_field(
-        name=f"{constants.FAILED}!",
+        name="Failed",
         value=message,
         inline=False,
     )
