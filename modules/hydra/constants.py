@@ -20,8 +20,6 @@ TEMPLATE_DUPLICATE_INSERT_OFFSET = 2  # insert index offset when duplicating tem
 
 # Reactions
 SUCCESS_REACTION = ":check_mark_button:"
-CONFIRM_EMOJI = "✅"
-CANCEL_EMOJI = "❌"
 
 # Archive constants
 ARCHIVE_REGEX_PATTERN = r"\s*Archive\s*\d*$"

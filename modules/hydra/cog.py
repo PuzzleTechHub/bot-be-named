@@ -623,8 +623,8 @@ class HydraCog(commands.Cog, name="Hydra"):
             f"React with ✅ to confirm or ❌ to cancel.",
         )
 
-        confirm_emoji = hydra_constants.CONFIRM_EMOJI
-        cancel_emoji = hydra_constants.CANCEL_EMOJI
+        confirm_emoji = "✅"
+        cancel_emoji = "❌"
 
         confirm_message = (await discord_utils.send_message(ctx, confirm_embed))[0]
         await confirm_message.add_reaction(confirm_emoji)
@@ -634,11 +634,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             return (
                 user == ctx.author
                 and reaction.message.id == confirm_message.id
-                and str(reaction.emoji)
-                in (
-                    hydra_constants.CONFIRM_EMOJI,
-                    hydra_constants.CANCEL_EMOJI,
-                )
+                and str(reaction.emoji) in ("✅", "❌")
             )
 
         try:
@@ -659,7 +655,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             return
 
         # If the user reacted with the cancel emoji, abort immediately.
-        if str(reaction.emoji) == hydra_constants.CANCEL_EMOJI:
+        if str(reaction.emoji) == "❌":
             cancel_embed = discord_utils.create_embed()
             cancel_embed.add_field(
                 name="Aborted!",

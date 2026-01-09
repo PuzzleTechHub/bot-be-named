@@ -13,3 +13,7 @@ python-dotenv==1.2.1
 ruff==0.14.10
 setuptools==80.9.0
 SQLAlchemy==2.0.45
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-mock==3.14.0
+coverage==7.6.10
