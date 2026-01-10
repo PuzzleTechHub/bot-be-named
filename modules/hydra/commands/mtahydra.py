@@ -19,7 +19,7 @@ def setup_cmd(cog):
         Fails if there is no such category. If the category is full (50 channels), I will make a new one.
         If called from thread (instead of channel), closes the thread instead of moving channel.
 
-        In the hydra implementation of ~mta, the archive category name is stardardized.
+        In the hydra implementation of ~mta, the archive category name is standardized.
 
         It must be in the form of `<category_name> Archive`, e.g. `MH21 Students Archive`.
         Your solving category should not end with Archive.

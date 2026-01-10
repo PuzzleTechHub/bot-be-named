@@ -166,7 +166,7 @@ async def create_puzzle_channel_from_template(
     if not new_chan:
         embed.add_field(
             name="Failed",
-            value="Forbidden! Have you checked if the bot has the required permisisons?",
+            value="Forbidden! Have you checked if the bot has the required permissions?",
         )
         await discord_utils.send_message(ctx, embed)
         return None, None, None

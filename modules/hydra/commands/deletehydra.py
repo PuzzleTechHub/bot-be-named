@@ -254,7 +254,7 @@ def setup_cmd(cog):
                         if row_values:
                             overview_ws.delete_rows(row_to_find)
                             # A new row probably should be created here, but
-                            # the filter on the overview sheet doesnt apply
+                            # the filter on the overview sheet doesn't apply
                             # properly, so we'll just trust the users good
                             # judgement to add more rows manually
 

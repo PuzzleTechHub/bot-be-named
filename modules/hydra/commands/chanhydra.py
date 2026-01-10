@@ -112,7 +112,7 @@ def setup_cmd(cog):
         if success_count > 0:
             embed = discord_utils.create_embed()
             embed.add_field(
-                name="Sucess",
+                name="Success",
                 value=(
                     f"Successfully created {success_count} puzzle channel(s):\n\n"
                     "\n".join(success_messages)

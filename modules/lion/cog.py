@@ -48,7 +48,7 @@ class LionCog(commands.Cog, name="Lion"):
             except nextcord.Forbidden:
                 embed.add_field(
                     name="Failed",
-                    value="Forbidden! Have you checked if the bot has the required permisisons?",
+                    value="Forbidden! Have you checked if the bot has the required permissions?",
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
@@ -1107,7 +1107,7 @@ class LionCog(commands.Cog, name="Lion"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permissions?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)

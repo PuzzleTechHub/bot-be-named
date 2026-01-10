@@ -258,7 +258,7 @@ class MiscCog(commands.Cog, name="Misc"):
             f"6. Tether your sheet to your category! (`{ctx.prefix}tetherhydra https://your.google.sheet.here`) Make sure you configure the sharing settings so I can edit it! \n"
             f"7. Start making puzzle channels! (`{ctx.prefix}chanhydra 'Puzzle Name Here' 'puzzle.url.here.com'`)\n"
             f"8. Start solving! Mark puzzles as solved with `{ctx.prefix}solvedhydra 'ANSWER'`, backsolved with `{ctx.prefix}backsolvedhydra 'ANSWER'`,"
-            f" move to archive with `{ctx.prefix}mtahydra` and more! and more!\n\n",
+            f" move to archive with `{ctx.prefix}mtahydra` and more!\n\n",
         )
         await discord_utils.send_message(ctx, embed)
 
@@ -299,7 +299,7 @@ class MiscCog(commands.Cog, name="Misc"):
         embed = discord_utils.create_embed()
         embed.add_field(
             name="Permissions!",
-            value=f"I have a simple permisison system to manage who can use what commands. Most commands are restricted to certain permissions. "
+            value=f"I have a simple permissison system to manage who can use what commands. Most commands are restricted to certain permissions. "
             f"There are five permission categories:\n"
             f"- `(everyone)`: Can use basic commands like `{ctx.prefix}about`, `{ctx.prefix}help` etc.\n"
             f"- `Solver`: Can use most puzzle management commands.\n"
@@ -361,7 +361,7 @@ class MiscCog(commands.Cog, name="Misc"):
             embed.add_field(
                 name="Failed",
                 value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
-                f"the bot has the required permisisons?",
+                f"the bot has the required permissions?",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -411,7 +411,7 @@ class MiscCog(commands.Cog, name="Misc"):
             embed.add_field(
                 name="Failed",
                 value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
-                f"the bot has the required permisisons?",
+                f"the bot has the required permissions?",
             )
             await discord_utils.send_message(ctx, embed)
             return
