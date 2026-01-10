@@ -82,10 +82,10 @@ class HydraCog(commands.Cog, name="Hydra"):
         try:
             if round_name is None:
                 # If no arg passed, retrieve current round and tell user
-                current_round = overview_sheet.worksheet.acell(
+                current_round = overview_sheet.get_cell_value(
                     round_col + str(row_to_find)
-                ).value
-                if current_round is None:
+                )
+                if current_round is None or current_round == "":
                     embed.add_field(
                         name="Current Round",
                         value=f"The current round for {ctx.channel.mention} is not set.",
@@ -100,9 +100,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                 await discord_utils.send_message(ctx, embed)
             else:
                 # Update round instead
-                current_round = overview_sheet.worksheet.acell(
+                current_round = overview_sheet.get_cell_value(
                     round_col + str(row_to_find)
-                ).value
+                )
 
                 overview_sheet.worksheet.update_acell(
                     round_col + str(row_to_find), round_name
@@ -179,10 +179,10 @@ class HydraCog(commands.Cog, name="Hydra"):
         try:
             if notes is None:
                 # If no arg passed, retrieve current notes and tell user
-                current_notes = overview_sheet.worksheet.acell(
+                current_notes = overview_sheet.get_cell_value(
                     notes_col + str(row_to_find)
-                ).value
-                if current_notes is None:
+                )
+                if current_notes is None or current_notes == "":
                     embed.add_field(
                         name="Current Notes",
                         value=f"The current notes for {ctx.channel.mention} are not set.",
@@ -197,9 +197,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                 await discord_utils.send_message(ctx, embed)
             else:
                 # Update notes instead
-                current_notes = overview_sheet.worksheet.acell(
+                current_notes = overview_sheet.get_cell_value(
                     notes_col + str(row_to_find)
-                ).value
+                )
 
                 overview_sheet.worksheet.update_acell(
                     notes_col + str(row_to_find), notes
@@ -750,16 +750,15 @@ class HydraCog(commands.Cog, name="Hydra"):
 
                     if list_chan_cells and list_chan_cells[0][0] is not None:
                         row_to_find = list_chan_cells[0][0]
-                        overview_ws = overview_sheet.worksheet
 
                         # Get tab name from the appropriate column
                         # Get the cell formula from column D
                         try:
-                            tab_name = overview_ws.acell(
+                            tab_name = overview_sheet.get_cell_value(
                                 f"D{row_to_find}"
-                            ).value  # FIXME - hardcoded
+                            )  # FIXME - hardcoded
                             tab_name_found = True
-                        except gspread.exceptions.APIError:
+                        except (gspread.exceptions.APIError, IndexError):
                             tab_name_found = False
 
                 # 3. Delete discord channel
@@ -797,7 +796,11 @@ class HydraCog(commands.Cog, name="Hydra"):
                         overview_ws = overview_sheet.worksheet
 
                         # Get the row values
-                        row_values = overview_ws.row_values(row_to_find)
+                        overview_values = overview_sheet.overview_data
+                        if row_to_find <= len(overview_values):
+                            row_values = overview_values[row_to_find - 1]
+                        else:
+                            row_values = []
 
                         if row_values:
                             overview_ws.delete_rows(row_to_find)
@@ -1300,10 +1303,10 @@ class HydraCog(commands.Cog, name="Hydra"):
             curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
 
             # Find index by looking for last occurrence of a sheet ending with "Template".
-
+            all_sheets = curr_sheet.worksheets()
             template_index = 0
             found_template = False
-            for sheet in curr_sheet.worksheets():
+            for sheet in all_sheets:
                 if sheet.title.endswith("Template"):
                     template_index = sheet.index
                     found_template = True
@@ -1314,8 +1317,22 @@ class HydraCog(commands.Cog, name="Hydra"):
             if not found_template:
                 template_index = 0  # Move to start if no templates found
 
-            tab_to_move = curr_sheet.get_worksheet_by_id(int(sheet_tab_id))
-            tab_to_move.update_index(template_index + 1)  # Move to after last template
+            # Use batch update to move the sheet
+            curr_sheet.batch_update(
+                {
+                    "requests": [
+                        {
+                            "updateSheetProperties": {
+                                "properties": {
+                                    "sheetId": int(sheet_tab_id),
+                                    "index": template_index + 1,
+                                },
+                                "fields": "index",
+                            }
+                        }
+                    ]
+                }
+            )
             tab_embed.add_field(
                 name="Success",
                 value=f"Successfully moved the sheet tab for {ctx.channel.mention} to the active section.",

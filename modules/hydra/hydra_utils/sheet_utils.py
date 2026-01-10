@@ -36,7 +36,7 @@ async def create_puzzle_channel_from_template(
         return None, None, None
 
     tether_db_result, tether_type = findsheettether(
-        str(ctx.channel.category.id), str(ctx.channel.id)
+        ctx.channel.category.id, ctx.channel.id
     )
     if tether_db_result is None:
         embed.add_field(
@@ -624,14 +624,12 @@ async def batch_create_puzzle_channels(
 
     # Refresh and get the newly created sheets
     spreadsheet = gspread_client.open_by_url(curr_sheet_link)
+    all_worksheets = {ws.title: ws for ws in spreadsheet.worksheets()}
     worksheets = []
 
     for _, tab_name, _, _ in channels:
-        try:
-            ws = spreadsheet.worksheet(tab_name)
-            worksheets.append(ws)
-        except Exception:
-            worksheets.append(None)
+        ws = all_worksheets.get(tab_name)
+        worksheets.append(ws)
 
     # Get overview wrapper and constants
     overview_wrapper = OverviewSheet(gspread_client, curr_sheet_link)
