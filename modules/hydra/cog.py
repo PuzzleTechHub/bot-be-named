@@ -686,12 +686,13 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="noteshydra")
-    async def noteshydra(self, ctx: commands.Context, notes: Optional[str] = None):
+    async def noteshydra(self, ctx: commands.Context, *, args: Optional[str] = None):
         """Sets or updates the notes information on the Overview sheet. Passing no argument retrieves the current notes.
 
         Permission Category : Solver Roles only
-        Usage: `~noteshydra` (retrieves current notes)
-        Usage: `~noteshydra "This puzzle has unclued anagrams."` (sets notes)
+        Usage: `~noteshydra` (retrieves current notes for current channel)
+        Usage: `~noteshydra "This puzzle has unclued anagrams."` (sets notes for current channel)
+        Usage: `~noteshydra #channel1 #channel2` (retrieves notes for multiple channels)
         """
 
         await logging_utils.log_command(
@@ -718,71 +719,141 @@ class HydraCog(commands.Cog, name="Hydra"):
         embed = discord_utils.create_embed()
 
         notes_col = sheets_constants.NOTES_COLUMN
+        discord_id_col = sheets_constants.DISCORD_CHANNEL_ID_COLUMN
 
-        try:
-            if notes is None:
-                # If no arg passed, retrieve current notes and tell user
-                current_notes = overview_sheet.get_cell_value(
-                    notes_col + str(row_to_find)
-                )
-                if current_notes is None or current_notes == "":
+        # Most common case: single-channel mode (set or get for current channel)
+        if not args or not ctx.message.channel_mentions:
+            try:
+                if args is None:
+                    # If no arg passed, retrieve current notes and tell user
+                    current_notes = overview_sheet.get_cell_value(
+                        notes_col + str(row_to_find)
+                    )
+                    if current_notes is None or current_notes == "":
+                        embed.add_field(
+                            name="Current Notes",
+                            value=f"The current notes for {ctx.channel.mention} are not set.",
+                            inline=False,
+                        )
+                    else:
+                        embed.add_field(
+                            name="Current Notes",
+                            value=f"The current notes for {ctx.channel.mention} are `{current_notes}`.",
+                            inline=False,
+                        )
+                    await discord_utils.send_message(ctx, embed)
+                else:
+                    # Update notes instead
+                    # Strip surrounding quotes from the input
+                    notes_text = hydra_helpers.strip_quotes(args)
+
+                    current_notes = overview_sheet.get_cell_value(
+                        notes_col + str(row_to_find)
+                    )
+
+                    overview_sheet.worksheet.update_acell(
+                        notes_col + str(row_to_find), notes_text
+                    )
+
+                    if current_notes:
+                        embed.add_field(
+                            name="Success",
+                            value=f"Successfully updated notes for {ctx.channel.mention} from `{current_notes}` to `{notes_text}`",
+                            inline=False,
+                        )
+                    else:
+                        embed.add_field(
+                            name="Success",
+                            value=f"Successfully updated notes for {ctx.channel.mention} to `{notes_text}`",
+                            inline=False,
+                        )
+
+                    await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+                    await discord_utils.send_message(ctx, embed)
+
+            except gspread.exceptions.APIError as e:
+                error_json = e.response.json()
+                error_status = error_json.get("error", {}).get("status")
+                if error_status == "PERMISSION_DENIED":
                     embed.add_field(
-                        name="Current Notes",
-                        value=f"The current notes for {ctx.channel.mention} are not set.",
+                        name="Failed",
+                        value="Could not update the sheet. Permission denied.",
                         inline=False,
                     )
                 else:
                     embed.add_field(
-                        name="Current Notes",
-                        value=f"The current notes for {ctx.channel.mention} are `{current_notes}`.",
+                        name="Failed",
+                        value=f"Unknown GSheets API Error - `{error_json.get('error', {}).get('message')}`",
                         inline=False,
                     )
                 await discord_utils.send_message(ctx, embed)
-            else:
-                # Update notes instead
-                current_notes = overview_sheet.get_cell_value(
-                    notes_col + str(row_to_find)
+        else:
+            # Multi-channel query mode
+            channels_to_query = ctx.message.channel_mentions
+
+            try:
+                # Fetch entire Discord ID column and Notes column for lower API usage
+                discord_ids = overview_sheet.worksheet.col_values(
+                    gspread.utils.a1_to_rowcol(discord_id_col + "1")[1]
+                )
+                notes_values = overview_sheet.worksheet.col_values(
+                    gspread.utils.a1_to_rowcol(notes_col + "1")[1]
                 )
 
-                overview_sheet.worksheet.update_acell(
-                    notes_col + str(row_to_find), notes
-                )
+                # Build a mapping of channel ID to notes
+                channel_notes_map = {}
+                for i, channel_id_str in enumerate(discord_ids):
+                    if channel_id_str.isdigit():
+                        note_text = notes_values[i] if i < len(notes_values) else ""
+                        channel_notes_map[int(channel_id_str)] = note_text
 
-                if current_notes:
+                # Build results for each requested channel
+                results = []
+                not_found = []
+                for channel in channels_to_query:
+                    if channel.id in channel_notes_map:
+                        note = channel_notes_map[channel.id]
+                        if note:
+                            results.append(f"- {channel.mention}: `{note}`")
+                        else:
+                            results.append(f"- {channel.mention}: *(no notes set)*")
+                    else:
+                        not_found.append(channel.mention)
+
+                if results:
                     embed.add_field(
-                        name="Success",
-                        value=f"Successfully updated notes for {ctx.channel.mention} from `{current_notes}` to `{notes}`",
+                        name="Notes for Channels",
+                        value="\n".join(results),
+                        inline=False,
+                    )
+
+                if not_found:
+                    embed.add_field(
+                        name="Channels Not Found",
+                        value="\n".join(not_found)
+                        + "\n\n*(could not find on Overview sheet)*",
+                        inline=False,
+                    )
+
+                await discord_utils.send_message(ctx, embed)
+
+            except gspread.exceptions.APIError as e:
+                error_json = e.response.json()
+                error_status = error_json.get("error", {}).get("status")
+                if error_status == "PERMISSION_DENIED":
+                    embed.add_field(
+                        name="Failed",
+                        value="Could not read the sheet. Permission denied.",
                         inline=False,
                     )
                 else:
                     embed.add_field(
-                        name="Success",
-                        value=f"Successfully updated notes for {ctx.channel.mention} to `{notes}`",
+                        name="Failed",
+                        value=f"Unknown GSheets API Error - `{error_json.get('error', {}).get('message')}`",
                         inline=False,
                     )
-
-                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
                 await discord_utils.send_message(ctx, embed)
 
-        except gspread.exceptions.APIError as e:
-            error_json = e.response.json()
-            error_status = error_json.get("error", {}).get("status")
-            if error_status == "PERMISSION_DENIED":
-                embed.add_field(
-                    name="Failed",
-                    value="Could not update the sheet. Permission denied.",
-                    inline=False,
-                )
-            else:
-                embed.add_field(
-                    name="Failed",
-                    value=f"Unknown GSheets API Error - `{error_json.get('error', {}).get('message')}`",
-                    inline=False,
-                )
-            await discord_utils.send_message(ctx, embed)
-
-    @command_predicates.is_solver()
-    @commands.command(name="renamehydra")
     async def renamehydra(self, ctx: commands.Context, new_name: Optional[str] = None):
         """Renames the current discord server and puzzle tab to the new name.
         Keep in mind, if there is a status prefix in the channel name, it will be overwritten.
