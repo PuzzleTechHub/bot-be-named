@@ -88,7 +88,7 @@ class TestCreateSuccessEmbed:
             mock_embed.fields = []
             mock_discord_utils.create_embed.return_value = mock_embed
 
-            result = create_success_embed("Operation completed")
+            _ = create_success_embed("Operation completed")
 
             # Verify create_embed was called
             mock_discord_utils.create_embed.assert_called_once()
@@ -127,7 +127,7 @@ class TestCreateFailureEmbed:
             mock_embed.fields = []
             mock_discord_utils.create_embed.return_value = mock_embed
 
-            result = create_failure_embed("Operation failed")
+            _ = create_failure_embed("Operation failed")
 
             # Verify create_embed was called
             mock_discord_utils.create_embed.assert_called_once()
@@ -231,7 +231,7 @@ class TestHandleGspreadError:
             mock_discord_utils.create_embed.return_value = mock_embed
             mock_discord_utils.send_message = AsyncMock()
 
-            result = await handle_gspread_error(mock_ctx, error)
+            _ = await handle_gspread_error(mock_ctx, error)
 
             # Verify permission denied message was added
             mock_embed.add_field.assert_called_once()
@@ -265,7 +265,7 @@ class TestHandleGspreadError:
             mock_discord_utils.create_embed.return_value = mock_embed
             mock_discord_utils.send_message = AsyncMock()
 
-            result = await handle_gspread_error(mock_ctx, error)
+            _ = await handle_gspread_error(mock_ctx, error)
 
             # Verify unknown error message was added
             call_args = mock_embed.add_field.call_args
@@ -287,7 +287,7 @@ class TestHandleGspreadError:
         ) as mock_discord_utils:
             mock_discord_utils.send_message = AsyncMock()
 
-            result = await handle_gspread_error(mock_ctx, error, embed=provided_embed)
+            _ = await handle_gspread_error(mock_ctx, error, embed=provided_embed)
 
             # Verify create_embed was NOT called
             mock_discord_utils.create_embed.assert_not_called()
