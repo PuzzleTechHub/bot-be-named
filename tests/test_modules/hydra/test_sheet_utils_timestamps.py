@@ -2,9 +2,7 @@
 
 import pytest
 from datetime import datetime, timezone
-import sys
 
-sys.path.insert(0, ".")
 
 
 class TestTimestampFormat:
