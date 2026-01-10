@@ -31,10 +31,6 @@ def load_commands(cog):
             if hasattr(mod, "setup_cmd"):
                 mod.setup_cmd(cog)
             else:
-                cog.bot.logger.warning(
-                    f"Command module {module_name} has no setup_cmd function"
-                )
+                print(f"Command module {module_name} has no setup_cmd function")
         except Exception as e:
-            cog.bot.logger.exception(
-                f"Failed to load command module {module_name}: {e}"
-            )
+            print(f"Failed to load command module {module_name}: {e}")
