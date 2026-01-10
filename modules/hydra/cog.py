@@ -17,13 +17,13 @@ from modules.hydra.hydra_utils import hydra_helpers
 from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
 from modules.hydra.hydra_utils.sheet_command_base import SheetCommandBase
 from utils import (
+    batch_update_utils,
     command_predicates,
     discord_utils,
     google_utils,
     logging_utils,
     sheet_utils,
     sheets_constants,
-    batch_update_utils,
 )
 
 """

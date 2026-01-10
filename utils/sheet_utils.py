@@ -434,7 +434,10 @@ class OverviewSheet:
 
     def get_cell_value(self, label: str) -> str:
         row, col = gspread.utils.a1_to_rowcol(label)
-        return self.overview_data[row - 1][col - 1]
+        try:
+            return self.overview_data[row - 1][col - 1]
+        except IndexError:
+            return ""
 
     def find_row_of_channel(
         self, ctx: Context
