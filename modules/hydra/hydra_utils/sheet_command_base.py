@@ -13,7 +13,7 @@ class SheetCommandBase:
     async def get_sheet_context(self):
         """Returns (sheet_link, overview_sheet, row_num) or (None, None, None) on error"""
         result, _ = sheet_utils.findsheettether(
-            str(self.ctx.message.channel.category_id), str(self.ctx.message.channel.id)
+            self.ctx.message.channel.category_id, self.ctx.message.channel.id
         )
 
         if result is None:

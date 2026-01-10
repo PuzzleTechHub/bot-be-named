@@ -1,14 +1,14 @@
-from utils import sheets_constants
-from utils import discord_utils
-import nextcord
-import gspread
-import database
-from sqlalchemy.sql.expression import insert
-from sqlalchemy.orm import Session
-from typing import Union
-import emoji
+from typing import Optional, Union
 
+import emoji
+import gspread
+import nextcord
 from nextcord.ext.commands import Context
+from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import insert
+
+import database
+from utils import discord_utils, sheets_constants
 
 """
 Sheets utils. Useful for any commands that require Google Sheets.
@@ -245,7 +245,9 @@ async def chancrabgeneric(
     return curr_sheet_link, newsheet, new_chan
 
 
-def findsheettether(curr_cat_id: int, curr_chan_id: int, curr_thread_id: int = None):
+def findsheettether(
+    curr_cat_id: int, curr_chan_id: int, curr_thread_id: Optional[int] = None
+):
     """For finding the appropriate sheet tethering for a given category or channel"""
     result = None
     tether_type = None
@@ -308,7 +310,7 @@ async def sheetcreatetabgeneric(
     curr_sheet_link = None
     newsheet = None
 
-    tether_db_result, tether_type = findsheettether(str(curr_cat.id), str(curr_chan.id))
+    tether_db_result, tether_type = findsheettether(curr_cat.id, curr_chan.id)
 
     try:
         if tether_db_result is not None:

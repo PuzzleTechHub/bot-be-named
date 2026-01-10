@@ -187,7 +187,7 @@ class LionCog(commands.Cog, name="Lion"):
         """Helper to get overview sheet for bot stream notification. Silently returns None on failure."""
         try:
             result, _ = sheet_utils.findsheettether(
-                str(ctx.message.channel.category_id), str(ctx.message.channel.id)
+                ctx.message.channel.category_id, ctx.message.channel.id
             )
             if result is None:
                 return None
@@ -267,7 +267,7 @@ class LionCog(commands.Cog, name="Lion"):
         """Default error for anything lion now"""
         embed = discord_utils.create_embed()
         embed.add_field(
-            name=f"Failed",
+            name="Failed",
             value="Lion is deprecated on the bot currently! Please use hydra instead!",
             inline=False,
         )
@@ -376,7 +376,7 @@ class LionCog(commands.Cog, name="Lion"):
 
             # Find tethered sheet
             result, _ = sheet_utils.findsheettether(
-                str(ctx.message.channel.category_id), str(ctx.message.channel.id)
+                ctx.message.channel.category_id, ctx.message.channel.id
             )
 
             if result is None:

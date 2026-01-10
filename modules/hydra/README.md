@@ -19,6 +19,6 @@ More honestly though, we find it much easier for everyone to understand and reme
 
 The modules up to Hydra have been -
 - **Crab** : OG module, 2021-22, now removed ([1](https://github.com/kevslinger/bot-be-named/commit/b6d6a49) and [2](https://github.com/kevslinger/bot-be-named/commit/2017c2e)). Contained "Tab cloning" on GSheet.
-- **Lion** : 2022-24, currently "stable". Contains "Tab cloning", "Overview sheet update" and "Moving tabs around" on GSheet. Contains "Update solved status and answers from discord" on GSheets-Discord.
-- **Hydra** (you are here) : 2024 - ???. Currently under work.
+- **Lion** : 2022-24, currently deprecated. Contains "Tab cloning", "Overview sheet update" and "Moving tabs around" on GSheet. Contains "Update solved status and answers from discord" on GSheets-Discord.
+- **Hydra** (you are here) : 2024 - 2026. Currently "stable". Contains category summarizing, parallel puzzle creation and others.
 

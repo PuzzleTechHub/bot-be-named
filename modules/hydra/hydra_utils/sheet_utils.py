@@ -1,14 +1,13 @@
-from utils import batch_update_utils, sheets_constants
-from utils import discord_utils
-from modules.hydra import constants as hydra_constants
-import nextcord
-import gspread
-from utils.sheet_utils import OverviewSheet, findsheettether, addsheettethergeneric
-import emoji
 from datetime import datetime, timezone
-from gspread.worksheet import Worksheet
 
+import emoji
+import gspread
+import nextcord
+from gspread.worksheet import Worksheet
 from nextcord.ext.commands import Context
+
+from utils import batch_update_utils, discord_utils, sheets_constants
+from utils.sheet_utils import OverviewSheet, addsheettethergeneric, findsheettether
 
 ########################
 # RESERVED HYDRA UTILS #
@@ -300,7 +299,7 @@ async def create_puzzle_channel_from_template(
     # Send success message to the calling channel
     success_embed = discord_utils.create_embed()
     success_embed.add_field(
-        name=f"{constants.SUCCESS}!",
+        name="Success",
         value=f"Channel `{puzzle_name}` created as {new_chan.mention} from template `{template_name}`, posts pinned!",
         inline=False,
     )
@@ -476,7 +475,7 @@ async def batch_create_puzzle_channels(
     puzzle_configs: list[tuple[str, str | None]],
 ):
     """Batch creates multiple puzzle channels and tabs from template. Reserved for `chanhydra`."""
-    result, _ = findsheettether(str(ctx.channel.category.id), str(ctx.channel.id))
+    result, _ = findsheettether(ctx.channel.category.id, ctx.channel.id)
 
     if result is None:
         embed = discord_utils.create_embed()
@@ -670,16 +669,14 @@ async def batch_create_puzzle_channels(
 
             # Batch update overview row
             overview_updates = {
-                puzzle_name_col
-                + str(row_num): (
+                puzzle_name_col + str(row_num): (
                     f'=HYPERLINK("{final_sheet_link}", "{puzzle_name}")',
                     True,  # is_formula
                 ),
                 discord_channel_id_col + str(row_num): (str(channel.id), False),
                 sheet_tab_id_col + str(row_num): (str(newsheet.id), False),
                 status_col + str(row_num): (sheets_constants.UNSTARTED_NAME, False),
-                answer_col
-                + str(row_num): (
+                answer_col + str(row_num): (
                     "='{}'!{}".format(
                         tab_name.replace("'", "''"),
                         sheets_constants.TAB_ANSWER_LOCATION,

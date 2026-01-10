@@ -4,12 +4,13 @@ These wrap or extend the lion commands with hydra-specific functionality.
 """
 
 import os
+from typing import Optional
 import gspread
 from utils import discord_utils, google_utils
 from modules.hydra.hydra_utils.hydra_helpers import get_ordinal_suffix
 
 
-async def send_solve_notification(bot, ctx, answer: str = None):
+async def send_solve_notification(bot, ctx, answer: Optional[str] = None):
     """
     Send a notification to the bot stream channel when a puzzle is solved.
     Counts solved puzzles from the big board URL and column specified in .env file.

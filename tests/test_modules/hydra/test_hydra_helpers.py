@@ -3,7 +3,6 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 import gspread
-import nextcord
 from modules.hydra.hydra_utils.hydra_helpers import (
     handle_gspread_error,
     create_success_embed,

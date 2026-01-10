@@ -1,7 +1,7 @@
 """Shared pytest fixtures for bot testing."""
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock
 import sys
 import nextcord
 

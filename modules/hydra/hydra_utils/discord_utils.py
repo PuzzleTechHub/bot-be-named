@@ -1,9 +1,12 @@
-from utils import discord_utils
+from typing import Optional
+
 import nextcord
 from nextcord.ext.commands import Context
 
+from utils import discord_utils
 
-async def category_move_to_archive(ctx: Context, archive_name: str):
+
+async def category_move_to_archive(ctx: Context, archive_name: Optional[str]):
     """Moves the current channel to an archive category, or archives the thread if called from a thread.
     1. Takes the current channel's category name, and splits it into words. Looks for (all words) Archive, then (all but last word) Archive,
     then (all but last two words) Archive etc.
@@ -15,32 +18,64 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
     4. If the candidate category is full but the category with 2 appended to the end also exists and is full, try with 3, etc.
     """
     embed = discord_utils.create_embed()
+
+    # Type guard: Ensure we're working with a thread or text channel
+    if not isinstance(ctx.channel, (nextcord.Thread, nextcord.TextChannel)):
+        embed.add_field(
+            name="Failed",
+            value="This command can only be used in a guild (server) text channel or thread.",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+        return
+
     # Handling if mta is called from a thread
     if await discord_utils.is_thread(ctx, ctx.channel):
         # Checking if thread can be archived by the bot
-        try:
-            await ctx.channel.edit(archived=True)
-        except nextcord.Forbidden:
+        if isinstance(ctx.channel, nextcord.Thread):
+            try:
+                await ctx.channel.edit(archived=True)
+            except nextcord.Forbidden:
+                embed.add_field(
+                    name="Failed",
+                    value="Forbidden! Have you checked if the bot has the required permissions?",
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
             embed.add_field(
-                name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permissions?",
+                name="Success",
+                value=f"Archived {ctx.channel.mention} thread",
+                inline=False,
             )
+            await ctx.channel.edit(archived=True)
             await discord_utils.send_message(ctx, embed)
-            return
-        embed.add_field(
-            name="Success",
-            value=f"Archived {ctx.channel.mention} thread",
-            inline=False,
-        )
-        await ctx.channel.edit(archived=True)
-        await discord_utils.send_message(ctx, embed)
         return
 
     # Otherwise mta is called from a regular channel
     archive_category = None
     candidates = []
+
+    # Type guard: must have guild for category operations
+    if ctx.guild is None:
+        embed.add_field(
+            name="Failed",
+            value="This command must be used in a guild (server).",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+        return
+
     if archive_name is None:
         # Find category with same name + Archive (or select combinations)
+        if ctx.channel.category is None:
+            embed.add_field(
+                name="Failed",
+                value="Channel must be in a category to automatically find archive.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
         cat_name = ctx.channel.category.name
         cat_name_words = cat_name.split(" ")
 
@@ -114,7 +149,12 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
                 ctx, category_to_make
             )  # Change it to the new one!
 
-    if archive_category == ctx.channel.category:
+    # Check if channel is already in the archive category
+    if (
+        archive_category
+        and ctx.channel.category
+        and archive_category == ctx.channel.category
+    ):
         embed.add_field(
             name="Failed",
             value=f"Archive category `{archive_category.name}` is the same as current category `{ctx.channel.category.name}`. No need to move channel!",
@@ -123,10 +163,21 @@ async def category_move_to_archive(ctx: Context, archive_name: str):
         await discord_utils.send_message(ctx, embed)
         return
 
+    # Ensure we have a valid archive category
+    if archive_category is None:
+        embed.add_field(
+            name="Failed",
+            value="Could not find or create an archive category.",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+        return
+
     try:
-        # move channel
-        await ctx.channel.edit(category=archive_category)
-        await ctx.channel.edit(position=1)
+        # move channel - ctx.channel is guaranteed to be TextChannel here
+        if isinstance(ctx.channel, nextcord.TextChannel):
+            await ctx.channel.edit(category=archive_category)
+            await ctx.channel.edit(position=1)
     except nextcord.Forbidden:
         embed.add_field(
             name="Failed",

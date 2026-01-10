@@ -1,8 +1,7 @@
 """Tests for modules/hydra/hydra_utils/old_lion_command_helpers.py"""
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch, Mock
-import gspread
+from unittest.mock import AsyncMock, MagicMock, patch
 from modules.hydra.hydra_utils.old_lion_command_helpers import send_solve_notification
 
 

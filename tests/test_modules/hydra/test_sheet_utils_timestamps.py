@@ -1,6 +1,5 @@
 """Tests for timestamp functionality in sheet_utils.py and lion/cog.py"""
 
-import pytest
 from datetime import datetime, timezone
 
 
