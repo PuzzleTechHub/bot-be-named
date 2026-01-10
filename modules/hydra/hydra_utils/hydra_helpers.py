@@ -11,20 +11,6 @@ sheet_utils.py, discord_utils.py, etc."""
 # ==============================
 
 
-def strip_quotes(text: str) -> str:
-    quote_pairs = [
-        ('"', '"'),
-        ("'", "'"),
-        ("\u201c", "\u201d"),  # “ ”
-        ("\u2018", "\u2019"),  # ‘ ’
-    ]
-    if text and len(text) >= 2:
-        for open_quote, close_quote in quote_pairs:
-            if text[0] == open_quote and text[-1] == close_quote:
-                return text[1:-1]
-    return text
-
-
 # ==============================
 # HELPERS FOR GSHEETS
 # ==============================
@@ -87,9 +73,9 @@ async def send_and_react_success(ctx, embed, reaction=":check_mark_button:"):
     await ctx.message.add_reaction(emoji.emojize(reaction))
     await discord_utils.send_message(ctx, embed)
 
-
 def get_ordinal_suffix(n: int) -> str:
     """Return the ordinal suffix for a number (1st, 2nd, 3rd, 4th, etc.)"""
     if 11 <= (n % 100) <= 13:
         return "th"
     return {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+
