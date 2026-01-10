@@ -23,6 +23,7 @@ from utils import (
     logging_utils,
     sheet_utils,
     sheets_constants,
+    batch_update_utils,
 )
 
 """
@@ -778,6 +779,156 @@ class HydraCog(commands.Cog, name="Hydra"):
                     value=f"Unknown GSheets API Error - `{error_json.get('error', {}).get('message')}`",
                     inline=False,
                 )
+            await discord_utils.send_message(ctx, embed)
+
+    @command_predicates.is_solver()
+    @commands.command(name="renamehydra")
+    async def renamehydra(self, ctx: commands.Context, new_name: Optional[str] = None):
+        """Renames the current discord server and puzzle tab to the new name.
+        Keep in mind, if there is a status prefix in the channel name, it will be overwritten.
+        Don't worry, you can just call the command you used to change the status again to restore it.
+
+        Permission Category : Solver Roles only.
+        Usage: `~renamehydra "New Puzzle Name"`
+        """
+        await logging_utils.log_command(
+            "renamehydra", ctx.guild, ctx.channel, str(ctx.author)
+        )
+
+        # Type guard: ensure we're in a guild text channel
+        if not isinstance(ctx.channel, (nextcord.TextChannel, nextcord.Thread)):
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name="Failed",
+                value="This command can only be used in a guild text channel or thread.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        # Check if new_name is provided
+        if new_name is None or new_name.strip() == "":
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name="Failed",
+                value="You need to provide a new name for the puzzle.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        new_name = new_name.strip()
+
+        base = SheetCommandBase(ctx, self.gspread_client)
+        curr_sheet_link, overview_sheet, row_to_find = await base.get_sheet_context()
+
+        if overview_sheet is None or curr_sheet_link is None:
+            return
+
+        embed = discord_utils.create_embed()
+
+        # Get the sheet tab ID for the current channel
+        sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
+        sheet_tab_id = overview_sheet.get_cell_value(
+            sheet_tab_id_col + str(row_to_find)
+        )
+
+        if sheet_tab_id is None or sheet_tab_id == "":
+            embed.add_field(
+                name="Failed",
+                value=f"Could not find sheet tab ID for {ctx.channel.mention}.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        try:
+            # Get the spreadsheet
+            curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+
+            # Get the worksheet by ID
+            worksheet = None
+            for ws in curr_sheet.worksheets():
+                if str(ws.id) == str(sheet_tab_id):
+                    worksheet = ws
+                    break
+
+            if worksheet is None:
+                embed.add_field(
+                    name="Failed",
+                    value=f"Could not find worksheet with ID {sheet_tab_id}.",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+
+            old_tab_name = worksheet.title
+            new_tab_name = new_name.replace("#", "").replace("-", " ")
+
+            # Check if a sheet with the new name already exists
+            existing_sheet_names = {ws.title for ws in curr_sheet.worksheets()}
+            if new_tab_name in existing_sheet_names and new_tab_name != old_tab_name:
+                embed.add_field(
+                    name="Failed",
+                    value=f"A sheet with the name `{new_tab_name}` already exists.",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+
+            # Prepare batch update
+            batch = batch_update_utils.BatchUpdateBuilder()
+
+            # Rename the sheet tab
+            batch.rename_sheet(sheet_id=int(sheet_tab_id), new_name=new_tab_name)
+
+            # Update the puzzle name in the Overview sheet
+            puzzle_name_col = overview_sheet.get_cell_value(
+                sheets_constants.PUZZLE_NAME_COLUMN_LOCATION
+            )
+            final_sheet_link = curr_sheet_link + "/edit#gid=" + str(sheet_tab_id)
+            batch.update_cell_by_label(
+                sheet_id=overview_sheet.worksheet.id,
+                label=puzzle_name_col + str(row_to_find),
+                value=f'=HYPERLINK("{final_sheet_link}", "{new_name}")',
+                is_formula=True,
+            )
+
+            # Update the channel name in the sheet tab
+            batch.update_cell_by_label(
+                sheet_id=int(sheet_tab_id),
+                label=sheets_constants.TAB_CHAN_NAME_LOCATION,
+                value=new_name,
+            )
+
+            # Execute the batch update
+            curr_sheet.batch_update(batch.build())
+
+            # Rename the Discord channel
+            new_channel_name = new_name.lower().replace(" ", "-")
+            await ctx.channel.edit(name=new_channel_name)
+
+            # Send success message
+            embed.add_field(
+                name="Success",
+                value=f"Successfully renamed the puzzle to `{new_name}`.\n"
+                f"- Discord channel renamed to {ctx.channel.mention}\n"
+                f"- Sheet tab renamed to `{new_tab_name}`\n"
+                f"- Overview updated",
+                inline=False,
+            )
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+            await discord_utils.send_message(ctx, embed)
+
+        except gspread.exceptions.APIError as e:
+            await hydra_helpers.handle_gspread_error(ctx, e, embed)
+            return
+        except Exception as e:
+            embed.add_field(
+                name="Failed",
+                value=f"An error occurred while renaming: `{str(e)}`",
+                inline=False,
+            )
             await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
