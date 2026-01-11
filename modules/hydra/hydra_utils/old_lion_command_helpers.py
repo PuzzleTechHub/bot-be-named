@@ -81,10 +81,6 @@ async def send_solve_notification(bot, ctx, answer: Optional[str] = None):
                 inline=False,
             )
 
-        sent_msg = await bot_stream_channel.send(embed=stream_embed)
-        try:
-            await sent_msg.add_reaction("🎉")
-        except Exception:
-            pass
+        await bot_stream_channel.send(embed=stream_embed)
     except Exception:
         pass  # Silently fail if bot stream notification fails
