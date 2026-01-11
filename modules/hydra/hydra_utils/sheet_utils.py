@@ -21,6 +21,7 @@ async def create_puzzle_channel_from_template(
     template_name: str,
     puzzle_url: str | None,
     gspread_client,
+    notes: str | None = None,
 ):
     """Create a puzzle channel and a new tab from `template_name` template, and update in overview. Based off chancrabgeneric."""
     embed = discord_utils.create_embed()
@@ -257,6 +258,14 @@ async def create_puzzle_channel_from_template(
             value=current_timestamp,
         )
 
+        if notes:
+            notes_col = sheets_constants.NOTES_COLUMN
+            batch.update_cell_by_label(
+                sheet_id=overview_id,
+                label=notes_col + str(first_empty),
+                value=notes,
+            )
+
         tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
         chan_name_loc = sheets_constants.TAB_CHAN_NAME_LOCATION
         url_loc = sheets_constants.TAB_URL_LOCATION
@@ -300,7 +309,7 @@ async def create_puzzle_channel_from_template(
     success_embed = discord_utils.create_embed()
     success_embed.add_field(
         name="Success",
-        value=f"Channel `{puzzle_name}` created as {new_chan.mention} from template `{template_name}`, posts pinned!",
+        value=f"Channel `{puzzle_name}` created as {new_chan.mention} from template `{template_name if not used_fallback else 'Template'}`, posts pinned!",
         inline=False,
     )
     await discord_utils.send_message(ctx, success_embed)
@@ -472,7 +481,7 @@ async def batch_create_puzzle_channels(
     bot,
     ctx,
     gspread_client,
-    puzzle_configs: list[tuple[str, str | None]],
+    puzzle_configs: list[tuple[str, str | None, str | None]],
 ):
     """Batch creates multiple puzzle channels and tabs from template. Reserved for `chanhydra`."""
     result, _ = findsheettether(ctx.channel.category.id, ctx.channel.id)
@@ -531,7 +540,7 @@ async def batch_create_puzzle_channels(
     channels = []
     skipped_puzzles = []  # Track puzzles that were skipped
 
-    for puzzle_name, puzzle_url in puzzle_configs:
+    for puzzle_name, puzzle_url, notes in puzzle_configs:
         tab_name = puzzle_name.replace("#", "").replace("-", " ")
 
         # Check if a sheet with this name already exists (using cached list)
@@ -554,7 +563,7 @@ async def batch_create_puzzle_channels(
             if new_channel is None:
                 raise Exception("Channel creation returned None")
 
-            channels.append((puzzle_name, tab_name, puzzle_url, new_channel))
+            channels.append((puzzle_name, tab_name, puzzle_url, notes, new_channel))
 
         except Exception as e:
             embed = discord_utils.create_embed()
@@ -573,7 +582,7 @@ async def batch_create_puzzle_channels(
 
     # Batch create all worksheets
     requests = []
-    for puzzle_name, tab_name, _, _ in channels:
+    for puzzle_name, tab_name, _, _, _ in channels:
         requests.append(
             {
                 "duplicateSheet": {
@@ -627,7 +636,7 @@ async def batch_create_puzzle_channels(
     all_worksheets = {ws.title: ws for ws in spreadsheet.worksheets()}
     worksheets = []
 
-    for _, tab_name, _, _ in channels:
+    for _, tab_name, _, _, _ in channels:
         ws = all_worksheets.get(tab_name)
         worksheets.append(ws)
 
@@ -657,7 +666,7 @@ async def batch_create_puzzle_channels(
     # Build batch update for overview and new sheets
     batch = batch_update_utils.BatchUpdateBuilder()
 
-    for idx, (puzzle_name, tab_name, puzzle_url, channel) in enumerate(channels):
+    for idx, (puzzle_name, tab_name, puzzle_url, notes, channel) in enumerate(channels):
         if worksheets[idx] is None:
             continue
         try:
@@ -683,6 +692,10 @@ async def batch_create_puzzle_channels(
                 ),
                 unlocked_timestamp_col + str(row_num): (current_timestamp, False),
             }
+
+            if notes:
+                notes_col = sheets_constants.NOTES_COLUMN
+                overview_updates[notes_col + str(row_num)] = (notes, False)
 
             for label, (value, is_formula) in overview_updates.items():
                 batch.update_cell_by_label(
@@ -771,7 +784,7 @@ async def batch_create_puzzle_channels(
 
     # Return results
     results = []
-    for idx, (puzzle_name, tab_name, puzzle_url, channel) in enumerate(channels):
+    for idx, (puzzle_name, tab_name, puzzle_url, notes, channel) in enumerate(channels):
         if worksheets[idx] is not None:
             final_link = curr_sheet_link + "/edit#gid=" + str(worksheets[idx].id)
             results.append((final_link, worksheets[idx], channel, puzzle_name))
