@@ -55,9 +55,9 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         Permission Category : Solver Roles only.
 
-        Usage: ~anychanhydra "Puzzle Name" "TemplateName" (uses "TemplateName Template" from the sheet)
-        Usage: ~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" (uses "Square Template" from the sheet)
-        Usage: ~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" "Some notes here" (with notes)
+        Usage: `~anychanhydra "Puzzle Name" "TemplateName"` (uses "TemplateName Template" from the sheet)
+        Usage: `~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com"` (uses "Square Template" from the sheet)
+        Usage: `~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" "Some notes here"` (with notes)
         """
         await logging_utils.log_command(
             "anychanhydra", ctx.guild, ctx.channel, ctx.author
@@ -259,14 +259,14 @@ class HydraCog(commands.Cog, name="Hydra"):
         Supports creating multiple channels in parallel delimited by new lines (CTRL + Enter).
 
         Permission Category : Solver Roles only.
-        Usage: ~chanhydra "Puzzle Name"
-        Usage: ~chanhydra PuzzleName "http://www.linktopuzzle.com"
+        Usage: `~chanhydra "Puzzle Name"`
+        Usage: `~chanhydra PuzzleName "http://www.linktopuzzle.com"`
         Usage:
-        ~chanhydra
+        `~chanhydra
         APuzzle "http://linktoapuzzle.com"
         "B Puzzle" "http://linktobpuzzle.com"
         3rdPuzzle
-        4thPuzzle "http://link.com" "Some notes here"
+        4thPuzzle "http://link.com" "Some notes here"`
         """
 
         await logging_utils.log_command(
