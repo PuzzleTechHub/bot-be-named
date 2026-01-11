@@ -561,7 +561,9 @@ async def batch_create_puzzle_channels(
             )
 
             if new_channel is None:
-                raise Exception("Channel creation returned None")
+                raise Exception(
+                    "Channel could not be created. I may lack permissions, or the category may be full."
+                )
 
             channels.append((puzzle_name, tab_name, puzzle_url, notes, new_channel))
 
