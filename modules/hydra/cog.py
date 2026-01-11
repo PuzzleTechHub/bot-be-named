@@ -109,9 +109,9 @@ class HydraCog(commands.Cog, name="Hydra"):
     @command_predicates.is_solver()
     @commands.command(name="catsummaryhydra", aliases=["categorysummaryhydra"])
     async def catsummaryhydra(self, ctx) -> None:
-        """Collates all the notes on the overview sheet for each text channel in the category the command was
-        called in. Silently skips channels not on the overview. The sheet will need to follow the Hydra
-        requirements for this to work as expected.
+        """Collates all the notes on the overview sheet for each text channel in the category the command was called in.
+        Silently skips channels not on the overview.
+        The sheet will need to follow the Hydra requirements for this to work as expected.
 
         Permission Category : Solver Roles only.
 
