@@ -127,10 +127,25 @@ async def category_move_to_archive(ctx: Context, archive_name: Optional[str]):
                 break
 
         if not category_found:
+            # Check if we've hit the maximum category limit (50)
+            if len(ctx.guild.categories) >= 50:
+                embed.add_field(
+                    name="Failed",
+                    value=f"Cannot create new archive category. Server has reached the maximum limit of 50 categories. "
+                    f"Archive category `{archive_category.name}` is full.",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+
             clonecat = ctx.bot.get_command("clonecat")
-            category_to_make = (
-                f"{archive_category.name} {len(categories_starting_with_name) + 1}"
-            )
+            # Find the smallest numeric suffix >= 2 that's not already used
+            existing_names = {c.name for c in ctx.guild.categories}
+            suffix = 2
+            while f"{archive_category.name} {suffix}" in existing_names:
+                suffix += 1
+
+            category_to_make = f"{archive_category.name} {suffix}"
 
             await ctx.invoke(
                 clonecat,
