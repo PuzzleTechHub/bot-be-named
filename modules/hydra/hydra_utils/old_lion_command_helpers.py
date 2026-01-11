@@ -5,9 +5,11 @@ These wrap or extend the lion commands with hydra-specific functionality.
 
 import os
 from typing import Optional
+
 import gspread
-from utils import discord_utils, google_utils
+
 from modules.hydra.hydra_utils.hydra_helpers import get_ordinal_suffix
+from utils import discord_utils, google_utils
 
 
 async def send_solve_notification(bot, ctx, answer: Optional[str] = None):
@@ -58,7 +60,9 @@ async def send_solve_notification(bot, ctx, answer: Optional[str] = None):
             except Exception:
                 solve_count = 0
 
-        answer_display = f"||{answer.upper()}||" if answer else "*(no answer provided)*"
+        answer_display = (
+            f"||`{answer.upper()}`||" if answer else "*(no answer provided)*"
+        )
         stream_embed = discord_utils.create_embed()
 
         if solve_count > 0:
@@ -77,6 +81,10 @@ async def send_solve_notification(bot, ctx, answer: Optional[str] = None):
                 inline=False,
             )
 
-        await bot_stream_channel.send(embed=stream_embed)
+        sent_msg = await bot_stream_channel.send(embed=stream_embed)
+        try:
+            await sent_msg.add_reaction("🎉")
+        except Exception:
+            pass
     except Exception:
         pass  # Silently fail if bot stream notification fails
