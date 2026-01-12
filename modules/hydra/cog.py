@@ -65,11 +65,8 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         arg_list = shlex.split(args)
         if len(arg_list) < 2 or len(arg_list) > 4:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value="Invalid arguments. Usage: `~anychanhydra [puzzle name] [template name] [puzzle url (optional)] [notes (optional)]`",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                "Invalid arguments. Usage: `~anychanhydra [puzzle name] [template name] [puzzle url (optional)] [notes (optional)]`"
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -208,23 +205,17 @@ class HydraCog(commands.Cog, name="Hydra"):
                     else:
                         messages.append(f"- {currchan.mention} - *(empty description)*")
         except Exception as e:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"An error occurred while summarizing category `{currcat.name}`. "
-                f"Error: {str(e)}",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                f"An error occurred while summarizing category `{currcat.name}`. "
+                f"Error: {str(e)}"
             )
             await discord_utils.send_message(ctx, embed)
             await initial_message.delete()
             return
 
         if not messages:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"No text channels found in category `{currcat.name}`.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                f"No text channels found in category `{currcat.name}`."
             )
             await discord_utils.send_message(ctx, embed)
             await initial_message.delete()
@@ -277,10 +268,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         content = content.strip()
 
         if not content:
-            embed.add_field(
-                name="Failed",
-                value="You need to provide at least a puzzle name.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                "You need to provide at least a puzzle name."
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -293,10 +282,8 @@ class HydraCog(commands.Cog, name="Hydra"):
             try:
                 parts = shlex.split(line)
             except ValueError as e:
-                embed.add_field(
-                    name="Failed",
-                    value=f"Error parsing line `{line}`... continuing parsing the rest.\nError: {str(e)}",
-                    inline=False,
+                embed = hydra_helpers.create_failure_embed(
+                    f"Error parsing line `{line}`... continuing parsing the rest.\nError: {str(e)}"
                 )
                 await discord_utils.send_message(ctx, embed)
                 continue
@@ -310,10 +297,8 @@ class HydraCog(commands.Cog, name="Hydra"):
             puzzle_configs.append((puzzle_name, puzzle_url, notes))
 
         if not puzzle_configs:
-            embed.add_field(
-                name="Failed",
-                value="No data passed into the command!",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                "No data passed into the command!"
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -343,7 +328,6 @@ class HydraCog(commands.Cog, name="Hydra"):
                 failed_messages.append(f"- `{puzzle_name}`")
 
         if success_count > 0:
-            embed = discord_utils.create_embed()
             if success_messages:
                 value = (
                     f"Successfully created {success_count} puzzle channel(s):\n\n"
@@ -351,22 +335,15 @@ class HydraCog(commands.Cog, name="Hydra"):
                 )
             else:
                 value = f"Successfully created {success_count} puzzle channel(s)!"
-            embed.add_field(
-                name="Success",
-                value=value,
-                inline=False,
-            )
+            embed = hydra_helpers.create_success_embed(value)
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
             await discord_utils.send_message(ctx, embed)
 
         if success_count < len(puzzle_configs):
             failed_count = len(puzzle_configs) - success_count
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"Failed to create {failed_count} puzzle channel(s). Check earlier messages for details.\n\n"
-                + "\n".join(failed_messages),
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                f"Failed to create {failed_count} puzzle channel(s). Check earlier messages for details.\n\n"
+                + "\n".join(failed_messages)
             )
             await discord_utils.send_message(ctx, embed)
 
@@ -391,10 +368,8 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         # Check if channel mention is provided
         if channel_mention == "":
-            embed.add_field(
-                name="Failed",
-                value="Please provide a channel to delete. Usage: `~deletehydra #puzzle-channel`",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                "Please provide a channel to delete. Usage: `~deletehydra #puzzle-channel`"
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -405,30 +380,22 @@ class HydraCog(commands.Cog, name="Hydra"):
             target_channel = ctx.message.channel_mentions[0]
 
         if target_channel is None:
-            embed.add_field(
-                name="Failed",
-                value="Please mention the channel, not just type its name!",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                "Please mention the channel, not just type its name!"
             )
             await discord_utils.send_message(ctx, embed)
             return
 
         # Type guard: ensure target is a text channel
         if not isinstance(target_channel, nextcord.TextChannel):
-            embed.add_field(
-                name="Failed",
-                value="Can only delete text channels.",
-                inline=False,
-            )
+            embed = hydra_helpers.create_failure_embed("Can only delete text channels.")
             await discord_utils.send_message(ctx, embed)
             return
 
         # Check that the target channel is not the same as the command channel
         if target_channel.id == ctx.channel.id:
-            embed.add_field(
-                name="Failed",
-                value="You cannot delete the channel you are currently in. Please run this command from a different channel.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                "You cannot delete the channel you are currently in. Please run this command from a different channel."
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -440,10 +407,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         )
 
         if result is None:
-            embed.add_field(
-                name="Failed",
-                value=f"The channel {target_channel.mention} is not tethered to any Google sheet.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                f"The channel {target_channel.mention} is not tethered to any Google sheet."
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -657,17 +622,13 @@ class HydraCog(commands.Cog, name="Hydra"):
             except gspread.exceptions.APIError as e:
                 await hydra_helpers.handle_gspread_error(ctx, e, embed)
             except nextcord.Forbidden:
-                embed.add_field(
-                    name="Failed",
-                    value="I do not have permission to delete the channel.",
-                    inline=False,
+                embed = hydra_helpers.create_failure_embed(
+                    "I do not have permission to delete the channel."
                 )
                 await discord_utils.send_message(ctx, embed)
             except Exception as e:
-                embed.add_field(
-                    name="Failed",
-                    value=f"An unknown error occurred: {str(e)}",
-                    inline=False,
+                embed = hydra_helpers.create_failure_embed(
+                    f"An unknown error occurred: {str(e)}"
                 )
                 await discord_utils.send_message(ctx, embed)
 
@@ -761,16 +722,12 @@ class HydraCog(commands.Cog, name="Hydra"):
                 )
 
                 if current_notes:
-                    embed.add_field(
-                        name="Success",
-                        value=f"Successfully updated notes for {ctx.channel.mention} from `{current_notes}` to `{notes}`",
-                        inline=False,
+                    embed = hydra_helpers.create_success_embed(
+                        f"Successfully updated notes for {ctx.channel.mention} from `{current_notes}` to `{notes}`"
                     )
                 else:
-                    embed.add_field(
-                        name="Success",
-                        value=f"Successfully updated notes for {ctx.channel.mention} to `{notes}`",
-                        inline=False,
+                    embed = hydra_helpers.create_success_embed(
+                        f"Successfully updated notes for {ctx.channel.mention} to `{notes}`"
                     )
 
                 await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
@@ -809,22 +766,16 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         # Type guard: ensure we're in a guild text channel
         if not isinstance(ctx.channel, (nextcord.TextChannel, nextcord.Thread)):
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value="This command can only be used in a guild text channel or thread.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                "This command can only be used in a guild text channel or thread."
             )
             await discord_utils.send_message(ctx, embed)
             return
 
         # Check if new_name is provided
         if new_name is None or new_name.strip() == "":
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value="You need to provide a new name for the puzzle.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                "You need to provide a new name for the puzzle."
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -846,10 +797,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         )
 
         if sheet_tab_id is None or sheet_tab_id == "":
-            embed.add_field(
-                name="Failed",
-                value=f"Could not find sheet tab ID for {ctx.channel.mention}.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                f"Could not find sheet tab ID for {ctx.channel.mention}."
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -866,10 +815,8 @@ class HydraCog(commands.Cog, name="Hydra"):
                     break
 
             if worksheet is None:
-                embed.add_field(
-                    name="Failed",
-                    value=f"Could not find worksheet with ID {sheet_tab_id}.",
-                    inline=False,
+                embed = hydra_helpers.create_failure_embed(
+                    f"Could not find worksheet with ID {sheet_tab_id}."
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
@@ -880,10 +827,8 @@ class HydraCog(commands.Cog, name="Hydra"):
             # Check if a sheet with the new name already exists
             existing_sheet_names = {ws.title for ws in curr_sheet.worksheets()}
             if new_tab_name in existing_sheet_names and new_tab_name != old_tab_name:
-                embed.add_field(
-                    name="Failed",
-                    value=f"A sheet with the name `{new_tab_name}` already exists.",
-                    inline=False,
+                embed = hydra_helpers.create_failure_embed(
+                    f"A sheet with the name `{new_tab_name}` already exists."
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
@@ -936,10 +881,8 @@ class HydraCog(commands.Cog, name="Hydra"):
             await hydra_helpers.handle_gspread_error(ctx, e, embed)
             return
         except Exception as e:
-            embed.add_field(
-                name="Failed",
-                value=f"An error occurred while renaming: `{str(e)}`",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                f"An error occurred while renaming: `{str(e)}`"
             )
             await discord_utils.send_message(ctx, embed)
 
@@ -1007,16 +950,12 @@ class HydraCog(commands.Cog, name="Hydra"):
                 )
 
                 if current_round:
-                    embed.add_field(
-                        name="Success",
-                        value=f"Successfully updated round for {ctx.channel.mention} from `{current_round}` to `{round_name}`",
-                        inline=False,
+                    embed = hydra_helpers.create_success_embed(
+                        f"Successfully updated round for {ctx.channel.mention} from `{current_round}` to `{round_name}`"
                     )
                 else:
-                    embed.add_field(
-                        name="Success",
-                        value=f"Successfully updated round for {ctx.channel.mention} to `{round_name}`",
-                        inline=False,
+                    embed = hydra_helpers.create_success_embed(
+                        f"Successfully updated round for {ctx.channel.mention} to `{round_name}`"
                     )
 
                 await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
@@ -1075,11 +1014,8 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         # Type guard: ensure we're in a guild text channel
         if not isinstance(ctx.channel, nextcord.TextChannel):
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value="This command can only be used in a guild (server) text channel.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                "This command can only be used in a guild (server) text channel."
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -1098,19 +1034,15 @@ class HydraCog(commands.Cog, name="Hydra"):
             _, col_idx = gspread.utils.a1_to_rowcol(sheet_tab_id_col + "1")
             sheet_tab_id = overview_values[row_to_find - 1][col_idx - 1]
         except Exception:
-            embed.add_field(
-                name="Failed",
-                value=f"Could not find the Sheet Tab ID for channel {ctx.channel.mention} in the Overview sheet.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                f"Could not find the Sheet Tab ID for channel {ctx.channel.mention} in the Overview sheet."
             )
             await discord_utils.send_message(ctx, embed)
             return
 
         if ctx.channel.category is None:
-            embed.add_field(
-                name="Failed",
-                value=f"The channel {ctx.channel.mention} is not in a category.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                f"The channel {ctx.channel.mention} is not in a category."
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -1129,27 +1061,22 @@ class HydraCog(commands.Cog, name="Hydra"):
         if category_name != "":
             main_category = await discord_utils.find_category(ctx, category_name)
             if main_category is None:
-                embed.add_field(
-                    name="Failed",
-                    value=f"I cannot find category `{category_name}`. Perhaps check your spelling and try again.",
+                embed = hydra_helpers.create_failure_embed(
+                    f"I cannot find category `{category_name}`. Perhaps check your spelling and try again."
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
             elif main_category in full_categories:
-                embed.add_field(
-                    name="Failed",
-                    value=f"The category `{category_name}` is full. Please specify a different category.",
+                embed = hydra_helpers.create_failure_embed(
+                    f"The category `{category_name}` is full. Please specify a different category."
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
 
         if main_category is None:
             if ctx.guild is None:
-                embed = discord_utils.create_embed()
-                embed.add_field(
-                    name="Failed",
-                    value="This command must be used in a guild (server).",
-                    inline=False,
+                embed = hydra_helpers.create_failure_embed(
+                    "This command must be used in a guild (server)."
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
@@ -1222,10 +1149,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                 return
 
         if main_category is None:
-            embed.add_field(
-                name="Failed",
-                value="I could not automatically find the main hunt category. \n"
-                "Please specify the main hunt category name as an argument.",
+            embed = hydra_helpers.create_failure_embed(
+                "I could not automatically find the main hunt category. \n"
+                "Please specify the main hunt category name as an argument."
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -1234,25 +1160,19 @@ class HydraCog(commands.Cog, name="Hydra"):
         channel_embed = discord_utils.create_embed()
         try:
             await ctx.channel.edit(category=main_category)
-            channel_embed.add_field(
-                name="Success",
-                value=f"Successfully moved channel {ctx.channel.mention} to category `{main_category.name}`.",
-                inline=False,
+            channel_embed = hydra_helpers.create_success_embed(
+                f"Successfully moved channel {ctx.channel.mention} to category `{main_category.name}`."
             )
             await discord_utils.send_message(ctx, channel_embed)
         except nextcord.Forbidden:
-            channel_embed.add_field(
-                name="Failed",
-                value=f"I do not have permission to move the channel {ctx.channel.mention} to category `{main_category.name}`.",
-                inline=False,
+            channel_embed = hydra_helpers.create_failure_embed(
+                f"I do not have permission to move the channel {ctx.channel.mention} to category `{main_category.name}`."
             )
             await discord_utils.send_message(ctx, channel_embed)
             return
         except Exception as e:
-            channel_embed.add_field(
-                name="Failed",
-                value=f"Could not move channel {ctx.channel.mention} to category `{main_category.name}`. Error: {str(e)}",
-                inline=False,
+            channel_embed = hydra_helpers.create_failure_embed(
+                f"Could not move channel {ctx.channel.mention} to category `{main_category.name}`. Error: {str(e)}"
             )
             await discord_utils.send_message(ctx, channel_embed)
             return
@@ -1262,11 +1182,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         # Type check for curr_sheet_link
         if curr_sheet_link is None:
-            tab_embed.add_field(
-                name="Failed",
-                value="Could not find sheet link.",
-                inline=False,
-            )
+            tab_embed = hydra_helpers.create_failure_embed("Could not find sheet link.")
             await discord_utils.send_message(ctx, tab_embed)
             return
 
@@ -1308,20 +1224,16 @@ class HydraCog(commands.Cog, name="Hydra"):
                     ]
                 }
             )
-            tab_embed.add_field(
-                name="Success",
-                value=f"Successfully moved the sheet tab for {ctx.channel.mention} to the active section.",
-                inline=False,
+            tab_embed = hydra_helpers.create_success_embed(
+                f"Successfully moved the sheet tab for {ctx.channel.mention} to the active section."
             )
             await discord_utils.send_message(ctx, tab_embed)
         except gspread.exceptions.APIError as e:
             await hydra_helpers.handle_gspread_error(ctx, e, tab_embed)
             return
         except Exception as e:
-            tab_embed.add_field(
-                name="Failed",
-                value=f"Unknown error when moving tab: `{str(e)}`",
-                inline=False,
+            tab_embed = hydra_helpers.create_failure_embed(
+                f"Unknown error when moving tab: `{str(e)}`"
             )
             await discord_utils.send_message(ctx, tab_embed)
             return
@@ -1372,9 +1284,8 @@ class HydraCog(commands.Cog, name="Hydra"):
             # No categories specified, use current channel's category
             currcat = ctx.message.channel.category
             if currcat is None:
-                embed.add_field(
-                    name="Failed",
-                    value="You must call this command from a channel in a category, or specify category names.",
+                embed = hydra_helpers.create_failure_embed(
+                    "You must call this command from a channel in a category, or specify category names."
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
@@ -1384,9 +1295,8 @@ class HydraCog(commands.Cog, name="Hydra"):
             for cat_name in category_names:
                 cat = await discord_utils.find_category(ctx, cat_name)
                 if cat is None:
-                    embed.add_field(
-                        name="Failed",
-                        value=f"I cannot find category `{cat_name}`. Perhaps check your spelling and try again.",
+                    embed = hydra_helpers.create_failure_embed(
+                        f"I cannot find category `{cat_name}`. Perhaps check your spelling and try again."
                     )
                     await discord_utils.send_message(ctx, embed)
                     return
@@ -1474,10 +1384,8 @@ class HydraCog(commands.Cog, name="Hydra"):
                     )
 
         except Exception as e:
-            embed.add_field(
-                name="Failed",
-                value=f"An error occurred while fetching messages. Error: {str(e)}",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                f"An error occurred while fetching messages. Error: {str(e)}"
             )
             await discord_utils.send_message(ctx, embed)
             return
