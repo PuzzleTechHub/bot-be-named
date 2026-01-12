@@ -572,7 +572,11 @@ class HydraCog(commands.Cog, name="Hydra"):
                 tab_deleted = False
                 if tab_name_found and tab_name:
                     try:
-                        sh = self.gspread_client.open_by_url(curr_sheet_link)
+                        sh = (
+                            overview_sheet.spreadsheet
+                            if overview_sheet is not None
+                            else self.gspread_client.open_by_url(curr_sheet_link)
+                        )
 
                         # Try to find and delete worksheet
                         ws_to_delete = None
@@ -1246,7 +1250,11 @@ class HydraCog(commands.Cog, name="Hydra"):
             return
 
         try:
-            curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+            curr_sheet = (
+                overview_sheet.spreadsheet
+                if overview_sheet is not None
+                else self.gspread_client.open_by_url(curr_sheet_link)
+            )
 
             # Find index by looking for last occurrence of a sheet ending with "Template".
             all_sheets = curr_sheet.worksheets()

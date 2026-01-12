@@ -47,7 +47,6 @@ async def category_move_to_archive(ctx: Context, archive_name: Optional[str]):
                 value=f"Archived {ctx.channel.mention} thread",
                 inline=False,
             )
-            await ctx.channel.edit(archived=True)
             await discord_utils.send_message(ctx, embed)
         return
 
