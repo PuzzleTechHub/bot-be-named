@@ -556,8 +556,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                         # Get the cell formula from column D
                         try:
                             tab_name = overview_sheet.get_cell_value(
-                                f"D{row_to_find}"
-                            )  # FIXME - hardcoded
+                                sheets_constants.STATUS_COLUMN_LOCATION
+                                + str(row_to_find)
+                            )
                             tab_name_found = True
                         except (gspread.exceptions.APIError, IndexError):
                             tab_name_found = False
