@@ -1120,6 +1120,11 @@ class HydraCog(commands.Cog, name="Hydra"):
         # just ask the user for the category name.
 
         main_category = None
+        full_categories = [
+            category
+            for category in ctx.guild.categories
+            if discord_utils.category_is_full(category)
+        ]
 
         if category_name != "":
             main_category = await discord_utils.find_category(ctx, category_name)
@@ -1127,6 +1132,13 @@ class HydraCog(commands.Cog, name="Hydra"):
                 embed.add_field(
                     name="Failed",
                     value=f"I cannot find category `{category_name}`. Perhaps check your spelling and try again.",
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+            elif main_category in full_categories:
+                embed.add_field(
+                    name="Failed",
+                    value=f"The category `{category_name}` is full. Please specify a different category.",
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
@@ -1143,8 +1155,11 @@ class HydraCog(commands.Cog, name="Hydra"):
                 return
 
             for category in ctx.guild.categories:
-                if category.id == ctx.channel.category.id:
-                    continue  # Skip current category
+                if (
+                    category.id == ctx.channel.category.id
+                    or category in full_categories
+                ):
+                    continue  # Skip current category / full categories
                 cat_result, _ = sheet_utils.findsheettether(category.id, 0)
                 if (
                     cat_result is not None
@@ -1173,17 +1188,22 @@ class HydraCog(commands.Cog, name="Hydra"):
             ]
 
             possible_solving_categories = []
-            # Look for categories that begin with the exact base name, then the bas name minus last word, etc.
+            # Look for categories that begin with the exact base name, then the base name minus last word, etc.
             for possible_base_name in possible_category_prefixes:
                 to_add_candidates = [
                     category
                     for category in ctx.guild.categories
                     if category.name.startswith(possible_base_name)
-                    and not re.match(r".*Archive\s*\d*$", category.name)
+                    and (not re.match(r".*Archive\s*\d*$", category.name))
+                    and (category not in full_categories)
                 ]
 
                 for candidate in to_add_candidates:
-                    if candidate not in possible_solving_categories:
+                    # Skip categories that are full, prefer ones with space
+                    if (
+                        candidate not in possible_solving_categories
+                        and not discord_utils.category_is_full(candidate)
+                    ):
                         possible_solving_categories.append(candidate)
 
             if len(possible_solving_categories) == 1:
