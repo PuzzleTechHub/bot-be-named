@@ -217,7 +217,8 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         if not messages:
             embed = hydra_helpers.create_failure_embed(
-                f"No text channels found in category `{currcat.name}`."
+                f"No puzzle channels with sheet tethers found in category `{currcat.name}`.\n\n"
+                f"Make sure channels are tethered to a Google Sheet with the Overview tab."
             )
             await discord_utils.send_message(ctx, embed)
             await initial_message.delete()
@@ -285,7 +286,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                 parts = shlex.split(line)
             except ValueError as e:
                 embed = hydra_helpers.create_failure_embed(
-                    f"Error parsing line `{line}`... continuing parsing the rest.\nError: {str(e)}"
+                    f"Error parsing line: `{line}`\n\n"
+                    f"Make sure quotes are properly matched. Continuing with remaining lines...\n"
+                    f"Error details: {str(e)}"
                 )
                 await discord_utils.send_message(ctx, embed)
                 continue
@@ -300,7 +303,8 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         if not puzzle_configs:
             embed = hydra_helpers.create_failure_embed(
-                "No data passed into the command!"
+                "No valid puzzle data could be parsed.\n\n"
+                "Make sure each line has at least a puzzle name. See `~help chanhydra` for usage examples."
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -455,7 +459,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             timeout_embed.add_field(
                 name="Cancelled!",
                 value="No confirmation received in time. "
-                f"{target_channel.mention} will not deleted.",
+                f"{target_channel.mention} will not be deleted.",
                 inline=False,
             )
             await discord_utils.send_message(ctx, timeout_embed)
@@ -751,7 +755,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     @command_predicates.is_solver()
     @commands.command(name="renamehydra")
     async def renamehydra(self, ctx: commands.Context, new_name: Optional[str] = None):
-        """Renames the current discord server and puzzle tab to the new name.
+        """Renames the current discord channel and puzzle tab to the new name.
         Keep in mind, if there is a status prefix in the channel name, it will be overwritten.
         Don't worry, you can just call the command you used to change the status again to restore it.
 
@@ -1271,6 +1275,13 @@ class HydraCog(commands.Cog, name="Hydra"):
                 category_names = list(args)
 
         if limit > hydra_constants.WATCH_MAX_LIMIT:
+            capped_embed = discord_utils.create_embed()
+            capped_embed.add_field(
+                name="Note",
+                value=f"Message limit capped at {hydra_constants.WATCH_MAX_LIMIT} (you requested {limit}).",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, capped_embed)
             limit = hydra_constants.WATCH_MAX_LIMIT
 
         # Determine which categories to watch
