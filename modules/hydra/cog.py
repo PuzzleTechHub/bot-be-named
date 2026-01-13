@@ -1049,6 +1049,13 @@ class HydraCog(commands.Cog, name="Hydra"):
         # same sheet. If that fails, we get the current category's name, and remove "Archive" and look for that. Else, we will
         # just ask the user for the category name.
 
+        if ctx.guild is None:
+            embed = hydra_helpers.create_failure_embed(
+                "This command must be used in a guild (server)."
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
         main_category = None
         full_categories = [
             category
@@ -1094,16 +1101,6 @@ class HydraCog(commands.Cog, name="Hydra"):
                     break
 
         if main_category is None:
-            if ctx.guild is None:
-                embed = discord_utils.create_embed()
-                embed.add_field(
-                    name="Failed",
-                    value="This command must be used in a guild (server).",
-                    inline=False,
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
-
             curr_cat_name = ctx.channel.category.name
             base_name = re.sub(r"\s*Archive\s*\d*$", "", curr_cat_name).strip()
             split_base_names = base_name.split()
