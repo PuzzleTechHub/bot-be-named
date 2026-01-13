@@ -503,9 +503,10 @@ class HydraCog(commands.Cog, name="Hydra"):
                     self.gspread_client, ctx, curr_sheet_link
                 )
 
+                tab_id = None
                 tab_name = None
                 row_to_find = None
-                tab_name_found = False
+                tab_id_found = False
 
                 if overview_sheet is not None:
                     # We need to find the row by channel ID
@@ -519,16 +520,17 @@ class HydraCog(commands.Cog, name="Hydra"):
                     if list_chan_cells and list_chan_cells[0][0] is not None:
                         row_to_find = list_chan_cells[0][0]
 
-                        # Get tab name from the appropriate column
-                        # Get the cell formula from column D
+                        # Get tab ID from the sheet ID column... not the puzzle name column
+                        sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
                         try:
-                            tab_name = overview_sheet.get_cell_value(
-                                sheets_constants.STATUS_COLUMN_LOCATION
-                                + str(row_to_find)
+                            tab_id_str = overview_sheet.get_cell_value(
+                                sheet_tab_id_col + str(row_to_find)
                             )
-                            tab_name_found = True
-                        except (gspread.exceptions.APIError, IndexError):
-                            tab_name_found = False
+                            if tab_id_str:
+                                tab_id = int(tab_id_str)
+                                tab_id_found = True
+                        except (gspread.exceptions.APIError, IndexError, ValueError):
+                            tab_id_found = False
 
                 # 3. Delete discord channel
                 channel_name = target_channel.name
@@ -536,9 +538,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                     reason=f"Deleted by {ctx.author} via `~deletehydra` command."
                 )
 
-                # 4. Delete tab from sheet (skip if tab name wasn't found anyway)
+                # 4. Delete tab from sheet using worksheet ID
                 tab_deleted = False
-                if tab_name_found and tab_name:
+                if tab_id_found and tab_id is not None:
                     try:
                         sh = (
                             overview_sheet.spreadsheet
@@ -546,18 +548,12 @@ class HydraCog(commands.Cog, name="Hydra"):
                             else self.gspread_client.open_by_url(curr_sheet_link)
                         )
 
-                        # Try to find and delete worksheet
-                        ws_to_delete = None
-                        if tab_name:
-                            ws_to_delete = next(
-                                (ws for ws in sh.worksheets() if ws.title == tab_name),
-                                None,
-                            )
+                        sh.del_worksheet_by_id(tab_id)
+                        tab_deleted = True
 
-                        if ws_to_delete:
-                            sh.del_worksheet(ws_to_delete)
-                            tab_deleted = True
-                    except gspread.exceptions.APIError:  # Report in final message
+                    except gspread.WorksheetNotFound:  # Report error in final message
+                        pass
+                    except gspread.exceptions.APIError:
                         pass
                     except Exception:
                         pass
