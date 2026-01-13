@@ -84,3 +84,7 @@ async def send_solve_notification(bot, ctx, answer: Optional[str] = None):
         await bot_stream_channel.send(embed=stream_embed)
     except Exception:
         pass  # Silently fail if bot stream notification fails
+
+
+async def scrape_for_puzzles():
+    pass  # Placeholder for future implementation
