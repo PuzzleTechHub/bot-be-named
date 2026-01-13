@@ -1,11 +1,15 @@
 import asyncio
-from typing import Union
+import shlex
 from datetime import datetime, timezone
+from typing import Union
+
 import emoji
 import gspread
 import nextcord
 from nextcord.ext import commands
 
+from modules.hydra.hydra_utils import old_lion_command_helpers
+from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
 from utils import (
     batch_update_utils,
     command_predicates,
@@ -16,7 +20,6 @@ from utils import (
     sheets_constants,
     solved_utils,
 )
-from modules.hydra.hydra_utils import old_lion_command_helpers
 
 """
 Lion module. Module with GSheet-Discord interfacing. See module's README.md for more.
@@ -693,34 +696,65 @@ class LionCog(commands.Cog, name="Lion"):
 
     @command_predicates.is_solver()
     @commands.command(name="metachanhydra", aliases=["metahydra"])
-    async def metahydra(self, ctx: commands.Context, chan_name: str, *args):
+    async def metahydra(self, ctx: commands.Context, *, args: str = ""):
         """Creates a new tab and a new channel for a new metapuzzle and then updates the info in the sheet accordingly.
 
-        Requires that the sheet has Overview and Meta Template tabs
+        Requires that the sheet has Overview and Meta Template tabs.
+
+        You can pass in notes as the last argument optionally.
 
         Permission Category : Solver Roles only.
         Usage: ~metahydra PuzzleName
         Usage: ~metahydra PuzzleName linktopuzzle
+        Usage: ~metahydra PuzzleName "http://www.linktopuzzle.com" "Some notes here"
         """
         await logging_utils.log_command("metahydra", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
 
-        curr_sheet_link, newsheet, new_chan = None, None, None
-        text_to_pin = " ".join(args)
-
-        curr_sheet_link, newsheet, new_chan = await sheet_utils.chancrabgeneric(
-            self.gspread_client,
-            ctx,
-            chan_name,
-            chan_type="chan",
-            is_meta=True,
-            text_to_pin=text_to_pin,
-        )
-
-        if curr_sheet_link is None or newsheet is None or new_chan is None:
+        args = args.strip()
+        if not args:
+            embed.add_field(
+                name="Failed",
+                value="You need to provide at least a puzzle name.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
             return
 
-        await self.puzzlehydra(
-            ctx, chan_name, text_to_pin, curr_sheet_link, newsheet, new_chan
+        # Parse arguments using shlex
+        try:
+            arg_list = shlex.split(args)
+        except ValueError as e:
+            embed.add_field(
+                name="Failed",
+                value=f"Error parsing arguments: {str(e)}",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        if not arg_list:
+            embed.add_field(
+                name="Failed",
+                value="No puzzle name provided.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        puzzle_name = arg_list[0]
+        puzzle_url = arg_list[1] if len(arg_list) > 1 else None
+        notes = arg_list[2] if len(arg_list) > 2 else None
+
+        # Use the new hydra system to create channels from template now
+        await hydra_sheet_utils.create_puzzle_channel_from_template(
+            self.bot,
+            ctx,
+            puzzle_name,
+            "Meta",  # Use Meta template
+            puzzle_url,
+            self.gspread_client,
+            notes,
         )
 
     @command_predicates.is_solver()

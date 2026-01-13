@@ -53,6 +53,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         Requires that there is a template tab on the sheet with that name, for example passing "Acrostics" uses "Acrostics Template".
         Requires that Template tab follows Hydra rules (Cell B4 must be used for answer).
 
+        You can pass in notes as the last argument optionally.
+
         Permission Category : Solver Roles only.
 
         Usage: `~anychanhydra "Puzzle Name" "TemplateName"` (uses "TemplateName Template" from the sheet)
