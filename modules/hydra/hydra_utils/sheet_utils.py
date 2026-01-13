@@ -203,6 +203,16 @@ async def create_puzzle_channel_from_template(
         else:
             await msg2.add_reaction(emoji.emojize(":pushpin:"))
 
+    if notes:
+        embed = discord_utils.create_embed()
+        embed.description = f"`{notes}`"
+        msg3 = await new_chan.send(embed=embed)
+        embed_or_none = await discord_utils.pin_message(msg3)
+        if embed_or_none is not None:
+            await discord_utils.send_message(ctx, embed_or_none)
+        else:
+            await msg3.add_reaction(emoji.emojize(":pushpin:"))
+
     await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
 
     # tether channel
@@ -745,6 +755,14 @@ async def batch_create_puzzle_channels(
                     embed_or_none = await discord_utils.pin_message(msg2)
                     if embed_or_none is None:
                         await msg2.add_reaction(emoji.emojize(":pushpin:"))
+
+                if notes:
+                    embed = discord_utils.create_embed()
+                    embed.description = f"`{notes}`"
+                    msg3 = await channel.send(embed=embed)
+                    embed_or_none = await discord_utils.pin_message(msg3)
+                    if embed_or_none is None:
+                        await msg3.add_reaction(emoji.emojize(":pushpin:"))
             except Exception:
                 pass
         except Exception as e:
