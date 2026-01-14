@@ -261,6 +261,7 @@ class LionCog(commands.Cog, name="Lion"):
             "statuslion",
             "forumlion",
             "mtalion",
+            "mta",
             "chanlion",
             "metalion",
             "threadlion",
