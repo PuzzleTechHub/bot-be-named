@@ -111,26 +111,61 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="catsummaryhydra", aliases=["categorysummaryhydra"])
-    async def catsummaryhydra(self, ctx) -> None:
-        """Collates all the notes on the overview sheet for each text channel in the category the command was called in.
+    async def catsummaryhydra(self, ctx, *args) -> None:
+        """Collates all the notes on the overview sheet for each text channel in the specified categories.
         Silently skips channels not on the overview.
         The sheet will need to follow the Hydra requirements for this to work as expected.
 
         Permission Category : Solver Roles only.
 
-        Usage: `~catsummaryhydra`
+        Usage: `~catsummaryhydra` (current category)
+        Usage: `~catsummaryhydra "Category Name"` (single category)
+        Usage: `~catsummaryhydra "Cat 1" "Cat 2"` (multiple categories)
         """
         await logging_utils.log_command(
             "catsummaryhydra", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
 
-        currcat = ctx.message.channel.category
+        # Parse category arguments
+        categories = []
+        if not args:
+            # No categories specified, use current channel's category
+            currcat = ctx.message.channel.category
+            if currcat is None:
+                embed = hydra_helpers.create_failure_embed(
+                    "You must call this command from a channel in a category, or specify category names."
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+            categories = [currcat]
+        else:
+            # Find each specified category
+            missing_categories = []
+            for cat_name in args:
+                cat = await discord_utils.find_category(ctx, cat_name)
+                if cat is None:
+                    missing_categories.append(cat_name)
+                else:
+                    categories.append(cat)
 
+            if missing_categories:
+                embed.add_field(
+                    name="Some categories not found!",
+                    value=f"I cannot find the following categor{'ies' if len(missing_categories) > 1 else 'y'}: "
+                    + ", ".join([f"`{name}`" for name in missing_categories])
+                    + f". {'Aborting.' if len(missing_categories) == len(args) else 'Continuing with the others...'}",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+                if len(missing_categories) == len(args):
+                    return
+
+        cat_names = ", ".join([f"`{cat.name}`" for cat in categories])
         start_embed = discord_utils.create_embed()
         start_embed.add_field(
             name="Summary Started",
-            value=f"Your summarizing of category `{currcat.name}`"
+            value=f"Your summarizing of {len(categories)} categor{'ies' if len(categories) > 1 else 'y'} ({cat_names})"
             f" has begun! This may take a while. If I run into "
             f"any errors, I'll let you know.",
             inline=False,
@@ -140,9 +175,13 @@ class HydraCog(commands.Cog, name="Hydra"):
         initial_message = (await discord_utils.send_message(ctx, start_embed))[0]
 
         try:
-            allchans = currcat.text_channels
             messages = []
             allsheets = []
+
+            # Collect all channels from all categories
+            allchans = []
+            for cat in categories:
+                allchans.extend(cat.text_channels)
 
             # Group all channels sharing the same tethered sheet. Now find the right cell
             for currchan in allchans:
@@ -209,8 +248,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                         messages.append(f"- {currchan.mention} - *(empty description)*")
         except Exception as e:
             embed = hydra_helpers.create_failure_embed(
-                f"An error occurred while summarizing category `{currcat.name}`. "
-                f"Error: {str(e)}"
+                f"An error occurred while summarizing. Error: {str(e)}"
             )
             await discord_utils.send_message(ctx, embed)
             await initial_message.delete()
@@ -218,7 +256,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         if not messages:
             embed = hydra_helpers.create_failure_embed(
-                f"No puzzle channels with sheet tethers found in category `{currcat.name}`.\n\n"
+                f"No puzzle channels with sheet tethers found in the specified categor{'ies' if len(categories) > 1 else 'y'}.\n\n"
                 f"Make sure channels are tethered to a Google Sheet with the Overview tab."
             )
             await discord_utils.send_message(ctx, embed)
@@ -1299,15 +1337,25 @@ class HydraCog(commands.Cog, name="Hydra"):
             categories = [currcat]
         else:
             # Find each specified category
+            missing_categories = []
             for cat_name in category_names:
                 cat = await discord_utils.find_category(ctx, cat_name)
                 if cat is None:
-                    embed = hydra_helpers.create_failure_embed(
-                        f"I cannot find category `{cat_name}`. Perhaps check your spelling and try again."
-                    )
-                    await discord_utils.send_message(ctx, embed)
+                    missing_categories.append(cat_name)
+                else:
+                    categories.append(cat)
+
+            if missing_categories:
+                embed.add_field(
+                    name="Some categories not found!",
+                    value=f"I cannot find the following categor{'ies' if len(missing_categories) > 1 else 'y'}: "
+                    + ", ".join([f"`{name}`" for name in missing_categories])
+                    + f". {'Aborting.' if len(missing_categories) == len(category_names) else 'Continuing with the others...'}",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+                if len(missing_categories) == len(category_names):
                     return
-                categories.append(cat)
 
         start_embed = discord_utils.create_embed()
         cat_names = ", ".join([f"`{cat.name}`" for cat in categories])
