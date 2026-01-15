@@ -140,6 +140,11 @@ async def create_puzzle_channel_from_template(
             insert_sheet_index=insert_index,
         )
 
+        # Unhide the newly created sheet (in case template was hidden)
+        batch = batch_update_utils.BatchUpdateBuilder()
+        batch.unhide_sheet(newsheet.id)
+        curr_sheet.batch_update(batch.build())
+
     except gspread.exceptions.APIError as e:
         error_json = e.response.json()
         error_status = error_json.get("error", {}).get("status")
@@ -607,6 +612,18 @@ async def batch_create_puzzle_channels(
 
     try:
         batch_response = spreadsheet.batch_update({"requests": requests})  # noqa: F841
+
+        # Unhide all newly created sheets (in case template was hidden)
+        # Refresh to get the newly created sheets
+        refreshed_ws = {w.title: w for w in spreadsheet.worksheets()}
+        unhide_batch = batch_update_utils.BatchUpdateBuilder()
+        for _, tab_name, _, _, _ in channels:
+            ws = refreshed_ws.get(tab_name)
+            if ws:
+                unhide_batch.unhide_sheet(ws.id)
+        if unhide_batch.requests:
+            spreadsheet.batch_update(unhide_batch.build())
+
     except gspread.exceptions.APIError as e:
         error_json = e.response.json()
         error_status = error_json.get("error", {}).get("status")
