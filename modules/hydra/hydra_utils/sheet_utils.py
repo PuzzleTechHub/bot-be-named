@@ -8,6 +8,7 @@ from nextcord.ext.commands import Context
 
 from utils import batch_update_utils, discord_utils, sheets_constants
 from utils.sheet_utils import OverviewSheet, addsheettethergeneric, findsheettether
+
 from . import hydra_helpers
 
 ########################
@@ -69,7 +70,11 @@ async def create_puzzle_channel_from_template(
             return None, None, None
         else:
             raise e
-    desired_template_tab = f"{template_name.title()} Template"
+    desired_template_tab = (
+        f"{template_name.title()} Template"
+        if template_name.title() != "Template"
+        else "Template"
+    )
 
     template_ws = None
     template_id = None

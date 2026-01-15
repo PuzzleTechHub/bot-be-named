@@ -60,6 +60,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~anychanhydra "Puzzle Name" "TemplateName"` (uses "TemplateName Template" from the sheet)
         Usage: `~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com"` (uses "Square Template" from the sheet)
         Usage: `~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" "Some notes here"` (with notes)
+        Usage: `~anychanhydra "Puzzle Name" "Template"` Note: Passing in `Template` is an exception to the logic described above and other templates will not work like this.
         """
         await logging_utils.log_command(
             "anychanhydra", ctx.guild, ctx.channel, ctx.author
