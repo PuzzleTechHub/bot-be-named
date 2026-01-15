@@ -8,6 +8,7 @@ from nextcord.ext.commands import Context
 
 from utils import batch_update_utils, discord_utils, sheets_constants
 from utils.sheet_utils import OverviewSheet, addsheettethergeneric, findsheettether
+from . import hydra_helpers
 
 ########################
 # RESERVED HYDRA UTILS #
@@ -305,20 +306,9 @@ async def create_puzzle_channel_from_template(
         gspread_client.open_by_url(curr_sheet_link).batch_update(batch.build())
 
     except gspread.exceptions.APIError as e:
-        # surface a concise error back to user
-        if hasattr(e, "response"):
-            error_json = e.response.json()
-            error_message = error_json.get("error", {}).get("message")
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"Unknown GSheets API Error - `{error_message}`",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return curr_sheet_link, newsheet, new_chan
-
-    await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+        # Use error handler
+        await hydra_helpers.handle_gspread_error(ctx, e)
+        return curr_sheet_link, newsheet, new_chan
 
     # Send success message to the calling channel
     success_embed = discord_utils.create_embed()
@@ -798,17 +788,9 @@ async def batch_create_puzzle_channels(
     try:
         spreadsheet.batch_update(batch.build())
     except gspread.exceptions.APIError as e:
-        if hasattr(e, "response"):
-            error_json = e.response.json()
-            error_message = error_json.get("error", {}).get("message")
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"Unknown GSheets API Error - `{error_message}`",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return []
+        # Use error handler
+        await hydra_helpers.handle_gspread_error(ctx, e)
+        return []
     except Exception as e:
         embed = discord_utils.create_embed()
         embed.add_field(
