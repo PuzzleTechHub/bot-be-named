@@ -5,6 +5,7 @@ import io
 import emoji
 from nextcord.ext import commands
 from utils import discord_utils, logging_utils, command_predicates
+import os
 
 """
 Discord module. Functions and commands related specifically to discord functionality, that does not intersect with any other modules.
@@ -532,6 +533,27 @@ class DiscordCog(commands.Cog, name="Discord"):
         except nextcord.Forbidden:
             # Silent fail for command deletion since the main action succeeded
             pass
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        # Ignore bot messages
+        if message.author.bot:
+            return
+
+        channel_to_listen = os.getenv("TM_BOT_LISTEN_MESSAGE_CHANNEL_ID")
+
+        if channel_to_listen is None:
+            return
+
+        try:
+            channel_to_listen = int(channel_to_listen)
+        except ValueError:
+            return
+
+        if message.channel.id == channel_to_listen:
+            await message.add_reaction("⬆️")
+
+        await self.bot.process_commands(message)
 
 
 def setup(bot):
