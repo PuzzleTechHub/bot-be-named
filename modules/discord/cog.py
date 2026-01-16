@@ -553,8 +553,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         if message.channel.id == channel_to_listen:
             await message.add_reaction("⬆️")
 
-        await self.bot.process_commands(message)
-
 
 def setup(bot):
     bot.add_cog(DiscordCog(bot))
