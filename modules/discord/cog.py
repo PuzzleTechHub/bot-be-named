@@ -465,6 +465,74 @@ class DiscordCog(commands.Cog, name="Discord"):
             # Silent fail for command deletion since the main action succeeded
             pass
 
+    @command_predicates.is_trusted()
+    @commands.command(name="d")
+    async def d(self, ctx):
+        """Deletes a message by replying to it and calling `~d`.
+        Will also delete the message calling the command.
+
+        Permission Category : Trusted Roles only.
+
+        Usage: `~d` (deletes message you replied to and your message)"""
+        await logging_utils.log_command("delete", ctx.guild, ctx.channel, ctx.author)
+        embed = discord_utils.create_embed()
+
+        if not ctx.message.reference:
+            embed.add_field(
+                name="Failed",
+                value="You didn't reply to any message!",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        try:
+            referenced_message = await ctx.channel.fetch_message(
+                ctx.message.reference.message_id
+            )
+        except nextcord.NotFound:
+            embed.add_field(
+                name="Failed",
+                value="I couldn't find the message you're replying to. It may have been deleted already.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        except nextcord.Forbidden:
+            embed.add_field(
+                name="Failed",
+                value="I don't have permission to access that message.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        try:
+            await referenced_message.delete()
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+        except nextcord.Forbidden:
+            embed.add_field(
+                name="Failed",
+                value="I don't have permission to delete that message. Do I have `manage_messages` permissions?",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        except nextcord.NotFound:
+            embed.add_field(
+                name="Failed",
+                value="The message was already deleted.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        try:
+            await ctx.message.delete()
+        except nextcord.Forbidden:
+            # Silent fail for command deletion since the main action succeeded
+            pass
+
 
 def setup(bot):
     bot.add_cog(DiscordCog(bot))
