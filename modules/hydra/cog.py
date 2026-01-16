@@ -111,16 +111,18 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="catsummaryhydra", aliases=["categorysummaryhydra"])
-    async def catsummaryhydra(self, ctx, *args) -> None:
+    async def catsummaryhydra(self, ctx, prefix) -> None:
         """Collates all the notes on the overview sheet for each text channel in the specified categories.
         Silently skips channels not on the overview.
         The sheet will need to follow the Hydra requirements for this to work as expected.
 
+        The argument matches categories that start with that prefix.
+        If no argument is passed, uses the current channel's category.
+
         Permission Category : Solver Roles only.
 
         Usage: `~catsummaryhydra` (current category)
-        Usage: `~catsummaryhydra "Category Name"` (single category)
-        Usage: `~catsummaryhydra "Cat 1" "Cat 2"` (multiple categories)
+        Usage: `~catsummaryhydra "MITMH24"` (starts with MITMH24)
         """
         await logging_utils.log_command(
             "catsummaryhydra", ctx.guild, ctx.channel, ctx.author
@@ -129,37 +131,30 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         # Parse category arguments
         categories = []
-        if not args:
+        if not prefix:
             # No categories specified, use current channel's category
             currcat = ctx.message.channel.category
             if currcat is None:
                 embed = hydra_helpers.create_failure_embed(
-                    "You must call this command from a channel in a category, or specify category names."
+                    "You must call this command from a channel in a category, or specify a category prefix."
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
             categories = [currcat]
         else:
             # Find each specified category
-            missing_categories = []
-            for cat_name in args:
-                cat = await discord_utils.find_category(ctx, cat_name)
-                if cat is None:
-                    missing_categories.append(cat_name)
-                else:
-                    categories.append(cat)
+            categories = [
+                category
+                for category in ctx.guild.categories
+                if category.name.startswith(prefix)
+                and not re.search(hydra_constants.ARCHIVE_REGEX_PATTERN, category.name)
+            ]
 
-            if missing_categories:
-                embed.add_field(
-                    name="Some categories not found!",
-                    value=f"I cannot find the following categor{'ies' if len(missing_categories) > 1 else 'y'}: "
-                    + ", ".join([f"`{name}`" for name in missing_categories])
-                    + f". {'Aborting.' if len(missing_categories) == len(args) else 'Continuing with the others...'}",
-                    inline=False,
+            if not categories:
+                embed = hydra_helpers.create_failure_embed(
+                    f"No categories found starting with `{prefix}`."
                 )
                 await discord_utils.send_message(ctx, embed)
-                if len(missing_categories) == len(args):
-                    return
 
         cat_names = ", ".join([f"`{cat.name}`" for cat in categories])
         start_embed = discord_utils.create_embed()
@@ -1281,18 +1276,20 @@ class HydraCog(commands.Cog, name="Hydra"):
         name="watchcategoryhydra",
         aliases=["watchcathydra", "watchcat", "watchcategory"],
     )
-    async def watchcategoryhydra(self, ctx, *args):
+    async def watchcategoryhydra(
+        self, ctx, prefix: Optional[str] = None, limit_arg: Optional[int] = None
+    ):
         """Summarise the last `limit` messages across one or more categories:
-        `limit` caps off at 250.
+        `limit` caps off at 100.
         Note: Will pick up messages to which the command user does not have access to.
         Only counts messages from humans (not bots).
 
         Permission Category : Solver Roles only.
-        Usage: `~watchcategoryhydra [category names] [limit]`
+        Usage: `~watchcategoryhydra [category prefix] [limit]`
         Usage: `~watchcategoryhydra` (current category, limit 100)
         Usage: `~watchcategoryhydra 50` (current category, limit 50)
-        Usage: `~watchcategoryhydra "Cat 1" "Cat 2"` (multiple categories, limit 100)
-        Usage: `~watchcategoryhydra "Cat 1" "Cat 2" 50` (multiple categories, limit 50)
+        Usage: `~watchcategoryhydra "MITMH24"` (starts with MITMH24)
+        Usage: `~watchcategoryhydra "MITMH24" 50` (starts with MITMH24, limit 50)
         """
 
         await logging_utils.log_command(
@@ -1302,16 +1299,47 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         # Parse arguments
         limit = hydra_constants.WATCH_DEFAULT_LIMIT
-        category_names = []
+        categories = []
 
-        if args:
-            # Check if last arg is an integer (limit)
+        if prefix is not None:
+            categories = [
+                category
+                for category in ctx.guild.categories
+                if category.name.startswith(prefix)
+                and not re.search(hydra_constants.ARCHIVE_REGEX_PATTERN, category.name)
+            ]
+            if not categories:
+                if ctx.message.channel.category is None:
+                    note_embed = hydra_helpers.create_failure_embed(
+                        "Your prefix didn't find anything, so the default fallback is to use the category this command was called from, but you didn't call this command in one."
+                    )
+                    await discord_utils.send_message(ctx, note_embed)
+                    return
+                else:
+                    note_embed = discord_utils.create_embed()
+                    note_embed.add_field(
+                        name="Note",
+                        value=f"Could not find any categories starting with {prefix}. Defaulting to current category.",
+                        inline=False,
+                    )
+                    categories = [ctx.message.channel.category.name]
+
+                await discord_utils.send_message(ctx, note_embed)
+
+        if limit_arg is not None:
+            # Check if limit_arg is an integer (limit)
             try:
-                limit = int(args[-1])
-                category_names = list(args[:-1])
+                limit = int(limit_arg)
+                if limit <= 0:
+                    embed = hydra_helpers.create_failure_embed(
+                        "Limit must be a positive integer."
+                    )
+                    await discord_utils.send_message(ctx, embed)
+                    return
             except ValueError:
-                # Last arg is not an integer, all args are category names
-                category_names = list(args)
+                embed = hydra_helpers.create_failure_embed("Limit must be an integer.")
+                await discord_utils.send_message(ctx, embed)
+                return
 
         if limit > hydra_constants.WATCH_MAX_LIMIT:
             capped_embed = discord_utils.create_embed()
@@ -1323,39 +1351,17 @@ class HydraCog(commands.Cog, name="Hydra"):
             await discord_utils.send_message(ctx, capped_embed)
             limit = hydra_constants.WATCH_MAX_LIMIT
 
-        # Determine which categories to watch
-        categories = []
-        if not category_names:
+        # Use current category if nothing found
+        if not categories:
             # No categories specified, use current channel's category
             currcat = ctx.message.channel.category
             if currcat is None:
                 embed = hydra_helpers.create_failure_embed(
-                    "You must call this command from a channel in a category, or specify category names."
+                    "You must call this command from a channel in a category, or specify a category prefix."
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
             categories = [currcat]
-        else:
-            # Find each specified category
-            missing_categories = []
-            for cat_name in category_names:
-                cat = await discord_utils.find_category(ctx, cat_name)
-                if cat is None:
-                    missing_categories.append(cat_name)
-                else:
-                    categories.append(cat)
-
-            if missing_categories:
-                embed.add_field(
-                    name="Some categories not found!",
-                    value=f"I cannot find the following categor{'ies' if len(missing_categories) > 1 else 'y'}: "
-                    + ", ".join([f"`{name}`" for name in missing_categories])
-                    + f". {'Aborting.' if len(missing_categories) == len(category_names) else 'Continuing with the others...'}",
-                    inline=False,
-                )
-                await discord_utils.send_message(ctx, embed)
-                if len(missing_categories) == len(category_names):
-                    return
 
         start_embed = discord_utils.create_embed()
         cat_names = ", ".join([f"`{cat.name}`" for cat in categories])
