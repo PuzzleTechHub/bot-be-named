@@ -17,6 +17,11 @@ from utils import command_predicates, discord_utils, logging_utils
 Archive module. Downloads a channel's history and sends it as a file
 """
 
+MAX_ARCHIVE_STEM_LENGTH = 80
+MAX_THREAD_STEM_LENGTH = 120
+MAX_ATTACHMENT_FILENAME_LENGTH = 120
+MAX_EXTENSION_LENGTH = 20
+
 
 class ArchiveCog(commands.Cog, name="Archive"):
     """
@@ -31,37 +36,129 @@ class ArchiveCog(commands.Cog, name="Archive"):
         archive_utils.reset_archive_dir()
 
     @staticmethod
+    def _slugify_filename_stem(name: str, fallback: str, max_length: int) -> str:
+        safe_name = (
+            unicodedata.normalize("NFKD", name)
+            .encode("ascii", "ignore")
+            .decode("ascii")
+            .lower()
+        )
+        safe_name = re.sub(r"[^\w\s-]", "", safe_name)
+        safe_name = re.sub(r"[-\s]+", "-", safe_name).strip("-_")
+        safe_name = safe_name[:max_length].strip("-_")
+        return safe_name or fallback[:max_length]
+
+    @staticmethod
+    def _stem_with_id(
+        name: str,
+        object_id: Union[int, str, None],
+        fallback: str,
+        max_length: int,
+    ) -> str:
+        suffix = f"-{object_id}" if object_id is not None else ""
+        stem_length = max(1, max_length - len(suffix))
+        stem = ArchiveCog._slugify_filename_stem(name, fallback, stem_length)
+        return f"{stem}{suffix}"[:max_length]
+
+    @staticmethod
+    def _channel_archive_stem(
+        channel: Union[nextcord.TextChannel, nextcord.ForumChannel, nextcord.Thread],
+    ) -> str:
+        return ArchiveCog._stem_with_id(
+            channel.name,
+            getattr(channel, "id", None),
+            "channel",
+            MAX_ARCHIVE_STEM_LENGTH,
+        )
+
+    @staticmethod
+    def _channel_text_log_path(
+        channel: Union[nextcord.TextChannel, nextcord.ForumChannel, nextcord.Thread],
+    ) -> str:
+        return os.path.join(
+            archive_constants.ARCHIVE,
+            f"{ArchiveCog._channel_archive_stem(channel)}_"
+            f"{archive_constants.TEXT_LOG_PATH}",
+        )
+
+    @staticmethod
+    def _channel_zip_path(
+        channel: Union[nextcord.TextChannel, nextcord.ForumChannel, nextcord.Thread],
+    ) -> str:
+        return os.path.join(
+            archive_constants.ARCHIVE,
+            f"{ArchiveCog._channel_archive_stem(channel)}_archive.zip",
+        )
+
+    @staticmethod
+    def _thread_dir(thread: nextcord.Thread) -> str:
+        return os.path.join(
+            archive_constants.ARCHIVE,
+            f"{ArchiveCog._channel_archive_stem(thread.parent)}_"
+            f"{archive_constants.THREADS}",
+        )
+
+    @staticmethod
+    def _clean_extension(filename: str) -> str:
+        extension = (
+            unicodedata.normalize("NFKD", Path(filename).suffix)
+            .encode("ascii", "ignore")
+            .decode("ascii")
+            .lower()
+        )
+        extension = re.sub(r"[^a-z0-9.]", "", extension)
+        return extension[:MAX_EXTENSION_LENGTH]
+
+    @staticmethod
+    def _attachment_filename(filename: str, dupe_counter: int = 0) -> str:
+        extension = ArchiveCog._clean_extension(filename)
+        suffix = f" ({dupe_counter}){extension}" if dupe_counter else extension
+        stem_length = max(1, MAX_ATTACHMENT_FILENAME_LENGTH - len(suffix))
+        stem = ArchiveCog._slugify_filename_stem(
+            Path(filename).stem,
+            "attachment",
+            stem_length,
+        )
+        return f"{stem}{suffix}"
+
+    @staticmethod
+    def _available_attachment_path(filename: str) -> Tuple[str, str]:
+        image_dir = os.path.join(archive_constants.ARCHIVE, archive_constants.IMAGES)
+        dupe_counter = 0
+        while True:
+            archived_filename = ArchiveCog._attachment_filename(
+                filename,
+                dupe_counter,
+            )
+            proposed_path = os.path.join(image_dir, archived_filename)
+            if not os.path.exists(proposed_path):
+                return proposed_path, archived_filename
+            dupe_counter += 1
+
+    @staticmethod
     async def archive_message(f: TextIO, msg: nextcord.Message):
         f.write(
             f"[ {msg.created_at.strftime('%m-%d-%Y, %H:%M:%S')} ] "
             f"{msg.author.display_name.rjust(25, ' ')}: "
             f"{msg.clean_content}"
         )
-        for attachment in msg.attachments:
-            f.write(f" {attachment.filename}")
-            # change duplicate filenames
-            # img.png would become img (1).png
-            original_path = os.path.join(
-                archive_constants.ARCHIVE,
-                archive_constants.IMAGES,
+        for attachment_index, attachment in enumerate(msg.attachments):
+            proposed_path, archived_filename = ArchiveCog._available_attachment_path(
                 attachment.filename,
             )
-            proposed_path = original_path
-            dupe_counter = 1
-            while os.path.exists(proposed_path):
-                proposed_path = (
-                    original_path.split(".")[0]
-                    + f" ({dupe_counter})."
-                    + original_path.split(".")[1]
-                )
-                dupe_counter += 1
-            # The discord filenames can get too long and throw an OSError
             try:
                 await attachment.save(proposed_path)
             except OSError:
-                await attachment.save(
-                    f"path_too_long_{dupe_counter}.{original_path.split('.')[1]}"
+                fallback_filename = (
+                    f"attachment-{msg.id}-{attachment_index}"
+                    f"{ArchiveCog._clean_extension(attachment.filename)}"
                 )
+                (
+                    proposed_path,
+                    archived_filename,
+                ) = ArchiveCog._available_attachment_path(fallback_filename)
+                await attachment.save(proposed_path)
+            f.write(f" {archived_filename}")
         # Important: Write the newline after each comment is done
         f.write("\n")
 
@@ -70,19 +167,13 @@ class ArchiveCog(commands.Cog, name="Archive"):
         thread_txt_size = 0
         f.write(f"[  {thread.id} ] {'THREAD'.rjust(25, ' ')}: ")
         f.write(thread.name + "\n")
-        thread_dir = os.path.join(
-            archive_constants.ARCHIVE,
-            f"{thread.parent.name}_{archive_constants.THREADS}",
+        thread_dir = ArchiveCog._thread_dir(thread)
+        norm_thread_name = ArchiveCog._stem_with_id(
+            thread.name,
+            thread.id,
+            "thread",
+            MAX_THREAD_STEM_LENGTH,
         )
-        # The thread "name" is by default the original message content. Slugify and truncate if necessary
-        norm_thread_name = (
-            unicodedata.normalize("NFKD", f"{thread.id}_{thread.name}")
-            .encode("ascii", "ignore")
-            .decode("ascii")
-        )
-        norm_thread_name = re.sub(r"[^\w\s-]", "", norm_thread_name.lower())
-        norm_thread_name = re.sub(r"[-\s]+", "-", norm_thread_name).strip("-_")
-        norm_thread_name = norm_thread_name[:250]
         os.makedirs(thread_dir, exist_ok=True)
         thread_log_path = os.path.join(thread_dir, norm_thread_name + ".txt")
         with open(thread_log_path, "w") as thread_f:
@@ -98,10 +189,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
     ) -> Tuple[nextcord.File, int, nextcord.File, int]:
         """Download a channel's history"""
         # Write the chat log. Replace attachments with their filename (for easy reference)
-        text_log_path = os.path.join(
-            archive_constants.ARCHIVE,
-            channel.name + "_" + archive_constants.TEXT_LOG_PATH,
-        )
+        text_log_path = ArchiveCog._channel_text_log_path(channel)
         total_thread_txt_size = 0
         with open(text_log_path, "w") as f:
             if hasattr(channel, "history"):
@@ -123,14 +211,12 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
             text_file_size = f.tell()
 
-        ZIP_FILENAME = os.path.join(
-            archive_constants.ARCHIVE, channel.name + "_archive.zip"
-        )
+        ZIP_FILENAME = ArchiveCog._channel_zip_path(channel)
         # Create a zipfile and then walk through all the saved chatlogs and images, and zip em up
         with zipfile.ZipFile(ZIP_FILENAME, mode="w") as zf:
             for root, directories, files in os.walk(archive_constants.ARCHIVE):
                 for filename in files:
-                    if filename == ZIP_FILENAME.split("/")[-1]:  # Don't include self
+                    if filename == os.path.basename(ZIP_FILENAME):
                         continue
                     zf.write(
                         os.path.join(root, filename), compress_type=self.compression
@@ -171,21 +257,17 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     f"`{(zip_file_size / constants.BYTES_TO_MEGABYTES):.2f}MB`. I'll only be able to send you the chat log.",
                     inline=False,
                 )
-                ZIP_FILENAME = os.path.join(
-                    archive_constants.ARCHIVE, channel.name + "_archive.zip"
-                )
+                ZIP_FILENAME = ArchiveCog._channel_zip_path(channel)
                 with zipfile.ZipFile(ZIP_FILENAME, mode="w") as zf:
                     zf.write(
-                        os.path.join(
-                            archive_constants.ARCHIVE,
-                            channel.name + "_" + archive_constants.TEXT_LOG_PATH,
-                        ),
+                        ArchiveCog._channel_text_log_path(channel),
                         compress_type=self.compression,
                     )
 
                     thread_dir = Path(
                         archive_constants.ARCHIVE,
-                        f"{channel.name}_{archive_constants.THREADS}",
+                        f"{ArchiveCog._channel_archive_stem(channel)}_"
+                        f"{archive_constants.THREADS}",
                     )
 
                     # Glob only succeeds if thread_dir exists
