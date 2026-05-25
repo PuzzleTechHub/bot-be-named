@@ -23,13 +23,13 @@ from modules.hydra.hydra_utils.sheet_command_base import SheetCommandBase
 from modules.hydra import constants as hydra_constants
 
 """
-Hydra module. Module with more advanced GSheet-Discord interfacing. See module's README.md for more.
+Hydra module. Active module for new GSheet-Discord workflows. See module's README.md for more.
 """
 
 
 class HydraCog(commands.Cog, name="Hydra"):
     """
-    More powerful useful GSheet-Discord commands.
+    Active GSheet-Discord commands for sheet-management workflows.
     """
 
     def __init__(self, bot):

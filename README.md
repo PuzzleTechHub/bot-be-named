@@ -205,8 +205,8 @@ When deploying on heroku, any variables stored in .env locally cannot be pushed 
 - [Discord Role Management](./modules/discord_role_management) for managing roles and similar
 - [Error Logging](./modules/error_logging) for printing error logs
 - [Help](./modules/help) is an updated help command which automatically pulls docstrings for `~help`
-- [Hydra](./modules/hydra) is the **NEW AND IMPROVED** "Google Sheets-Discord" commands. Currently Work in progress. 
-- [Lion](./modules/lion) is the "Google Sheets-Discord" commands currently used in every Puzzle Hunt. 
+- [Hydra](./modules/hydra) is the active "Google Sheets-Discord" module for new sheet-management workflows.
+- [Lion](./modules/lion) is the stable legacy "Google Sheets-Discord" module still available for existing hunt workflows.
 - [Lookup](./modules/lookup) for Searching the internet via google and wikipedia
 - [Misc](./modules/misc) for misc. random (fun) commands
 - [Sheets](./modules/sheets) for working with Google Sheets during puzzlehunts
@@ -222,4 +222,4 @@ There are multiple repositories and code that BBN borrowed code from, most notab
 
 If you find any issues, bugs, or improvements, please feel free to open an issue and/or pull request! Thank you!
 
-Feel free to join our discord at `discord (dot) gg / x8f2ywHUky` with any questions you may have! If you are unable to join the discord, contact [TheOriginalSoni](https://github.com/TheOriginalSoni) (`@talesfromtim` on discord). 
+Feel free to join our discord at `discord (dot) gg / x8f2ywHUky` with any questions you may have! If you are unable to join the discord, contact [TheOriginalSoni](https://github.com/TheOriginalSoni) (`@talesfromtim` on discord).

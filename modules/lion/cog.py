@@ -17,13 +17,14 @@ from utils import (
 )
 
 """
-Lion module. Module with GSheet-Discord interfacing. See module's README.md for more.
+Lion module. Stable legacy GSheet-Discord module. See module's README.md for more.
 """
 
 
 class LionCog(commands.Cog, name="Lion"):
     """
-    Useful GSheet-Discord commands.
+    Stable legacy GSheet-Discord commands.
+    New sheet-management work should generally target Hydra.
     """
 
     def __init__(self, bot):

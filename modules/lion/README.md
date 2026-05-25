@@ -3,6 +3,10 @@
 Does Google Sheets annoy you? Don't worry, it annoys us, too! With this module, though,
 you'll be able to save many clicks
 
+Lion is the stable legacy sheet-management module. Existing Lion commands and
+aliases remain available for current hunt workflows, but new Google
+Sheets-Discord work should generally target [Hydra](../hydra).
+
 Use `~help Lion` on the bot to know the commands in this module.
 
 ### But why Lion?
@@ -16,6 +20,6 @@ More honestly though, we find it much easier for everyone to understand and reme
 
 The modules so far have been -
 - **Crab** : OG module, 2021-22, now removed ([1](https://github.com/kevslinger/bot-be-named/commit/b6d6a49) and [2](https://github.com/kevslinger/bot-be-named/commit/2017c2e)). Contained "Tab cloning" on GSheet.
-- **Lion** (you are here) : 2022-24, currently "stable". Contains "Tab cloning", "Overview sheet update" and "Moving tabs around" on GSheet. Contains "Update solved status and answers from discord" on GSheets-Discord.
-- **Hydra** : 2024 - ???. Currently under work.
+- **Lion** (you are here) : 2022-24, stable legacy module. Contains "Tab cloning", "Overview sheet update" and "Moving tabs around" on GSheet. Contains "Update solved status and answers from discord" on GSheets-Discord.
+- **Hydra** : 2024-present, active module for new Google Sheets-Discord workflows.
 

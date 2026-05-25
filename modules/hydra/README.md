@@ -3,9 +3,33 @@
 Does Google Sheets annoy you? Don't worry, it annoys us, too! With this module, though,
 you'll be able to save many clicks.
 
-Now with 2 more Heads!
+Hydra is the active replacement for new Google Sheets-Discord workflows. Lion
+remains available for existing hunt workflows, but new sheet-management work
+should generally live here.
 
 Use `~help Hydra` on the bot to know the commands in this module.
+
+### Current status
+
+Hydra now has native commands for the main puzzle lifecycle:
+
+| Command | What it does |
+| --- | --- |
+| `~chanhydra` | Creates one or more feeder puzzle channels and matching sheet tabs. |
+| `~anychanhydra` / `~anyhydra` | Creates a puzzle channel from a named template. |
+| `~mtahydra` | Archives a puzzle channel or thread and moves its sheet tab. |
+| `~unmtahydra` | Moves an archived puzzle back to the active category and sheet section. |
+| `~deletehydra` | Deletes a puzzle channel, its sheet tab, and the matching overview row. |
+| `~roundhydra` | Gets or updates the round value on the Overview sheet. |
+| `~noteshydra` | Gets or updates the notes value on the Overview sheet. |
+| `~catsummaryhydra` | Summarizes notes for puzzle channels in the current category. |
+| `~watchcategoryhydra` | Summarizes recent human messages across one or more categories. |
+| `~slainhydra` / `~donehydra` | Runs `~solvedhydra` and then `~mtahydra`. |
+| `~backslainhydra` | Runs `~backsolvedhydra` and then `~mtahydra`. |
+
+Some `*hydra` aliases, such as `~solvedhydra`, `~statushydra`, and
+`~tetherhydra`, are still served by the stable Lion implementation while the
+migration continues.
 
 ### But why Hydra?
 
@@ -19,6 +43,6 @@ More honestly though, we find it much easier for everyone to understand and reme
 
 The modules up to Hydra have been -
 - **Crab** : OG module, 2021-22, now removed ([1](https://github.com/kevslinger/bot-be-named/commit/b6d6a49) and [2](https://github.com/kevslinger/bot-be-named/commit/2017c2e)). Contained "Tab cloning" on GSheet.
-- **Lion** : 2022-24, currently "stable". Contains "Tab cloning", "Overview sheet update" and "Moving tabs around" on GSheet. Contains "Update solved status and answers from discord" on GSheets-Discord.
-- **Hydra** (you are here) : 2024 - ???. Currently under work.
+- **Lion** : 2022-24, stable legacy module. Contains "Tab cloning", "Overview sheet update" and "Moving tabs around" on GSheet. Contains "Update solved status and answers from discord" on GSheets-Discord.
+- **Hydra** (you are here) : 2024-present, active module for new Google Sheets-Discord workflows.
 
