@@ -41,6 +41,7 @@ class BatchUpdateBuilder:
                 }
             }
         )
+
     def update_cell_by_label(self, sheet_id, label, value, is_formula=False):
         row, col = gspread.utils.a1_to_rowcol(label)
         self.update_cell_by_index(
@@ -103,6 +104,20 @@ class BatchUpdateBuilder:
                         },
                     },
                     "fields": "tabColor",
+                }
+            }
+        )
+
+    def rename_sheet(self, sheet_id, new_name):
+        """Renames a sheet."""
+        self.requests.append(
+            {
+                "updateSheetProperties": {
+                    "properties": {
+                        "sheetId": sheet_id,
+                        "title": new_name,
+                    },
+                    "fields": "title",
                 }
             }
         )
