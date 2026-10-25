@@ -264,7 +264,7 @@ class LionCog(commands.Cog, name="Lion"):
         """Helper to get overview sheet for bot stream notification. Silently returns None on failure."""
         try:
             result, _ = sheet_utils.findsheettether(
-                str(ctx.message.channel.category_id), str(ctx.message.channel.id)
+                ctx.message.channel.category_id, ctx.message.channel.id
             )
             if result is None:
                 return None
@@ -471,7 +471,7 @@ class LionCog(commands.Cog, name="Lion"):
 
             # Find tethered sheet
             result, _ = sheet_utils.findsheettether(
-                str(ctx.message.channel.category_id), str(ctx.message.channel.id)
+                ctx.message.channel.category_id, ctx.message.channel.id
             )
 
             if result is None:

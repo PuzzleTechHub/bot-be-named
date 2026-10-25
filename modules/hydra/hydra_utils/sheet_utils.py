@@ -1,6 +1,7 @@
 from utils import batch_update_utils, sheets_constants
 from utils import discord_utils
 from modules.hydra import constants as hydra_constants
+from modules.hydra.hydra_utils import hydra_helpers
 import nextcord
 import gspread
 from utils.sheet_utils import OverviewSheet, findsheettether, addsheettethergeneric
@@ -36,7 +37,7 @@ async def create_puzzle_channel_from_template(
         return None, None, None
 
     tether_db_result, tether_type = findsheettether(
-        str(ctx.channel.category.id), str(ctx.channel.id)
+        ctx.channel.category.id, ctx.channel.id
     )
     if tether_db_result is None:
         embed.add_field(
@@ -261,32 +262,13 @@ async def create_puzzle_channel_from_template(
         gspread_client.open_by_url(curr_sheet_link).batch_update(batch.build())
 
     except gspread.exceptions.APIError as e:
-        # surface a concise error back to user
-        if hasattr(e, "response"):
-            error_json = e.response.json()
-            error_message = error_json.get("error", {}).get("message")
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"Unknown GSheets API Error - `{error_message}`",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return curr_sheet_link, newsheet, new_chan
+        await hydra_helpers.handle_gspread_error(ctx, e)
+        return curr_sheet_link, newsheet, new_chan
 
     await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
     success_embed = discord_utils.create_embed()
     success_embed.add_field(
         name="Success",
-        value=f"Channel `{puzzle_name}` created as {new_chan.mention} from template `{template_name}`, posts pinned!",
-        inline=False,
-    )
-    await discord_utils.send_message(ctx, success_embed)
-
-    # Send success message to the calling channel
-    success_embed = discord_utils.create_embed()
-    success_embed.add_field(
-        name=f"{constants.SUCCESS}!",
         value=f"Channel `{puzzle_name}` created as {new_chan.mention} from template `{template_name}`, posts pinned!",
         inline=False,
     )
@@ -462,7 +444,7 @@ async def batch_create_puzzle_channels(
     puzzle_configs: list[tuple[str, str | None]],
 ):
     """Batch creates multiple puzzle channels and tabs from template. Reserved for `chanhydra`."""
-    result, _ = findsheettether(str(ctx.channel.category.id), str(ctx.channel.id))
+    result, _ = findsheettether(ctx.channel.category.id, ctx.channel.id)
 
     if result is None:
         embed = discord_utils.create_embed()
