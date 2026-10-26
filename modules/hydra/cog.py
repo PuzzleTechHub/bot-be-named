@@ -9,6 +9,7 @@ import emoji
 from collections import Counter
 from nextcord.ext import commands
 from utils import (
+    batch_update_utils,
     discord_utils,
     google_utils,
     logging_utils,
@@ -1030,6 +1031,117 @@ class HydraCog(commands.Cog, name="Hydra"):
             )
 
         await discord_utils.send_message(ctx, embed)
+
+    @command_predicates.is_solver()
+    @commands.command(name="statushydra")
+    async def statushydra(self, ctx, status: str, answer: str = None):
+        """Adds a status to the puzzle and updates the sheet and channel name accordingly.
+        Same as `~statuslion`, but adds functionality for the timestamps on the Overview sheet:
+
+        You may pick one of [solved, solvedish, backsolved, postsolved, unstarted, unsolvable, stuck, abandoned, "In Progress"] as statuses.
+        Alternatively, you can give a custom status.
+
+        Permission Category : Solver Roles only.
+
+        Usage: `~statushydra status`
+        Usage: `~statushydra solved "answer"`
+        Usage: `~statushydra "custom-update-string" "answer"`
+        """
+        base = SheetCommandBase(ctx, self.gspread_client)
+        _, overview_sheet, row_to_find = await base.get_sheet_context()
+        if overview_sheet is None:
+            return
+
+        # Read the status before lion changes it
+        status_col = overview_sheet.get_cell_value(
+            sheets_constants.STATUS_COLUMN_LOCATION
+        )
+        prev_status = overview_sheet.get_cell_value(status_col + str(row_to_find))
+
+        statuslion = self.bot.get_command("statuslion")
+        await statuslion(ctx, status, answer)
+
+        # Same normalisation statuslion uses
+        new_status = status.capitalize()
+        if new_status == "In progress":
+            new_status = "In Progress"
+
+        solved_statuses = hydra_constants.SOLVED_TIMESTAMP_STATUSES
+        was_solved = prev_status in solved_statuses
+        is_solved = new_status in solved_statuses
+        if was_solved == is_solved:
+            return  # Nothing to set or clear
+
+        batch = batch_update_utils.BatchUpdateBuilder()
+        batch.update_cell_by_label(
+            sheet_id=overview_sheet.worksheet.id,
+            label=sheets_constants.PUZZLE_SOLVED_TIMESTAMP_COLUMN + str(row_to_find),
+            value=sheet_utils.get_timestamp() if is_solved else "",
+        )
+        try:
+            overview_sheet.spreadsheet.batch_update(batch.build())
+        except gspread.exceptions.APIError as e:
+            await hydra_helpers.handle_gspread_error(ctx, e)
+
+    @command_predicates.is_solver()
+    @commands.command(name="solvedhydra")
+    async def solvedhydra(self, ctx, answer: str = None):
+        """Sets the puzzle to solved and updates the sheet and channel name accordingly.
+        Also records the solved time on the Overview sheet.
+
+        Permission Category : Solver Roles only.
+        Usage: `~solvedhydra`
+        Usage: `~solvedhydra "answer"`
+        """
+        await logging_utils.log_command(
+            "solvedhydra", ctx.guild, ctx.channel, ctx.author
+        )
+        await self.statushydra(ctx, "solved", answer)
+
+    @command_predicates.is_solver()
+    @commands.command(name="backsolvedhydra")
+    async def backsolvedhydra(self, ctx, answer: str = None):
+        """Sets the puzzle to backsolved and updates the sheet and channel name accordingly.
+        Also records the solved time on the Overview sheet.
+
+        Permission Category : Solver Roles only.
+        Usage: `~backsolvedhydra`
+        Usage: `~backsolvedhydra "answer"`
+        """
+        await logging_utils.log_command(
+            "backsolvedhydra", ctx.guild, ctx.channel, ctx.author
+        )
+        await self.statushydra(ctx, "backsolved", answer)
+
+    @command_predicates.is_solver()
+    @commands.command(name="solvedishhydra")
+    async def solvedishhydra(self, ctx, answer: str = None):
+        """Sets the puzzle to solvedish and updates the sheet and channel name accordingly.
+        Clears the solved time on the Overview sheet if the puzzle was solved.
+
+        Permission Category : Solver Roles only.
+        Usage: `~solvedishhydra`
+        Usage: `~solvedishhydra "answer"`
+        """
+        await logging_utils.log_command(
+            "solvedishhydra", ctx.guild, ctx.channel, ctx.author
+        )
+        await self.statushydra(ctx, "solvedish", answer)
+
+    @command_predicates.is_solver()
+    @commands.command(name="unsolvedhydra")
+    async def unsolvedhydra(self, ctx, answer: str = ""):
+        """Sets the puzzle to in progress and updates the sheet and channel name accordingly.
+        Clears the solved time on the Overview sheet.
+
+        Permission Category : Solver Roles only.
+        Usage: `~unsolvedhydra` (Removes the answer from the sheet)
+        Usage: `~unsolvedhydra "answer"` (Updates the answer from the sheet to "answer")
+        """
+        await logging_utils.log_command(
+            "unsolvedhydra", ctx.guild, ctx.channel, ctx.author
+        )
+        await self.statushydra(ctx, "In Progress", answer)
 
     @command_predicates.is_solver()
     @commands.command(name="slainhydra", aliases=["donehydra"])
