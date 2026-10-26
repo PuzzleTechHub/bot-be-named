@@ -524,23 +524,6 @@ class LionCog(commands.Cog, name="Lion"):
                 overview_sheet.worksheet.id, status_col + str(row_to_find), status
             )
 
-            # Record the puzzle solved timestamp, clear if unsolved
-            solved_statuses = ["Solved", "Backsolved"]
-            solved_cell = sheets_constants.PUZZLE_SOLVED_TIMESTAMP_COLUMN + str(
-                row_to_find
-            )
-
-            if status in solved_statuses and curr_status not in solved_statuses:
-                batch_update_builder.update_cell_by_label(
-                    overview_sheet.worksheet.id,
-                    solved_cell,
-                    sheet_utils.get_timestamp(),
-                )
-            elif status not in solved_statuses and curr_status in solved_statuses:
-                batch_update_builder.update_cell_by_label(
-                    overview_sheet.worksheet.id, solved_cell, ""
-                )
-
             color = status_info.get("color")
             batch_update_builder.color_update(tab_id, color)
 
@@ -770,13 +753,6 @@ class LionCog(commands.Cog, name="Lion"):
                 sheet_id=overview_id,
                 label=status_col + str(first_empty),
                 value=unstarted,
-            )
-
-            batch_update_builder.update_cell_by_label(
-                sheet_id=overview_id,
-                label=sheets_constants.PUZZLE_UNLOCKED_TIMESTAMP_COLUMN
-                + str(first_empty),
-                value=sheet_utils.get_timestamp(),
             )
 
             batch_update_builder.unhide_sheet(sheet_id=newsheet.id)
