@@ -4,7 +4,12 @@ from modules.hydra import constants as hydra_constants
 from modules.hydra.hydra_utils import hydra_helpers
 import nextcord
 import gspread
-from utils.sheet_utils import OverviewSheet, findsheettether, addsheettethergeneric
+from utils.sheet_utils import (
+    OverviewSheet,
+    findsheettether,
+    addsheettethergeneric,
+    get_timestamp,
+)
 import emoji
 from gspread.worksheet import Worksheet
 
@@ -236,6 +241,12 @@ async def create_puzzle_channel_from_template(
             sheet_id=overview_id,
             label=status_col + str(first_empty),
             value=unstarted,
+        )
+
+        batch.update_cell_by_label(
+            sheet_id=overview_id,
+            label=sheets_constants.PUZZLE_UNLOCKED_TIMESTAMP_COLUMN + str(first_empty),
+            value=get_timestamp(),
         )
 
         tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
@@ -621,6 +632,8 @@ async def batch_create_puzzle_channels(
     discord_channel_id_col = sheets_constants.DISCORD_CHANNEL_ID_COLUMN
     sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
 
+    unlocked_timestamp = get_timestamp()
+
     # Build batch update for overview and new sheets
     batch = batch_update_utils.BatchUpdateBuilder()
 
@@ -647,6 +660,10 @@ async def batch_create_puzzle_channels(
                         sheets_constants.TAB_ANSWER_LOCATION,
                     ),
                     True,  # is_formula
+                ),
+                sheets_constants.PUZZLE_UNLOCKED_TIMESTAMP_COLUMN + str(row_num): (
+                    unlocked_timestamp,
+                    False,
                 ),
             }
 

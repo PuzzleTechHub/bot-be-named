@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from typing import Optional, Union
 import emoji
 
+from datetime import datetime, timezone
 from nextcord.ext.commands import Context
 
 """
@@ -243,6 +244,11 @@ async def chancrabgeneric(
 
     addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
     return curr_sheet_link, newsheet, new_chan
+
+
+def get_timestamp() -> str:
+    """Finds the current UTC timestamp."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def findsheettether(
