@@ -23,8 +23,8 @@ SUCCESS_REACTION = ":check_mark_button:"
 CONFIRM_EMOJI = "✅"
 CANCEL_EMOJI = "❌"
 
-# Statuses that set the solved timestamp on the Overview
-SOLVED_TIMESTAMP_STATUSES = ["Solved", "Backsolved"]
+# Statuses that write a new solved timestamp. Every other status clears it
+SOLVED_TIMESTAMP_STATUSES = ["Solved", "Backsolved", "Solvedish"]
 
 # Archive constants
 ARCHIVE_REGEX_PATTERN = r"\s*Archive\s*\d*$"

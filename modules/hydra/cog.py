@@ -1052,36 +1052,42 @@ class HydraCog(commands.Cog, name="Hydra"):
         if overview_sheet is None:
             return
 
-        # Read the status before lion changes it
+        solved_cell = sheets_constants.PUZZLE_SOLVED_TIMESTAMP_COLUMN + str(row_to_find)
+        has_solved_time = overview_sheet.get_cell_value(solved_cell) != ""
         status_col = overview_sheet.get_cell_value(
             sheets_constants.STATUS_COLUMN_LOCATION
         )
         prev_status = overview_sheet.get_cell_value(status_col + str(row_to_find))
-
-        statuslion = self.bot.get_command("statuslion")
-        await statuslion(ctx, status, answer)
 
         # Same normalisation statuslion uses
         new_status = status.capitalize()
         if new_status == "In progress":
             new_status = "In Progress"
 
-        solved_statuses = hydra_constants.SOLVED_TIMESTAMP_STATUSES
-        was_solved = prev_status in solved_statuses
-        is_solved = new_status in solved_statuses
-        if was_solved == is_solved:
-            return  # Nothing to set or clear
+        # Some statuses write a new timestamp, others clear
+        new_value = None
+        if new_status in hydra_constants.SOLVED_TIMESTAMP_STATUSES:
+            if new_status != prev_status:
+                new_value = sheet_utils.get_timestamp()
+        elif has_solved_time:
+            new_value = ""
 
-        batch = batch_update_utils.BatchUpdateBuilder()
-        batch.update_cell_by_label(
-            sheet_id=overview_sheet.worksheet.id,
-            label=sheets_constants.PUZZLE_SOLVED_TIMESTAMP_COLUMN + str(row_to_find),
-            value=sheet_utils.get_timestamp() if is_solved else "",
-        )
-        try:
-            overview_sheet.spreadsheet.batch_update(batch.build())
-        except gspread.exceptions.APIError as e:
-            await hydra_helpers.handle_gspread_error(ctx, e)
+        # Timestamp before lion, as channel renaming can get rate limited
+        if new_value is not None:
+            batch = batch_update_utils.BatchUpdateBuilder()
+            batch.update_cell_by_label(
+                sheet_id=overview_sheet.worksheet.id,
+                label=solved_cell,
+                value=new_value,
+            )
+            try:
+                overview_sheet.spreadsheet.batch_update(batch.build())
+            except gspread.exceptions.APIError as e:
+                await hydra_helpers.handle_gspread_error(ctx, e)
+                return
+
+        statuslion = self.bot.get_command("statuslion")
+        await statuslion(ctx, status, answer)
 
     @command_predicates.is_solver()
     @commands.command(name="solvedhydra")
@@ -1117,7 +1123,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     @commands.command(name="solvedishhydra")
     async def solvedishhydra(self, ctx, answer: str = None):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly.
-        Clears the solved time on the Overview sheet if the puzzle was solved.
+        Records a new solved time on te Overview sheet.
 
         Permission Category : Solver Roles only.
         Usage: `~solvedishhydra`
