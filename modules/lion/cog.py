@@ -379,7 +379,7 @@ class LionCog(commands.Cog, name="Lion"):
         await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="solvedlion", aliases=["solvedhydra"])
+    @commands.command(name="solvedlion")
     async def solvedlion(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to solved and updates the sheet and channel name accordingly.
 
@@ -393,7 +393,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "solved", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="backsolvedlion", aliases=["backlion", "backsolvedhydra"])
+    @commands.command(name="backsolvedlion", aliases=["backlion"])
     async def backsolvedlion(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to backsolved and updates the sheet and channel name accordingly.
 
@@ -408,7 +408,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "backsolved", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="solvedishlion", aliases=["solvedishhydra"])
+    @commands.command(name="solvedishlion")
     async def solvedishlion(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly
 
@@ -423,7 +423,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "solvedish", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="unsolvedlion", aliases=["unlion", "unsolvedhydra"])
+    @commands.command(name="unsolvedlion", aliases=["unlion"])
     async def unsolvedlion(self, ctx: commands.Context, answer: str = ""):
         """Sets the puzzle to in progress and updates the sheet and channel name accordingly
 
@@ -439,9 +439,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "In Progress", answer)
 
     @command_predicates.is_solver()
-    @commands.command(
-        name="statuslion", aliases=["statlion", "stat", "puzzstatus", "statushydra"]
-    )
+    @commands.command(name="statuslion", aliases=["statlion", "stat", "puzzstatus"])
     async def statuslion(self, ctx: commands.Context, status: str, answer: str = None):
         """Adds a status to the puzzle and updates the sheet and channel name accordingly
 
