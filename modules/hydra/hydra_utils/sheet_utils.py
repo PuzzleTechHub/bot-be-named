@@ -19,7 +19,7 @@ from utils.sheet_utils import (
 
 
 def index_after_templates(worksheets: list[Worksheet]) -> int:
-    """Index just after the last tab in the first run of tabs ending in "Template", where new puzzle tabs go."""
+    """Index of the first tab after the first run of tabs ending in "Template", where new puzzle tabs go."""
     insert_index = 0
     found_template = False
     for ws in worksheets:
