@@ -6,6 +6,7 @@ import heapq
 import shlex
 import re
 import emoji
+from typing import Optional
 from collections import Counter
 from nextcord.ext import commands
 from utils import (
@@ -406,12 +407,12 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="mtahydra", aliases=["movetoarchivehydra"])
-    async def mtahydra(self, ctx, *, category_name: str = None):
+    async def mtahydra(self, ctx, *, category_name: Optional[str] = None):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category. If the category is full (50 channels), I will make a new one.
         If called from thread (instead of channel), closes the thread instead of moving channel.
 
-        In the hydra implementation of ~mta, the archive category name is stardardized.
+        In the hydra implementation of ~mta, the archive category name is standardized.
 
         It must be in the form of `<category_name> Archive`, e.g. `MH21 Students Archive`.
         Your solving category should not end with Archive.
@@ -557,16 +558,14 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~deletehydra #puzzle-channel` (deletes #puzzle-channel)
         """
         await logging_utils.log_command(
-            "deletehydra", ctx.guild, ctx.channel, ctx.author
+            "deletehydra", ctx.guild, ctx.channel, str(ctx.author)
         )
         embed = discord_utils.create_embed()
 
         # Check if channel mention is provided
         if channel_mention == "":
-            embed.add_field(
-                name="Failed",
-                value="Please provide a channel to delete. Usage: `~deletehydra #puzzle-channel`",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                "Please provide a channel to delete. Usage: `~deletehydra #puzzle-channel`"
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -577,34 +576,35 @@ class HydraCog(commands.Cog, name="Hydra"):
             target_channel = ctx.message.channel_mentions[0]
 
         if target_channel is None:
-            embed.add_field(
-                name="Failed",
-                value="Please mention the channel, not just type its name!",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                "Please mention the channel, not just type its name!"
             )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        # Type guard: ensure target is a text channel
+        if not isinstance(target_channel, nextcord.TextChannel):
+            embed = hydra_helpers.create_failure_embed("Can only delete text channels.")
             await discord_utils.send_message(ctx, embed)
             return
 
         # Check that the target channel is not the same as the command channel
         if target_channel.id == ctx.channel.id:
-            embed.add_field(
-                name="Failed",
-                value="You cannot delete the channel you are currently in. Please run this command from a different channel.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                "You cannot delete the channel you are currently in. Please run this command from a different channel."
             )
             await discord_utils.send_message(ctx, embed)
             return
 
         # Check that the target channel has a valid sheet tether
         result, _ = sheet_utils.findsheettether(
-            target_channel.category_id, target_channel.id
+            target_channel.category_id if target_channel.category_id else 0,
+            target_channel.id,
         )
 
         if result is None:
-            embed.add_field(
-                name="Failed",
-                value=f"The channel {target_channel.mention} is not tethered to any Google sheet.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                f"The channel {target_channel.mention} is not tethered to any Google sheet."
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -624,8 +624,8 @@ class HydraCog(commands.Cog, name="Hydra"):
             f"React with ✅ to confirm or ❌ to cancel.",
         )
 
-        confirm_emoji = hydra_constants.CONFIRM_EMOJI
-        cancel_emoji = hydra_constants.CANCEL_EMOJI
+        confirm_emoji = "✅"
+        cancel_emoji = "❌"
 
         confirm_message = (await discord_utils.send_message(ctx, confirm_embed))[0]
         await confirm_message.add_reaction(confirm_emoji)
@@ -635,11 +635,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             return (
                 user == ctx.author
                 and reaction.message.id == confirm_message.id
-                and str(reaction.emoji)
-                in (
-                    hydra_constants.CONFIRM_EMOJI,
-                    hydra_constants.CANCEL_EMOJI,
-                )
+                and str(reaction.emoji) in ("✅", "❌")
             )
 
         try:
@@ -653,14 +649,14 @@ class HydraCog(commands.Cog, name="Hydra"):
             timeout_embed.add_field(
                 name="Cancelled!",
                 value="No confirmation received in time. "
-                f"{target_channel.mention} will not deleted.",
+                f"{target_channel.mention} will not be deleted.",
                 inline=False,
             )
             await discord_utils.send_message(ctx, timeout_embed)
             return
 
         # If the user reacted with the cancel emoji, abort immediately.
-        if str(reaction.emoji) == hydra_constants.CANCEL_EMOJI:
+        if str(reaction.emoji) == "❌":
             cancel_embed = discord_utils.create_embed()
             cancel_embed.add_field(
                 name="Aborted!",
@@ -701,10 +697,10 @@ class HydraCog(commands.Cog, name="Hydra"):
                     self.gspread_client, ctx, curr_sheet_link
                 )
 
+                tab_id = None
                 tab_name = None
                 row_to_find = None
-                overview_ws = None
-                tab_name_found = False
+                tab_id_found = False
 
                 if overview_sheet is not None:
                     # We need to find the row by channel ID
@@ -717,17 +713,18 @@ class HydraCog(commands.Cog, name="Hydra"):
 
                     if list_chan_cells and list_chan_cells[0][0] is not None:
                         row_to_find = list_chan_cells[0][0]
-                        overview_ws = overview_sheet.worksheet
 
-                        # Get tab name from the appropriate column
-                        # Get the cell formula from column D
+                        # Get tab ID from the sheet ID column... not the puzzle name column
+                        sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
                         try:
-                            tab_name = overview_ws.acell(
-                                f"D{row_to_find}"
-                            ).value  # FIXME - hardcoded
-                            tab_name_found = True
-                        except gspread.exceptions.APIError:
-                            tab_name_found = False
+                            tab_id_str = overview_sheet.get_cell_value(
+                                sheet_tab_id_col + str(row_to_find)
+                            )
+                            if tab_id_str:
+                                tab_id = int(tab_id_str)
+                                tab_id_found = True
+                        except (gspread.exceptions.APIError, IndexError, ValueError):
+                            tab_id_found = False
 
                 # 3. Delete discord channel
                 channel_name = target_channel.name
@@ -735,24 +732,23 @@ class HydraCog(commands.Cog, name="Hydra"):
                     reason=f"Deleted by {ctx.author} via `~deletehydra` command."
                 )
 
-                # 4. Delete tab from sheet (skip if tab name wasn't found anyway)
-                if tab_name_found and tab_name:
-                    tab_deleted = False
+                # 4. Delete tab from sheet using worksheet ID
+                tab_deleted = False
+                if tab_id_found and tab_id is not None:
                     try:
-                        sh = self.gspread_client.open_by_url(curr_sheet_link)
+                        sh = (
+                            overview_sheet.spreadsheet
+                            if overview_sheet is not None
+                            else self.gspread_client.open_by_url(curr_sheet_link)
+                        )
 
-                        # Try to find and delete worksheet
-                        ws_to_delete = None
-                        if tab_name:
-                            ws_to_delete = next(
-                                (ws for ws in sh.worksheets() if ws.title == tab_name),
-                                None,
-                            )
+                        tab_name = sh.get_worksheet_by_id(tab_id).title
+                        sh.del_worksheet_by_id(tab_id)
+                        tab_deleted = True
 
-                        if ws_to_delete:
-                            sh.del_worksheet(ws_to_delete)
-                            tab_deleted = True
-                    except gspread.exceptions.APIError:  # Report in final message
+                    except gspread.WorksheetNotFound:  # Report error in final message
+                        pass
+                    except gspread.exceptions.APIError:
                         pass
                     except Exception:
                         pass
@@ -764,12 +760,16 @@ class HydraCog(commands.Cog, name="Hydra"):
                         overview_ws = overview_sheet.worksheet
 
                         # Get the row values
-                        row_values = overview_ws.row_values(row_to_find)
+                        overview_values = overview_sheet.overview_data
+                        if row_to_find <= len(overview_values):
+                            row_values = overview_values[row_to_find - 1]
+                        else:
+                            row_values = []
 
                         if row_values:
                             overview_ws.delete_rows(row_to_find)
                             # A new row probably should be created here, but
-                            # the filter on the overview sheet doesnt apply
+                            # the filter on the overview sheet doesn't apply
                             # properly, so we'll just trust the users good
                             # judgement to add more rows manually
 
@@ -815,17 +815,13 @@ class HydraCog(commands.Cog, name="Hydra"):
             except gspread.exceptions.APIError as e:
                 await hydra_helpers.handle_gspread_error(ctx, e, embed)
             except nextcord.Forbidden:
-                embed.add_field(
-                    name="Failed",
-                    value="I do not have permission to delete the channel.",
-                    inline=False,
+                embed = hydra_helpers.create_failure_embed(
+                    "I do not have permission to delete the channel."
                 )
                 await discord_utils.send_message(ctx, embed)
             except Exception as e:
-                embed.add_field(
-                    name="Failed",
-                    value=f"An unknown error occurred: {str(e)}",
-                    inline=False,
+                embed = hydra_helpers.create_failure_embed(
+                    f"An unknown error occurred: {str(e)}"
                 )
                 await discord_utils.send_message(ctx, embed)
 
@@ -1200,13 +1196,21 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~unmtahydra "Main Hunt Category Name"` (If I cannot find the main hunt category automatically)
         """
         await logging_utils.log_command(
-            "unmtahydra", ctx.guild, ctx.channel, ctx.author
+            "unmtahydra", ctx.guild, ctx.channel, str(ctx.author)
         )
+
+        # Type guard: ensure we're in a guild text channel
+        if not isinstance(ctx.channel, nextcord.TextChannel):
+            embed = hydra_helpers.create_failure_embed(
+                "This command can only be used in a guild (server) text channel."
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
 
         base = SheetCommandBase(ctx, self.gspread_client)
         curr_sheet_link, overview_sheet, row_to_find = await base.get_sheet_context()
 
-        if overview_sheet is None:
+        if overview_sheet is None or row_to_find is None:
             return
 
         embed = discord_utils.create_embed()
@@ -1217,19 +1221,15 @@ class HydraCog(commands.Cog, name="Hydra"):
             _, col_idx = gspread.utils.a1_to_rowcol(sheet_tab_id_col + "1")
             sheet_tab_id = overview_values[row_to_find - 1][col_idx - 1]
         except Exception:
-            embed.add_field(
-                name="Failed",
-                value=f"Could not find the Sheet Tab ID for channel {ctx.message.channel.mention} in the Overview sheet.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                f"Could not find the Sheet Tab ID for channel {ctx.channel.mention} in the Overview sheet."
             )
             await discord_utils.send_message(ctx, embed)
             return
 
         if ctx.channel.category is None:
-            embed.add_field(
-                name="Failed",
-                value=f"The channel {ctx.message.channel.mention} is not in a category.",
-                inline=False,
+            embed = hydra_helpers.create_failure_embed(
+                f"The channel {ctx.channel.mention} is not in a category."
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -1238,23 +1238,50 @@ class HydraCog(commands.Cog, name="Hydra"):
         # same sheet. If that fails, we get the current category's name, and remove "Archive" and look for that. Else, we will
         # just ask the user for the category name.
 
+        if ctx.guild is None:
+            embed = hydra_helpers.create_failure_embed(
+                "This command must be used in a guild (server)."
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
         main_category = None
+        full_categories = [
+            category
+            for category in ctx.guild.categories
+            if discord_utils.category_is_full(category)
+        ]
 
         if category_name != "":
             main_category = await discord_utils.find_category(ctx, category_name)
             if main_category is None:
-                embed.add_field(
-                    name="Failed",
-                    value=f"I cannot find category `{category_name}`. Perhaps check your spelling and try again.",
+                embed = hydra_helpers.create_failure_embed(
+                    f"I cannot find category `{category_name}`. Perhaps check your spelling and try again."
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+            elif main_category in full_categories:
+                embed = hydra_helpers.create_failure_embed(
+                    f"The category `{category_name}` is full. Please specify a different category."
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
 
         if main_category is None:
+            if ctx.guild is None:
+                embed = hydra_helpers.create_failure_embed(
+                    "This command must be used in a guild (server)."
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+
             for category in ctx.guild.categories:
-                if category.id == ctx.channel.category.id:
-                    continue  # Skip current category
-                cat_result, _ = sheet_utils.findsheettether(str(category.id), None)
+                if (
+                    category.id == ctx.channel.category.id
+                    or category in full_categories
+                ):
+                    continue  # Skip current category / full categories
+                cat_result, _ = sheet_utils.findsheettether(category.id, 0)
                 if (
                     cat_result is not None
                     and str(cat_result.sheet_link) == curr_sheet_link
@@ -1272,17 +1299,22 @@ class HydraCog(commands.Cog, name="Hydra"):
             ]
 
             possible_solving_categories = []
-            # Look for categories that begin with the exact base name, then the bas name minus last word, etc.
+            # Look for categories that begin with the exact base name, then the base name minus last word, etc.
             for possible_base_name in possible_category_prefixes:
                 to_add_candidates = [
                     category
                     for category in ctx.guild.categories
                     if category.name.startswith(possible_base_name)
-                    and not re.match(r".*Archive\s*\d*$", category.name)
+                    and (not re.match(r".*Archive\s*\d*$", category.name))
+                    and (category not in full_categories)
                 ]
 
                 for candidate in to_add_candidates:
-                    if candidate not in possible_solving_categories:
+                    # Skip categories that are full, prefer ones with space
+                    if (
+                        candidate not in possible_solving_categories
+                        and not discord_utils.category_is_full(candidate)
+                    ):
                         possible_solving_categories.append(candidate)
 
             if len(possible_solving_categories) == 1:
@@ -1301,10 +1333,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                 return
 
         if main_category is None:
-            embed.add_field(
-                name="Failed",
-                value="I could not automatically find the main hunt category. \n"
-                "Please specify the main hunt category name as an argument.",
+            embed = hydra_helpers.create_failure_embed(
+                "I could not automatically find the main hunt category. \n"
+                "Please specify the main hunt category name as an argument."
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -1313,39 +1344,44 @@ class HydraCog(commands.Cog, name="Hydra"):
         channel_embed = discord_utils.create_embed()
         try:
             await ctx.channel.edit(category=main_category)
-            channel_embed.add_field(
-                name="Success",
-                value=f"Successfully moved channel {ctx.channel.mention} to category `{main_category.name}`.",
-                inline=False,
+            channel_embed = hydra_helpers.create_success_embed(
+                f"Successfully moved channel {ctx.channel.mention} to category `{main_category.name}`."
             )
             await discord_utils.send_message(ctx, channel_embed)
         except nextcord.Forbidden:
-            channel_embed.add_field(
-                name="Failed",
-                value=f"I do not have permission to move the channel {ctx.channel.mention} to category `{main_category.name}`.",
-                inline=False,
+            channel_embed = hydra_helpers.create_failure_embed(
+                f"I do not have permission to move the channel {ctx.channel.mention} to category `{main_category.name}`."
             )
             await discord_utils.send_message(ctx, channel_embed)
             return
         except Exception as e:
-            channel_embed.add_field(
-                name="Failed",
-                value=f"Could not move channel {ctx.channel.mention} to category `{main_category.name}`. Error: {str(e)}",
-                inline=False,
+            channel_embed = hydra_helpers.create_failure_embed(
+                f"Could not move channel {ctx.channel.mention} to category `{main_category.name}`. Error: {str(e)}"
             )
             await discord_utils.send_message(ctx, channel_embed)
             return
 
         # Move the sheet tab into the active section
         tab_embed = discord_utils.create_embed()
+
+        # Type check for curr_sheet_link
+        if curr_sheet_link is None:
+            tab_embed = hydra_helpers.create_failure_embed("Could not find sheet link.")
+            await discord_utils.send_message(ctx, tab_embed)
+            return
+
         try:
-            curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+            curr_sheet = (
+                overview_sheet.spreadsheet
+                if overview_sheet is not None
+                else self.gspread_client.open_by_url(curr_sheet_link)
+            )
 
             # Find index by looking for last occurrence of a sheet ending with "Template".
-
+            all_sheets = curr_sheet.worksheets()
             template_index = 0
             found_template = False
-            for sheet in curr_sheet.worksheets():
+            for sheet in all_sheets:
                 if sheet.title.endswith("Template"):
                     template_index = sheet.index
                     found_template = True
@@ -1356,22 +1392,32 @@ class HydraCog(commands.Cog, name="Hydra"):
             if not found_template:
                 template_index = 0  # Move to start if no templates found
 
-            tab_to_move = curr_sheet.get_worksheet_by_id(int(sheet_tab_id))
-            tab_to_move.update_index(template_index + 1)  # Move to after last template
-            tab_embed.add_field(
-                name="Success",
-                value=f"Successfully moved the sheet tab for {ctx.channel.mention} to the active section.",
-                inline=False,
+            # Use batch update to move the sheet
+            curr_sheet.batch_update(
+                {
+                    "requests": [
+                        {
+                            "updateSheetProperties": {
+                                "properties": {
+                                    "sheetId": int(sheet_tab_id),
+                                    "index": template_index + 1,
+                                },
+                                "fields": "index",
+                            }
+                        }
+                    ]
+                }
+            )
+            tab_embed = hydra_helpers.create_success_embed(
+                f"Successfully moved the sheet tab for {ctx.channel.mention} to the active section."
             )
             await discord_utils.send_message(ctx, tab_embed)
         except gspread.exceptions.APIError as e:
             await hydra_helpers.handle_gspread_error(ctx, e, tab_embed)
             return
         except Exception as e:
-            tab_embed.add_field(
-                name="Failed",
-                value=f"Unknown error when moving tab: `{str(e)}`",
-                inline=False,
+            tab_embed = hydra_helpers.create_failure_embed(
+                f"Unknown error when moving tab: `{str(e)}`"
             )
             await discord_utils.send_message(ctx, tab_embed)
             return
