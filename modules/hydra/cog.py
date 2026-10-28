@@ -375,17 +375,19 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         Usage: ~anychanhydra "Puzzle Name" "TemplateName" (uses "TemplateName Template" from the sheet)
         Usage: ~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" (uses "Square Template" from the sheet)
+        Usage: ~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" "Some notes here" (with notes)
+        Usage: ~anychanhydra "Puzzle Name" "Template" (uses the plain "Template" tab)
         """
         await logging_utils.log_command(
             "anychanhydra", ctx.guild, ctx.channel, ctx.author
         )
 
         arg_list = shlex.split(args)
-        if len(arg_list) < 2 or len(arg_list) > 3:
+        if len(arg_list) < 2 or len(arg_list) > 4:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name="Failed",
-                value="Invalid arguments. Usage: `~anychanhydra [puzzle name] [template name] [puzzle url (optional)]`",
+                value="Invalid arguments. Usage: `~anychanhydra [puzzle name] [template name] [puzzle url (optional)] [notes (optional)]`",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -394,6 +396,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         puzzle_name = arg_list[0]
         template_name = arg_list[1]
         puzzle_url = arg_list[2] if len(arg_list) > 2 else None
+        notes = arg_list[3] if len(arg_list) > 3 else None
 
         await hydra_sheet_utils.create_puzzle_channel_from_template(
             self.bot,
@@ -402,6 +405,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             template_name,
             puzzle_url,
             self.gspread_client,
+            notes,
         )
 
     @command_predicates.is_solver()
@@ -429,6 +433,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         await hydra_sheet_utils.sheet_move_to_archive(self.gspread_client, ctx)
         await hydra_discord_utils.category_move_to_archive(ctx, category_name)
 
+    @command_predicates.is_solver()
     @commands.command(name="chanhydra")
     async def chanhydra(self, ctx: commands.Context, *, content: str = ""):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
@@ -444,6 +449,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         APuzzle "http://linktoapuzzle.com"
         "B Puzzle" "http://linktobpuzzle.com"
         3rdPuzzle
+        4thPuzzle "http://link.com" "Some notes here"
         """
 
         await logging_utils.log_command("chanhydra", ctx.guild, ctx.channel, ctx.author)
@@ -481,7 +487,8 @@ class HydraCog(commands.Cog, name="Hydra"):
 
             puzzle_name = parts[0]
             puzzle_url = parts[1] if len(parts) > 1 else ""
-            puzzle_configs.append((puzzle_name, puzzle_url))
+            notes = parts[2] if len(parts) > 2 else None
+            puzzle_configs.append((puzzle_name, puzzle_url, notes))
 
         if not puzzle_configs:
             embed.add_field(
@@ -522,7 +529,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                 name="Success",
                 value=(
                     f"Successfully created {success_count} puzzle channel(s):\n\n"
-                    "\n".join(success_messages)
+                    + "\n".join(success_messages)
                     if success_messages
                     else f"Successfully created {success_count} puzzle channel(s)!"
                 ),
