@@ -326,22 +326,35 @@ class HydraCog(commands.Cog, name="Hydra"):
             # Execute the batch update
             curr_sheet.batch_update(batch.build())
 
-            # Send success message before renaming the channel, since Discord
-            # allows 2 renames per 10 minutes and holds the rename until then
-            embed.add_field(
-                name="Success",
-                value=f"Successfully renamed the puzzle to `{new_name}`.\n"
-                f"- Discord channel {ctx.channel.mention} is being renamed (Discord may delay this by up to **10** minutes).\n"
-                f"- Sheet tab renamed to `{new_tab_name}`.\n"
-                f"- Overview updated.",
+            # Let users know the rename has started, since Discord allows
+            # 2 renames per 10 minutes and holds the rename until then
+            progress_embed = discord_utils.create_embed()
+            progress_embed.add_field(
+                name="Rename in progress",
+                value="If this takes a while, Discord may delay channel renames by up to **10** minutes due to rate limiting."
+                "The spreadsheet has already been renamed.",
                 inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
+            progress_msg = (await discord_utils.send_message(ctx, progress_embed))[0]
 
             # Rename the Discord channel
             new_channel_name = new_name.lower().replace(" ", "-")
-            await ctx.channel.edit(name=new_channel_name)
+            try:
+                await ctx.channel.edit(name=new_channel_name)
+            finally:
+                await progress_msg.delete()
+
+            # Send success message
+            embed.add_field(
+                name="Success",
+                value=f"Successfully renamed the puzzle to `{new_name}`.\n"
+                f"- Discord channel renamed to {ctx.channel.mention}\n"
+                f"- Sheet tab renamed to `{new_tab_name}`\n"
+                f"- Overview updated",
+                inline=False,
+            )
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+            await discord_utils.send_message(ctx, embed)
 
         except gspread.exceptions.APIError as e:
             await hydra_helpers.handle_gspread_error(ctx, e, embed)
