@@ -18,9 +18,11 @@ from utils.sheet_utils import (
 ########################
 
 
-def index_after_templates(worksheets: list[Worksheet]) -> int:
-    """Index of the first tab after the first run of tabs ending in "Template", where new puzzle tabs go."""
-    insert_index = 0
+def get_new_puzzle_tab_index(worksheets: list[Worksheet]) -> int:
+    """Searches for the first run of tabs in the sheet ending in "Template". Gives the index of the tab right after.
+    New puzzle tabs will be created at this index.
+    If no tab ends in "Template", gives the index after the last tab, so new puzzle tabs go at the end."""
+    insert_index = len(worksheets)
     found_template = False
     for ws in worksheets:
         if ws.title.endswith("Template"):
@@ -146,7 +148,7 @@ async def create_puzzle_channel_from_template(
         newsheet = curr_sheet.duplicate_sheet(
             source_sheet_id=template_id,
             new_sheet_name=tab_name,
-            insert_sheet_index=index_after_templates(curr_sheet.worksheets()),
+            insert_sheet_index=get_new_puzzle_tab_index(curr_sheet.worksheets()),
         )
 
     except gspread.exceptions.APIError as e:
@@ -511,7 +513,7 @@ async def batch_create_puzzle_channels(
         # Fetch all existing worksheet names once (single API call)
         all_worksheets = spreadsheet.worksheets()
         existing_sheet_names = {ws.title for ws in all_worksheets}
-        insert_index = index_after_templates(all_worksheets)
+        insert_index = get_new_puzzle_tab_index(all_worksheets)
 
     except gspread.exceptions.WorksheetNotFound:
         embed = discord_utils.create_embed()
@@ -591,6 +593,7 @@ async def batch_create_puzzle_channels(
 
     # Batch create all worksheets
     requests = []
+    # Each channel is (puzzle_name, tab_name, puzzle_url, notes, new_channel)
     for i, (_, tab_name, _, _, _) in enumerate(channels):
         requests.append(
             {
@@ -643,6 +646,7 @@ async def batch_create_puzzle_channels(
     # Refresh and get the newly created sheets
     spreadsheet = gspread_client.open_by_url(curr_sheet_link)
     worksheets_by_title = {ws.title: ws for ws in spreadsheet.worksheets()}
+    # Each channel is (puzzle_name, tab_name, puzzle_url, notes, new_channel)
     worksheets = [
         worksheets_by_title.get(tab_name) for _, tab_name, _, _, _ in channels
     ]
