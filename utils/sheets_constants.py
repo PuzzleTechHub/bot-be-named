@@ -75,21 +75,26 @@ UNSTARTED_NAME = "Unstarted"
 solved_prefixes = [status_dict[x].get("prefix_name") for x in status_dict]
 solved_prefixes = [y for y in solved_prefixes if y is not None]
 
+# Overview tab columns (row 3 is the header row, puzzles start on row 4)
 DISCORD_CHANNEL_ID_COLUMN = "A"
 SHEET_TAB_ID_COLUMN = "B"
 ROUND_COLUMN = "C"
 NOTES_COLUMN = "G"
+PUZZLE_UNLOCKED_TIMESTAMP_COLUMN = "I"
+PUZZLE_SOLVED_TIMESTAMP_COLUMN = "J"
 
-PUZZLE_NAME_COLUMN_LOCATION = "A1"  # C in TM sheet
-STATUS_COLUMN_LOCATION = "B1"  # D in TM sheet
-ANSWER_COLUMN_LOCATION = "A2"  # E in TM sheet
+# Overview cells that hold a column letter, so these columns can be moved on the sheet
+PUZZLE_NAME_COLUMN_LOCATION = "A1"  # holds "D" by default
+STATUS_COLUMN_LOCATION = "B1"  # holds "E" by default
+ANSWER_COLUMN_LOCATION = "A2"  # holds "F" by default
 
-TAB_CHAN_NAME_LOCATION = "A1"
-TAB_URL_LOCATION = "B1"
-TAB_ANSWER_LOCATION = "B3"
-
-# To be used in chanhydra, clonehydra and hunthydra
+# Overview cell with the hunt URL
 OVERVIEW_HUNTURL_LOCATION = "C1"
+
+# Puzzle tab cells, copied from the Template tab
+TAB_CHAN_NAME_LOCATION = "A1"  # puzzle name
+TAB_URL_LOCATION = "B1"  # puzzle link
+TAB_ANSWER_LOCATION = "B3"  # answer, next to the "Answer" label in A3
 
 PUZZLE_UNLOCKED_TIMESTAMP_COLUMN = "I"
 PUZZLE_SOLVED_TIMESTAMP_COLUMN = "J"
