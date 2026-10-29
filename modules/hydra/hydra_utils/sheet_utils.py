@@ -1,23 +1,36 @@
-from utils import batch_update_utils, sheets_constants
-from utils import discord_utils
-from modules.hydra import constants as hydra_constants
-from modules.hydra.hydra_utils import hydra_helpers
-import nextcord
+import emoji
 import gspread
+import nextcord
+from gspread.worksheet import Worksheet
+from nextcord.ext.commands import Context
+
+from modules.hydra.hydra_utils import hydra_helpers
+from utils import batch_update_utils, discord_utils, sheets_constants
 from utils.sheet_utils import (
     OverviewSheet,
-    findsheettether,
     addsheettethergeneric,
+    findsheettether,
     get_timestamp,
 )
-import emoji
-from gspread.worksheet import Worksheet
-
-from nextcord.ext.commands import Context
 
 ########################
 # RESERVED HYDRA UTILS #
 ########################
+
+
+def get_new_puzzle_tab_index(worksheets: list[Worksheet]) -> int:
+    """Searches for the first run of tabs in the sheet ending in "Template". Gives the index of the tab right after.
+    New puzzle tabs will be created at this index.
+    If no tab ends in "Template", gives the index after the last tab, so new puzzle tabs go at the end."""
+    insert_index = len(worksheets)
+    found_template = False
+    for ws in worksheets:
+        if ws.title.endswith("Template"):
+            insert_index = ws.index + 1
+            found_template = True
+        elif found_template:
+            break
+    return insert_index
 
 
 async def create_puzzle_channel_from_template(
@@ -27,6 +40,7 @@ async def create_puzzle_channel_from_template(
     template_name: str,
     puzzle_url: str | None,
     gspread_client,
+    notes: str | None = None,
 ):
     """Create a puzzle channel and a new tab from `template_name` template, and update in overview. Based off chancrabgeneric."""
     embed = discord_utils.create_embed()
@@ -73,11 +87,15 @@ async def create_puzzle_channel_from_template(
             return None, None, None
         else:
             raise e
-    desired_template_tab = f"{template_name.title()} Template"
+
+    desired_template_tab = (
+        f"{template_name.title()} Template"
+        if template_name.title() != "Template"
+        else "Template"
+    )
 
     template_ws = None
     template_id = None
-    template_index = None
     used_fallback = False
 
     try:
@@ -96,13 +114,12 @@ async def create_puzzle_channel_from_template(
             return None, None, None
 
     template_id = template_ws.id
-    template_index = template_ws.index
 
     # Tell user if fallback was used
     if used_fallback:
         embed = discord_utils.create_embed()
         embed.add_field(
-            name="Failed",
+            name="Note",
             value=f"The tab `{desired_template_tab}` does not exist on the tethered sheet. Using `Template` tab instead.",
             inline=False,
         )
@@ -131,8 +148,7 @@ async def create_puzzle_channel_from_template(
         newsheet = curr_sheet.duplicate_sheet(
             source_sheet_id=template_id,
             new_sheet_name=tab_name,
-            insert_sheet_index=template_index
-            + hydra_constants.TEMPLATE_DUPLICATE_INSERT_OFFSET,
+            insert_sheet_index=get_new_puzzle_tab_index(curr_sheet.worksheets()),
         )
 
     except gspread.exceptions.APIError as e:
@@ -162,7 +178,7 @@ async def create_puzzle_channel_from_template(
     if not new_chan:
         embed.add_field(
             name="Failed",
-            value="Forbidden! Have you checked if the bot has the required permisisons?",
+            value="Forbidden! Have you checked if the bot has the required permissions?",
         )
         await discord_utils.send_message(ctx, embed)
         return None, None, None
@@ -197,6 +213,18 @@ async def create_puzzle_channel_from_template(
             await discord_utils.send_message(ctx, embed_or_none)
         else:
             await msg2.add_reaction(emoji.emojize(":pushpin:"))
+
+    if notes:
+        embed = discord_utils.create_embed()
+        embed.description = f"`{notes}`"
+        msg3 = await new_chan.send(embed=embed)
+
+        embed_or_none = await discord_utils.pin_message(msg3)
+
+        if embed_or_none is not None:
+            await discord_utils.send_message(ctx, embed_or_none)
+        else:
+            await msg3.add_reaction(emoji.emojize(":pushpin:"))
 
     await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
 
@@ -270,6 +298,15 @@ async def create_puzzle_channel_from_template(
                 sheet_id=newsheet.id, label=url_loc, value=puzzle_url
             )
 
+        batch.unhide_sheet(newsheet.id)
+
+        if notes:
+            batch.update_cell_by_label(
+                sheet_id=overview_id,
+                label=sheets_constants.NOTES_COLUMN + str(first_empty),
+                value=notes,
+            )
+
         gspread_client.open_by_url(curr_sheet_link).batch_update(batch.build())
 
     except gspread.exceptions.APIError as e:
@@ -280,7 +317,7 @@ async def create_puzzle_channel_from_template(
     success_embed = discord_utils.create_embed()
     success_embed.add_field(
         name="Success",
-        value=f"Channel `{puzzle_name}` created as {new_chan.mention} from template `{template_name}`, posts pinned!",
+        value=f"Channel `{puzzle_name}` created as {new_chan.mention} from template `{template_ws.title}`, posts pinned!",
         inline=False,
     )
     await discord_utils.send_message(ctx, success_embed)
@@ -452,7 +489,7 @@ async def batch_create_puzzle_channels(
     bot,
     ctx,
     gspread_client,
-    puzzle_configs: list[tuple[str, str | None]],
+    puzzle_configs: list[tuple[str, str | None, str | None]],
 ):
     """Batch creates multiple puzzle channels and tabs from template. Reserved for `chanhydra`."""
     result, _ = findsheettether(ctx.channel.category.id, ctx.channel.id)
@@ -474,7 +511,10 @@ async def batch_create_puzzle_channels(
         template_sheet = spreadsheet.worksheet("Template")
 
         # Fetch all existing worksheet names once (single API call)
-        existing_sheet_names = {ws.title for ws in spreadsheet.worksheets()}
+        all_worksheets = spreadsheet.worksheets()
+        existing_sheet_names = {ws.title for ws in all_worksheets}
+        insert_index = get_new_puzzle_tab_index(all_worksheets)
+
     except gspread.exceptions.WorksheetNotFound:
         embed = discord_utils.create_embed()
         embed.add_field(
@@ -511,7 +551,7 @@ async def batch_create_puzzle_channels(
     channels = []
     skipped_puzzles = []  # Track puzzles that were skipped
 
-    for puzzle_name, puzzle_url in puzzle_configs:
+    for puzzle_name, puzzle_url, notes in puzzle_configs:
         tab_name = puzzle_name.replace("#", "").replace("-", " ")
 
         # Check if a sheet with this name already exists (using cached list)
@@ -534,7 +574,7 @@ async def batch_create_puzzle_channels(
             if new_channel is None:
                 raise Exception("Channel creation returned None")
 
-            channels.append((puzzle_name, tab_name, puzzle_url, new_channel))
+            channels.append((puzzle_name, tab_name, puzzle_url, notes, new_channel))
 
         except Exception as e:
             embed = discord_utils.create_embed()
@@ -553,12 +593,13 @@ async def batch_create_puzzle_channels(
 
     # Batch create all worksheets
     requests = []
-    for puzzle_name, tab_name, _, _ in channels:
+    # Each channel is (puzzle_name, tab_name, puzzle_url, notes, new_channel)
+    for i, (_, tab_name, _, _, _) in enumerate(channels):
         requests.append(
             {
                 "duplicateSheet": {
                     "sourceSheetId": template_sheet.id,
-                    "insertSheetIndex": template_sheet.index + 1,
+                    "insertSheetIndex": insert_index + i,
                     "newSheetName": tab_name,
                 }
             }
@@ -604,14 +645,11 @@ async def batch_create_puzzle_channels(
 
     # Refresh and get the newly created sheets
     spreadsheet = gspread_client.open_by_url(curr_sheet_link)
-    worksheets = []
-
-    for _, tab_name, _, _ in channels:
-        try:
-            ws = spreadsheet.worksheet(tab_name)
-            worksheets.append(ws)
-        except Exception:
-            worksheets.append(None)
+    worksheets_by_title = {ws.title: ws for ws in spreadsheet.worksheets()}
+    # Each channel is (puzzle_name, tab_name, puzzle_url, notes, new_channel)
+    worksheets = [
+        worksheets_by_title.get(tab_name) for _, tab_name, _, _, _ in channels
+    ]
 
     # Get overview wrapper and constants
     overview_wrapper = OverviewSheet(gspread_client, curr_sheet_link)
@@ -637,7 +675,7 @@ async def batch_create_puzzle_channels(
     # Build batch update for overview and new sheets
     batch = batch_update_utils.BatchUpdateBuilder()
 
-    for idx, (puzzle_name, tab_name, puzzle_url, channel) in enumerate(channels):
+    for idx, (puzzle_name, tab_name, puzzle_url, notes, channel) in enumerate(channels):
         if worksheets[idx] is None:
             continue
         try:
@@ -666,6 +704,11 @@ async def batch_create_puzzle_channels(
                     False,
                 ),
             }
+            if notes:
+                overview_updates[sheets_constants.NOTES_COLUMN + str(row_num)] = (
+                    notes,
+                    False,
+                )
 
             for label, (value, is_formula) in overview_updates.items():
                 batch.update_cell_by_label(
@@ -688,6 +731,9 @@ async def batch_create_puzzle_channels(
                     label=label,
                     value=value,
                 )
+
+            # Templates are often hidden, and the copies inherit that
+            batch.unhide_sheet(newsheet.id)
 
             # Tether channel
             addsheettethergeneric(gspread_client, curr_sheet_link, ctx.guild, channel)
@@ -713,6 +759,14 @@ async def batch_create_puzzle_channels(
                     embed_or_none = await discord_utils.pin_message(msg2)
                     if embed_or_none is None:
                         await msg2.add_reaction(emoji.emojize(":pushpin:"))
+
+                if notes:
+                    embed = discord_utils.create_embed()
+                    embed.description = f"`{notes}`"
+                    msg3 = await channel.send(embed=embed)
+                    embed_or_none = await discord_utils.pin_message(msg3)
+                    if embed_or_none is None:
+                        await msg3.add_reaction(emoji.emojize(":pushpin:"))
             except Exception:
                 pass
         except Exception as e:
@@ -754,7 +808,7 @@ async def batch_create_puzzle_channels(
 
     # Return results
     results = []
-    for idx, (puzzle_name, tab_name, puzzle_url, channel) in enumerate(channels):
+    for idx, (puzzle_name, tab_name, puzzle_url, notes, channel) in enumerate(channels):
         if worksheets[idx] is not None:
             final_link = curr_sheet_link + "/edit#gid=" + str(worksheets[idx].id)
             results.append((final_link, worksheets[idx], channel, puzzle_name))

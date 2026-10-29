@@ -1,3 +1,4 @@
+from typing import Optional
 import nextcord
 import constants
 import gspread
@@ -216,6 +217,156 @@ class HydraCog(commands.Cog, name="Hydra"):
             await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
+    @commands.command(name="renamehydra")
+    async def renamehydra(self, ctx: commands.Context, new_name: Optional[str] = None):
+        """Renames the current discord channel and puzzle tab to the new name.
+        Keep in mind, if there is a status prefix in the channel name, it will be overwritten.
+        Don't worry, you can just call the command you used to change the status again to restore it.
+
+        Permission Category : Solver Roles only.
+        Usage: `~renamehydra "New Puzzle Name"`
+        """
+        await logging_utils.log_command(
+            "renamehydra", ctx.guild, ctx.channel, str(ctx.author)
+        )
+
+        # Type guard: ensure we're in a guild text channel
+        if not isinstance(ctx.channel, (nextcord.TextChannel, nextcord.Thread)):
+            embed = hydra_helpers.create_failure_embed(
+                "This command can only be used in a guild text channel or thread."
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        # Check if new_name is provided
+        if new_name is None or new_name.strip() == "":
+            embed = hydra_helpers.create_failure_embed(
+                "You need to provide a new name for the puzzle."
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        new_name = new_name.strip()
+
+        base = SheetCommandBase(ctx, self.gspread_client)
+        curr_sheet_link, overview_sheet, row_to_find = await base.get_sheet_context()
+
+        if overview_sheet is None or curr_sheet_link is None:
+            return
+
+        embed = discord_utils.create_embed()
+
+        # Get the sheet tab ID for the current channel
+        sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
+        sheet_tab_id = overview_sheet.get_cell_value(
+            sheet_tab_id_col + str(row_to_find)
+        )
+
+        if sheet_tab_id is None or sheet_tab_id == "":
+            embed = hydra_helpers.create_failure_embed(
+                f"Could not find sheet tab ID for {ctx.channel.mention}."
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        try:
+            # Get the spreadsheet
+            curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+
+            # Get the worksheet by ID
+            worksheet = None
+            for ws in curr_sheet.worksheets():
+                if str(ws.id) == str(sheet_tab_id):
+                    worksheet = ws
+                    break
+
+            if worksheet is None:
+                embed = hydra_helpers.create_failure_embed(
+                    f"Could not find worksheet with ID {sheet_tab_id}."
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+
+            old_tab_name = worksheet.title
+            new_tab_name = new_name.replace("#", "").replace("-", " ")
+
+            # Check if a sheet with the new name already exists
+            existing_sheet_names = {ws.title for ws in curr_sheet.worksheets()}
+            if new_tab_name in existing_sheet_names and new_tab_name != old_tab_name:
+                embed = hydra_helpers.create_failure_embed(
+                    f"A sheet with the name `{new_tab_name}` already exists."
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+
+            # Prepare batch update
+            batch = batch_update_utils.BatchUpdateBuilder()
+
+            # Rename the sheet tab
+            batch.rename_sheet(sheet_id=int(sheet_tab_id), new_name=new_tab_name)
+
+            # Update the puzzle name in the Overview sheet
+            puzzle_name_col = overview_sheet.get_cell_value(
+                sheets_constants.PUZZLE_NAME_COLUMN_LOCATION
+            )
+            final_sheet_link = curr_sheet_link + "/edit#gid=" + str(sheet_tab_id)
+            batch.update_cell_by_label(
+                sheet_id=overview_sheet.worksheet.id,
+                label=puzzle_name_col + str(row_to_find),
+                value=f'=HYPERLINK("{final_sheet_link}", "{new_name}")',
+                is_formula=True,
+            )
+
+            # Update the channel name in the sheet tab
+            batch.update_cell_by_label(
+                sheet_id=int(sheet_tab_id),
+                label=sheets_constants.TAB_CHAN_NAME_LOCATION,
+                value=new_name,
+            )
+
+            # Execute the batch update
+            curr_sheet.batch_update(batch.build())
+
+            # Let users know the rename has started, since Discord allows
+            # 2 renames per 10 minutes and holds the rename until then
+            progress_embed = discord_utils.create_embed()
+            progress_embed.add_field(
+                name="Rename in progress",
+                value="If this takes a while, Discord may delay channel renames by up to **10** minutes due to rate limiting."
+                "The spreadsheet has already been renamed.",
+                inline=False,
+            )
+            progress_msg = (await discord_utils.send_message(ctx, progress_embed))[0]
+
+            # Rename the Discord channel
+            new_channel_name = new_name.lower().replace(" ", "-")
+            try:
+                await ctx.channel.edit(name=new_channel_name)
+            finally:
+                await progress_msg.delete()
+
+            # Send success message
+            embed.add_field(
+                name="Success",
+                value=f"Successfully renamed the puzzle to `{new_name}`.\n"
+                f"- Discord channel renamed to {ctx.channel.mention}\n"
+                f"- Sheet tab renamed to `{new_tab_name}`\n"
+                f"- Overview updated",
+                inline=False,
+            )
+            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+            await discord_utils.send_message(ctx, embed)
+
+        except gspread.exceptions.APIError as e:
+            await hydra_helpers.handle_gspread_error(ctx, e, embed)
+            return
+        except Exception as e:
+            embed = hydra_helpers.create_failure_embed(
+                f"An error occurred while renaming: `{str(e)}`"
+            )
+            await discord_utils.send_message(ctx, embed)
+
+    @command_predicates.is_solver()
     @commands.command(name="catsummaryhydra", aliases=["categorysummaryhydra"])
     async def catsummaryhydra(self, ctx) -> None:
         """Collates all the notes on the overview sheet for each text channel in the category the command was
@@ -376,17 +527,19 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         Usage: ~anychanhydra "Puzzle Name" "TemplateName" (uses "TemplateName Template" from the sheet)
         Usage: ~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" (uses "Square Template" from the sheet)
+        Usage: ~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" "Some notes here" (with notes)
+        Usage: ~anychanhydra "Puzzle Name" "Template" (uses the plain "Template" tab)
         """
         await logging_utils.log_command(
             "anychanhydra", ctx.guild, ctx.channel, ctx.author
         )
 
         arg_list = shlex.split(args)
-        if len(arg_list) < 2 or len(arg_list) > 3:
+        if len(arg_list) < 2 or len(arg_list) > 4:
             embed = discord_utils.create_embed()
             embed.add_field(
                 name="Failed",
-                value="Invalid arguments. Usage: `~anychanhydra [puzzle name] [template name] [puzzle url (optional)]`",
+                value="Invalid arguments. Usage: `~anychanhydra [puzzle name] [template name] [puzzle url (optional)] [notes (optional)]`",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -395,6 +548,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         puzzle_name = arg_list[0]
         template_name = arg_list[1]
         puzzle_url = arg_list[2] if len(arg_list) > 2 else None
+        notes = arg_list[3] if len(arg_list) > 3 else None
 
         await hydra_sheet_utils.create_puzzle_channel_from_template(
             self.bot,
@@ -403,6 +557,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             template_name,
             puzzle_url,
             self.gspread_client,
+            notes,
         )
 
     @command_predicates.is_solver()
@@ -430,6 +585,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         await hydra_sheet_utils.sheet_move_to_archive(self.gspread_client, ctx)
         await hydra_discord_utils.category_move_to_archive(ctx, category_name)
 
+    @command_predicates.is_solver()
     @commands.command(name="chanhydra")
     async def chanhydra(self, ctx: commands.Context, *, content: str = ""):
         """Creates a new tab and a new channel for a new feeder puzzle and then updates the info in the sheet accordingly.
@@ -445,6 +601,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         APuzzle "http://linktoapuzzle.com"
         "B Puzzle" "http://linktobpuzzle.com"
         3rdPuzzle
+        4thPuzzle "http://link.com" "Some notes here"
         """
 
         await logging_utils.log_command("chanhydra", ctx.guild, ctx.channel, ctx.author)
@@ -482,7 +639,8 @@ class HydraCog(commands.Cog, name="Hydra"):
 
             puzzle_name = parts[0]
             puzzle_url = parts[1] if len(parts) > 1 else ""
-            puzzle_configs.append((puzzle_name, puzzle_url))
+            notes = parts[2] if len(parts) > 2 else None
+            puzzle_configs.append((puzzle_name, puzzle_url, notes))
 
         if not puzzle_configs:
             embed.add_field(
@@ -523,7 +681,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                 name="Success",
                 value=(
                     f"Successfully created {success_count} puzzle channel(s):\n\n"
-                    "\n".join(success_messages)
+                    + "\n".join(success_messages)
                     if success_messages
                     else f"Successfully created {success_count} puzzle channel(s)!"
                 ),
