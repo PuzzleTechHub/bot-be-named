@@ -7,7 +7,6 @@ import heapq
 import shlex
 import re
 import emoji
-from typing import Optional
 from collections import Counter
 from nextcord.ext import commands
 from utils import (
