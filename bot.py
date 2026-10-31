@@ -123,6 +123,22 @@ def main():
         database.CUSTOM_COMMANDS.pop(guild.id)
 
     @client.event
+    async def on_guild_role_delete(role: nextcord.Role):
+        """When a role is deleted, remove the summary grants"""
+        with Session(database.DATABASE_ENGINE) as session:
+            session.query(database.SummaryGrants).filter_by(role_id=role.id).delete()
+            session.commit()
+
+    @client.event
+    async def on_guild_channel_delete(channel: nextcord.abc.GuildChannel):
+        """When a channel is deleted, remove its summary grants"""
+        with Session(database.DATABASE_ENGINE) as session:
+            session.query(database.SummaryGrants).filter_by(
+                channel_id=channel.id
+            ).delete()
+            session.commit()
+
+    @client.event
     async def on_message(message: nextcord.Message):
         # We only want to respond to user messages
         if message.is_system() or message.author.id == client.user.id:
