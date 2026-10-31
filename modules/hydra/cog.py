@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 import nextcord
 import constants
 import gspread
@@ -18,11 +18,14 @@ from utils import (
     sheets_constants,
     sheet_utils,
 )
-from modules.hydra.hydra_utils import hydra_helpers
+from modules.hydra.hydra_utils import hydra_helpers, summary_utils
 from modules.hydra.hydra_utils import discord_utils as hydra_discord_utils
 from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
 from modules.hydra.hydra_utils.sheet_command_base import SheetCommandBase
 from modules.hydra import constants as hydra_constants
+import database
+import sqlalchemy
+from sqlalchemy.orm import Session
 
 """
 Hydra module. Module with more advanced GSheet-Discord interfacing. See module's README.md for more.
@@ -368,9 +371,13 @@ class HydraCog(commands.Cog, name="Hydra"):
     @command_predicates.is_solver()
     @commands.command(name="catsummaryhydra", aliases=["categorysummaryhydra"])
     async def catsummaryhydra(self, ctx) -> None:
-        """Collates all the notes on the overview sheet for each text channel in the category the command was
-        called in. Silently skips channels not on the overview. The sheet will need to follow the Hydra
+        """Collates all the notes on the overview sheet for each text channel in the categories allowed for your roles.
+        Silently skips channels not on the overview. The sheet will need to follow the Hydra
         requirements for this to work as expected.
+
+        An admin must first allow a role in this channel with `~summaryallowhydra`.
+        You get one summary merged across every allowed role you have. For each role it covers the non-archive
+        categories that explicitly give that role View Channel, and leaves out channels that explicitly deny it.
 
         Permission Category : Solver Roles only.
 
@@ -379,16 +386,16 @@ class HydraCog(commands.Cog, name="Hydra"):
         await logging_utils.log_command(
             "catsummaryhydra", ctx.guild, ctx.channel, ctx.author
         )
-        embed = discord_utils.create_embed()
 
-        currcat = ctx.message.channel.category
+        matched_roles = await summary_utils.get_matched_roles(ctx)
+        if not matched_roles:
+            return
 
         start_embed = discord_utils.create_embed()
         start_embed.add_field(
             name="Summary Started",
-            value=f"Your summarizing of category `{currcat.name}`"
-            f" has begun! This may take a while. If I run into "
-            f"any errors, I'll let you know.",
+            value="Your summarizing has begun! This may take a while, if I run into "
+            "any errors, I'll let you know.",
             inline=False,
         )
 
@@ -396,56 +403,27 @@ class HydraCog(commands.Cog, name="Hydra"):
         initial_message = (await discord_utils.send_message(ctx, start_embed))[0]
 
         try:
-            allchans = currcat.text_channels
             messages = []
-            allsheets = []
+            seen_channels = set()  # A channel can be visible to more than one role
 
-            # Group all channels sharing the same tethered sheet. Now find the right cell
-            for currchan in allchans:
-                result, _ = sheet_utils.findsheettether(
-                    currchan.category_id, currchan.id
-                )
-                if result is None:
-                    continue  # Silently skip channels with no tether
-                curr_sheet_link = result.sheet_link
-                allsheets.append((curr_sheet_link, currchan))
-
-            all_unique_sheets = list(set([x[0] for x in allsheets]))
-
-            for curr_sheet_link in all_unique_sheets:
-                list_curr_sheet_chans = [
-                    x[1] for x in allsheets if x[0] == curr_sheet_link
-                ]
-
-                list_chan_cells_overview = await hydra_sheet_utils.findchanidcell(
-                    self.gspread_client,
-                    ctx,
-                    curr_sheet_link,
-                    [x.id for x in list_curr_sheet_chans],
+            overview_col = sheets_constants.NOTES_COLUMN
+            _, col_idx = gspread.utils.a1_to_rowcol(overview_col + "1")
+            for role in matched_roles:
+                categories = summary_utils.get_role_categories(ctx.guild, role)
+                entries, failed = await summary_utils.get_roles_channels(
+                    self.gspread_client, ctx, role, categories
                 )
 
-                if list_chan_cells_overview is None:
-                    for currchan in list_curr_sheet_chans:
-                        messages.append(
-                            f"- {currchan.mention} - **Failed to load sheet!**"
-                        )
-                    continue
+                for currchan in failed:
+                    if currchan.id in seen_channels:
+                        continue
+                    seen_channels.add(currchan.id)
+                    messages.append(f"- {currchan.mention} - **Failed to load sheet!**")
 
-                overview_col = sheets_constants.NOTES_COLUMN
-                _, sample_overview, sample_values = next(
-                    (t for t in list_chan_cells_overview if t[1] is not None),
-                    (None, None, None),
-                )
-
-                if sample_overview is None or sample_values is None:
-                    continue  # Silently skip if no valid overview found
-
-                _, col_idx = gspread.utils.a1_to_rowcol(overview_col + "1")
-                for i in range(len(list_curr_sheet_chans)):
-                    currchan = list_curr_sheet_chans[i]
-                    rownum, overview, overview_values = list_chan_cells_overview[i]
-                    if rownum is None or overview is None:
-                        continue  # Silently skip again
+                for currchan, rownum, overview_values in entries:
+                    if currchan.id in seen_channels:
+                        continue
+                    seen_channels.add(currchan.id)
 
                     # Safe get overview values
                     try:
@@ -467,8 +445,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name="Failed",
-                value=f"An error occurred while summarizing category `{currcat.name}`. "
-                f"Error: {str(e)}",
+                value=f"An error occurred while summarizing. Error: {str(e)}",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -479,7 +456,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name="Failed",
-                value=f"No text channels found in category `{currcat.name}`.",
+                value="No puzzle channels found for your roles yet.",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -987,203 +964,209 @@ class HydraCog(commands.Cog, name="Hydra"):
         name="watchcategoryhydra",
         aliases=["watchcathydra", "watchcat", "watchcategory"],
     )
-    async def watchcategoryhydra(self, ctx, *args):
-        """Summarise the last `limit` messages across one or more categories:
+    async def watchcategoryhydra(self, ctx, limit_arg: Optional[int] = None):
+        """Summarise the last `limit` messages across the categories allowed for your roles:
         `limit` caps off at 250.
-        Note: Will pick up messages to which the command user does not have access to.
-        Only counts messages from humans (not bots).
+        Only counts messages from humans (not bots), in channels listed on a tethered sheet's Overview.
+
+        An admin must first allow a role in this channel with `~summaryallowhydra`.
+        You get one summary for each allowed role you have. Each one covers the non-archive categories
+        that explicitly give that role View Channel, and leaves out channels that explicitly deny it.
 
         Permission Category : Solver Roles only.
-        Usage: `~watchcategoryhydra [category names] [limit]`
-        Usage: `~watchcategoryhydra` (current category, limit 100)
-        Usage: `~watchcategoryhydra 50` (current category, limit 50)
-        Usage: `~watchcategoryhydra "Cat 1" "Cat 2"` (multiple categories, limit 100)
-        Usage: `~watchcategoryhydra "Cat 1" "Cat 2" 50` (multiple categories, limit 50)
+        Usage: `~watchcategoryhydra` (limit 100)
+        Usage: `~watchcategoryhydra 50` (limit 50)
         """
-
         await logging_utils.log_command(
             "watchcategoryhydra", ctx.guild, ctx.channel, ctx.author
         )
-        embed = discord_utils.create_embed()
+
+        matched_roles = await summary_utils.get_matched_roles(ctx)
+        if not matched_roles:
+            return
 
         # Parse arguments
         limit = hydra_constants.WATCH_DEFAULT_LIMIT
-        category_names = []
 
-        if args:
-            # Check if last arg is an integer (limit)
+        if limit_arg is not None:
+            # Check if limit_arg is a positive integer
             try:
-                limit = int(args[-1])
-                category_names = list(args[:-1])
-            except ValueError:
-                # Last arg is not an integer, all args are category names
-                category_names = list(args)
-
-        if limit > hydra_constants.WATCH_MAX_LIMIT:
-            limit = hydra_constants.WATCH_MAX_LIMIT
-
-        # Determine which categories to watch
-        categories = []
-        if not category_names:
-            # No categories specified, use current channel's category
-            currcat = ctx.message.channel.category
-            if currcat is None:
-                embed.add_field(
-                    name="Failed",
-                    value="You must call this command from a channel in a category, or specify category names.",
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
-            categories = [currcat]
-        else:
-            # Find each specified category
-            for cat_name in category_names:
-                cat = await discord_utils.find_category(ctx, cat_name)
-                if cat is None:
-                    embed.add_field(
-                        name="Failed",
-                        value=f"I cannot find category `{cat_name}`. Perhaps check your spelling and try again.",
+                limit = int(limit_arg)
+                if limit <= 0:
+                    embed = hydra_helpers.create_failure_embed(
+                        "Limit must be a positive integer."
                     )
                     await discord_utils.send_message(ctx, embed)
                     return
-                categories.append(cat)
+            except ValueError:
+                embed = hydra_helpers.create_failure_embed("Limit must be an integer.")
+                await discord_utils.send_message(ctx, embed)
+                return
+
+        if limit > hydra_constants.WATCH_MAX_LIMIT:
+            capped_embed = discord_utils.create_embed()
+            capped_embed.add_field(
+                name="Note",
+                value=f"Message limit capped at {hydra_constants.WATCH_MAX_LIMIT} (you requested {limit}).",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, capped_embed)
+            limit = hydra_constants.WATCH_MAX_LIMIT
 
         start_embed = discord_utils.create_embed()
-        cat_names = ", ".join([f"`{cat.name}`" for cat in categories])
         start_embed.add_field(
             name="Summary Started",
-            value=f"Your summarizing of {len(categories)} categor{'ies' if len(categories) > 1 else 'y'} ({cat_names})"
-            f" has begun! This may take a while. If I run into "
-            f"any errors, I'll let you know.",
+            value="Your summarizing has begun! This may take a while. If I run into any errors, I'll let you know.",
             inline=False,
         )
 
         start_msg = (await discord_utils.send_message(ctx, start_embed))[0]
 
-        embed = discord_utils.create_embed()
+        for role in matched_roles:
+            embed = discord_utils.create_embed()
+            categories = summary_utils.get_role_categories(ctx.guild, role)
+            cat_names = ", ".join([f"`{cat.name}`" for cat in categories])
+            entries, failed = await summary_utils.get_roles_channels(
+                self.gspread_client, ctx, role, categories
+            )
 
-        try:
-            # 1. Fetch initial messages from each channel across categories given
-            channel_histories = []
-            for cat in categories:
-                for ch in cat.text_channels:
+            if not entries and not failed:
+                embed.add_field(
+                    name="Failed",
+                    value="No puzzle channels found for your roles yet.",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+                continue
+
+            try:
+                # 1. Fetch initial messages from each channel across categories given
+                channel_histories = []
+                total_channels = 0
+                for ch, _, _ in entries:
                     try:
                         history = []
                         async for m in ch.history(
                             limit=hydra_constants.HISTORY_FETCH_LIMIT
                         ):
                             history.append(m)
+                        total_channels += 1
                         if history:
                             channel_histories.append(
                                 (ch, history, 0)
                             )  # (channel, messages, current_index)
                     except Exception:
-                        # Skip channels we can't read
+                        # Skip channels we cant read
                         continue
 
-            # 2. Initialize Min-Heap with the first message from each channel
-            min_heap = []
-            for ch, history, idx in channel_histories:
-                if history:
-                    msg = history[idx]
-                    # Push (timestamp, channel_index, message) - using negative timestamp for max-heap behavior
-                    heapq.heappush(
-                        min_heap,
-                        (-msg.created_at.timestamp(), len(min_heap), ch, history, idx),
-                    )
-
-            # 3. Extract human messages and non bot calls until we have enough
-            msgs = []
-            channel_indices = {ch: i for i, (ch, _, _) in enumerate(channel_histories)}
-
-            while min_heap and len(msgs) < limit:
-                # Get the most recent message
-                _, _, ch, history, idx = heapq.heappop(min_heap)
-                current_msg = history[idx]
-
-                # Check if it's from a human (not a bot)
-                if not current_msg.author.bot and not current_msg.content.startswith(
-                    constants.DEFAULT_BOT_PREFIX
-                ):
-                    msgs.append(
-                        (
-                            current_msg.created_at,
-                            ch,
-                            current_msg.author,
-                            current_msg.content,
+                # 2. Initialize Min-Heap with the first message from each channel
+                min_heap = []
+                for ch, history, idx in channel_histories:
+                    if history:
+                        msg = history[idx]
+                        # Push (timestamp, channel_index, message)
+                        heapq.heappush(
+                            min_heap,
+                            (
+                                -msg.created_at.timestamp(),
+                                len(min_heap),
+                                ch,
+                                history,
+                                idx,
+                            ),
                         )
-                    )
 
-                # Refill the heap from the same channel
-                next_idx = idx + 1
-                if next_idx < len(history):
-                    next_msg = history[next_idx]
-                    heapq.heappush(
-                        min_heap,
-                        (
-                            -next_msg.created_at.timestamp(),
-                            channel_indices.get(ch, 0),
-                            ch,
-                            history,
-                            next_idx,
-                        ),
-                    )
+                # 3. Extract human messages and non bot calls until we have enough
+                msgs = []
+                channel_indices = {
+                    ch: i for i, (ch, _, _) in enumerate(channel_histories)
+                }
 
-        except Exception as e:
+                while min_heap and len(msgs) < limit:
+                    # Get the most recent message
+                    _, _, ch, history, idx = heapq.heappop(min_heap)
+                    current_msg = history[idx]
+
+                    # Check if it's from a human (not a bot)
+                    if (
+                        not current_msg.author.bot
+                        and not current_msg.content.startswith(
+                            constants.DEFAULT_BOT_PREFIX
+                        )
+                    ):
+                        msgs.append(
+                            (
+                                current_msg.created_at,
+                                ch,
+                                current_msg.author,
+                                current_msg.content,
+                            )
+                        )
+
+                    # Refill the heap from the same channel
+                    next_idx = idx + 1
+                    if next_idx < len(history):
+                        next_msg = history[next_idx]
+                        heapq.heappush(
+                            min_heap,
+                            (
+                                -next_msg.created_at.timestamp(),
+                                channel_indices.get(ch, 0),
+                                ch,
+                                history,
+                                next_idx,
+                            ),
+                        )
+            except Exception as e:
+                embed.add_field(
+                    name="Failed",
+                    value=f"An error occurred while fetching messages. Error: {str(e)}",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+                continue
+
+            # aggregate
+            channel_counts = Counter()
+            author_counts = Counter()
+            for _, ch, author, _ in msgs:
+                channel_counts[ch.mention] += 1
+                author_counts[author.mention] += 1
+
+            total = len(msgs)
             embed.add_field(
-                name="Failed",
-                value=f"An error occurred while fetching messages. Error: {str(e)}",
+                name="Summary",
+                value=f"Analyzed {total} human messages across {total_channels}"
+                f" channels in {len(categories)} categor{'ies' if len(categories) > 1 else 'y'} ({cat_names}).",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
-            return
+            embed = discord_utils.create_embed()
+
+            if channel_counts:
+                ch_lines = [
+                    f"- {ch_mention}: {count} message{'s' if count != 1 else ''}"
+                    for ch_mention, count in channel_counts.most_common()
+                ]
+                embed.add_field(
+                    name="By channel", value="\n".join(ch_lines), inline=False
+                )
+                await discord_utils.send_message(ctx, embed)
+                embed = discord_utils.create_embed()
+
+            if author_counts:
+                author_lines = [
+                    f"- {author_mention}: {count} message{'s' if count != 1 else ''}"
+                    for author_mention, count in author_counts.most_common()
+                ]
+                embed.add_field(
+                    name="By author", value="\n".join(author_lines), inline=False
+                )
+                await discord_utils.send_message(ctx, embed)
 
         # Delete start message
         if start_msg:
             await start_msg.delete()
-
-        # aggregate
-        channel_counts = Counter()
-        author_counts = Counter()
-        for _, ch, author, _ in msgs:
-            channel_counts[ch.mention] += 1
-            author_counts[author.mention] += 1
-
-        total = len(msgs)
-        total_channels = sum(len(cat.text_channels) for cat in categories)
-        embed.add_field(
-            name="Summary",
-            value=f"Analyzed {total} human messages across {total_channels} channels in {len(categories)} categor{'ies' if len(categories) > 1 else 'y'} ({cat_names}).",
-            inline=False,
-        )
-        await discord_utils.send_message(ctx, embed)
-        embed = discord_utils.create_embed()
-
-        if channel_counts:
-            ch_lines = [
-                f"- {ch_mention}: {count} message{'s' if count != 1 else ''}"
-                for ch_mention, count in channel_counts.most_common()
-            ]
-            embed.add_field(
-                name="By channel",
-                value="\n".join(ch_lines),
-                inline=False,
-            )
-        await discord_utils.send_message(ctx, embed)
-        embed = discord_utils.create_embed()
-
-        if author_counts:
-            author_lines = [
-                f"- {author_mention}: {count} message{'s' if count != 1 else ''}"
-                for author_mention, count in author_counts.most_common()
-            ]
-            embed.add_field(
-                name="By author",
-                value="\n".join(author_lines),
-                inline=False,
-            )
-
-        await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
     @commands.command(name="statushydra")
@@ -1578,6 +1561,171 @@ class HydraCog(commands.Cog, name="Hydra"):
             )
             await discord_utils.send_message(ctx, tab_embed)
             return
+
+    @command_predicates.is_trusted()
+    @commands.command(name="summaryallowhydra")
+    async def summaryallowhydra(
+        self,
+        ctx,
+        role_or_rolename: Union[nextcord.Role, str],
+        chan_or_channame: Union[nextcord.TextChannel, str],
+    ):
+        """Allows a role to run `~catsummaryhydra` and `~watchcategoryhydra` in a channel.
+
+        Permission Category : Trusted roles only.
+        Usage: `~summaryallowhydra @role #channel`
+        """
+        await logging_utils.log_command(
+            "summaryallowhydra", ctx.guild, ctx.channel, ctx.author
+        )
+
+        role = await discord_utils.find_role(ctx, role_or_rolename)
+        if role is None:
+            embed = hydra_helpers.create_failure_embed(
+                f"I couldn't find role `{role_or_rolename}`"
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        if role.is_default():
+            embed = hydra_helpers.create_failure_embed(
+                "Summaries can't be allowed for `@everyone`. Please pick a specific role."
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        channel = await discord_utils.find_chan_or_thread(ctx, chan_or_channame)
+        if not isinstance(channel, nextcord.TextChannel):
+            embed = hydra_helpers.create_failure_embed(
+                f"I couldn't find channel `{chan_or_channame}`"
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        grant_id = f"{channel.id}_{role.id}"
+        with Session(database.DATABASE_ENGINE) as session:
+            result = (
+                session.query(database.SummaryGrants)
+                .filter_by(channel_id_role_id=grant_id)
+                .first()
+            )
+            if result is not None:
+                embed = hydra_helpers.create_failure_embed(
+                    f"{role.mention} is already allowed in {channel.mention}"
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+
+            statement = sqlalchemy.insert(database.SummaryGrants).values(
+                server_id=ctx.guild.id,
+                server_name=ctx.guild.name,
+                channel_id=channel.id,
+                channel_name=channel.name,
+                role_id=role.id,
+                role_name=role.name,
+                channel_id_role_id=grant_id,
+            )
+            session.execute(statement)
+            session.commit()
+
+        embed = hydra_helpers.create_success_embed(
+            f"{role.mention} can now run summaries in {channel.mention}."
+        )
+        await discord_utils.send_message(ctx, embed)
+
+    @command_predicates.is_trusted()
+    @commands.command(name="summarydisallowhydra")
+    async def summarydisallowhydra(
+        self,
+        ctx,
+        role_or_rolename: Union[nextcord.Role, str],
+        chan_or_channame: Union[nextcord.TextChannel, str],
+    ):
+        """Removes a role's permission to run summaries in a channel.
+
+        Permission Category : Trusted Roles only.
+        Usage: `~summarydisallowhydra @role #channel`
+        """
+        await logging_utils.log_command(
+            "summarydisallowhydra", ctx.guild, ctx.channel, ctx.author
+        )
+
+        role = await discord_utils.find_role(ctx, role_or_rolename)
+        if role is None:
+            embed = hydra_helpers.create_failure_embed(
+                f"I couldn't find role `{role_or_rolename}`"
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        channel = await discord_utils.find_chan_or_thread(ctx, chan_or_channame)
+        if not isinstance(channel, nextcord.TextChannel):
+            embed = hydra_helpers.create_failure_embed(
+                f"I couldn't find text channel `{chan_or_channame}`"
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        with Session(database.DATABASE_ENGINE) as session:
+            deleted = (
+                session.query(database.SummaryGrants)
+                .filter_by(channel_id_role_id=f"{channel.id}_{role.id}")
+                .delete()
+            )
+            session.commit()
+
+        if not deleted:
+            embed = hydra_helpers.create_failure_embed(
+                f"{role.mention} isn't allowed in {channel.mention}, so there's nothing to remove."
+            )
+        else:
+            embed = hydra_helpers.create_success_embed(
+                f"{role.mention} can no longer run summaries in {channel.mention}"
+            )
+        await discord_utils.send_message(ctx, embed)
+
+    @command_predicates.is_trusted()
+    @commands.command(name="summarylisthydra")
+    async def summarylisthydra(self, ctx):
+        """Sends the list of roles allowed to run summaries in this server and where. Be careful where you call
+        this!
+
+        Permission Category : Trusted Roles only.
+        Usage: `~summarylisthydra`
+        """
+        await logging_utils.log_command(
+            "summarylisthydra", ctx.guild, ctx.channel, ctx.author
+        )
+
+        with Session(database.DATABASE_ENGINE) as session:
+            rows = (
+                session.query(database.SummaryGrants)
+                .filter_by(server_id=ctx.guild.id)
+                .all()
+            )
+            grants = [
+                (row.role_id, row.role_name, row.channel_id, row.channel_name)
+                for row in rows
+            ]
+
+        lines = []
+        for role_id, role_name, channel_id, channel_name in grants:
+            role = ctx.guild.get_role(role_id)
+            channel = ctx.guild.get_channel(channel_id)
+            role_text = f"@{role.name}" if role else f"@{role_name} (deleted)"
+            channel_text = (
+                f"#{channel.name}" if channel else f"#{channel_name} (deleted)"
+            )
+            lines.append(f"- {role_text} in {channel_text}")
+
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"Summary grants for {ctx.guild.name}",
+            value="\n".join(lines) if lines else "No summary grants found.",
+            inline=False,
+        )
+
+        await discord_utils.send_message(ctx, embed)
 
 
 def setup(bot):

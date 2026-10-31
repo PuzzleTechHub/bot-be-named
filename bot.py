@@ -115,10 +115,28 @@ def main():
             session.commit()
             session.query(database.SheetTethers).filter_by(server_id=guild.id).delete()
             session.commit()
+            session.query(database.SummaryGrants).filter_by(server_id=guild.id).delete()
+            session.commit()
         database.PREFIXES.pop(guild.id)
         database.VERIFIEDS.pop(guild.id)
         database.TRUSTEDS.pop(guild.id)
         database.CUSTOM_COMMANDS.pop(guild.id)
+
+    @client.event
+    async def on_guild_role_delete(role: nextcord.Role):
+        """When a role is deleted, remove the summary grants"""
+        with Session(database.DATABASE_ENGINE) as session:
+            session.query(database.SummaryGrants).filter_by(role_id=role.id).delete()
+            session.commit()
+
+    @client.event
+    async def on_guild_channel_delete(channel: nextcord.abc.GuildChannel):
+        """When a channel is deleted, remove its summary grants"""
+        with Session(database.DATABASE_ENGINE) as session:
+            session.query(database.SummaryGrants).filter_by(
+                channel_id=channel.id
+            ).delete()
+            session.commit()
 
     @client.event
     async def on_message(message: nextcord.Message):
@@ -207,7 +225,6 @@ def main():
     async def on_close():
         await logging_utils.close_session()
 
-    
     @client.event
     async def on_command_error(self, ctx, error):
         """Intercept ~help a_custom_command errors"""
@@ -215,7 +232,9 @@ def main():
             command_name = str(ctx.invoked_with).lower() if ctx.invoked_with else None
 
             if command_name:
-                if ctx.guild and command_name in database.CUSTOM_COMMANDS.get(ctx.guild.id, {}):
+                if ctx.guild and command_name in database.CUSTOM_COMMANDS.get(
+                    ctx.guild.id, {}
+                ):
                     embed = discord_utils.create_embed()
                     embed.add_field(
                         name="Thats a custom command!",
@@ -228,7 +247,6 @@ def main():
                     return
         # If not a custom command, let the error propagate normally
         # TODO global custom commands
-
 
 
 if __name__ == "__main__":
