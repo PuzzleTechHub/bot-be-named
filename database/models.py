@@ -57,4 +57,15 @@ class Prefixes(Base):
     prefix = Column(String)
 
 
+class SummaryGrants(Base):
+    __tablename__ = "summary_grants"
+    server_id = Column(BIGINT)
+    server_name = Column(String)
+    channel_id = Column(BIGINT)
+    channel_name = Column(String)
+    role_id = Column(BIGINT)
+    role_name = Column(String)
+    channel_id_role_id = Column(String, primary_key=True)
+
+
 Base.metadata.create_all(DATABASE_ENGINE)

@@ -7,6 +7,7 @@ from database.models import (
     CustomCommands,
     Prefixes,
     SheetTethers,
+    SummaryGrants,
 )
 
 from database.database_utils import (
