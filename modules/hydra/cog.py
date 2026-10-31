@@ -368,9 +368,13 @@ class HydraCog(commands.Cog, name="Hydra"):
     @command_predicates.is_solver()
     @commands.command(name="catsummaryhydra", aliases=["categorysummaryhydra"])
     async def catsummaryhydra(self, ctx) -> None:
-        """Collates all the notes on the overview sheet for each text channel in the category the command was
-        called in. Silently skips channels not on the overview. The sheet will need to follow the Hydra
+        """Collates all the notes on the overview sheet for each text channel in the categories allowed for your roles.
+        Silently skips channels not on the overview. The sheet will need to follow the Hydra
         requirements for this to work as expected.
+
+        An admin must first allow a role in this channel with `~summaryallowhydra`.
+        You get one summary for each allowed role you have. Each one covers the non-archive categories
+        that explicitly give that role View Channel, and leaves out channels that explicitly deny it.
 
         Permission Category : Solver Roles only.
 
@@ -993,17 +997,17 @@ class HydraCog(commands.Cog, name="Hydra"):
         aliases=["watchcathydra", "watchcat", "watchcategory"],
     )
     async def watchcategoryhydra(self, ctx, *args):
-        """Summarise the last `limit` messages across one or more categories:
+        """Summarise the last `limit` messages across the categories allowed for your roles:
         `limit` caps off at 250.
-        Note: Will pick up messages to which the command user does not have access to.
-        Only counts messages from humans (not bots).
+        Only counts messages from humans (not bots), in channels listed on a tethered sheet's Overview.
+
+        An admin must first allow a role in this channel with `~summaryallowhydra`.
+        You get one summary for each allowed role you have. Each one covers the non-archive categories
+        that explicitly give that role View Channel, and leaves out channels that explicitly deny it.
 
         Permission Category : Solver Roles only.
-        Usage: `~watchcategoryhydra [category names] [limit]`
-        Usage: `~watchcategoryhydra` (current category, limit 100)
-        Usage: `~watchcategoryhydra 50` (current category, limit 50)
-        Usage: `~watchcategoryhydra "Cat 1" "Cat 2"` (multiple categories, limit 100)
-        Usage: `~watchcategoryhydra "Cat 1" "Cat 2" 50` (multiple categories, limit 50)
+        Usage: `~watchcategoryhydra` (limit 100)
+        Usage: `~watchcategoryhydra 50` (limit 50)
         """
 
         await logging_utils.log_command(
