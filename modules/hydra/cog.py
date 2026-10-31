@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 import nextcord
 import constants
 import gspread
@@ -23,6 +23,9 @@ from modules.hydra.hydra_utils import discord_utils as hydra_discord_utils
 from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
 from modules.hydra.hydra_utils.sheet_command_base import SheetCommandBase
 from modules.hydra import constants as hydra_constants
+import database
+import sqlalchemy
+from sqlalchemy.orm import Session
 
 """
 Hydra module. Module with more advanced GSheet-Discord interfacing. See module's README.md for more.
@@ -1537,6 +1540,171 @@ class HydraCog(commands.Cog, name="Hydra"):
             )
             await discord_utils.send_message(ctx, tab_embed)
             return
+
+    @command_predicates.is_trusted()
+    @commands.command(name="summaryallowhydra")
+    async def summaryallowhydra(
+        self,
+        ctx,
+        role_or_rolename: Union[nextcord.Role, str],
+        chan_or_channame: Union[nextcord.TextChannel, str],
+    ):
+        """Allows a role to run `~catsummaryhydra` and `~watchcategoryhydra` in a channel.
+
+        Permission Category : Trusted roles only.
+        Usage: `~summaryallowhydra @role #channel`
+        """
+        await logging_utils.log_command(
+            "summaryallowhydra", ctx.guild, ctx.channel, ctx.author
+        )
+
+        role = await discord_utils.find_role(ctx, role_or_rolename)
+        if role is None:
+            embed = hydra_helpers.create_failure_embed(
+                f"I couldn't find role `{role_or_rolename}`"
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        if role.is_default():
+            embed = hydra_helpers.create_failure_embed(
+                "Summaries can't be allowed for `@everyone`. Please pick a specific role."
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        channel = await discord_utils.find_chan_or_thread(ctx, chan_or_channame)
+        if not isinstance(channel, nextcord.TextChannel):
+            embed = hydra_helpers.create_failure_embed(
+                f"I couldn't find channel `{chan_or_channame}`"
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        grant_id = f"{channel.id}_{role.id}"
+        with Session(database.DATABASE_ENGINE) as session:
+            result = (
+                session.query(database.SummaryGrants)
+                .filter_by(channel_id_role_id=grant_id)
+                .first()
+            )
+            if result is not None:
+                embed = hydra_helpers.create_failure_embed(
+                    f"{role.mention} is already allowed in {channel.mention}"
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
+
+            statement = sqlalchemy.insert(database.SummaryGrants).values(
+                server_id=ctx.guild.id,
+                server_name=ctx.guild.name,
+                channel_id=channel.id,
+                channel_name=channel.name,
+                role_id=role.id,
+                role_name=role.name,
+                channel_id_role_id=grant_id,
+            )
+            session.execute(statement)
+            session.commit()
+
+        embed = hydra_helpers.create_success_embed(
+            f"{role.mention} can now run summaries in {channel.mention}."
+        )
+        await discord_utils.send_message(ctx, embed)
+
+    @command_predicates.is_trusted()
+    @commands.command(name="summarydisallowhydra")
+    async def summarydisallowhydra(
+        self,
+        ctx,
+        role_or_rolename: Union[nextcord.Role, str],
+        chan_or_channame: Union[nextcord.TextChannel, str],
+    ):
+        """Removes a role's permission to run summaries in a channel.
+
+        Permission Category : Trusted Roles only.
+        Usage: `~summarydisallowhydra @role #channel`
+        """
+        await logging_utils.log_command(
+            "summarydisallowhydra", ctx.guild, ctx.channel, ctx.author
+        )
+
+        role = await discord_utils.find_role(ctx, role_or_rolename)
+        if role is None:
+            embed = hydra_helpers.create_failure_embed(
+                f"I couldn't find role `{role_or_rolename}`"
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        channel = await discord_utils.find_chan_or_thread(ctx, chan_or_channame)
+        if not isinstance(channel, nextcord.TextChannel):
+            embed = hydra_helpers.create_failure_embed(
+                f"I couldn't find text channel `{chan_or_channame}`"
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        with Session(database.DATABASE_ENGINE) as session:
+            deleted = (
+                session.query(database.SummaryGrants)
+                .filter_by(channel_id_role_id=f"{channel.id}_{role.id}")
+                .delete()
+            )
+            session.commit()
+
+        if not deleted:
+            embed = hydra_helpers.create_failure_embed(
+                f"{role.mention} isn't allowed in {channel.mention}, so there's nothing to remove."
+            )
+        else:
+            embed = hydra_helpers.create_success_embed(
+                f"{role.mention} can no longer run summaries in {channel.mention}"
+            )
+        await discord_utils.send_message(ctx, embed)
+
+    @command_predicates.is_trusted()
+    @commands.command(name="summarylisthydra")
+    async def summarylisthydra(self, ctx):
+        """Sends the list of roles allowed to run summaries in this server and where. Be careful where you call
+        this!
+
+        Permission Category : Trusted Roles only.
+        Usage: `~summarylisthydra`
+        """
+        await logging_utils.log_command(
+            "summarylisthydra", ctx.guild, ctx.channel, ctx.author
+        )
+
+        with Session(database.DATABASE_ENGINE) as session:
+            rows = (
+                session.query(database.SummaryGrants)
+                .filter_by(server_id=ctx.guild.id)
+                .all()
+            )
+            grants = [
+                (row.role_id, row.role_name, row.channel_id, row.channel_name)
+                for row in rows
+            ]
+
+        lines = []
+        for role_id, role_name, channel_id, channel_name in grants:
+            role = ctx.guild.get_role(role_id)
+            channel = ctx.guild.get_channel(channel_id)
+            role_text = f"@{role.name}" if role else f"@{role_name} (deleted)"
+            channel_text = (
+                f"#{channel.name}" if channel else f"#{channel_name} (deleted)"
+            )
+            lines.append(f"- {role_text} in {channel_text}")
+
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"Summary grants for {ctx.guild.name}",
+            value="\n".join(lines) if lines else "No summary grants found.",
+            inline=False,
+        )
+
+        await discord_utils.send_message(ctx, embed)
 
 
 def setup(bot):
