@@ -20,7 +20,7 @@ def get_allowed_roles(guild, channel_id) -> list[nextcord.Role]:
     return [role for role in map(guild.get_role, role_ids) if role is not None]
 
 
-async def get_macthed_roles(ctx) -> list[nextcord.Role]:
+async def get_matched_roles(ctx) -> list[nextcord.Role]:
     """Gets the roles for the channel called from the context. Sends an error reply if summaries aren't set up or
     caller does not have the required perms."""
     allowed = get_allowed_roles(ctx.guild, ctx.channel.id)
