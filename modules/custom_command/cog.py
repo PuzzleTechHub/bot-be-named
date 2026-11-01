@@ -20,7 +20,13 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         self.bot = bot
 
     async def add_cc_generic(
-        self, ctx, command_name, command_return, is_image: bool, is_global: bool
+        self,
+        ctx,
+        command_name,
+        command_return,
+        is_image: bool,
+        is_global: bool,
+        responses=None,
     ):
         embed = discord_utils.create_embed()
         if command_name in constants.DEFAULT_COMMANDS:
@@ -32,12 +38,17 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             return
 
         if not is_global and command_name in database.CUSTOM_COMMANDS[ctx.guild.id]:
+            replace_usage = (
+                f"{ctx.prefix}editcustomresponse {command_name} "
+                + " ".join(f'"{response}"' for response in responses)
+                if responses
+                else f"{ctx.prefix}editcustomcommand {command_name} {command_return}"
+            )
             embed.add_field(
                 name="Failed",
-                value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value "
+                value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value{'s' if database.CUSTOM_COMMANDS[ctx.guild.id][command_name][2] else ''} "
                 f"`{database.CUSTOM_COMMANDS[ctx.guild.id][command_name][0]}`. If you'd like to replace "
-                f"`{ctx.prefix}{command_name}`, please use `{ctx.prefix}editcustomcommand {command_name} "
-                f"{command_return}`",
+                f"`{ctx.prefix}{command_name}`, please use `{replace_usage}`",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -56,21 +67,24 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
                     command_name=command_name,
                     command_return=command_return,
                     image=is_image,
+                    responses=responses,
                 )
                 session.execute(stmt)
                 session.commit()
 
                 embed.add_field(
                     name="Success",
-                    value=f"Added `{ctx.prefix}{command_name}` with value `{command_return}`",
+                    value=f"Added `{ctx.prefix}{command_name}` with value{'s' if responses else ''} `{command_return}`",
                 )
             # Command exists in the DB but not in our constants.
             else:
                 command_return = result.command_return
+                responses = result.responses
             # update constants dict
             database.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (
                 command_return,
                 is_image,
+                responses,
             )
         await discord_utils.send_message(ctx, embed)
 
@@ -185,6 +199,106 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             ctx, command_name, command_return, is_image=True, is_global=True
         )
 
+    @command_predicates.is_trusted()
+    @commands.command(
+        name="addcresponse", aliases=["addcustomresponse", "customresponse", "addcr"]
+    )
+    async def addcustomresponse(self, ctx, command_name: str, *args):
+        """A custom command that picks a random response from a list of responses.
+        Put quotes around any response with spaces in it.
+
+        Permission Category : Trusted Roles only.
+        Usage: `~addcustomresponse flipcoin Heads Tails`
+        Usage: `~addcustomresponse command_name "Response 1" "Response 2" "Response 3"`
+        """
+        await logging_utils.log_command(
+            "addcustomresponse", ctx.guild, ctx.channel, ctx.author
+        )
+        embed = discord_utils.create_embed()
+
+        responses = [response for response in args if response.strip()]
+        if len(responses) < 2:
+            embed.add_field(
+                name="Failed", value="Please give at least two responses to pick from."
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        command_name = command_name.lower()
+        command_return = " | ".join(responses)
+        await self.add_cc_generic(
+            ctx,
+            command_name,
+            command_return,
+            is_image=True,
+            is_global=False,
+            responses=responses,
+        )
+
+    @command_predicates.is_trusted()
+    @commands.command(name="editcustomresponse", aliases=["editcresponse", "editcr"])
+    async def editcustomresponse(self, ctx, command_name: str, *args):
+        """Replace all the responses of a custom response command. If the command doesn't already exist,
+        it adds the command instead.
+        Put quotes around any response with spaces in it.
+        See also: `~addcustomresponse`
+
+        Permission Category : Trusted Roles only.
+        Usage: `~editcustomresponse command_name "Response 1" "Response 2" "Response 3"`
+        Usage: `~editcustomresponse flipcoin Heads Tails Edge`
+        """
+        await logging_utils.log_command(
+            "editcustomresponse", ctx.guild, ctx.channel, ctx.author
+        )
+        embed = discord_utils.create_embed()
+
+        responses = [response for response in args if response.strip()]
+        if len(responses) < 2:
+            embed.add_field(
+                name="Failed", value="Please give at least two responses to pick from."
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        command_name = command_name.lower()
+        command_return = " | ".join(responses)
+
+        # If the command doesn't exist yet, just add it to the DB.
+        if command_name not in database.CUSTOM_COMMANDS.get(ctx.guild.id, {}):
+            await self.add_cc_generic(
+                ctx,
+                command_name,
+                command_return,
+                is_image=True,
+                is_global=False,
+                responses=responses,
+            )
+            return
+
+        # Otherwise, update the existing command in the DB.
+        with Session(database.DATABASE_ENGINE) as session:
+            session.query(database.CustomCommands).filter_by(
+                server_id_command=f"{ctx.guild.id} {command_name}"
+            ).update(
+                {
+                    "command_return": command_return,
+                    "image": True,
+                    "responses": responses,
+                }
+            )
+            session.commit()
+        database.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (
+            command_return,
+            True,
+            responses,
+        )
+        embed.add_field(
+            name="Success",
+            value=f"Edited command `{ctx.prefix}{command_name}` to have responses "
+            f"`{command_return}`",
+        )
+        await discord_utils.send_message(ctx, embed)
+
     @commands.command(
         name="listcustomcommands",
         aliases=["lsccommands", "lscustomcommands", "listccommands", "listcc"],
@@ -274,7 +388,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             with Session(database.DATABASE_ENGINE) as session:
                 session.query(database.CustomCommands).filter_by(
                     server_id_command=f"{ctx.guild.id} {command_name}"
-                ).update({"command_return": command_return})
+                ).update({"command_return": command_return, "responses": None})
                 session.commit()
             embed.add_field(
                 name="Success",
@@ -284,6 +398,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             database.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (
                 command_return,
                 database.CUSTOM_COMMANDS[ctx.guild.id][command_name][1],
+                None,
             )
         else:
             # If the command does not exist yet, just add it to DB.
@@ -301,6 +416,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             database.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (
                 command_return,
                 False,
+                None,
             )
             embed.add_field(
                 name="Success",
