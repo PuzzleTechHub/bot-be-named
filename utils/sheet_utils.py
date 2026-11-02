@@ -5,9 +5,10 @@ import gspread
 import database
 from sqlalchemy.sql.expression import insert
 from sqlalchemy.orm import Session
-from typing import Union
+from typing import Optional, Union
 import emoji
 
+from datetime import datetime, timezone
 from nextcord.ext.commands import Context
 
 """
@@ -184,7 +185,7 @@ async def chancrabgeneric(
     if not new_chan:
         embed.add_field(
             name="Failed",
-            value="Forbidden! Have you checked if the bot has the required permisisons?",
+            value="Forbidden! Have you checked if the bot has the required permissions?",
         )
         await discord_utils.send_message(ctx, embed)
         return None, None, None
@@ -245,7 +246,14 @@ async def chancrabgeneric(
     return curr_sheet_link, newsheet, new_chan
 
 
-def findsheettether(curr_cat_id: int, curr_chan_id: int, curr_thread_id: int = None):
+def get_timestamp() -> str:
+    """Finds the current UTC timestamp."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def findsheettether(
+    curr_cat_id: int, curr_chan_id: int, curr_thread_id: Optional[int] = None
+):
     """For finding the appropriate sheet tethering for a given category or channel"""
     result = None
     tether_type = None
@@ -308,7 +316,7 @@ async def sheetcreatetabgeneric(
     curr_sheet_link = None
     newsheet = None
 
-    tether_db_result, tether_type = findsheettether(str(curr_cat.id), str(curr_chan.id))
+    tether_db_result, tether_type = findsheettether(curr_cat.id, curr_chan.id)
 
     try:
         if tether_db_result is not None:
@@ -432,7 +440,10 @@ class OverviewSheet:
 
     def get_cell_value(self, label: str) -> str:
         row, col = gspread.utils.a1_to_rowcol(label)
-        return self.overview_data[row - 1][col - 1]
+        try:
+            return self.overview_data[row - 1][col - 1]
+        except IndexError:
+            return ""
 
     def find_row_of_channel(
         self, ctx: Context

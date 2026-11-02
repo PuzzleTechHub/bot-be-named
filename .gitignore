@@ -8,3 +8,4 @@ error_webhook.txt
 .idea
 env/
 nohup.out
+.coverage

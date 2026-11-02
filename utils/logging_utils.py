@@ -32,13 +32,18 @@ async def send_to_webhook(text: str):
     log_to_file(error_constants.ERROR_WEBHOOKFILE, text)
 
 
+def print_with_timestamp(text: str) -> None:
+    """Print the message to the console, with the current time"""
+    print(f"[ {datetime.now().strftime('%m-%d-%Y, %H:%M:%S')} ] {text}")
+
+
 async def log_command(command: str, guild, channel, author: str) -> None:
     """Log the command used, what channel it's in, and who used it"""
     if not hasattr(guild, "name"):
         text = f"Received `{command}` from `{author}` in DMs"
     else:
         text = f"Received `{command}` from `{author}` in `{guild.name}` : `#{channel.name}`"
-    print(f"[ {datetime.now().strftime('%m-%d-%Y, %H:%M:%S')} ] {text}")
+    print_with_timestamp(text)
     try:
         await send_to_webhook(text)
     except Exception:
