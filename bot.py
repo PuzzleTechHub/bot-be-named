@@ -2,6 +2,7 @@ import os
 import constants
 import sqlalchemy
 import nextcord
+import random
 from nextcord.ext import commands
 from sqlalchemy import insert
 from sqlalchemy.orm import Session
@@ -170,6 +171,14 @@ def main():
                         command_name
                     ][0]
 
+                    # Random responses command, so pick one of its responses
+                    responses = database.CUSTOM_COMMANDS[message.guild.id][
+                        command_name
+                    ][2]
+
+                    if responses:
+                        command_return = random.choice(responses)
+
                 # Command found in cache
                 if command_return is not None:
                     # Image, so we use normal text.
@@ -205,19 +214,25 @@ def main():
                             .first()
                         )
                     if result is not None:
+                        command_return = result.command_return
+
+                        # Random responses command, so pick one of its responses
+                        if result.responses:
+                            command_return = random.choice(result.responses)
                         if result.image:
-                            await message.channel.send(result.command_return)
+                            await message.channel.send(command_return)
                             return
                         else:
                             embed = nextcord.Embed(
-                                description=result.command_return,
-                                color=constants.EMBED_COLOR,
+                                description=command_return, color=constants.EMBED_COLOR
                             )
                             await message.channel.send(embed=embed)
+
                         # Adds to cache. NOTE - This adds to cache even if local or global
                         database.CUSTOM_COMMANDS[message.guild.id][command_name] = (
                             result.command_return,
                             result.image,
+                            result.responses,
                         )
 
     client.run(os.getenv("DISCORD_TOKEN"))

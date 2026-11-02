@@ -69,5 +69,6 @@ def get_custom_commands():
             custom_commands[row.server_id][row.command_name.lower()] = (
                 row.command_return,
                 row.image,
+                row.responses,
             )
     return custom_commands

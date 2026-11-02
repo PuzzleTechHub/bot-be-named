@@ -19,10 +19,25 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
     def __init__(self, bot):
         self.bot = bot
 
+    def parse_responses(self, args):
+        """Parses args as list."""
+        return [response for response in args if response.strip()]
+
     async def add_cc_generic(
-        self, ctx, command_name, command_return, is_image: bool, is_global: bool
+        self,
+        ctx,
+        command_name,
+        responses,
+        is_image: bool,
+        is_global: bool,
     ):
         embed = discord_utils.create_embed()
+        command_return = " | ".join(responses)
+        quoted_responses = " ".join(f'"{response}"' for response in responses)
+        # Only save the list if there is more than one response to pick from
+        if len(responses) < 2:
+            responses = None
+
         if command_name in constants.DEFAULT_COMMANDS:
             embed.add_field(
                 name="Failed",
@@ -34,10 +49,10 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         if not is_global and command_name in database.CUSTOM_COMMANDS[ctx.guild.id]:
             embed.add_field(
                 name="Failed",
-                value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value "
+                value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value{'s' if database.CUSTOM_COMMANDS[ctx.guild.id][command_name][2] else ''} "
                 f"`{database.CUSTOM_COMMANDS[ctx.guild.id][command_name][0]}`. If you'd like to replace "
                 f"`{ctx.prefix}{command_name}`, please use `{ctx.prefix}editcustomcommand {command_name} "
-                f"{command_return}`",
+                f"{quoted_responses}`",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -56,21 +71,24 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
                     command_name=command_name,
                     command_return=command_return,
                     image=is_image,
+                    responses=responses,
                 )
                 session.execute(stmt)
                 session.commit()
 
                 embed.add_field(
                     name="Success",
-                    value=f"Added `{ctx.prefix}{command_name}` with value `{command_return}`",
+                    value=f"Added `{ctx.prefix}{command_name}` with value{'s' if responses else ''} `{command_return}`",
                 )
             # Command exists in the DB but not in our constants.
             else:
                 command_return = result.command_return
+                responses = result.responses
             # update constants dict
             database.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (
                 command_return,
                 is_image,
+                responses,
             )
         await discord_utils.send_message(ctx, embed)
 
@@ -81,24 +99,27 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
     )
     async def addcustomcommand(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with an embed reply
+        Give more than one response and the bot picks one at random each time.
+        Put quotes around any response with spaces in it.
         If there is no server-specific custom command, it defaults to global version (if exists).
 
         Permission Category : Trusted Roles only.
         Usage: `~addccommand command_name "This is my custom command!"`
+        Usage: `~addccommand flipcoin Heads Tails`
         """
         await logging_utils.log_command(
             "addcustomcommand", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
 
-        if len(args) <= 0:
+        responses = self.parse_responses(args)
+        if len(responses) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
             await discord_utils.send_message(ctx, embed)
             return
         command_name = command_name.lower()
-        command_return = " ".join(args)
         await self.add_cc_generic(
-            ctx, command_name, command_return, is_image=False, is_global=False
+            ctx, command_name, responses, is_image=False, is_global=False
         )
 
     @command_predicates.is_trusted()
@@ -107,26 +128,29 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
     )
     async def addcustomimage(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with a reply. It is not in a bot embed, so is ideal for images and role pings.
+        Give more than one response and the bot picks one at random each time.
+        Put quotes around any response with spaces in it.
         If there is no server-specific custom command, it defaults to global version (if exists).
 
         Permission Category : Trusted Roles only.
         Usage: `~addcimage command_name Link_to_image`
         Usage: `~addcimage command_name Link_to_hyperlink`
+        Usage: `~addcimage command_name Link_to_image_1 Link_to_image_2`
         """
         await logging_utils.log_command(
             "addcustomimage", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
 
-        if len(args) <= 0:
+        responses = self.parse_responses(args)
+        if len(responses) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
             await discord_utils.send_message(ctx, embed)
             return
 
         command_name = command_name.lower()
-        command_return = " ".join(args)
         await self.add_cc_generic(
-            ctx, command_name, command_return, is_image=True, is_global=False
+            ctx, command_name, responses, is_image=True, is_global=False
         )
 
     @command_predicates.is_bot_owner()
@@ -136,6 +160,8 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
     )
     async def addglobalcustomcommand(self, ctx, command_name: str, *args):
         """Add your own global custom command to the bot with an embed reply.
+        Give more than one response and the bot picks one at random each time.
+        Put quotes around any response with spaces in it.
         If there is no server-specific custom command, it defaults to global version.
 
         Permission Category : Bot Owner only.
@@ -146,14 +172,14 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         )
         embed = discord_utils.create_embed()
 
-        if len(args) <= 0:
+        responses = self.parse_responses(args)
+        if len(responses) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
             await discord_utils.send_message(ctx, embed)
             return
         command_name = command_name.lower()
-        command_return = " ".join(args)
         await self.add_cc_generic(
-            ctx, command_name, command_return, is_image=False, is_global=True
+            ctx, command_name, responses, is_image=False, is_global=True
         )
 
     @command_predicates.is_trusted()
@@ -163,6 +189,8 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
     )
     async def addglobalcustomimage(self, ctx, command_name: str, *args):
         """Add your own custom command to the bot with a reply. It is not in a bot embed, so is ideal for images and role pings.
+        Give more than one response and the bot picks one at random each time.
+        Put quotes around any response with spaces in it.
         If there is no custom command, it defaults to global version.
 
         Permission Category : Bot Owner only.
@@ -174,15 +202,15 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         )
         embed = discord_utils.create_embed()
 
-        if len(args) <= 0:
+        responses = self.parse_responses(args)
+        if len(responses) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
             await discord_utils.send_message(ctx, embed)
             return
 
         command_name = command_name.lower()
-        command_return = " ".join(args)
         await self.add_cc_generic(
-            ctx, command_name, command_return, is_image=True, is_global=True
+            ctx, command_name, responses, is_image=True, is_global=True
         )
 
     @commands.command(
@@ -250,69 +278,67 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
     )
     async def editcustomcommand(self, ctx, command_name: str, *args):
         """Edit an existing custom command. If the command doesn't already exist, adds the command.
+        Give more than one response and the bot picks one at random each time.
+        Put quotes around any response with spaces in it.
         See also: `~addccommand`
 
         Permission Category : Trusted Roles only.
         Usage: `~editcustomcommand potato "My new return value"`
+        Usage: `~editcustomcommand flipcoin Heads Tails Edge`
         """
-        # TODO - Merge with add_cc generic
         await logging_utils.log_command(
             "editcustomcommand", ctx.guild, ctx.channel, ctx.author
         )
         embed = discord_utils.create_embed()
 
-        if len(args) <= 0:
+        responses = self.parse_responses(args)
+        if len(responses) <= 0:
             embed = discord_utils.create_no_argument_embed("Command Return")
             await discord_utils.send_message(ctx, embed)
             return
 
         command_name = command_name.lower()
-        command_return = " ".join(args)
 
-        if command_name in database.CUSTOM_COMMANDS[ctx.guild.id]:
-            # Update command in DB
-            with Session(database.DATABASE_ENGINE) as session:
-                session.query(database.CustomCommands).filter_by(
-                    server_id_command=f"{ctx.guild.id} {command_name}"
-                ).update({"command_return": command_return})
-                session.commit()
-            embed.add_field(
-                name="Success",
-                value=f"Edited command `{ctx.prefix}{command_name}` to have return value "
-                f"`{command_return}`",
+        # If the command does not exist yet, just add it to DB.
+        if command_name not in database.CUSTOM_COMMANDS[ctx.guild.id]:
+            await self.add_cc_generic(
+                ctx, command_name, responses, is_image=False, is_global=False
             )
-            database.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (
-                command_return,
-                database.CUSTOM_COMMANDS[ctx.guild.id][command_name][1],
-            )
-        else:
-            # If the command does not exist yet, just add it to DB.
-            with Session(database.DATABASE_ENGINE) as session:
-                stmt = insert(database.CustomCommands).values(
-                    server_id=ctx.guild.id,
-                    server_name=ctx.guild.name,
-                    server_id_command=f"{ctx.guild.id} {command_name}",
-                    command_name=command_name,
-                    command_return=command_return,
-                    image=False,
-                )
-                session.execute(stmt)
-                session.commit()
-            database.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (
-                command_return,
-                False,
-            )
-            embed.add_field(
-                name="Success",
-                value=f"Added command `{ctx.prefix}{command_name}` with return value "
-                f"`{command_return}`",
-            )
+            return
+
+        command_return = " | ".join(responses)
+        # Only save the list if there is more than one response to pick from
+        if len(responses) < 2:
+            responses = None
+
+        # Update command in DB, keeping whether it's an image or embed
+        with Session(database.DATABASE_ENGINE) as session:
+            session.query(database.CustomCommands).filter_by(
+                server_id_command=f"{ctx.guild.id} {command_name}"
+            ).update({"command_return": command_return, "responses": responses})
+            session.commit()
+        database.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (
+            command_return,
+            database.CUSTOM_COMMANDS[ctx.guild.id][command_name][1],
+            responses,
+        )
+        embed.add_field(
+            name="Success",
+            value=f"Edited command `{ctx.prefix}{command_name}` to have value{'s' if responses else ''} "
+            f"`{command_return}`",
+        )
         await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_trusted_or_bot_owner()
     @commands.command(
         name="removecustomcommand",
-        aliases=["rmcustomcommand", "rmccommand", "removeccommand", "removecc"],
+        aliases=[
+            "rmcustomcommand",
+            "rmccommand",
+            "removeccommand",
+            "removecc",
+            "rmcc",
+        ],
     )
     async def rmcustomcommand(self, ctx, command_name: str):
         """Remove an existing custom command.

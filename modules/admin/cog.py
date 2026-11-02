@@ -515,7 +515,11 @@ class AdminCog(commands.Cog, name="Admin"):
                     # Populate custom command dict
                     database.CUSTOM_COMMANDS[ctx.guild.id][
                         custom_command.command_name.lower()
-                    ] = (custom_command.command_return, custom_command.image)
+                    ] = (
+                        custom_command.command_return,
+                        custom_command.image,
+                        custom_command.responses,
+                    )
             embed.add_field(
                 name="Success",
                 value="Successfully reloaded command cache.",
