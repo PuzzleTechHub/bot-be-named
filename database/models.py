@@ -1,5 +1,6 @@
 import os
-from sqlalchemy import JSON, Column, create_engine
+from sqlalchemy import Column, create_engine
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.sqltypes import BIGINT, Boolean, String
 
@@ -39,7 +40,7 @@ class CustomCommands(Base):
     command_name = Column(String)
     command_return = Column(String)
     image = Column(Boolean)  # Flag for whether or not we need to send an embed
-    responses = Column(JSON(none_as_null=True))
+    responses = Column(JSONB(none_as_null=True))
 
 
 class SheetTethers(Base):
