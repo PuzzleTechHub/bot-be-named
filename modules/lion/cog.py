@@ -501,6 +501,23 @@ class LionCog(commands.Cog, name="Lion"):
             tab_id = overview_sheet.get_cell_value(tab_cell_label)
             puzzle_tab = overview_sheet.spreadsheet.get_worksheet_by_id(int(tab_id))
 
+            curr_status = overview_sheet.get_cell_value(status_col + str(row_to_find))
+            curr_stat_info = sheets_constants.status_dict.get(curr_status)
+
+            if curr_stat_info is None:
+                curr_stat_info = sheets_constants.status_dict.get("None")
+
+            # Same status again: do not update the sheet or claim success (#429).
+            if status == curr_status:
+                embed.add_field(
+                    name="Note",
+                    value=f"The puzzle status was already set to `{status}`. No changes were made.",
+                    inline=False,
+                )
+                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+                await discord_utils.send_message(ctx, embed)
+                return
+
             batch_update_builder = batch_update_utils.BatchUpdateBuilder()
 
             if answer is not None and status_info.get("update_ans"):
@@ -511,12 +528,6 @@ class LionCog(commands.Cog, name="Lion"):
                 batch_update_builder.update_cell_by_label(
                     puzzle_tab.id, tab_ans_loc, ""
                 )
-
-            curr_status = overview_sheet.get_cell_value(status_col + str(row_to_find))
-            curr_stat_info = sheets_constants.status_dict.get(curr_status)
-
-            if curr_stat_info is None:
-                curr_stat_info = sheets_constants.status_dict.get("None")
 
             batch_update_builder.update_cell_by_label(
                 overview_sheet.worksheet.id, status_col + str(row_to_find), status
@@ -549,16 +560,6 @@ class LionCog(commands.Cog, name="Lion"):
 
             add_prefix = status_info.get("prefix")
             past_prefix = curr_stat_info.get("prefix")
-
-            if status == curr_status:
-                embed.add_field(
-                    name="Note",
-                    value=f"The puzzle status was already set to `{status}`. No changes were made.",
-                    inline=False,
-                )
-                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
-                await discord_utils.send_message(ctx, embed)
-                return
 
             if add_prefix:
                 prefix_name = status_info.get("prefix_name")
