@@ -106,7 +106,7 @@ class LionCog(commands.Cog, name="Lion"):
             except nextcord.Forbidden:
                 embed.add_field(
                     name="Failed",
-                    value="Forbidden! Have you checked if the bot has the required permisisons?",
+                    value="Forbidden! Have you checked if the bot has the required permissions?",
                 )
                 await discord_utils.send_message(ctx, embed)
                 return
@@ -264,7 +264,7 @@ class LionCog(commands.Cog, name="Lion"):
         """Helper to get overview sheet for bot stream notification. Silently returns None on failure."""
         try:
             result, _ = sheet_utils.findsheettether(
-                str(ctx.message.channel.category_id), str(ctx.message.channel.id)
+                ctx.message.channel.category_id, ctx.message.channel.id
             )
             if result is None:
                 return None
@@ -379,7 +379,7 @@ class LionCog(commands.Cog, name="Lion"):
         await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
-    @commands.command(name="solvedlion", aliases=["solvedhydra"])
+    @commands.command(name="solvedlion")
     async def solvedlion(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to solved and updates the sheet and channel name accordingly.
 
@@ -393,7 +393,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "solved", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="backsolvedlion", aliases=["backlion", "backsolvedhydra"])
+    @commands.command(name="backsolvedlion", aliases=["backlion"])
     async def backsolvedlion(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to backsolved and updates the sheet and channel name accordingly.
 
@@ -408,7 +408,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "backsolved", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="solvedishlion", aliases=["solvedishhydra"])
+    @commands.command(name="solvedishlion")
     async def solvedishlion(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly
 
@@ -423,7 +423,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "solvedish", answer)
 
     @command_predicates.is_solver()
-    @commands.command(name="unsolvedlion", aliases=["unlion", "unsolvedhydra"])
+    @commands.command(name="unsolvedlion", aliases=["unlion"])
     async def unsolvedlion(self, ctx: commands.Context, answer: str = ""):
         """Sets the puzzle to in progress and updates the sheet and channel name accordingly
 
@@ -439,9 +439,7 @@ class LionCog(commands.Cog, name="Lion"):
         await self.statuslion(ctx, "In Progress", answer)
 
     @command_predicates.is_solver()
-    @commands.command(
-        name="statuslion", aliases=["statlion", "stat", "puzzstatus", "statushydra"]
-    )
+    @commands.command(name="statuslion", aliases=["statlion", "stat", "puzzstatus"])
     async def statuslion(self, ctx: commands.Context, status: str, answer: str = None):
         """Adds a status to the puzzle and updates the sheet and channel name accordingly
 
@@ -471,7 +469,7 @@ class LionCog(commands.Cog, name="Lion"):
 
             # Find tethered sheet
             result, _ = sheet_utils.findsheettether(
-                str(ctx.message.channel.category_id), str(ctx.message.channel.id)
+                ctx.message.channel.category_id, ctx.message.channel.id
             )
 
             if result is None:
@@ -553,7 +551,13 @@ class LionCog(commands.Cog, name="Lion"):
             past_prefix = curr_stat_info.get("prefix")
 
             if status == curr_status:
+                embed.add_field(
+                    name="Note",
+                    value=f"The puzzle status was already set to `{status}`. No changes were made.",
+                    inline=False,
+                )
                 await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
+                await discord_utils.send_message(ctx, embed)
                 return
 
             if add_prefix:
@@ -1238,7 +1242,7 @@ class LionCog(commands.Cog, name="Lion"):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permissions?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)

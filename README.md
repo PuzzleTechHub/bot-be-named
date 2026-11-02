@@ -214,12 +214,14 @@ When deploying on heroku, any variables stored in .env locally cannot be pushed 
 
 ## Acknowledgements
 
-The majority of this bot was written by [TheOriginalSoni](https://github.com/TheOriginalSoni) and [Kevslinger](https://github.com/kevslinger), with significant contributions from [Pete Cao](https://github.com/petecao) for the Lion module.
+The majority of this bot was written by [TheOriginalSoni](https://github.com/TheOriginalSoni).
 
-There are multiple repositories and code that BBN borrowed code from, most notably [Jonah Lawrence](https://github.com/DenverCoder1) and his [Professor Vector](https://github.com/DenverCoder1/professor-vector-discord-bot). Further info is included in respective modules.
+Significant portions of the bot were written by [Kevslinger](https://github.com/kevslinger) (early modules), [Pete Cao](https://github.com/petecao) (Lion module) and [c12](https://github.com/aleaffallingintothedarkness-c12) (Hydra module).
+
+There are multiple repositories and code that BBN borrowed code from. Further info is included in respective modules.
 
 ## Contributing/Issues
 
 If you find any issues, bugs, or improvements, please feel free to open an issue and/or pull request! Thank you!
 
-Feel free to join our discord at `discord (dot) gg / x8f2ywHUky` with any questions you may have! If you are unable to join the discord, contact [TheOriginalSoni](https://github.com/TheOriginalSoni) (`@talesfromtim` on discord). 
+Feel free to join our discord with any questions you may have! If you are unable to join the discord, contact [TheOriginalSoni](https://github.com/TheOriginalSoni) (`@talesfromtim` on discord). 

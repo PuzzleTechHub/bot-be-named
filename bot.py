@@ -42,6 +42,7 @@ def main():
     @client.event
     async def on_ready():
         """When the bot starts up"""
+        logging_utils.print_with_timestamp("Bot is ready")
         await logging_utils.open_session()
         await client.change_presence(
             activity=nextcord.Activity(
@@ -60,7 +61,7 @@ def main():
                     )
                     session.execute(stmt)
                     session.commit()
-            print(
+            logging_utils.print_with_timestamp(
                 f"{client.user.name} has connected to the following guild: "
                 f"{guild.name} (id: {guild.id}) with prefix {database.PREFIXES[guild.id]}"
             )
@@ -84,7 +85,7 @@ def main():
     @client.event
     async def on_guild_join(guild: nextcord.Guild):
         """When the bot joins a new guild, add it to the database for prefixes"""
-        print(f"Joining {guild} -- Hi!")
+        logging_utils.print_with_timestamp(f"Joining {guild} -- Hi!")
         with Session(database.DATABASE_ENGINE) as session:
             stmt = insert(database.Prefixes).values(
                 server_id=guild.id,
@@ -103,7 +104,7 @@ def main():
     @client.event
     async def on_guild_remove(guild: nextcord.Guild):
         """When the bot leaves a guild, remove all database entries pertaining to that guild"""
-        print(f"Leaving {guild} -- Bye bye!")
+        logging_utils.print_with_timestamp(f"Leaving {guild} -- Bye bye!")
         with Session(database.DATABASE_ENGINE) as session:
             session.query(database.CustomCommands).filter_by(
                 server_id=guild.id
@@ -207,7 +208,6 @@ def main():
     async def on_close():
         await logging_utils.close_session()
 
-    
     @client.event
     async def on_command_error(self, ctx, error):
         """Intercept ~help a_custom_command errors"""
@@ -215,7 +215,9 @@ def main():
             command_name = str(ctx.invoked_with).lower() if ctx.invoked_with else None
 
             if command_name:
-                if ctx.guild and command_name in database.CUSTOM_COMMANDS.get(ctx.guild.id, {}):
+                if ctx.guild and command_name in database.CUSTOM_COMMANDS.get(
+                    ctx.guild.id, {}
+                ):
                     embed = discord_utils.create_embed()
                     embed.add_field(
                         name="Thats a custom command!",
@@ -228,7 +230,6 @@ def main():
                     return
         # If not a custom command, let the error propagate normally
         # TODO global custom commands
-
 
 
 if __name__ == "__main__":
