@@ -182,7 +182,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             ctx, command_name, responses, is_image=False, is_global=True
         )
 
-    @command_predicates.is_trusted()
+    @command_predicates.is_bot_owner()
     @commands.command(
         name="addglobalcustomimage",
         aliases=["addglobalcimage", "addglobalccimage", "addglobalimagecc"],
