@@ -86,7 +86,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         ]
         channels_to_move = list(set(channels_to_move))
 
-        # Identify channels aready in category
+        # Identify channels already in category
         channels_already_in_category = [
             chan for chan in channels_to_move if chan.category == new_category
         ]
@@ -273,7 +273,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         except nextcord.Forbidden:
             embed.add_field(
                 name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permissions?",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -319,7 +319,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         else:
             embed.add_field(
                 name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permissions?",
             )
         await discord_utils.send_message(ctx, embed)
 
@@ -397,7 +397,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         else:
             embed.add_field(
                 name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permissions?",
             )
         await discord_utils.send_message(ctx, embed)
 
@@ -522,7 +522,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         except nextcord.Forbidden:
             embed.add_field(
                 name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permissions?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -558,7 +558,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 except nextcord.Forbidden:
                     embed.add_field(
                         name="Failed",
-                        value="Forbidden! Have you checked if the bot has the required permisisons?",
+                        value="Forbidden! Have you checked if the bot has the required permissions?",
                         inline=False,
                     )
                     await discord_utils.send_message(ctx, embed)
@@ -646,7 +646,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         except nextcord.Forbidden:
             embed.add_field(
                 name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permissions?",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -654,12 +654,12 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         if pos_to_shift_to == 0:
             embed.add_field(
                 name="Success",
-                value=f"Succesfully moved channel {chan_to_shift.mention} to top of category {chan_to_shift.category}",
+                value=f"Successfully moved channel {chan_to_shift.mention} to top of category {chan_to_shift.category}",
             )
         else:
             embed.add_field(
                 name="Success",
-                value=f"Succesfully moved channel {chan_to_shift.mention} to just below {chan_shifting_to.mention}",
+                value=f"Successfully moved channel {chan_to_shift.mention} to just below {chan_shifting_to.mention}",
             )
         await discord_utils.send_message(ctx, embed)
 
@@ -705,7 +705,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         except nextcord.Forbidden:
             embed.add_field(
                 name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permissions?",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -853,7 +853,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         except nextcord.Forbidden:
             embed.add_field(
                 name="Failed",
-                value="Forbidden! Have you checked if the bot has the `manage_channels` permisisons?",
+                value="Forbidden! Have you checked if the bot has the `manage_channels` permissions?",
                 inline=False,
             )
             # reply to user
@@ -917,7 +917,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 await start_msg.delete()
             embed.add_field(
                 name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permisisons?",
+                value="Forbidden! Have you checked if the bot has the required permissions?",
                 inline=False,
             )
             # reply to user
@@ -940,7 +940,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     async def shiftcategory(self, ctx, cat_a_name: str, cat_b_name: str = ""):
         """Shifts a category to below another category.
 
-        Note : Use "0" or "top" instead to say "Top of the server". But if a category in the server is named "top" or "0" then the respective argument wont work
+        Note : Use "0" or "top" instead to say "Top of the server". But if a category in the server is named "top" or "0" then the respective argument won't work
 
         Permission Category : Verified Roles only.
         Usage: `~shiftcat "Category A" "Category B"` (Shifts Cat A to just below Cat B)
@@ -1022,13 +1022,13 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         if pos_to_shift_to == 0:
             embed.add_field(
                 name="Success",
-                value=f"Succesfully moved Category `{cat_to_shift}` to top of the server.",
+                value=f"Successfully moved Category `{cat_to_shift}` to top of the server.",
                 inline=False,
             )
         else:
             embed.add_field(
                 name="Success",
-                value=f"Succesfully moved Category `{cat_to_shift}` to just below Category `{cat_shifting_to}`",
+                value=f"Successfully moved Category `{cat_to_shift}` to just below Category `{cat_shifting_to}`",
                 inline=False,
             )
         await discord_utils.send_message(ctx, embed)
@@ -1277,7 +1277,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         # Send warning to user
         embed.add_field(
             name="Are you sure?",
-            value=f"This will delete the category `{category.name}` and all its channels. This is not reversable. Make sure you archive the category first before continuing. You have 15 seconds to confirm.",
+            value=f"This will delete the category `{category.name}` and all its channels. This is not reversible. Make sure you archive the category first before continuing. You have 15 seconds to confirm.",
         )
         embed.add_field(
             name="Channels to delete", value=f"{chr(10).join(channels)}", inline=False
