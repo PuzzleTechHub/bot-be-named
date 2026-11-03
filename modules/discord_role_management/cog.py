@@ -478,14 +478,14 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             return
 
         if not ctx.message.reference:
-            channel_history = await ctx.message.channel.history(limit=2).flatten()
+            channel_history = [message async for message in ctx.message.channel.history(limit=2)]
             message = channel_history[-1]
         else:
             message = await ctx.fetch_message(ctx.message.reference.message_id)
 
         reactors = []
         for react in message.reactions:
-            users = await react.users().flatten()
+            users = [user async for user in react.users()]
             reactors = reactors + users
 
         reactors = list(set(reactors))
