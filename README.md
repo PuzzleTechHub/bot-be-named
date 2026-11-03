@@ -86,7 +86,7 @@ BBN edits its sheets through a service account: essentially its own email and cr
 1. In the [Google Cloud console](https://console.cloud.google.com/), create a new project (e.g. `bbn-dev`) and make sure it's selected at the top.
 2. Go to **APIs & Services -> Library** and enable both the **Google Sheets API** and the **Google Drive API**.
 3. Go to **IAM & Admin -> Service Accounts -> Create service account**. You'll only need to give it a name.
-4. Open the new account, go to the **Keys** tab, click **Add key -> Create new key ->  JSON**. A file should download.
+4. Open the new account, go to the **Keys** tab, click **Add key -> Create new key -> JSON**. A file should download.
 5. Rename it to `client_secret.json` and put it in the root of your `bot-be-named` folder, next to `bot.py`. 
 6. Copy the `client_email` from that file (it ends in `iam.gserviceaccount.com`). Your tests sheet must give this email **Editor** permissions, the same way you'd share with a person, or you can set the sheet's general access to "Anyone with the link" as Editor.
 
@@ -118,7 +118,7 @@ Open the `.env` you copied in step 1.
 | `BOT_OWNER_DISCORD_ID` | Yes | Your Discord user ID from step 2. This is how the bot will check if you're the owner. |
 | `DATABASE_URL` | Yes | The connection string from step 4. |
 | `GEOPY_USERNAME` | No | Not required. A [GeoNames](https://www.geonames.org/login) username, with free web services enabled on its account page. Functions like `~time` won't work without this. |
-| `WEBHOOK_URL` | No | Not required. A Discord webhook that gets a line for every command used. To add one: in your test server, **Edit Channel → Integrations → Webhooks → New Webhook → Copy Webhook URL**, and paste it here in quotes. Leave as `""` to skip; the console then prints "Webhook failed" after each command, which is harmless |
+| `WEBHOOK_URL` | No | Not required. A Discord webhook that gets a line for every command used. To add one: in your test server, **Edit Channel -> Integrations -> Webhooks -> New Webhook -> Copy Webhook URL**, and paste it here in quotes. Leave as `""` to skip; the console then prints "Webhook failed" after each command, which is harmless |
 | `type` to `client_x509_cert_url` | No | Unneeded. `client_secret.json` from step 3 covers this. |
 
 #### 6. Run it and test it
