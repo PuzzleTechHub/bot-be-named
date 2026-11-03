@@ -11,7 +11,7 @@
 
 ## What is Bot-Be-Named
 
-A Discord bot that interoperates with Google Sheets to smoothen solving puzzle hunts. 
+A Discord bot that interoperates with Google Sheets to smoothen solving puzzle hunts.
 
 If you would like to add our instance of Bot-Be-Named to your server, please see below.
 
@@ -21,7 +21,7 @@ Bot-Be-Named is currently set up with our own configurations and environment var
 
 - Join the bot's discord server at `discord (dot) gg / x8f2ywHUky`
 
-- There is an instance of the bot currently on that server, named `~Bot Be Named`. Click on that name - Add App - Add it to your discord server.  Note that you need "Manage Server" permission to do that.
+- There is an instance of the bot currently on that server, named `~Bot Be Named`. Click on that name - Add App - Add it to your discord server. Note that you need "Manage Server" permission to do that.
 
 - Use `~about` to get a quick guide to the bot, and `~info` for all the commands that will come in very handy for you.
 
@@ -91,8 +91,8 @@ BBN edits its sheets through a service account: essentially its own email and cr
 1. In the [Google Cloud console](https://console.cloud.google.com/), create a new project (e.g. `bbn-dev`) and make sure it's selected at the top.
 2. Go to **APIs & Services -> Library** and enable both the **Google Sheets API** and the **Google Drive API**.
 3. Go to **IAM & Admin -> Service Accounts -> Create service account**. You'll only need to give it a name.
-4. Open the new account, go to the **Keys** tab, click **Add key -> Create new key ->  JSON**. A file should download.
-5. Rename it to `client_secret.json` and put it in the root of your `bot-be-named` folder, next to `bot.py`. 
+4. Open the new account, go to the **Keys** tab, click **Add key -> Create new key -> JSON**. A file should download.
+5. Rename it to `client_secret.json` and put it in the root of your `bot-be-named` folder, next to `bot.py`.
 6. Copy the `client_email` from that file (it ends in `iam.gserviceaccount.com`). Your tests sheet must give this email **Editor** permissions, the same way you'd share with a person, or you can set the sheet's general access to "Anyone with the link" as Editor.
 
 #### 4. Set up a database
@@ -123,7 +123,7 @@ Open the `.env` you copied in step 1.
 | `BOT_OWNER_DISCORD_ID` | Yes | Your Discord user ID from step 2. This is how the bot will check if you're the owner. |
 | `DATABASE_URL` | Yes | The connection string from step 4. |
 | `GEOPY_USERNAME` | No | Not required. A [GeoNames](https://www.geonames.org/login) username, with free web services enabled on its account page. Functions like `~time` won't work without this. |
-| `WEBHOOK_URL` | No | Not required. A Discord webhook that gets a line for every command used. To add one: in your test server, **Edit Channel → Integrations → Webhooks → New Webhook → Copy Webhook URL**, and paste it here in quotes. Leave as `""` to skip; the console then prints "Webhook failed" after each command, which is harmless |
+| `WEBHOOK_URL` | No | Not required. A Discord webhook that gets a line for every command used. To add one: in your test server, **Edit Channel -> Integrations -> Webhooks -> New Webhook -> Copy Webhook URL**, and paste it here in quotes. Leave as `""` to skip; the console then prints "Webhook failed" after each command, which is harmless |
 | `type` to `client_x509_cert_url` | No | Unneeded. `client_secret.json` from step 3 covers this. |
 
 #### 6. Run it and test it
@@ -210,7 +210,7 @@ Everything else we have can now be handled by pip.
 git clone https://github.com/PuzzleTechHub/bot-be-named.git
 cd bot-be-named
 #Technically optional, but using virtualenv is usually a good idea
-virtualenv venv -p=3.12 
+virtualenv venv -p=3.12
 source venv/bin/activate
 #This installs all the python dependancies the bot needs
 pip install -r requirements.txt && pre-commit install
@@ -230,7 +230,7 @@ Now that the bot is setup and successfully runs, you can keep it running from GC
 ```bash
 cd bot-be-named
 source venv/bin/activate
-# nohup allows the bot to run while you close the SSH window, and also pastes log in a convenient spot. 
+# nohup allows the bot to run while you close the SSH window, and also pastes log in a convenient spot.
 # You can use soemthing simpler than nohup if you like!
 nohup python3.12 bot.py "This is BBN running" &
 #That message is not necessary, I just like to include one when running
@@ -251,7 +251,7 @@ kill 000000000000000
 
 You can also use [Fly.io](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19) for the bot hosting. Fly.io used to have a [free tier](https://fly.io/docs/about/pricing/#legacy-hobby-plan) as long as your monthly cost was below 5 USD.
 
-You can set up automatic Continuous Deployment (CD) on Fly.io. [Follow the instructions here](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19) 
+You can set up automatic Continuous Deployment (CD) on Fly.io. [Follow the instructions here](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19)
 
 ### Hosting on Heroku and Heroku Postgres
 The instructions for [hosting on Heroku](https://medium.com/@linda0511ny/create-host-a-discord-bot-with-heroku-in-5-min-5cb0830d0ff2) are linked. You may need the [heroku CLI client for hosting](https://medium.com/analytics-vidhya/how-to-install-heroku-cli-in-windows-pc-e3cf9750b4ae).
@@ -264,9 +264,9 @@ When deploying on heroku, any variables stored in .env locally cannot be pushed 
 
 ### Other useful notes
 
-While only the above are necessary to run the code when deployed, some OSes might require additional installations to also run locally. 
+While only the above are necessary to run the code when deployed, some OSes might require additional installations to also run locally.
 
-For example, on Ubuntu, you also need - 
+For example, on Ubuntu, you also need -
 ```bash
 sudo apt-get install postgresql-client-common postgresql-client
 ```
@@ -277,12 +277,12 @@ sudo apt-get install postgresql-client-common postgresql-client
 - [Archive](./modules/archive) for downloading channel/category/server contents into a Zip file
 - [Custom Command](./modules/custom_command) for making custom commands in different servers
 - [Discord](modules/discord) for discord utility commands (e.g. roles, stats)
-- [Discord Channel Management](./modules/discord_channel_management) for cloning, creating, and moving channels 
+- [Discord Channel Management](./modules/discord_channel_management) for cloning, creating, and moving channels
 - [Discord Role Management](./modules/discord_role_management) for managing roles and similar
 - [Error Logging](./modules/error_logging) for printing error logs
 - [Help](./modules/help) is an updated help command which automatically pulls docstrings for `~help`
-- [Hydra](./modules/hydra) is the **NEW AND IMPROVED** "Google Sheets-Discord" commands. Currently Work in progress. 
-- [Lion](./modules/lion) is the "Google Sheets-Discord" commands currently used in every Puzzle Hunt. 
+- [Hydra](./modules/hydra) is the **NEW AND IMPROVED** "Google Sheets-Discord" commands. Currently Work in progress.
+- [Lion](./modules/lion) is the "Google Sheets-Discord" commands currently used in every Puzzle Hunt.
 - [Lookup](./modules/lookup) for Searching the internet via google and wikipedia
 - [Misc](./modules/misc) for misc. random (fun) commands
 - [Sheets](./modules/sheets) for working with Google Sheets during puzzlehunts
@@ -298,6 +298,6 @@ There are multiple repositories and code that BBN borrowed code from. Further in
 
 ## Contributing/Issues
 
-See [Contributing.MD](/.github/CONTRIBUTING.md) for the full contribution guidelines. No AI, be on discord, be a human. 
+See [Contributing.MD](/.github/CONTRIBUTING.md) for the full contribution guidelines. No AI, be on discord, be a human.
 
 Join the discord for any issues, improvements or answers. **If you are unable to join the discord, contact [TheOriginalSoni](https://github.com/TheOriginalSoni) (`@talesfromtim` on discord).**
