@@ -37,10 +37,11 @@ Welcome! Once you've followed these instructions, you should be good to start co
 
 | You need | Cost |
 | --- | --- |
-| [Python 3.12+](https://www.python.org/downloads/) and [Git](https://git-scm.com/downloads) | Free |
+| [Python 3.12](https://www.python.org/downloads/) and [Git](https://git-scm.com/downloads) | Free |
+| [Pip package installer](https://www.geeksforgeeks.org/python/download-and-install-pip-latest-version/) or equivalent | Free |
 | A [Discord account](https://discord.com/register) and a [test server you own](https://support.discord.com/hc/en-us/articles/204849977-How-do-I-create-a-server) | Free |
 | A personal [Google account](https://accounts.google.com/signup) | Free for this use |
-| A [Postgres database](https://www.postgresql.org/download/) (see [step 4](#4-set-up-a-database)) (we use [Supabase](https://supabase.com/)) | Free tier |
+| A [Postgres database](https://www.postgresql.org/download/) (see [step 4](#4-set-up-a-database)) - we use [Supabase](https://supabase.com/) | Free tier |
 | A [GeoNames account](https://www.geonames.org/login) (optional, only for some functions) | Free |
 
 Be sure to not commit `.env` or `client_secret.json`. Both are already in `.gitignore`.
@@ -50,25 +51,29 @@ Be sure to not commit `.env` or `client_secret.json`. Both are already in `.giti
 Try not to clone the repo in a cloud storage directory.
 
 ```bash
+# Clone the repo from github
 git clone https://github.com/PuzzleTechHub/bot-be-named.git
 cd bot-be-named
 
 # Make a virtual environment with Python 3.12
 python3.12 -m venv venv
+# Start the virtual environment
 source venv/bin/activate        # Windows: venv\Scripts\activate
 
+# Install all the packages in requirements
 pip install -r requirements.txt
 
-# Install pre-commit hooks, like ruff
+# Install pre-commit, if not installed already
 pip install pre-commit
+# Install pre-commit hooks, like ruff
 pre-commit install
 
+# Make.env file from template
 cp .env.template .env           # Windows: copy .env.template .env
 ```
-
 Debian and Ubuntu spit the venv/pip support into separate packages, so if creating the venv raises an `ensurepip` error, run `sudo apt install python3.12-venv` first.
 
-You'll fill in `.env` in step 5.
+You'll fill in `.env` in step 5. This file stores all environment variables and is used by the file which is used by [python-dotenv](https://github.com/theskumar/python-dotenv) package. Depending on your setup, you may have another way of loading environment variables.
 
 #### 2. Create the Discord bot
 
@@ -86,7 +91,7 @@ BBN edits its sheets through a service account: essentially its own email and cr
 1. In the [Google Cloud console](https://console.cloud.google.com/), create a new project (e.g. `bbn-dev`) and make sure it's selected at the top.
 2. Go to **APIs & Services -> Library** and enable both the **Google Sheets API** and the **Google Drive API**.
 3. Go to **IAM & Admin -> Service Accounts -> Create service account**. You'll only need to give it a name.
-4. Open the new account, go to the **Keys** tab, click **Add key -> Create new key -> JSON**. A file should download.
+4. Open the new account, go to the **Keys** tab, click **Add key -> Create new key ->  JSON**. A file should download.
 5. Rename it to `client_secret.json` and put it in the root of your `bot-be-named` folder, next to `bot.py`. 
 6. Copy the `client_email` from that file (it ends in `iam.gserviceaccount.com`). Your tests sheet must give this email **Editor** permissions, the same way you'd share with a person, or you can set the sheet's general access to "Anyone with the link" as Editor.
 
@@ -118,42 +123,49 @@ Open the `.env` you copied in step 1.
 | `BOT_OWNER_DISCORD_ID` | Yes | Your Discord user ID from step 2. This is how the bot will check if you're the owner. |
 | `DATABASE_URL` | Yes | The connection string from step 4. |
 | `GEOPY_USERNAME` | No | Not required. A [GeoNames](https://www.geonames.org/login) username, with free web services enabled on its account page. Functions like `~time` won't work without this. |
-| `WEBHOOK_URL` | No | Not required. A Discord webhook that gets a line for every command used. To add one: in your test server, **Edit Channel -> Integrations -> Webhooks -> New Webhook -> Copy Webhook URL**, and paste it here in quotes. Leave as `""` to skip; the console then prints "Webhook failed" after each command, which is harmless |
+| `WEBHOOK_URL` | No | Not required. A Discord webhook that gets a line for every command used. To add one: in your test server, **Edit Channel → Integrations → Webhooks → New Webhook → Copy Webhook URL**, and paste it here in quotes. Leave as `""` to skip; the console then prints "Webhook failed" after each command, which is harmless |
 | `type` to `client_x509_cert_url` | No | Unneeded. `client_secret.json` from step 3 covers this. |
 
 #### 6. Run it and test it
 
 ```bash
+# Activate the virtual environment
 source venv/bin/activate        # Windows: venv\Scripts\activate
+# Start the bot
 python bot.py
 ```
 
-It's working when it prints `has connected to the following guild: <your server> ... with prefix ~` and the bot shows online. Stop it with Ctrl+C. Startup currently prints your full `DATABASE_URL`, password included, so don't paste your startup logs anywhere public.
+If the bot prints something like `..has connected to the following guild: <your server> ... with prefix ~`, it is working! The bot will show as online on discord in a few seconds.
+To stop the bot, use Ctrl+C on the terminal.
+Make sure you don't paste your startup logs anywhere public - Startup currently prints your full `DATABASE_URL`, password included.
 
-#### Try this
+#### 7. Common commands to test the bot
 
 **Try** `~help` and `~about` in your test server to see if the bot is awake.
 
 **then, try these common commands**:
 
-1. Ask in the BBN Discord for the puzzle sheet template, make your own copy, and share it with the service account.
+1. Ask in the BBN Discord for the puzzle sheet template. Make your own copy of the file, and share it with the service account (or set the sheet on "Anyone with the link can edit").
 2. Run `~addperm Solver @everyone`, so you can use the solver commands.
 3. Create a category `Test Hunt`, an archive category `Test Hunt Archive`, and a channel `#test-bot-spam` inside `Test Hunt`.
 4. In `#test-bot-spam`, run `~tetherhydra <your sheet link>`.
 5. Run `~chanhydra "Test Puzzle" "https://example.com"`. You should get a new channel, a new tab and a new Overview row.
 6. In the new channel, run `~solvedhydra "ANSWER"`, then `~mtahydra` to move it to the archive.
 
-After completing this successfully, congratulations! You're now ready to contribute.
+If all the commmands work, congratulations! You have successfully installed your own local instance of BBN! You're now ready to contribute.
 
-Feel free to ask anythingin the Discord. Try not to send any secrets, though.
+If you get stuck on anything, or have any doubts, please feel free to ask on the BBN discord. Just try not to send any secrets!
 
-### Full GCloud instructions
+### Hosting on GCloud
+
+Once you have the bot running and basic commands (like `~help`) run properly, you can host it externally. Our instance of the bot is [hosted on Google Cloud Console](https://console.cloud.google.com/welcome).
 
 To install BBN on GCloud, the full instructions is as follows.
 
 #### Python
 
 First, make sure you have the correct version of python. If not, install it.
+
 ```bash
 # Example instructions for GCloud / Debian systems - How to install Python 3.12.3
 # Following instructions on https://cloudcone.com/docs/article/how-to-install-python-3-10-on-debian-11/
@@ -235,26 +247,13 @@ kill 000000000000000
 #Now you can start a new instance of the bot
 ```
 
-### Hosting
-
-Once you have the bot running and basic commands (like `~help`) run properly, you can host it externally. Our instance of the bot is [hosted on Google Cloud Console](https://console.cloud.google.com/welcome).
-
-### Other useful things
-
-While only the above are necessary to run the code when deployed, some OSes might require additional installations to also run locally. 
-
-For example, on Ubuntu, you also need - 
-```bash
-sudo apt-get install postgresql-client-common postgresql-client
-```
-
-### Using Fly.io for hosting
+### Hosting on Fly.io
 
 You can also use [Fly.io](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19) for the bot hosting. Fly.io used to have a [free tier](https://fly.io/docs/about/pricing/#legacy-hobby-plan) as long as your monthly cost was below 5 USD.
 
 You can set up automatic Continuous Deployment (CD) on Fly.io. [Follow the instructions here](https://dev.to/denvercoder1/hosting-a-python-discord-bot-for-free-with-flyio-3k19) 
 
-### Using Heroku and Heroku Postgres for hosting.
+### Hosting on Heroku and Heroku Postgres
 The instructions for [hosting on Heroku](https://medium.com/@linda0511ny/create-host-a-discord-bot-with-heroku-in-5-min-5cb0830d0ff2) are linked. You may need the [heroku CLI client for hosting](https://medium.com/analytics-vidhya/how-to-install-heroku-cli-in-windows-pc-e3cf9750b4ae).
 
 If you're using Heroku's PostgresSQL add-on instead, first [install the add-on](https://elements.heroku.com/addons/heroku-postgresql) then [set it up](https://devcenter.heroku.com/articles/heroku-postgresql) to attach your app to the Postgres. Now you can look at `Heroku - Dashboard - Resources - Add Ons` to look at the app on Heroku, and copy the URI given from Postgres add-on to the respective line in the `.env file`
@@ -262,6 +261,15 @@ If you're using Heroku's PostgresSQL add-on instead, first [install the add-on](
 If you have github + heroku, using Heroku's [Github integration](https://devcenter.heroku.com/articles/github-integration) allows you to automatically push Github pushes to also deploy on Heroku. (Using `git push` to push to both Github and Heroku)
 
 When deploying on heroku, any variables stored in .env locally cannot be pushed to any public repos. It's advisable to use [Heroku Config Vars](https://devcenter.heroku.com/articles/config-vars) to store them.
+
+### Other useful notes
+
+While only the above are necessary to run the code when deployed, some OSes might require additional installations to also run locally. 
+
+For example, on Ubuntu, you also need - 
+```bash
+sudo apt-get install postgresql-client-common postgresql-client
+```
 
 ## Current Modules
 
