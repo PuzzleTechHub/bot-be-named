@@ -29,55 +29,121 @@ Bot-Be-Named is currently set up with our own configurations and environment var
 
 ## How to install your own instance
 
-### Prerequisites - 
+### Running your own Bot Be Named for contributing
 
-- [python3.12](https://realpython.com/installing-python/)
+Welcome! Once you've followed these instructions, you should be good to start contributing.
 
-- [Git](https://github.com/git-guides/install-git)
+#### Before you start
 
-- [Postgresql for storing data](https://www.postgresql.org/download/)
+| You need | Cost |
+| --- | --- |
+| Python 3.12+ and Git | Free |
+| A Discord account and a test server you own | Free |
+| A personal Google account | Free for this use |
+| A Postgres database | Free tier |
+| A GeoNames account (optional, only for some functions) | Free |
 
-- [Pip package installer for Python](https://phoenixnap.com/kb/install-pip-windows)
+Be sure to not commit `.env` or `client_secret.json`. Both are already in `.gitignore`.
 
-Note that you may use another Python installer (instead of Pip), Host (instead of Google Cloud) or Database (instead of Supabase) but that will require you figuring out the required setup and configuation changes yourself.
+#### 1. Clone the repo and install requirements
 
-### Installation
-
-We recommend using [virtual environments](https://docs.python.org/3/tutorial/venv.html) to manage python packages for our repo. To clone the repo and install dependencies, run the following on the Command Line
+Try not to clone the repo in a cloud storage directory.
 
 ```bash
-#Clone the bot locally
 git clone https://github.com/PuzzleTechHub/bot-be-named.git
 cd bot-be-named
-#Technically optional, but using virtualenv is usually a good idea
-virtualenv venv -p=3.12
-source venv/bin/activate
-#This installs all the python dependancies the bot needs
-pip install -r requirements.txt && pre-commit install
 
-#If pre-commit is not installed, you may need to add that as well
-#python -m pip install pre-commit
+# Make a virtual environment with Python 3.12
+python3.12 -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+
+pip install -r requirements.txt
+
+# Install pre-commit hooks, like ruff
+pip install pre-commit
+pre-commit install
+
+cp .env.template .env           # Windows: copy .env.template .env
 ```
 
-The bot uses [Supabase](https://supabase.com/) for storing data.
+You'll fill in `.env` in step 5.
 
-To run the bot locally, you will need a `.env` file which is used by [python-dotenv](https://github.com/theskumar/python-dotenv) to load `ENV` variables. Copy `.env.template` into `.env` with  
+#### 2. Create the Discord bot
+
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications), and make a **New Application**.
+2. Open the **Bot** tab. Click **Reset Token**, copy the token and save it. You'll need it later. If you forget the token, reset and copy the new one.
+3. On the same tab, under **Privileged Gateway Intents**, turn on **Server Members Intent** and **Message Content Intent**, then save.
+4. Open the **Installation** tab. Make sure **Guild Install** is on, add the `bot` scope to the guild install, and give it **Administrator** for your private test server.
+5. Open the install link, pick your test server and authorise it. Don't worry, the bot will appear offline, until Step 6.
+6. In Discord (not the Developer Portal), turn on **Developer Mode** (User Settings -> Advanced), right-click your own name and **Copy User ID**. That's `BOT_OWNER_DISCORD_ID`.
+
+#### 3. Create the Google service account
+
+BBN edits its sheets through a service account: essentially its own email and credentials. Use a personal account while logged in to Google Cloud.
+
+1. In the [Google Cloud console](https://console.cloud.google.com/), create a new project (e.g. `bbn-dev`) and make sure it's selected at the top.
+2. Go to **APIs & Services -> Library** and enable both the **Google Sheets API** and the **Google Drive API**.
+3. Go to **IAM & Admin -> Service Accounts -> Create service account**. You'll only need to give it a name.
+4. Open the new account, go to the **Keys** tab, click **Add key → Create new key ->  JSON**. A file should download.
+5. Rename it to `client_secret.json` and put it in the root of your `bot-be-named` folder, next to `bot.py`. 
+6. Copy the `client_email` from that file (it ends in `iam.gserviceaccount.com`). Your tests sheet must give this email **Editor** permissions, the same way you'd share with a person, or you can set the sheet's general access to "Anyone with the link" as Editor.
+
+#### 4. Set up a database
+
+Pick one. The bot creates its tables on first start, so an empty database is all you need.
+
+**Option A: Supabase** (recommended, what we use in prod)
+
+1. Create a free project at [supabase.com](https://supabase.com/) and save the database password it asks for.
+2. Click **Connect** at the top of the project, use "Direct Connection" if your network is configured with IPv6. Otherwise, use "Session Pooler".
+3. Scroll down and copy the Connection String. When we paste it into `.env` in the next step, replace `[YOUR-PASSWORD]` with your actual project password. A `postgres://` prefix is fine.
+
+**Option B: local Postgres with Docker** (works offline)
 
 ```bash
-cp .env.template .env
+docker run --name bbn-db -e POSTGRES_PASSWORD=bbn -p 5432:5432 -d postgres:16
 ```
 
-and fill in the blanks in order to get the bot running. You also need to set up the Postgresql database for the bot. If you're using Supabase, follow [any regular guide](https://docs.stacksync.cloud/guides/two-way-sync-salesforce-and-postgres/create-a-postgres-database-with-supabase-free-forever) for it then copy the full URI.
+Then `DATABASE_URL = postgresql://postgres:bbn@localhost:5432/postgres`. Start it again later with `docker start bbn-db`.
 
-Once you do all that, run
+#### 5. Fill in `.env`
+
+Open the `.env` you copied in step 1.
+
+| Line | Required? | What goes there |
+| --- | --- | --- |
+| `DISCORD_TOKEN` | Yes | The bot token from step 2. |
+| `BOT_OWNER_DISCORD_ID` | Yes | Your Discord user ID from step 2. This is how the bot will check if you're the owner. |
+| `DATABASE_URL` | Yes | The connection string from step 4. |
+| `GEOPY_USERNAME` | No | Not required. A [GeoNames](https://www.geonames.org/login) username, with free web services enabled on its account page. Functions like `~time` won't work without this. |
+| `WEBHOOK_URL` | No | Not required. A Discord webhook that gets a line for every command used. To add one: in your test server, **Edit Channel → Integrations → Webhooks → New Webhook → Copy Webhook URL**, and paste it here in quotes. Leave as `""` to skip; the console then prints "Webhook failed" after each command, which is harmless |
+| `type` to `client_x509_cert_url` | No | Unneeded. `client_secret.json` from step 3 covers this. |
+
+#### 6. Run it and test it
 
 ```bash
-#Run this line if you haven't already
-source venv/bin/activate
+source venv/bin/activate        # Windows: venv\Scripts\activate
 python bot.py
 ```
 
-and the bot will run on the supplied discord token's account.
+It's working when it prints `has connected to the following guild: <your server> ... with prefix ~` and the bot shows online. Stop it with Ctrl+C. Startup currently prints your full `DATABASE_URL`, password included, so don't paste your startup logs anywhere public.
+
+#### Try this
+
+**Try** `~help` and `~about` in your test server to see if the bot is awake.
+
+**then, try these common commands**:
+
+1. Ask in the BBN Discord for the puzzle sheet template, make your own copy, and share it with the service account.
+2. Run `~addperm Solver @everyone`, so you can use the solver commands.
+3. Create a category `Test Hunt`, an archive category `Test Hunt Archive`, and a channel `#test-bot-spam` inside `Test Hunt`.
+4. In `#test-bot-spam`, run `~tetherhydra <your sheet link>`.
+5. Run `~chanhydra "Test Puzzle" "https://example.com"`. You should get a new channel, a new tab and a new Overview row.
+6. In the new channel, run `~solvedhydra "ANSWER"`, then `~mtahydra` to move it to the archive.
+
+After completing this successfully, congratulations! You're now ready to contribute.
+
+Feel free to ask anythingin the Discord. Try not to send any secrets, though.
 
 ### Full GCloud instructions
 
