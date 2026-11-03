@@ -1,3 +1,4 @@
+from utils.formula_utils import hyperlink
 import asyncio
 from typing import Union
 import emoji
@@ -736,7 +737,7 @@ class LionCog(commands.Cog, name="Lion"):
             batch_update_builder.update_cell_by_label(
                 sheet_id=overview_id,
                 label=puzz_name_col + str(first_empty),
-                value=f'=HYPERLINK("{final_sheet_link}", "{chan_name}")',
+                value=hyperlink(final_sheet_link, chan_name),
                 is_formula=True,
             )
 

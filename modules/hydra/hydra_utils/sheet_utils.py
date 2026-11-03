@@ -1,3 +1,4 @@
+from utils.formula_utils import hyperlink
 import emoji
 import gspread
 import nextcord
@@ -249,7 +250,7 @@ async def create_puzzle_channel_from_template(
         batch.update_cell_by_label(
             sheet_id=overview_id,
             label=puzzle_name_col + str(first_empty),
-            value=f'=HYPERLINK("{final_sheet_link}", "{puzzle_name}")',
+            value=hyperlink(final_sheet_link, puzzle_name),
             is_formula=True,
         )
 
@@ -686,7 +687,7 @@ async def batch_create_puzzle_channels(
             # Batch update overview row
             overview_updates = {
                 puzzle_name_col + str(row_num): (
-                    f'=HYPERLINK("{final_sheet_link}", "{puzzle_name}")',
+                    hyperlink(final_sheet_link, puzzle_name),
                     True,  # is_formula
                 ),
                 discord_channel_id_col + str(row_num): (str(channel.id), False),

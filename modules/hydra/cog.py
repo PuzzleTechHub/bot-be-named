@@ -1,3 +1,4 @@
+from utils.formula_utils import hyperlink
 from typing import Optional, Union
 import nextcord
 import constants
@@ -315,7 +316,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             batch.update_cell_by_label(
                 sheet_id=overview_sheet.worksheet.id,
                 label=puzzle_name_col + str(row_to_find),
-                value=f'=HYPERLINK("{final_sheet_link}", "{new_name}")',
+                value=hyperlink(final_sheet_link, new_name),
                 is_formula=True,
             )
 
