@@ -1,8 +1,12 @@
 import database
 import constants
+import os  # noqa: F401
 import asyncio
-from utils import discord_utils
+from typing import Optional
+from utils import discord_utils, logging_utils, command_predicates
 from nextcord.ext import commands
+from sqlalchemy.orm import Session
+from sqlalchemy import insert
 
 
 """
@@ -48,13 +52,13 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
     async def get_responses(self, ctx, command_name, command_return):
         """Returns the response given as a list. If none was given, triggers a method that asks for responses
-        one message at atime. Returns None if cancelled."""
+        one message at a time. Returns None if cancelled."""
         if command_return:
             return [command_return]
         return await self.collect_responses(ctx, command_name)
 
     async def collect_responses(self, ctx, command_name):
-        """Collects resposnes for a custom function that will be randomly selected out of, until they lock it in.
+        """Collects responses for a custom command that will be randomly selected out of, until they lock it in.
         Returns None if cancelled."""
         confirm_emoji = "✅"
         abort_emoji = "❌"
@@ -66,12 +70,12 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
                 embed.add_field(
                     name=f"Received response {len(responses)}!",
                     value=f"Send another message to add another response to `{ctx.prefix}{command_name}`, "
-                    f"or react {confirm_emoji} to lock in the responses. React {abort_emoji} to cancel"
+                    f"or react {confirm_emoji} to lock in the responses. React {abort_emoji} to cancel "
                     "the creation of the custom command.",
                 )
             else:
                 embed.add_field(
-                    name="Waiting for first resposne...",
+                    name="Waiting for first response...",
                     value=f"Send the first response for `{ctx.prefix}{command_name}`. "
                     f"React {abort_emoji} to cancel.",
                 )
@@ -143,10 +147,190 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
                 await discord_utils.send_message(ctx, final_embed)
                 return None
 
-            # Otherwise, the user either reacted with the confirm emoji or sent an additional response
+            # Otherwise the user sent another response, so add it and go round again
             response = message_task.result().content.strip()
             if response:
                 responses.append(response)
+
+    def describe_response(self, ctx, command_name, responses):
+        """Short summary of how the customcommand went."""
+        return (
+            f"I have gathered {len(responses)} response{'s' if len(responses) > 1 else ''} for the command `{command_name}`. "
+            f"Use `{ctx.prefix}listcc {command_name}` to see {'them' if len(responses) > 1 else 'it'}."
+        )
+
+    async def add_cc_generic(
+        self,
+        ctx,
+        command_name,
+        responses,
+        is_image: bool,
+        is_global: bool,
+    ):
+        """Saves a new custom command to the database and then the cache. Then, it sends the result."""
+        embed = discord_utils.create_embed()
+        command_return = responses[0]  # TODO Drop this soon
+
+        with Session(database.DATABASE_ENGINE) as session:
+            result = (
+                session.query(database.CustomCommands)
+                .filter_by(server_id_command=f"{ctx.guild.id} {command_name}")
+                .first()
+            )
+            if result is None:
+                stmt = insert(database.CustomCommands).values(
+                    server_id=ctx.guild.id,
+                    server_name=ctx.guild.name,
+                    server_id_command=f"{ctx.guild.id} {command_name}",
+                    command_name=command_name,
+                    command_return=command_return,
+                    image=is_image,
+                    responses=responses,
+                )
+                session.execute(stmt)
+                session.commit()
+
+                embed.add_field(
+                    name="Success",
+                    value=f"Added `{ctx.prefix}{command_name}` with value{'s' if len(responses) > 1 else ''}"
+                    f" `{' | '.join(responses)}`",
+                )
+            # Already in the database but missing from the cache, so
+            # tell the user that the command already exists
+            else:
+                command_return = result.command_return
+                responses = result.responses
+                is_image = bool(result.image)
+                embed.add_field(
+                    name="Failed",
+                    value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}`. "
+                    f"If you'd like to replace `{ctx.prefix}{command_name}`, please use "
+                    f"`{ctx.prefix}editcustomcommand {command_name}`",
+                )
+
+            # update cache
+            database.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (
+                command_return,
+                is_image,
+                responses,
+            )
+        await discord_utils.send_message(ctx, embed)
+
+    @command_predicates.is_trusted()
+    @commands.command(
+        name="addcustomcommand",
+        aliases=["addccommand", "addembedcommand", "customcommand", "addcc", "cc"],
+    )
+    async def addcustomcommand(
+        self, ctx, command_name: str, *, command_return: Optional[str] = None
+    ):
+        """Add your own custom command to the bot with an embed reply.
+        Everything after the command name is the reply, line breaks are included.
+
+        If you leave everything after the command name empty, you'll be prompted to
+        enter possible responses for the command, from which the bot will pick
+        one randomly out of. If you override a global command with the same name
+        with a server command, your server command will take priority over the global one.
+
+        Permission Category : Trusted Roles only.
+        Usage: `~addcustomcommand command_name This is my custom command!`
+        Usage: `~addcustomcommand flipcoin` (then say `Heads` and `Tails` in subsequent
+        messages)
+
+        """
+        await logging_utils.log_command(
+            "addcustomcommand", ctx.guild, ctx.channel, ctx.author
+        )
+        command_name = command_name.lower()
+        if not await self.check_cc_name(ctx, command_name, is_global=False):
+            return
+        responses = await self.get_responses(ctx, command_name, command_return)
+        if responses is None:
+            return
+        await self.add_cc_generic(
+            ctx, command_name, responses, is_image=False, is_global=False
+        )
+
+    @command_predicates.is_trusted()
+    @commands.command(
+        name="addcustomimage",
+        aliases=["addcimage", "addccimage", "addimagecc"],
+    )
+    async def addcustomimage(
+        self, ctx, command_name: str, *, command_return: Optional[str] = None
+    ):
+        """Add your own custom command to the bot with a reply. It is not in a bot embed, so is ideal for images and role pings.
+        Everything after the command name is the reply, line breaks included.
+        Leave it empty and the bot asks for responses one message at a time. Give more than one and the bot picks one at random each time.
+
+        Permission Category : Trusted Roles only.
+        Usage: `~addcimage command_name Link_to_image`
+        Usage: `~addcimage command_name Link_to_hyperlink`
+        """
+        await logging_utils.log_command(
+            "addcustomimage", ctx.guild, ctx.channel, ctx.author
+        )
+        command_name = command_name.lower()
+        if not await self.check_cc_name(ctx, command_name, is_global=False):
+            return
+        responses = await self.get_responses(ctx, command_name, command_return)
+        if responses is None:
+            return
+        await self.add_cc_generic(
+            ctx, command_name, responses, is_image=True, is_global=False
+        )
+
+    @command_predicates.is_bot_owner()
+    @commands.command(
+        name="addglobalcustomcommand",
+        aliases=["addglobalccommand", "addgcustomcommand", "addgcc", "addglobalcc"],
+    )
+    async def addglobalcustomcommand(
+        self, ctx, command_name: str, *, command_return: Optional[str] = None
+    ):
+        pass
+
+    @command_predicates.is_bot_owner()
+    @commands.command(
+        name="addglobalcustomimage",
+        aliases=[
+            "addglobalcimage",
+            "addglobalccimage",
+            "addglobalimagecc",
+            "addgcustomimage",
+            "addgccimage",
+        ],
+    )
+    async def addglobalcustomimage(
+        self, ctx, command_name: str, *, command_return: Optional[str] = None
+    ):
+        pass
+
+    async def list_cc_responses(self, ctx, command_name):
+        """Sends all the numbered response(s) of a given custom command."""
+        embed = discord_utils.create_embed()
+        # Look in this server first, then the global custom commands. Server commands take priority.
+        # The else block below only runs if the command is in neither.
+        for guild_id in (ctx.guild.id, constants.DB_GLOBAL):
+            if command_name in database.CUSTOM_COMMANDS.get(guild_id, {}):
+                command_return, _, responses = database.CUSTOM_COMMANDS[guild_id][
+                    command_name
+                ]
+                # Some custom commands (old) have nothing in the responses list, only command_return
+                # So treat it as a command with one response
+                responses = responses or [command_return]
+                for number, response in enumerate(responses, start=1):
+                    embed.add_field(
+                        name=f"Response {number}", value=response, inline=False
+                    )
+                break
+        else:
+            embed.add_field(
+                name="Error",
+                value=f"The command `{command_name}` does not exist.",
+                inline=False,
+            )
+        await discord_utils.send_message(ctx, embed)
 
     # def parse_responses(self, args):
     #     """Parses args as list."""
