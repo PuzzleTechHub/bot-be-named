@@ -39,7 +39,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         await logging_utils.log_command("pin", ctx.guild, ctx.channel, ctx.author)
 
         if not ctx.message.reference:
-            # channel_history = await ctx.message.channel.history(limit=2).flatten()
             channel_history = [message async for message in ctx.message.channel.history(limit=2)]
             message = channel_history[-1]
         else:
