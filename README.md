@@ -37,11 +37,11 @@ Welcome! Once you've followed these instructions, you should be good to start co
 
 | You need | Cost |
 | --- | --- |
-| Python 3.12+ and Git | Free |
-| A Discord account and a test server you own | Free |
-| A personal Google account | Free for this use |
-| A Postgres database | Free tier |
-| A GeoNames account (optional, only for some functions) | Free |
+| [Python 3.12+](https://www.python.org/downloads/) and [Git](https://git-scm.com/downloads) | Free |
+| A [Discord account](https://discord.com/register) and a [test server you own](https://support.discord.com/hc/en-us/articles/204849977-How-do-I-create-a-server) | Free |
+| A personal [Google account](https://accounts.google.com/signup) | Free for this use |
+| A [Postgres database](https://www.postgresql.org/download/) (see [step 4](#4-set-up-a-database)) (we use [Supabase](https://supabase.com/)) | Free tier |
+| A [GeoNames account](https://www.geonames.org/login) (optional, only for some functions) | Free |
 
 Be sure to not commit `.env` or `client_secret.json`. Both are already in `.gitignore`.
 
@@ -66,6 +66,8 @@ pre-commit install
 cp .env.template .env           # Windows: copy .env.template .env
 ```
 
+Debian and Ubuntu spit the venv/pip support into separate packages, so if creating the venv raises an `ensurepip` error, run `sudo apt install python3.12-venv` first.
+
 You'll fill in `.env` in step 5.
 
 #### 2. Create the Discord bot
@@ -84,7 +86,7 @@ BBN edits its sheets through a service account: essentially its own email and cr
 1. In the [Google Cloud console](https://console.cloud.google.com/), create a new project (e.g. `bbn-dev`) and make sure it's selected at the top.
 2. Go to **APIs & Services -> Library** and enable both the **Google Sheets API** and the **Google Drive API**.
 3. Go to **IAM & Admin -> Service Accounts -> Create service account**. You'll only need to give it a name.
-4. Open the new account, go to the **Keys** tab, click **Add key → Create new key ->  JSON**. A file should download.
+4. Open the new account, go to the **Keys** tab, click **Add key -> Create new key ->  JSON**. A file should download.
 5. Rename it to `client_secret.json` and put it in the root of your `bot-be-named` folder, next to `bot.py`. 
 6. Copy the `client_email` from that file (it ends in `iam.gserviceaccount.com`). Your tests sheet must give this email **Editor** permissions, the same way you'd share with a person, or you can set the sheet's general access to "Anyone with the link" as Editor.
 
