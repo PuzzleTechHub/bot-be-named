@@ -251,6 +251,13 @@ def get_timestamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
+def hyperlink_formula(link: str, text: str) -> str:
+    """Builds a =HYPERLINK formula, escaping any double quotes in the link and text."""
+    link = link.replace('"', '""')
+    text = text.replace('"', '""')
+    return f'=HYPERLINK("{link}", "{text}")'
+
+
 def findsheettether(
     curr_cat_id: int, curr_chan_id: int, curr_thread_id: Optional[int] = None
 ):
