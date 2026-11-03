@@ -222,6 +222,6 @@ There are multiple repositories and code that BBN borrowed code from. Further in
 
 ## Contributing/Issues
 
-If you find any issues, bugs, or improvements, please feel free to open an issue and/or pull request! Thank you!
+See [Contributing.MD](/.github/CONTRIBUTING.md) for the full contribution guidelines. No AI, be on discord, be a human. 
 
-Feel free to join our discord with any questions you may have! If you are unable to join the discord, contact [TheOriginalSoni](https://github.com/TheOriginalSoni) (`@talesfromtim` on discord). 
+Join the discord for any issues, improvements or answers. **If you are unable to join the discord, contact [TheOriginalSoni](https://github.com/TheOriginalSoni) (`@talesfromtim` on discord).**
