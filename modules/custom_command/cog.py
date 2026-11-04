@@ -37,15 +37,21 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             await discord_utils.send_message(ctx, embed)
             return False
 
-        if not is_global and command_name in database.CUSTOM_COMMANDS[ctx.guild.id]:
-            command_return, _, responses = database.CUSTOM_COMMANDS[ctx.guild.id][
+        # Global commands are kept under constants.DB_GLOBAL instead of a server id
+        server_id = constants.DB_GLOBAL if is_global else ctx.guild.id
+        if command_name in database.CUSTOM_COMMANDS.get(server_id, {}):
+            command_return, _, responses = database.CUSTOM_COMMANDS[server_id][
                 command_name
             ]
+            where = "global commands" if is_global else ctx.guild.name
+            edit_command = (
+                "editglobalcustomcommand" if is_global else "editcustomcommand"
+            )
             embed.add_field(
                 name="Failed",
-                value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value{'s' if responses and len(responses) > 1 else ''} "
+                value=f"The command `{ctx.prefix}{command_name}` already exists in `{where}` with value{'s' if responses and len(responses) > 1 else ''} "
                 f"`{' | '.join(responses or [command_return])}`. If you'd like to replace "
-                f"`{ctx.prefix}{command_name}`, please use `{ctx.prefix}editcustomcommand {command_name}`",
+                f"`{ctx.prefix}{command_name}`, please use `{ctx.prefix}{edit_command} {command_name}`",
             )
             await discord_utils.send_message(ctx, embed)
             return False
@@ -157,7 +163,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         """Short summary of how the customcommand went."""
         return (
             f"I have gathered {len(responses)} response{'s' if len(responses) > 1 else ''} for the command `{command_name}`. "
-            f"Use `{ctx.prefix}listcc {command_name}` to see {'them' if len(responses) > 1 else 'it'}."
+            f"Use `{ctx.prefix}listcr {command_name}` to see {'them' if len(responses) > 1 else 'it'}."
         )
 
     async def add_cc_generic(
@@ -171,18 +177,21 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         """Saves a new custom command to the database and then the cache. Then, it sends the result."""
         embed = discord_utils.create_embed()
         command_return = responses[0]  # TODO Drop this soon
+        # Global commands are kept under constants.DB_GLOBAL instead of a server id
+        server_id = constants.DB_GLOBAL if is_global else ctx.guild.id
+        server_name = "Global" if is_global else ctx.guild.name
 
         with Session(database.DATABASE_ENGINE) as session:
             result = (
                 session.query(database.CustomCommands)
-                .filter_by(server_id_command=f"{ctx.guild.id} {command_name}")
+                .filter_by(server_id_command=f"{server_id} {command_name}")
                 .first()
             )
             if result is None:
                 stmt = insert(database.CustomCommands).values(
-                    server_id=ctx.guild.id,
-                    server_name=ctx.guild.name,
-                    server_id_command=f"{ctx.guild.id} {command_name}",
+                    server_id=server_id,
+                    server_name=server_name,
+                    server_id_command=f"{server_id} {command_name}",
                     command_name=command_name,
                     command_return=command_return,
                     image=is_image,
@@ -204,13 +213,13 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
                 is_image = bool(result.image)
                 embed.add_field(
                     name="Failed",
-                    value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}`. "
+                    value=f"The command `{ctx.prefix}{command_name}` already exists in `{server_name}`. "
                     f"If you'd like to replace `{ctx.prefix}{command_name}`, please use "
-                    f"`{ctx.prefix}editcustomcommand {command_name}`",
+                    f"`{ctx.prefix}{'editglobalcustomcommand' if is_global else 'editcustomcommand'} {command_name}`",
                 )
 
             # update cache
-            database.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (
+            database.CUSTOM_COMMANDS.setdefault(server_id, {})[command_name] = (
                 command_return,
                 is_image,
                 responses,
@@ -232,6 +241,8 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         enter possible responses for the command, from which the bot will pick
         one randomly out of. If you override a global command with the same name
         with a server command, your server command will take priority over the global one.
+
+        All the possible responses for a custom command is referred to as the command's "responses".
 
         Permission Category : Trusted Roles only.
         Usage: `~addcustomcommand command_name This is my custom command!`
@@ -379,375 +390,326 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             )
         await discord_utils.send_message(ctx, embed)
 
-    # def parse_responses(self, args):
-    #     """Parses args as list."""
-    #     return [response for response in args if response.strip()]
+    @commands.command(
+        name="listcustomcommands",
+        aliases=["lsccommands", "lscustomcommands", "listccommands", "listcc", "lcc"],
+    )
+    async def lscustomcommands(self, ctx):
+        """Lists the custom commands in the server.
 
-    # async def add_cc_generic(
-    #     self,
-    #     ctx,
-    #     command_name,
-    #     responses,
-    #     is_image: bool,
-    #     is_global: bool,
-    # ):
-    #     embed = discord_utils.create_embed()
-    #     command_return = " | ".join(responses)
-    #     quoted_responses = " ".join(f'"{response}"' for response in responses)
-    #     # Only save the list if there is more than one response to pick from
-    #     if len(responses) < 2:
-    #         responses = None
+        Usage: `~listcustomcommands`
+        """
+        await logging_utils.log_command(
+            "lscustomcommands", ctx.guild, ctx.channel, ctx.author
+        )
+        embed = discord_utils.create_embed()
 
-    #     if command_name in constants.DEFAULT_COMMANDS:
-    #         embed.add_field(
-    #             name="Failed",
-    #             value=f"Command {command_name} is a default command. Please use a different name.",
-    #         )
-    #         await discord_utils.send_message(ctx, embed)
-    #         return
+        # The guild's custom commands
+        guild_id = ctx.guild.id
+        if (
+            guild_id in database.CUSTOM_COMMANDS
+            and len(database.CUSTOM_COMMANDS[guild_id]) > 0
+        ):
+            cc_list = database.CUSTOM_COMMANDS[guild_id].keys()
+            custom_commands = "\n".join(sorted(cc_list))
+            embed.add_field(
+                name=f"Custom commands for {guild_id} : {ctx.guild.name}",
+                value=custom_commands,
+            )
+        else:
+            embed.add_field(
+                name="Failed",
+                value="No custom commands found for this server, why not"
+                f" make one with {ctx.prefix}addcustomcommand?",
+                inline=False,
+            )
 
-    #     if not is_global and command_name in database.CUSTOM_COMMANDS[ctx.guild.id]:
-    #         embed.add_field(
-    #             name="Failed",
-    #             value=f"The command `{ctx.prefix}{command_name}` already exists in `{ctx.guild.name}` with value{'s' if database.CUSTOM_COMMANDS[ctx.guild.id][command_name][2] else ''} "
-    #             f"`{database.CUSTOM_COMMANDS[ctx.guild.id][command_name][0]}`. If you'd like to replace "
-    #             f"`{ctx.prefix}{command_name}`, please use `{ctx.prefix}editcustomcommand {command_name} "
-    #             f"{quoted_responses}`",
-    #         )
-    #         await discord_utils.send_message(ctx, embed)
-    #         return
+        # The global commands
+        guild_id = constants.DB_GLOBAL  # So -1
+        owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
+        if (
+            guild_id in database.CUSTOM_COMMANDS
+            and len(database.CUSTOM_COMMANDS[guild_id]) > 0
+        ):
+            cc_list = database.CUSTOM_COMMANDS[guild_id].keys()
+            custom_commands = (
+                "\n".join(sorted(cc_list))
+                + f"\nContact {owner.mention} to suggest more custom commands!"
+            )
+            embed.add_field(
+                name=f"Global custom commands by {owner} : {guild_id}",
+                value=custom_commands,
+                inline=False,
+            )
+        else:
+            embed.add_field(
+                name="Success",
+                value=f"No global custom commands yet. Contact {owner.mention} to suggest one!",
+                inline=False,
+            )
+        await discord_utils.send_message(ctx, embed)
 
-    #     with Session(database.DATABASE_ENGINE) as session:
-    #         result = (
-    #             session.query(database.CustomCommands)
-    #             .filter_by(server_id_command=f"{ctx.guild.id} {command_name}")
-    #             .first()
-    #         )
-    #         if result is None:
-    #             stmt = insert(database.CustomCommands).values(
-    #                 server_id=ctx.guild.id,
-    #                 server_name=ctx.guild.name,
-    #                 server_id_command=f"{ctx.guild.id} {command_name}",
-    #                 command_name=command_name,
-    #                 command_return=command_return,
-    #                 image=is_image,
-    #                 responses=responses,
-    #             )
-    #             session.execute(stmt)
-    #             session.commit()
+    @commands.command(
+        name="listcustomresponses",
+        aliases=["lscresponses", "lscustomresponses", "listcresponses", "listcr"],
+    )
+    async def listcustomresponses(self, ctx, command_name: str):
+        """List all the custom responses for a command in a server.
 
-    #             embed.add_field(
-    #                 name="Success",
-    #                 value=f"Added `{ctx.prefix}{command_name}` with value{'s' if responses else ''} `{command_return}`",
-    #             )
-    #         # Command exists in the DB but not in our constants.
-    #         else:
-    #             command_return = result.command_return
-    #             responses = result.responses
-    #         # update constants dict
-    #         database.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (
-    #             command_return,
-    #             is_image,
-    #             responses,
-    #         )
-    #     await discord_utils.send_message(ctx, embed)
+        Usage: `~listcustomresponses foo`
+        Usage: `~listcustomresponses flipcoin`
+        """
+        await logging_utils.log_command(
+            "listcustomresponses", ctx.guild, ctx.channel, ctx.author
+        )
+        await self.list_cc_responses(ctx, command_name.lower())
+        return
 
-    # @command_predicates.is_trusted()
-    # @commands.command(
-    #     name="addccommand",
-    #     aliases=["addcustomcommand", "addembedcommand", "customcommand", "addcc"],
-    # )
-    # async def addcustomcommand(self, ctx, command_name: str, *args):
-    #     """Add your own custom command to the bot with an embed reply
-    #     Give more than one response and the bot picks one at random each time.
-    #     Put quotes around any response with spaces in it.
-    #     If there is no server-specific custom command, it defaults to global version (if exists).
+    @command_predicates.is_trusted()
+    @commands.command(
+        name="editcustomcommand", aliases=["edituccommand", "editcimage", "editcc"]
+    )
+    async def editcustomcommand(
+        self, ctx, command_name: str, *, command_return: Optional[str] = None
+    ):
+        """Edit a custom command for the bot, by replacing all its responses. If the
+        command doesn't already exist, this command will add it instead (see `~help addcustomcommand`).
+        Everything after the command name is the reply, line breaks included.
 
-    #     Permission Category : Trusted Roles only.
-    #     Usage: `~addccommand command_name "This is my custom command!"`
-    #     Usage: `~addccommand flipcoin Heads Tails`
-    #     """
-    #     await logging_utils.log_command(
-    #         "addcustomcommand", ctx.guild, ctx.channel, ctx.author
-    #     )
-    #     embed = discord_utils.create_embed()
+        Permission Category : Trusted Roles only.
+        Usage: `~editcustomcommand foo My new reply!`
+        Usage: `~editcustomcommand flipcoin` (then say `Heads`, `Tails` and `Edge` in subsequent
+        messages)
+        """
+        await logging_utils.log_command(
+            "editcustomcommand", ctx.guild, ctx.channel, ctx.author
+        )
+        await self.edit_cc_generic(
+            ctx, command_name.lower(), command_return, is_global=False
+        )
 
-    #     responses = self.parse_responses(args)
-    #     if len(responses) <= 0:
-    #         embed = discord_utils.create_no_argument_embed("Command Return")
-    #         await discord_utils.send_message(ctx, embed)
-    #         return
-    #     command_name = command_name.lower()
-    #     await self.add_cc_generic(
-    #         ctx, command_name, responses, is_image=False, is_global=False
-    #     )
+    @command_predicates.is_bot_owner()
+    @commands.command(
+        name="editglobalcustomcommand",
+        aliases=["editglobalccommand", "editgcustomcommand", "editgcc", "editglobalcc"],
+    )
+    async def editglobalcustomcommand(
+        self, ctx, command_name: str, *, command_return: Optional[str] = None
+    ):
+        """Edit a global custom command for the bot, by replacing all its responses. If the
+        global command doesn't already exist, this command will add it instead (see `~help addglobalcustomcommand`).
+        Everything after the command name is the reply, line breaks included.
 
-    # @command_predicates.is_trusted()
-    # @commands.command(
-    #     name="addcustomimage", aliases=["addcimage", "addccimage", "addimagecc"]
-    # )
-    # async def addcustomimage(self, ctx, command_name: str, *args):
-    #     """Add your own custom command to the bot with a reply. It is not in a bot embed, so is ideal for images and role pings.
-    #     Give more than one response and the bot picks one at random each time.
-    #     Put quotes around any response with spaces in it.
-    #     If there is no server-specific custom command, it defaults to global version (if exists).
+        Permission Category : Bot Owner only.
+        Usage: `~editglobalcustomcommand foo My new reply!`
+        """
+        await logging_utils.log_command(
+            "editglobalcustomcommand", ctx.guild, ctx.channel, ctx.author
+        )
+        await self.edit_cc_generic(
+            ctx, command_name.lower(), command_return, is_global=True
+        )
 
-    #     Permission Category : Trusted Roles only.
-    #     Usage: `~addcimage command_name Link_to_image`
-    #     Usage: `~addcimage command_name Link_to_hyperlink`
-    #     Usage: `~addcimage command_name Link_to_image_1 Link_to_image_2`
-    #     """
-    #     await logging_utils.log_command(
-    #         "addcustomimage", ctx.guild, ctx.channel, ctx.author
-    #     )
-    #     embed = discord_utils.create_embed()
+    async def edit_cc_generic(self, ctx, command_name, command_return, is_global: bool):
+        """Replaces all the responses of a server (or global) custom command.
+        If the command doesn't exist yet, it gets added as a non-image command instead."""
+        # Global commands are kept under constants.DB_GLOBAL instead of a server id
+        server_id = constants.DB_GLOBAL if is_global else ctx.guild.id
+        is_new = command_name not in database.CUSTOM_COMMANDS.get(server_id, {})
+        if is_new and not await self.check_cc_name(ctx, command_name, is_global):
+            return
+        responses = await self.get_responses(ctx, command_name, command_return)
+        if responses is None:
+            return
+        # If the command doesn't exist yet, add it instead, which sends its own message
+        if is_new:
+            await self.add_cc_generic(
+                ctx, command_name, responses, is_image=False, is_global=is_global
+            )
+            return
 
-    #     responses = self.parse_responses(args)
-    #     if len(responses) <= 0:
-    #         embed = discord_utils.create_no_argument_embed("Command Return")
-    #         await discord_utils.send_message(ctx, embed)
-    #         return
+        embed = discord_utils.create_embed()
+        # Update command in DB
+        with Session(database.DATABASE_ENGINE) as session:
+            session.query(database.CustomCommands).filter_by(
+                server_id_command=f"{server_id} {command_name}"
+            ).update({"command_return": responses[0], "responses": responses})
+            session.commit()
+        database.CUSTOM_COMMANDS[server_id][command_name] = (
+            responses[0],
+            database.CUSTOM_COMMANDS[server_id][command_name][1],
+            responses,
+        )
+        embed.add_field(
+            name="Success",
+            value=f"Edited command `{ctx.prefix}{command_name}` to have value{'s' if len(responses) > 1 else ''} "
+            f"`{' | '.join(responses)}`",
+        )
+        await discord_utils.send_message(ctx, embed)
 
-    #     command_name = command_name.lower()
-    #     await self.add_cc_generic(
-    #         ctx, command_name, responses, is_image=True, is_global=False
-    #     )
+    async def rm_cc_response(self, ctx, command_name, response_number):
+        """Removes one response from a server custom command, but will refuse to remove the last one.
+        If the server has no command with that name, the Bot Owner can remove a response from the global one."""
+        embed = discord_utils.create_embed()
+        guild_id = ctx.guild.id
+        if command_name not in database.CUSTOM_COMMANDS[guild_id]:
+            if await ctx.bot.is_owner(
+                ctx.author
+            ) and command_name in database.CUSTOM_COMMANDS.get(constants.DB_GLOBAL, {}):
+                guild_id = constants.DB_GLOBAL
+            else:
+                embed.add_field(
+                    name="Failed",
+                    value=f"The command `{ctx.prefix}{command_name}` does not exist in `{ctx.guild.name}`.",
+                )
+                await discord_utils.send_message(ctx, embed)
+                return
 
-    # @command_predicates.is_bot_owner()
-    # @commands.command(
-    #     name="addglobalccommand",
-    #     aliases=["addglobalcustomcommand", "addglobalcc"],
-    # )
-    # async def addglobalcustomcommand(self, ctx, command_name: str, *args):
-    #     """Add your own global custom command to the bot with an embed reply.
-    #     Give more than one response and the bot picks one at random each time.
-    #     Put quotes around any response with spaces in it.
-    #     If there is no server-specific custom command, it defaults to global version.
+        command_return, is_image, responses = database.CUSTOM_COMMANDS[guild_id][
+            command_name
+        ]
 
-    #     Permission Category : Bot Owner only.
-    #     Usage: `~addglobalccommand command_name "This is my custom command!"`
-    #     """
-    #     await logging_utils.log_command(
-    #         "addglobalcustomcommand", ctx.guild, ctx.channel, ctx.author
-    #     )
-    #     embed = discord_utils.create_embed()
+        # older custom commands have nothing in the response list (None), so treat
+        # command_return as the one response.
+        responses = list(responses or [command_return])
+        if not 1 <= response_number <= len(responses):
+            embed.add_field(
+                name="Failed",
+                value=f"`{ctx.prefix}{command_name}` does not have a response number `{response_number}`."
+                f" `{ctx.prefix}{command_name}` only has {len(responses)} response{'s' if len(responses) > 1 else ''}.",
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+        if len(responses) == 1:
+            embed.add_field(
+                name="Failed",
+                value=f"`{ctx.prefix}{command_name}` only has one response, so it can't be removed. "
+                f"Use `{ctx.prefix}removecustomcommand {command_name}` to delete the command instead.",
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
 
-    #     responses = self.parse_responses(args)
-    #     if len(responses) <= 0:
-    #         embed = discord_utils.create_no_argument_embed("Command Return")
-    #         await discord_utils.send_message(ctx, embed)
-    #         return
-    #     command_name = command_name.lower()
-    #     await self.add_cc_generic(
-    #         ctx, command_name, responses, is_image=False, is_global=True
-    #     )
+        responses.pop(response_number - 1)
+        with Session(database.DATABASE_ENGINE) as session:
+            session.query(database.CustomCommands).filter_by(
+                server_id_command=f"{guild_id} {command_name}"
+            ).update({"command_return": responses[0], "responses": responses})
+            session.commit()
+        database.CUSTOM_COMMANDS[guild_id][command_name] = (
+            responses[0],
+            is_image,
+            responses,
+        )
+        embed.add_field(
+            name="Success",
+            value=f"Removed response {response_number} from `{ctx.prefix}{command_name}`. "
+            f"{self.describe_response(ctx, command_name, responses)}",
+        )
+        await discord_utils.send_message(ctx, embed)
 
-    # @command_predicates.is_bot_owner()
-    # @commands.command(
-    #     name="addglobalcustomimage",
-    #     aliases=["addglobalcimage", "addglobalccimage", "addglobalimagecc"],
-    # )
-    # async def addglobalcustomimage(self, ctx, command_name: str, *args):
-    #     """Add your own custom command to the bot with a reply. It is not in a bot embed, so is ideal for images and role pings.
-    #     Give more than one response and the bot picks one at random each time.
-    #     Put quotes around any response with spaces in it.
-    #     If there is no custom command, it defaults to global version.
+    @command_predicates.is_trusted_or_bot_owner()
+    @commands.command(
+        name="removecustomcommand",
+        aliases=[
+            "rmcustomcommand",
+            "rmccommand",
+            "removeccommand",
+            "removecc",
+            "rmcc",
+        ],
+    )
+    async def rmcustomcommand(
+        self,
+        ctx,
+        command_name: str,
+    ):
+        """Removes an existing custom command. If this is triggered by the Bot Owner,
+        the Bot Owner can remove a global command (note: if a guild custom command
+        exists with the same name, the guild command will be the one to get deleted).
 
-    #     Permission Category : Bot Owner only.
-    #     Usage: `~addglobalcimage command_name Link_to_image`
-    #     Usage: `~addglobalcimage command_name Link_to_hyperlink`
-    #     """
-    #     await logging_utils.log_command(
-    #         "addglobalcustomimage", ctx.guild, ctx.channel, ctx.author
-    #     )
-    #     embed = discord_utils.create_embed()
+        Permission Category : Trusted Roles or Bot Owner only.
+        Usage: `~rmcustomcommand potato`
+        """
+        await logging_utils.log_command(
+            "rmcustomcommand",
+            ctx.guild,
+            ctx.channel,
+            ctx.author,
+        )
+        command_name = command_name.lower()
 
-    #     responses = self.parse_responses(args)
-    #     if len(responses) <= 0:
-    #         embed = discord_utils.create_no_argument_embed("Command Return")
-    #         await discord_utils.send_message(ctx, embed)
-    #         return
+        embed = discord_utils.create_embed()
+        guild_id = ctx.guild.id
+        if command_name in database.CUSTOM_COMMANDS[guild_id]:
+            del database.CUSTOM_COMMANDS[guild_id][command_name]  # Delete from cache
+            with Session(database.DATABASE_ENGINE) as session:
+                session.query(database.CustomCommands).filter_by(
+                    server_id_command=f"{guild_id} {command_name}"
+                ).delete()
+                session.commit()
 
-    #     command_name = command_name.lower()
-    #     await self.add_cc_generic(
-    #         ctx, command_name, responses, is_image=True, is_global=True
-    #     )
+            # Tell the Bot Owner if a global command with the same name is still there
+            owner_note = ""
+            if await ctx.bot.is_owner(
+                ctx.author
+            ) and command_name in database.CUSTOM_COMMANDS.get(constants.DB_GLOBAL, {}):
+                owner_note = (
+                    ". Heads up: a global command has the same name as the"
+                    " one you just deleted. The global one has not been removed."
+                )
+            embed.add_field(
+                name="Success",
+                value=f"Deleted custom command `{ctx.prefix}{command_name}`{owner_note}",
+            )
+        elif await ctx.bot.is_owner(
+            ctx.author
+        ) and command_name in database.CUSTOM_COMMANDS.get(constants.DB_GLOBAL, {}):
+            # Delete global commands
+            guild_id = constants.DB_GLOBAL
+            del database.CUSTOM_COMMANDS[guild_id][command_name]  # Delete from cache
+            with Session(database.DATABASE_ENGINE) as session:
+                session.query(database.CustomCommands).filter_by(
+                    server_id_command=f"{guild_id} {command_name}"
+                ).delete()
+                session.commit()
+            embed.add_field(
+                name="Success",
+                value=f"Deleted global command `{ctx.prefix}{command_name}`",
+            )
+        else:
+            embed.add_field(
+                name="Failed",
+                value=f"Custom command `{ctx.prefix}{command_name}` was not found.",
+            )
+        await discord_utils.send_message(ctx, embed)
 
-    # @commands.command(
-    #     name="listcustomcommands",
-    #     aliases=["lsccommands", "lscustomcommands", "listccommands", "listcc"],
-    # )
-    # async def lscustomcommands(self, ctx):
-    #     """List custom commands in the server
+    @command_predicates.is_trusted_or_bot_owner()
+    @commands.command(
+        name="removecustomresponse",
+        aliases=[
+            "rmcustomresponse",
+            "rmcresponse",
+            "removecresponse",
+            "removecr",
+            "rmcr",
+        ],
+    )
+    async def removecustomresponse(self, ctx, command_name: str, response_number: int):
+        """Remove an existing response from a custom command. Global commands
+        can only be edited by the Bot Owner.
 
-    #     Usage: `~listccommands`
-    #     """
-    #     await logging_utils.log_command(
-    #         "lscustomcommands", ctx.guild, ctx.channel, ctx.author
-    #     )
-    #     embed = discord_utils.create_embed()
-
-    #     # Guild custom command
-    #     guildid = ctx.guild.id
-    #     if (
-    #         guildid in database.CUSTOM_COMMANDS
-    #         and len(database.CUSTOM_COMMANDS[guildid]) > 0
-    #     ):
-    #         cclist = database.CUSTOM_COMMANDS[guildid].keys()
-    #         custom_commands = "\n".join(sorted(cclist))
-    #         embed.add_field(
-    #             name=f"Custom Commands for {guildid} : {ctx.guild.name}",
-    #             value=custom_commands,
-    #         )
-    #     else:
-    #         embed.add_field(
-    #             name="Failed",
-    #             value=f"No custom commands in `{guildid}`, why not use "
-    #             f"`{ctx.prefix}addcustomcommand` to create one?",
-    #             inline=False,
-    #         )
-
-    #     # Global commands: Guild id = -1
-    #     guildid = -1
-    #     owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
-    #     if (
-    #         guildid in database.CUSTOM_COMMANDS
-    #         and len(database.CUSTOM_COMMANDS[guildid]) > 0
-    #     ):
-    #         cclist = database.CUSTOM_COMMANDS[guildid].keys()
-    #         custom_commands = (
-    #             "\n".join(sorted(cclist))
-    #             + f"\nContact {owner.mention} to suggest any more custom commands."
-    #         )
-    #         embed.add_field(
-    #             name="Global Custom Commands",
-    #             value=custom_commands,
-    #             inline=False,
-    #         )
-    #     else:
-    #         embed.add_field(
-    #             name="Success",
-    #             value=f"No global custom commands yet. Contact {owner.mention} to suggest one.",
-    #             inline=False,
-    #         )
-    #     await discord_utils.send_message(ctx, embed)
-
-    # @command_predicates.is_trusted()
-    # @commands.command(
-    #     name="editcustomcommand", aliases=["editccommand", "editcimage", "editcc"]
-    # )
-    # async def editcustomcommand(self, ctx, command_name: str, *args):
-    #     """Edit an existing custom command. If the command doesn't already exist, adds the command.
-    #     Give more than one response and the bot picks one at random each time.
-    #     Put quotes around any response with spaces in it.
-    #     See also: `~addccommand`
-
-    #     Permission Category : Trusted Roles only.
-    #     Usage: `~editcustomcommand potato "My new return value"`
-    #     Usage: `~editcustomcommand flipcoin Heads Tails Edge`
-    #     """
-    #     await logging_utils.log_command(
-    #         "editcustomcommand", ctx.guild, ctx.channel, ctx.author
-    #     )
-    #     embed = discord_utils.create_embed()
-
-    #     responses = self.parse_responses(args)
-    #     if len(responses) <= 0:
-    #         embed = discord_utils.create_no_argument_embed("Command Return")
-    #         await discord_utils.send_message(ctx, embed)
-    #         return
-
-    #     command_name = command_name.lower()
-
-    #     # If the command does not exist yet, just add it to DB.
-    #     if command_name not in database.CUSTOM_COMMANDS[ctx.guild.id]:
-    #         await self.add_cc_generic(
-    #             ctx, command_name, responses, is_image=False, is_global=False
-    #         )
-    #         return
-
-    #     command_return = " | ".join(responses)
-    #     # Only save the list if there is more than one response to pick from
-    #     if len(responses) < 2:
-    #         responses = None
-
-    #     # Update command in DB, keeping whether it's an image or embed
-    #     with Session(database.DATABASE_ENGINE) as session:
-    #         session.query(database.CustomCommands).filter_by(
-    #             server_id_command=f"{ctx.guild.id} {command_name}"
-    #         ).update({"command_return": command_return, "responses": responses})
-    #         session.commit()
-    #     database.CUSTOM_COMMANDS[ctx.guild.id][command_name] = (
-    #         command_return,
-    #         database.CUSTOM_COMMANDS[ctx.guild.id][command_name][1],
-    #         responses,
-    #     )
-    #     embed.add_field(
-    #         name="Success",
-    #         value=f"Edited command `{ctx.prefix}{command_name}` to have value{'s' if responses else ''} "
-    #         f"`{command_return}`",
-    #     )
-    #     await discord_utils.send_message(ctx, embed)
-
-    # @command_predicates.is_trusted_or_bot_owner()
-    # @commands.command(
-    #     name="removecustomcommand",
-    #     aliases=[
-    #         "rmcustomcommand",
-    #         "rmccommand",
-    #         "removeccommand",
-    #         "removecc",
-    #         "rmcc",
-    #     ],
-    # )
-    # async def rmcustomcommand(self, ctx, command_name: str):
-    #     """Remove an existing custom command.
-    #     If triggered by Bot Owner, can remove a global custom command (if a guild custom command does not also exist).
-
-    #     Permission Category : Trusted Roles or Bot Owner only.
-    #     Usage: `~rmcustomcommand potato`
-    #     """
-    #     await logging_utils.log_command(
-    #         "rmcustomcommand", ctx.guild, ctx.channel, ctx.author
-    #     )
-    #     embed = discord_utils.create_embed()
-
-    #     command_name = command_name.lower()
-    #     guildid = ctx.guild.id
-    #     if command_name in database.CUSTOM_COMMANDS[guildid]:
-    #         del database.CUSTOM_COMMANDS[guildid][command_name]
-    #         with Session(database.DATABASE_ENGINE) as session:
-    #             session.query(database.CustomCommands).filter_by(
-    #                 server_id_command=f"{guildid} {command_name}"
-    #             ).delete()
-    #             session.commit()
-    #         embed.add_field(
-    #             name="Success",
-    #             value=f"Deleted custom command `{ctx.prefix}{command_name}`",
-    #         )
-    #     elif (
-    #         await ctx.bot.is_owner(ctx.author)
-    #         and command_name in database.CUSTOM_COMMANDS[-1]
-    #     ):
-    #         # Global commands: Guild id = -1
-    #         guildid = -1
-    #         del database.CUSTOM_COMMANDS[guildid][command_name]
-    #         with Session(database.DATABASE_ENGINE) as session:
-    #             session.query(database.CustomCommands).filter_by(
-    #                 server_id_command=f"{guildid} {command_name}"
-    #             ).delete()
-    #             session.commit()
-    #         embed.add_field(
-    #             name="Success",
-    #             value=f"Deleted global command `{ctx.prefix}{command_name}`",
-    #         )
-    #     else:
-    #         embed.add_field(
-    #             name="Failed",
-    #             value=f"Command `{ctx.prefix}{command_name}` does not exist in {ctx.guild.name}",
-    #             # Technically it's the same error if no global command either, but no need to duplicate error fields yet
-    #         )
-    #     await discord_utils.send_message(ctx, embed)
+        Permission Category : Trusted Roles or Bot Owner only.
+        Usage: `~removecustomresponse potato 1` (Removes the first response)
+        """
+        await logging_utils.log_command(
+            "rmcustomresponse",
+            ctx.guild,
+            ctx.channel,
+            ctx.author,
+        )
+        command_name = command_name.lower()
+        await self.rm_cc_response(ctx, command_name, response_number)
+        return
 
 
 def setup(bot):
