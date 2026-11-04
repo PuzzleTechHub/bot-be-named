@@ -294,7 +294,11 @@ def get_sheet_from_key_or_link(
     try:
         sheet = gspread_client.open_by_url(sheet_key_or_link)
         return sheet
-    except gspread.exceptions.APIError:
+    except (
+        gspread.exceptions.APIError,
+        gspread.exceptions.SpreadsheetNotFound,
+        PermissionError,
+    ):
         return None
     # Given str was not a link
     except gspread.exceptions.NoValidUrlKeyFound:
@@ -304,7 +308,11 @@ def get_sheet_from_key_or_link(
         sheet = gspread_client.open_by_key(sheet_key_or_link)
         return sheet
     # Entity Not Found
-    except gspread.exceptions.APIError:
+    except (
+        gspread.exceptions.APIError,
+        gspread.exceptions.SpreadsheetNotFound,
+        PermissionError,
+    ):
         return None
 
 
