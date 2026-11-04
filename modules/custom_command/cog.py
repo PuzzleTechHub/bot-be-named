@@ -1,13 +1,14 @@
-import database
-import constants
-import os  # noqa: F401
 import asyncio
+import os  # noqa: F401
 from typing import Optional
-from utils import discord_utils, logging_utils, command_predicates
-from nextcord.ext import commands
-from sqlalchemy.orm import Session
-from sqlalchemy import insert
 
+from nextcord.ext import commands
+from sqlalchemy import insert
+from sqlalchemy.orm import Session
+
+import constants
+import database
+from utils import command_predicates, discord_utils, logging_utils
 
 """
 Custom command module. Allows users to set their own "custom command" of saveable image/embed/messages making a lot of easy to retrieve utility.
@@ -288,7 +289,32 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
     async def addglobalcustomcommand(
         self, ctx, command_name: str, *, command_return: Optional[str] = None
     ):
-        pass
+        """Add a global custom command to the bot with an embed reply. Every
+        server with this bot will be able to call a global command, as long
+        as there are no commands specific to the server with the same name.
+        Everything after the command name is the reply, line breaks included.
+        Leave it empty and the bot asks for responses one message at a time.
+        Give more than one and the bot picks one at random each time.
+
+        Permission Category : Bot Owner only.
+        Usage: `~addglobalcustomcommand command_name Reply`
+        """
+        await logging_utils.log_command(
+            "addglobalcustomcommand", ctx.guild, ctx.channel, ctx.author
+        )
+        command_name = command_name.lower()
+        if not await self.check_cc_name(ctx, command_name, is_global=True):
+            return
+        responses = await self.get_responses(ctx, command_name, command_return)
+        if responses is None:
+            return
+        await self.add_cc_generic(
+            ctx,
+            command_name,
+            responses,
+            is_image=False,
+            is_global=True,
+        )
 
     @command_predicates.is_bot_owner()
     @commands.command(
@@ -304,7 +330,28 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
     async def addglobalcustomimage(
         self, ctx, command_name: str, *, command_return: Optional[str] = None
     ):
-        pass
+        """Add a global custom command to the bot with a reply. It is not in
+        a bot embed, so is ideal for images and role pings.
+        Everything after the command name is the reply, line breaks included.
+        Leave it empty and the bot asks for responses one message at a time.
+        Give more than one and the bot picks one at random each time.
+
+        Permission Category : Bot Owner only.
+        Usage: `~addglobalcustomimage command_name Link_to_image`
+        Usage: `~addglobalcustomimage command_name Link_to_hyperlink`
+        """
+        await logging_utils.log_command(
+            "addglobalcustomimage", ctx.guild, ctx.channel, ctx.author
+        )
+        command_name = command_name.lower()
+        if not await self.check_cc_name(ctx, command_name, is_global=True):
+            return
+        responses = await self.get_responses(ctx, command_name, command_return)
+        if responses is None:
+            return
+        await self.add_cc_generic(
+            ctx, command_name, responses, is_image=True, is_global=True
+        )
 
     async def list_cc_responses(self, ctx, command_name):
         """Sends all the numbered response(s) of a given custom command."""
