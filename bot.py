@@ -161,79 +161,64 @@ def main():
                 message.guild is not None
                 and message.guild.id in database.CUSTOM_COMMANDS
             ):
-                command_return = None
-                # check if custom command is in cache for that server
-                if command_name in [
-                    command.lower()
-                    for command in database.CUSTOM_COMMANDS[message.guild.id].keys()
-                ]:
-                    command_return = database.CUSTOM_COMMANDS[message.guild.id][
-                        command_name
-                    ][0]
+                # Check the cache for this server's custom command first, then look for the global one.
+                # Each entry is (command_return, is_image, responses). TODO: make it a class
+                custom_command = database.CUSTOM_COMMANDS[message.guild.id].get(
+                    command_name
+                ) or database.CUSTOM_COMMANDS.get(constants.DB_GLOBAL, {}).get(
+                    command_name
+                )
 
-                    # Random responses command, so pick one of its responses
-                    responses = database.CUSTOM_COMMANDS[message.guild.id][
-                        command_name
-                    ][2]
-
-                    if responses:
-                        command_return = random.choice(responses)
-
-                # Command found in cache
-                if command_return is not None:
-                    # Image, so we use normal text.
-                    if database.CUSTOM_COMMANDS[message.guild.id][command_name][1]:
-                        await message.channel.send(command_return)
-                    # Non-Image, so use embed.
-                    else:
-                        embed = nextcord.Embed(
-                            description=command_return, color=constants.EMBED_COLOR
-                        )
-                        await message.channel.send(embed=embed)
-                    return
-
-                # The custom command is not in the cache
-                # Query the DB to see if we have a command with that name
-                with Session(database.DATABASE_ENGINE) as session:
-                    # Checking for this server
-                    result = (
-                        session.query(database.CustomCommands)
-                        .filter_by(
-                            server_id_command=f"{message.guild.id} {command_name}"
-                        )
-                        .first()
-                    )
-                    # Check for global custom commands
-                    # TODO - confirm global cc trigger works
-                    if result is None:
+                # Find it in the DB if it's not in the cache
+                if custom_command is None:
+                    with Session(database.DATABASE_ENGINE) as session:
+                        # Check in this server
                         result = (
                             session.query(database.CustomCommands)
                             .filter_by(
-                                server_id_command=f"{constants.DB_GLOBAL} {command_name}"
+                                server_id_command=f"{message.guild.id} {command_name}"
                             )
                             .first()
                         )
-                    if result is not None:
-                        command_return = result.command_return
-
-                        # Random responses command, so pick one of its responses
-                        if result.responses:
-                            command_return = random.choice(result.responses)
-                        if result.image:
-                            await message.channel.send(command_return)
-                            return
-                        else:
-                            embed = nextcord.Embed(
-                                description=command_return, color=constants.EMBED_COLOR
+                        # Check for global custom commands
+                        if result is None:
+                            result = (
+                                session.query(database.CustomCommands)
+                                .filter_by(
+                                    server_id_command=f"{constants.DB_GLOBAL} {command_name}"
+                                )
+                                .first()
                             )
-                            await message.channel.send(embed=embed)
-
-                        # Adds to cache. NOTE - This adds to cache even if local or global
-                        database.CUSTOM_COMMANDS[message.guild.id][command_name] = (
+                        # Not a custom command found in the DB either
+                        if result is None:
+                            return
+                        custom_command = (
                             result.command_return,
                             result.image,
                             result.responses,
                         )
+
+                        # Add to cache under the id it was found under
+                        database.CUSTOM_COMMANDS.setdefault(result.server_id, {})[
+                            command_name
+                        ] = custom_command
+
+                command_return, is_image, responses = custom_command
+
+                # If it has random responses, pick one of them
+                if responses:
+                    command_return = random.choice(responses)
+
+                # Image, so use normal text
+                if is_image:
+                    await message.channel.send(command_return)
+
+                # Non-image, so use embed
+                else:
+                    embed = nextcord.Embed(
+                        description=command_return, color=constants.EMBED_COLOR
+                    )
+                    await message.channel.send(embed=embed)
 
     client.run(os.getenv("DISCORD_TOKEN"))
 
