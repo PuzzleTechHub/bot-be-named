@@ -9,3 +9,4 @@ error_webhook.txt
 env/
 nohup.out
 .coverage
+fly.toml
