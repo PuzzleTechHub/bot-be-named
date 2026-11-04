@@ -22,7 +22,9 @@ MODULES_DIR = "modules"
 # DATABASE #
 ############
 
-DB_GLOBAL = "global"
+# Server id that global custom commands are stored under, in the database and in the cache.
+# server_id is a BIGINT, and no real Discord server has a negative id.
+DB_GLOBAL = -1
 
 ############
 # REMINDER #
