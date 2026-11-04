@@ -33,6 +33,13 @@ async def category_move_to_archive(ctx: Context, archive_name: Optional[str]):
     if await discord_utils.is_thread(ctx, ctx.channel):
         # Checking if thread can be archived by the bot
         if isinstance(ctx.channel, nextcord.Thread):
+            embed.add_field(
+                name="Success",
+                value=f"Archived {ctx.channel.mention} thread",
+                inline=False,
+            )
+            # Sending a new message unarchives the thread, so we send the success message before archiving it.
+            await discord_utils.send_message(ctx, embed)
             try:
                 await ctx.channel.edit(archived=True)
             except nextcord.Forbidden:
@@ -41,13 +48,6 @@ async def category_move_to_archive(ctx: Context, archive_name: Optional[str]):
                     value="Forbidden! Have you checked if the bot has the required permissions?",
                 )
                 await discord_utils.send_message(ctx, embed)
-                return
-            embed.add_field(
-                name="Success",
-                value=f"Archived {ctx.channel.mention} thread",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
         return
 
     # Otherwise mta is called from a regular channel

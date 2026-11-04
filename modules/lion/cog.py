@@ -100,23 +100,23 @@ class LionCog(commands.Cog, name="Lion"):
         embed = discord_utils.create_embed()
         # Handling if mta is called from a thread
         if await discord_utils.is_thread(ctx, ctx.channel):
-            # Checking if thread can be archived by the bot
-            try:
-                await ctx.channel.edit(archived=True)
-            except nextcord.Forbidden:
-                embed.add_field(
-                    name="Failed",
-                    value="Forbidden! Have you checked if the bot has the required permissions?",
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
             embed.add_field(
                 name="Success",
                 value=f"Archived {ctx.channel.mention} thread",
                 inline=False,
             )
-            await ctx.channel.edit(archived=True)
+            # Send before archiving, as a new message unarchives the thread
             await discord_utils.send_message(ctx, embed)
+            # Checking if thread can be archived by the bot
+            try:
+                await ctx.channel.edit(archived=True)
+            except nextcord.Forbidden:
+                embed = discord_utils.create_embed()
+                embed.add_field(
+                    name="Failed",
+                    value="Forbidden! Have you checked if the bot has the required permissions?",
+                )
+                await discord_utils.send_message(ctx, embed)
             return
 
         # Otherwise mta is called from a regular channel
