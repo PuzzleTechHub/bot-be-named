@@ -1568,16 +1568,21 @@ class HydraCog(commands.Cog, name="Hydra"):
         self,
         ctx,
         role_or_rolename: Union[nextcord.Role, str],
-        chan_or_channame: Union[nextcord.TextChannel, str],
+        chan_or_channame: Optional[Union[nextcord.TextChannel, str]] = None,
     ):
         """Allows a role to run `~catsummaryhydra` and `~watchcategoryhydra` in a channel.
+        If no channel is given, uses the current channel.
 
         Permission Category : Trusted roles only.
         Usage: `~summaryallowhydra @role #channel`
+        Usage: `~summaryallowhydra @role`
         """
         await logging_utils.log_command(
             "summaryallowhydra", ctx.guild, ctx.channel, ctx.author
         )
+
+        if chan_or_channame is None:
+            chan_or_channame = ctx.channel
 
         role = await discord_utils.find_role(ctx, role_or_rolename)
         if role is None:
