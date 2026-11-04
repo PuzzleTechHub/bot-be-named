@@ -1,5 +1,5 @@
 import asyncio
-import os  # noqa: F401
+import os
 from typing import Optional
 
 from nextcord.ext import commands
