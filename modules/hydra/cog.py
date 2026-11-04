@@ -1195,10 +1195,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         )
         prev_status = overview_sheet.get_cell_value(status_col + str(row_to_find))
 
-        # Same normalisation statuslion uses
-        new_status = status.capitalize()
-        if new_status == "In progress":
-            new_status = "In Progress"
+        new_status = sheet_utils.normalize_status(status)
 
         # Some statuses write a new timestamp, others clear
         new_value = None
