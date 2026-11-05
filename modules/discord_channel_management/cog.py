@@ -406,7 +406,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     async def clonechannel(
         self,
         ctx,
-        chan_a: Union[nextcord.TextChannel, str],
+        chan_a: Union[nextcord.TextChannel, nextcord.VoiceChannel, str],
         chan_b: str = "",
         origRoleorUser: Union[nextcord.Role, nextcord.Member, str, None] = None,
         targetRoleorUser: Union[nextcord.Role, nextcord.Member, str, None] = None,
@@ -414,6 +414,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         """Command to create channel in same category with given name.
         If user/role is specified, then syncs permissions as well.
         The channel created is just below the channel being cloned
+        Works for both text and voice channels.
 
         If making role/user changes, both old channel and new channel is necessary.
 
@@ -515,9 +516,18 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
         try:
             # create channel
-            new_channel = await guild.create_text_channel(
-                new_channel_name, category=category, overwrites=old_channel.overwrites
-            )
+            if isinstance(old_channel, nextcord.VoiceChannel):
+                new_channel = await guild.create_voice_channel(
+                    new_channel_name,
+                    category=category,
+                    overwrites=old_channel.overwrites,
+                )
+            else:
+                new_channel = await guild.create_text_channel(
+                    new_channel_name,
+                    category=category,
+                    overwrites=old_channel.overwrites,
+                )
             await new_channel.edit(position=old_channel.position + 1)
         except nextcord.Forbidden:
             embed.add_field(

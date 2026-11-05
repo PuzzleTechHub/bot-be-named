@@ -422,8 +422,16 @@ async def find_category(
 
 async def find_chan_or_thread(
     ctx: commands.Context,
-    chan_name: Union[nextcord.TextChannel, nextcord.Thread, nextcord.ForumChannel, str],
-) -> Union[nextcord.TextChannel, nextcord.Thread, nextcord.ForumChannel]:
+    chan_name: Union[
+        nextcord.TextChannel,
+        nextcord.Thread,
+        nextcord.ForumChannel,
+        nextcord.VoiceChannel,
+        str,
+    ],
+) -> Union[
+    nextcord.TextChannel, nextcord.Thread, nextcord.ForumChannel, nextcord.VoiceChannel
+]:
     """Convert the name to a nextcord Channel/Thread
     Arguments:
         - ctx (nextcord.ext.commands.Context): The command's context
@@ -434,7 +442,11 @@ async def find_chan_or_thread(
 
     if (
         isinstance(
-            chan_name, nextcord.TextChannel | nextcord.Thread | nextcord.ForumChannel
+            chan_name,
+            nextcord.TextChannel
+            | nextcord.Thread
+            | nextcord.ForumChannel
+            | nextcord.VoiceChannel,
         )
         or chan_name is None
     ):
@@ -450,7 +462,10 @@ async def find_chan_or_thread(
 
             if not isinstance(
                 chan_or_thread,
-                nextcord.TextChannel | nextcord.Thread | nextcord.ForumChannel,
+                nextcord.TextChannel
+                | nextcord.Thread
+                | nextcord.ForumChannel
+                | nextcord.VoiceChannel,
             ):
                 continue
 
