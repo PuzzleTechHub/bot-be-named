@@ -291,7 +291,7 @@ class MiscCog(commands.Cog, name="Misc"):
             f"Commonly used commands include-\n"
             f"- `{ctx.prefix}chanhydra` for making Google Sheet tabs for your current hunt\n"
             f"- `{ctx.prefix}solvedhydra` etc for marking puzzle channels as solved etc, and `{ctx.prefix}mtahydra` for cleaning up the channels. \n"
-            f"- `{ctx.prefix}addcustomcommand` etc for making a customised command with reply.\n\n",
+            f"- `{ctx.prefix}addcc` etc for making a customised command with reply.\n\n",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)

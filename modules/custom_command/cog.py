@@ -44,9 +44,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
                 command_name
             ]
             where = "global commands" if is_global else ctx.guild.name
-            edit_command = (
-                "editglobalcustomcommand" if is_global else "editcustomcommand"
-            )
+            edit_command = "editgcc" if is_global else "editcc"
             embed.add_field(
                 name="Failed",
                 value=f"The command `{ctx.prefix}{command_name}` already exists in `{where}` with value{'s' if responses and len(responses) > 1 else ''} "
@@ -215,7 +213,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
                     name="Failed",
                     value=f"The command `{ctx.prefix}{command_name}` already exists in `{server_name}`. "
                     f"If you'd like to replace `{ctx.prefix}{command_name}`, please use "
-                    f"`{ctx.prefix}{'editglobalcustomcommand' if is_global else 'editcustomcommand'} {command_name}`",
+                    f"`{ctx.prefix}{'editgcc' if is_global else 'editcc'} {command_name}`",
                 )
 
             # update cache
@@ -228,8 +226,14 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
     @command_predicates.is_trusted()
     @commands.command(
-        name="addcustomcommand",
-        aliases=["addccommand", "addembedcommand", "customcommand", "addcc", "cc"],
+        name="addcc",
+        aliases=[
+            "addcustomcommand",
+            "addccommand",
+            "addembedcommand",
+            "customcommand",
+            "cc",
+        ],
     )
     async def addcustomcommand(
         self, ctx, command_name: str, *, command_return: Optional[str] = None
@@ -245,8 +249,8 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         All the possible responses for a custom command is referred to as the command's "responses".
 
         Permission Category : Trusted Roles only.
-        Usage: `~addcustomcommand command_name This is my custom command!`
-        Usage: `~addcustomcommand flipcoin` (then say `Heads` and `Tails` in subsequent
+        Usage: `~addcc command_name This is my custom command!`
+        Usage: `~addcc flipcoin` (then say `Heads` and `Tails` in subsequent
         messages)
 
         """
@@ -265,8 +269,8 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
     @command_predicates.is_trusted()
     @commands.command(
-        name="addcustomimage",
-        aliases=["addcimage", "addccimage", "addimagecc"],
+        name="addci",
+        aliases=["addcustomimage", "addcimage", "addccimage", "addimagecc"],
     )
     async def addcustomimage(
         self, ctx, command_name: str, *, command_return: Optional[str] = None
@@ -276,8 +280,8 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         Leave it empty and the bot asks for responses one message at a time. Give more than one and the bot picks one at random each time.
 
         Permission Category : Trusted Roles only.
-        Usage: `~addcimage command_name Link_to_image`
-        Usage: `~addcimage command_name Link_to_hyperlink`
+        Usage: `~addci command_name Link_to_image`
+        Usage: `~addci command_name Link_to_hyperlink`
         """
         await logging_utils.log_command(
             "addcustomimage", ctx.guild, ctx.channel, ctx.author
@@ -294,8 +298,13 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
     @command_predicates.is_bot_owner()
     @commands.command(
-        name="addglobalcustomcommand",
-        aliases=["addglobalccommand", "addgcustomcommand", "addgcc", "addglobalcc"],
+        name="addgcc",
+        aliases=[
+            "addglobalcustomcommand",
+            "addglobalccommand",
+            "addgcustomcommand",
+            "addglobalcc",
+        ],
     )
     async def addglobalcustomcommand(
         self, ctx, command_name: str, *, command_return: Optional[str] = None
@@ -308,7 +317,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         Give more than one and the bot picks one at random each time.
 
         Permission Category : Bot Owner only.
-        Usage: `~addglobalcustomcommand command_name Reply`
+        Usage: `~addgcc command_name Reply`
         """
         await logging_utils.log_command(
             "addglobalcustomcommand", ctx.guild, ctx.channel, ctx.author
@@ -329,8 +338,10 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
     @command_predicates.is_bot_owner()
     @commands.command(
-        name="addglobalcustomimage",
+        name="addgci",
         aliases=[
+            "addglobalcustomimage",
+            "addglobalci",
             "addglobalcimage",
             "addglobalccimage",
             "addglobalimagecc",
@@ -348,8 +359,8 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         Give more than one and the bot picks one at random each time.
 
         Permission Category : Bot Owner only.
-        Usage: `~addglobalcustomimage command_name Link_to_image`
-        Usage: `~addglobalcustomimage command_name Link_to_hyperlink`
+        Usage: `~addgci command_name Link_to_image`
+        Usage: `~addgci command_name Link_to_hyperlink`
         """
         await logging_utils.log_command(
             "addglobalcustomimage", ctx.guild, ctx.channel, ctx.author
@@ -391,13 +402,19 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         await discord_utils.send_message(ctx, embed)
 
     @commands.command(
-        name="listcustomcommands",
-        aliases=["lsccommands", "lscustomcommands", "listccommands", "listcc", "lcc"],
+        name="listcc",
+        aliases=[
+            "listcustomcommands",
+            "lsccommands",
+            "lscustomcommands",
+            "listccommands",
+            "lcc",
+        ],
     )
     async def lscustomcommands(self, ctx):
         """Lists the custom commands in the server.
 
-        Usage: `~listcustomcommands`
+        Usage: `~listcc`
         """
         await logging_utils.log_command(
             "lscustomcommands", ctx.guild, ctx.channel, ctx.author
@@ -420,7 +437,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             embed.add_field(
                 name="Failed",
                 value="No custom commands found for this server, why not"
-                f" make one with {ctx.prefix}addcustomcommand?",
+                f" make one with {ctx.prefix}addcc?",
                 inline=False,
             )
 
@@ -450,14 +467,19 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         await discord_utils.send_message(ctx, embed)
 
     @commands.command(
-        name="listcustomresponses",
-        aliases=["lscresponses", "lscustomresponses", "listcresponses", "listcr"],
+        name="listcr",
+        aliases=[
+            "listcustomresponses",
+            "lscresponses",
+            "lscustomresponses",
+            "listcresponses",
+        ],
     )
     async def listcustomresponses(self, ctx, command_name: str):
         """List all the custom responses for a command in a server.
 
-        Usage: `~listcustomresponses foo`
-        Usage: `~listcustomresponses flipcoin`
+        Usage: `~listcr foo`
+        Usage: `~listcr flipcoin`
         """
         await logging_utils.log_command(
             "listcustomresponses", ctx.guild, ctx.channel, ctx.author
@@ -467,18 +489,24 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
     @command_predicates.is_trusted()
     @commands.command(
-        name="editcustomcommand", aliases=["edituccommand", "editcimage", "editcc"]
+        name="editcc",
+        aliases=[
+            "editcustomcommand",
+            "editccommand",
+            "editci",
+            "editcimage",
+        ],
     )
     async def editcustomcommand(
         self, ctx, command_name: str, *, command_return: Optional[str] = None
     ):
         """Edit a custom command for the bot, by replacing all its responses. If the
-        command doesn't already exist, this command will add it instead (see `~help addcustomcommand`).
+        command doesn't already exist, this command will add it instead (see `~help addcc`).
         Everything after the command name is the reply, line breaks included.
 
         Permission Category : Trusted Roles only.
-        Usage: `~editcustomcommand foo My new reply!`
-        Usage: `~editcustomcommand flipcoin` (then say `Heads`, `Tails` and `Edge` in subsequent
+        Usage: `~editcc foo My new reply!`
+        Usage: `~editcc flipcoin` (then say `Heads`, `Tails` and `Edge` in subsequent
         messages)
         """
         await logging_utils.log_command(
@@ -490,18 +518,26 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
     @command_predicates.is_bot_owner()
     @commands.command(
-        name="editglobalcustomcommand",
-        aliases=["editglobalccommand", "editgcustomcommand", "editgcc", "editglobalcc"],
+        name="editgcc",
+        aliases=[
+            "editglobalcustomcommand",
+            "editglobalccommand",
+            "editgcustomcommand",
+            "editglobalcc",
+            "editgci",
+            "editglobalci",
+            "editglobalcimage",
+        ],
     )
     async def editglobalcustomcommand(
         self, ctx, command_name: str, *, command_return: Optional[str] = None
     ):
         """Edit a global custom command for the bot, by replacing all its responses. If the
-        global command doesn't already exist, this command will add it instead (see `~help addglobalcustomcommand`).
+        global command doesn't already exist, this command will add it instead (see `~help addgcc`).
         Everything after the command name is the reply, line breaks included.
 
         Permission Category : Bot Owner only.
-        Usage: `~editglobalcustomcommand foo My new reply!`
+        Usage: `~editgcc foo My new reply!`
         """
         await logging_utils.log_command(
             "editglobalcustomcommand", ctx.guild, ctx.channel, ctx.author
@@ -584,7 +620,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             embed.add_field(
                 name="Failed",
                 value=f"`{ctx.prefix}{command_name}` only has one response, so it can't be removed. "
-                f"Use `{ctx.prefix}removecustomcommand {command_name}` to delete the command instead.",
+                f"Use `{ctx.prefix}rmcc {command_name}` to delete the command instead.",
             )
             await discord_utils.send_message(ctx, embed)
             return
@@ -609,13 +645,17 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
     @command_predicates.is_trusted_or_bot_owner()
     @commands.command(
-        name="removecustomcommand",
+        name="rmcc",
         aliases=[
+            "removecustomcommand",
             "rmcustomcommand",
             "rmccommand",
             "removeccommand",
             "removecc",
-            "rmcc",
+            "rmci",
+            "removeci",
+            "rmcimage",
+            "removecimage",
         ],
     )
     async def rmcustomcommand(
@@ -628,7 +668,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         exists with the same name, the guild command will be the one to get deleted).
 
         Permission Category : Trusted Roles or Bot Owner only.
-        Usage: `~rmcustomcommand potato`
+        Usage: `~rmcc potato`
         """
         await logging_utils.log_command(
             "rmcustomcommand",
@@ -685,13 +725,13 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
     @command_predicates.is_trusted_or_bot_owner()
     @commands.command(
-        name="removecustomresponse",
+        name="rmcr",
         aliases=[
+            "removecustomresponse",
             "rmcustomresponse",
             "rmcresponse",
             "removecresponse",
             "removecr",
-            "rmcr",
         ],
     )
     async def removecustomresponse(self, ctx, command_name: str, response_number: int):
@@ -699,7 +739,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         can only be edited by the Bot Owner.
 
         Permission Category : Trusted Roles or Bot Owner only.
-        Usage: `~removecustomresponse potato 1` (Removes the first response)
+        Usage: `~rmcr potato 1` (Removes the first response)
         """
         await logging_utils.log_command(
             "rmcustomresponse",
