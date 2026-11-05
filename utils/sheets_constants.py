@@ -63,6 +63,11 @@ status_dict = {
         "update_ans": True,
         "prefix": False,
     },
+    "Not a puzzle": {
+        "color": [180, 167, 214],
+        "update_ans": False,
+        "prefix": False,
+    },
     "None": {
         "color": [230, 145, 56],
         "update_ans": True,

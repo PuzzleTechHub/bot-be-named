@@ -246,6 +246,15 @@ async def chancrabgeneric(
     return curr_sheet_link, newsheet, new_chan
 
 
+def normalize_status(status: str) -> str:
+    """Matches the input to a known status, regardless of case. e.g., "in progress" -> "In Progress"
+    Custom statuses return unchanged"""
+    for recognized_status in sheets_constants.status_dict:
+        if status.lower() == recognized_status.lower():
+            return recognized_status
+    return status
+
+
 def get_timestamp() -> str:
     """Finds the current UTC timestamp."""
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")

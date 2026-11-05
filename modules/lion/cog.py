@@ -455,9 +455,7 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~statuslion solved "answer"
         Usage: ~statuslion "custom-update-string" "answer"
         """
-        status = status.capitalize()
-        if status == "In progress":
-            status = "In Progress"
+        status = sheet_utils.normalize_status(status)
         embed = discord_utils.create_embed()
 
         try:
