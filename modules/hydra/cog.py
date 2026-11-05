@@ -129,13 +129,57 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="noteshydra")
-    async def noteshydra(self, ctx: commands.Context, notes: str = None):
+    async def noteshydra(self, ctx: commands.Context, *args: str):
         """Sets or updates the notes information on the Overview sheet. Passing no argument retrieves the current notes.
+
+        Passing channel mentions retrieves the notes for each of those channels instead.
 
         Permission Category : Solver Roles only
         Usage: `~noteshydra` (retrieves current notes)
         Usage: `~noteshydra "This puzzle has unclued anagrams."` (sets notes)
+        Usage: `~noteshydra #puzzle-1 #puzzle-2` (retrieves notes for the mentioned channels)
         """
+        if args and all(re.fullmatch(r"<#\d+>", arg) for arg in args):
+            # Regex searches for channel mentions
+            channels = []
+            lines = []
+            for arg in args:
+                channel = ctx.guild.get_channel_or_thread(int(arg[2:-1]))
+                # Just in case, only include channels caller can see
+                if (
+                    channel is None
+                    or not channel.permissions_for(ctx.author).view_channel
+                ):
+                    lines.append(f"I couldn't find channel `{arg}`.")
+                else:
+                    channels.append(channel)
+
+            found, failed, missing = await summary_utils.find_channel_rows(
+                self.gspread_client, ctx, channels
+            )
+            _, col_idx = gspread.utils.a1_to_rowcol(sheets_constants.NOTES_COLUMN + "1")
+            for channel, rownum, overview_values in found:
+                try:
+                    current_notes = overview_values[rownum - 1][col_idx - 1]
+                except IndexError:
+                    current_notes = None
+                if current_notes:
+                    lines.append(f"{channel.mention}: `{current_notes}`")
+                else:
+                    lines.append(
+                        f"The current notes for {channel.mention} are not set."
+                    )
+            for channel in failed:
+                lines.append(f"{channel.mention} - **Failed to load sheet!**")
+            for channel in missing:
+                lines.append(f"{channel.mention} is not on a tethered Overview sheet.")
+
+            embed = discord_utils.create_embed()
+            embed.add_field(name="Current Notes", value="\n".join(lines), inline=False)
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        notes = args[0] if args else None
 
         base = SheetCommandBase(ctx, self.gspread_client)
         curr_sheet_link, overview_sheet, row_to_find = await base.get_sheet_context()
@@ -1515,6 +1559,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     ):
         """Allows a role to run `~catsummaryhydra` and `~watchcategoryhydra` in a channel.
         If no channel is given, uses the current channel.
+        Note: The category permissions must explicitly allow the role to view the channel.
 
         Permission Category : Trusted roles only.
         Usage: `~summaryallowhydra @role #channel`

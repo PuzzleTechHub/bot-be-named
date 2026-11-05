@@ -51,26 +51,40 @@ def get_role_categories(guild, role) -> list[nextcord.CategoryChannel]:
 
 async def get_roles_channels(gspread_client, ctx, role, categories):
     """Finds the puzzle channels in the tethered sheets. Returns found and failed list."""
+    channels = [
+        channel
+        for category in categories
+        for channel in category.text_channels
+        if channel.overwrites_for(role).view_channel is not False
+    ]
+    found, failed, _ = await find_channel_rows(gspread_client, ctx, channels)
+    return found, failed
+
+
+async def find_channel_rows(gspread_client, ctx, channels):
+    """Finds each channel's row in the tethered Overview sheet. Returns found, failed and missing lists.
+    The missing channels either have no sheet tethered or are not on the overview."""
     sheet_channels = {}
-    for category in categories:
-        for channel in category.text_channels:
-            if channel.overwrites_for(role).view_channel is False:
-                continue
-            result, _ = sheet_utils.findsheettether(channel.category_id, channel.id)
-            if result is None:
-                continue
-            sheet_channels.setdefault(result.sheet_link, []).append(channel)
+    missing = []
+    for channel in channels:
+        result, _ = sheet_utils.findsheettether(channel.category_id, channel.id)
+        if result is None:
+            missing.append(channel)
+            continue
+        sheet_channels.setdefault(result.sheet_link, []).append(channel)
 
     found = []
     failed = []
-    for sheet_link, channels in sheet_channels.items():
+    for sheet_link, sheet_channel in sheet_channels.items():
         cells = await hydra_sheet_utils.findchanidcell(
-            gspread_client, ctx, sheet_link, [channel.id for channel in channels]
+            gspread_client, ctx, sheet_link, [channel.id for channel in sheet_channel]
         )
         if cells is None:
-            failed.extend(channels)
+            failed.extend(sheet_channel)
             continue
-        for channel, (rownum, _, overview_values) in zip(channels, cells):
-            if rownum is not None:
+        for channel, (rownum, _, overview_values) in zip(sheet_channel, cells):
+            if rownum is None:
+                missing.append(channel)
+            else:
                 found.append((channel, rownum, overview_values))
-    return found, failed
+    return found, failed, missing
