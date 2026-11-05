@@ -3,7 +3,7 @@ import os
 from nextcord.ext import commands
 from emoji import EMOJI_DATA, emojize
 import emoji
-from utils import discord_utils, logging_utils, command_predicates
+from utils import discord_utils, command_predicates
 
 """
 Misc module. A collection of Misc useful/fun commands. Also everything not in any other module.
@@ -25,7 +25,6 @@ class MiscCog(commands.Cog, name="Misc"):
         Use: (as reply to another message) `~emojiall 5`
         Use: (as reply to another message) `~emojiall` (defaults to 20)
         """
-        await logging_utils.log_command("emojiall", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if emoji_count <= 0:
@@ -68,7 +67,6 @@ class MiscCog(commands.Cog, name="Misc"):
         Usage : `~emoji :an_emoji: sunglasses`
         """
 
-        await logging_utils.log_command("emoji", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if not args:
@@ -230,7 +228,6 @@ class MiscCog(commands.Cog, name="Misc"):
 
         Usage : `~about`
         """
-        await logging_utils.log_command("about", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
@@ -279,7 +276,6 @@ class MiscCog(commands.Cog, name="Misc"):
 
         Usage : `~info`
         """
-        await logging_utils.log_command("info", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         embed.add_field(
@@ -336,7 +332,6 @@ class MiscCog(commands.Cog, name="Misc"):
         Usage: `~botsay channelname Message`
         Usage: `~botsay #channelmention Longer Message`
         """
-        await logging_utils.log_command("botsay", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if len(args) < 1:
@@ -382,9 +377,6 @@ class MiscCog(commands.Cog, name="Misc"):
         Usage: `~botsayembed channelname Message`
         Usage: `~botsayembed #channelmention Longer Message`
         """
-        await logging_utils.log_command(
-            "botsayembed", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if len(args) < 1:

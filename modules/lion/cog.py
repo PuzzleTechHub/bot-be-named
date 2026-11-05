@@ -10,7 +10,6 @@ from utils import (
     command_predicates,
     discord_utils,
     google_utils,
-    logging_utils,
     sheet_utils,
     sheets_constants,
     solved_utils,
@@ -91,8 +90,6 @@ class LionCog(commands.Cog, name="Lion"):
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
-        # log command in console
-        await logging_utils.log_command("unsolved", ctx.guild, ctx.channel, ctx.author)
         embed = await solved_utils.status_remove(ctx)
         await discord_utils.send_message(ctx, embed)
 
@@ -213,9 +210,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: `~mta`
         Usage: `~movetoarchive archive_category_name`
         """
-        await logging_utils.log_command(
-            "movetoarchive", ctx.guild, ctx.channel, ctx.author
-        )
         await self.movetoarchive_generic(ctx, archive_name)
 
     ########################
@@ -336,9 +330,6 @@ class LionCog(commands.Cog, name="Lion"):
 
         Usage: ~gettablion
         """
-        await logging_utils.log_command(
-            "gettablion", ctx.guild, ctx.channel, ctx.author
-        )
         result, _ = sheet_utils.findsheettether(
             ctx.message.channel.category_id, ctx.message.channel.id
         )
@@ -387,9 +378,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~solvedlion
         Usage: ~solvedlion "answer"
         """
-        await logging_utils.log_command(
-            "solvedlion", ctx.guild, ctx.channel, str(ctx.author)
-        )
         await self.statuslion(ctx, "solved", answer)
 
     @command_predicates.is_solver()
@@ -402,9 +390,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~backsolvedlion
         Usage: ~backsolvedlion "answer"
         """
-        await logging_utils.log_command(
-            "backsolvedlion", ctx.guild, ctx.channel, str(ctx.author)
-        )
         await self.statuslion(ctx, "backsolved", answer)
 
     @command_predicates.is_solver()
@@ -417,9 +402,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~solvedishlion
         Usage: ~solvedishlion "answer"
         """
-        await logging_utils.log_command(
-            "solvedishlion", ctx.guild, ctx.channel, str(ctx.author)
-        )
         await self.statuslion(ctx, "solvedish", answer)
 
     @command_predicates.is_solver()
@@ -433,9 +415,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~unsolvedlion "answer" (Updates the answer from the sheet to "answer")
 
         """
-        await logging_utils.log_command(
-            "unsolvedlion", ctx.guild, ctx.channel, str(ctx.author)
-        )
         await self.statuslion(ctx, "In Progress", answer)
 
     @command_predicates.is_solver()
@@ -673,9 +652,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: `~mtalion`
         Usage: `~mtalion archive_category_name`
         """
-        await logging_utils.log_command(
-            "mtalion", ctx.guild, ctx.channel, str(ctx.author)
-        )
         await self.sheetmta_generic(ctx)  # Attempt to move sheet stuff
         await self.movetoarchive_generic(
             ctx, archive_name
@@ -805,8 +781,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~chanlion "Puzzle Name"
         Usage: ~chanlion PuzzleName "http://www.linktopuzzle.com"
         """
-        await logging_utils.log_command("chanlion", ctx.guild, ctx.channel, ctx.author)
-
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
 
@@ -837,8 +811,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~metalion PuzzleName
         Usage: ~metalion PuzzleName linktopuzzle
         """
-        await logging_utils.log_command("metalion", ctx.guild, ctx.channel, ctx.author)
-
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
 
@@ -869,10 +841,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~threadlion PuzzleName
         Usage: ~threadlion PuzzleName linktopuzzle
         """
-        await logging_utils.log_command(
-            "threadlion", ctx.guild, ctx.channel, ctx.author
-        )
-
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
 
@@ -903,10 +871,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~metathreadlion PuzzleName
         Usage: ~metathreadlion PuzzleName linktopuzzle
         """
-        await logging_utils.log_command(
-            "metathreadlion", ctx.guild, ctx.channel, ctx.author
-        )
-
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
 
@@ -937,8 +901,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~forumlion PuzzleName
         Usage: ~forumlion PuzzleName linktopuzzle
         """
-        await logging_utils.log_command("forumlion", ctx.guild, ctx.channel, ctx.author)
-
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
 
@@ -969,10 +931,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~metaforumlion PuzzleName
         Usage: ~metaforumlion PuzzleName linktopuzzle
         """
-        await logging_utils.log_command(
-            "metaforumlion", ctx.guild, ctx.channel, ctx.author
-        )
-
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
 
@@ -1003,8 +961,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~sheetlion PuzzleName
         Usage: ~sheetlion PuzzleName linktopuzzle
         """
-        await logging_utils.log_command("sheetlion", ctx.guild, ctx.channel, ctx.author)
-
         curr_sheet_link, newsheet = await sheet_utils.sheetcrabgeneric(
             self.gspread_client, ctx, tab_name, False
         )
@@ -1030,10 +986,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~metasheetlion PuzzleName
         Usage: ~metasheetlion PuzzleName linktopuzzle
         """
-        await logging_utils.log_command(
-            "metasheetlion", ctx.guild, ctx.channel, ctx.author
-        )
-
         curr_sheet_link, newsheet = None, None
 
         curr_sheet_link, newsheet = await sheet_utils.sheetcrabgeneric(
@@ -1173,10 +1125,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~huntlion SheetName hunturl role folderurl
         Usage: ~huntlion SheetName hunturl folderurl
         """
-        await logging_utils.log_command(
-            "huntlion", ctx.guild, ctx.channel, str(ctx.author)
-        )
-
         f_url = folderurl
         roleName = None
         if folderurl is None:
@@ -1317,10 +1265,6 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~clonelion SheetName hunturl
         Usage: ~clonelion SheetName hunturl folderurl
         """
-        await logging_utils.log_command(
-            "clonelion", ctx.guild, ctx.channel, str(ctx.author)
-        )
-
         new_sheet = await self.clonetemplatelion(ctx, huntroundname, folderurl)
         if new_sheet is None:
             return
@@ -1372,9 +1316,6 @@ class LionCog(commands.Cog, name="Lion"):
         Permission Category : Verified Roles only.
         Usage: ~clonetemplatelion SheetName
         """
-        await logging_utils.log_command(
-            "clonetemplatelion", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         result = self.findtemplate(ctx)
@@ -1443,9 +1384,6 @@ class LionCog(commands.Cog, name="Lion"):
 
         Usage: ~tetherlion sheeturl
         """
-        await logging_utils.log_command(
-            "tetherlion", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if await self.validate_template(ctx, sheet_key_or_link) is None:

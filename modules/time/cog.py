@@ -5,7 +5,7 @@ import zoneinfo
 
 from modules.time import time_utils
 from nextcord.ext import commands
-from utils import logging_utils, discord_utils
+from utils import discord_utils
 
 """
 Time module. Code to get time and timezone from different locations, convert timezones and similar.
@@ -31,7 +31,6 @@ class TimeCog(commands.Cog, name="Time"):
 
         See https://github.com/scrapinghub/dateparser/tree/master for a more comprehensive list of supported formats.
         """
-        await logging_utils.log_command("countdown", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if len(args) < 1:
@@ -71,7 +70,6 @@ class TimeCog(commands.Cog, name="Time"):
         Usage: `~time Boston, Massachusetts, USA`
         Usage: `~time Tokyo, Japan`
         """
-        await logging_utils.log_command("time", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         # No location provided

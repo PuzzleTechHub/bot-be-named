@@ -220,6 +220,13 @@ def main():
                     )
                     await message.channel.send(embed=embed)
 
+    @client.before_invoke
+    async def log_command(ctx: commands.Context):
+        """Log every command in the console/webhook, just before it runs and after the checks pass."""
+        await logging_utils.log_command(
+            ctx.command.qualified_name, ctx.guild, ctx.channel, ctx.author
+        )
+
     client.run(os.getenv("DISCORD_TOKEN"))
 
     @client.event

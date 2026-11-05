@@ -1,7 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 from typing import Union
-from utils import discord_utils, logging_utils, command_predicates
+from utils import discord_utils, command_predicates
 
 """
 Discord Role management module. Bundle of all discord functions and commands related to managing roles in any discord guild.
@@ -41,9 +41,6 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         Usage: `~assignrole "NewRoleName" @User1`
         Usage: `~assignrole "NewRolename"` (if no users given, just creates the role)
         """
-        await logging_utils.log_command(
-            "assignrole", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if isinstance(rolename, nextcord.Member):
@@ -170,9 +167,6 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         Usage: `~unassignrole @RoleName here (Everyone who can see this channel, including BBN)`
         Usage: `~unassignrole "RoleName" "User 1"`
         """
-        await logging_utils.log_command(
-            "unassignrole", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         role_to_unassign = await discord_utils.find_role(ctx, rolename)
@@ -286,7 +280,6 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         Usage: `~clonerole @RoleName "NewRoleName"`
         Usage: `~clonerole @RoleName @RoleName2`
         """
-        await logging_utils.log_command("clonerole", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         oldrole_as_role = await discord_utils.find_role(ctx, oldrole)
@@ -357,9 +350,6 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         Usage: `~deleterole "RoleName"`
         Usage: `~deleterole @RoleMention`
         """
-        await logging_utils.log_command(
-            "deleterole", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         role_to_delete = await discord_utils.find_role(ctx, rolename)
@@ -400,7 +390,6 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         Usage:`~listroles` (All roles in the server)
         Usage:`~listrole @RoleName` (List all users with role @RoleName)
         """
-        await logging_utils.log_command("listroles", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if rolename == "":
@@ -445,9 +434,6 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         Usage:(as reply to message) `~unreactrole here` (Everyone who can see this channel, including BBN)
         Usage:(to just consider the last message) `~unreactrole @RoleA "RoleB"`
         """
-        await logging_utils.log_command(
-            "unreactrole", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         members = []

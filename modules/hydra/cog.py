@@ -13,7 +13,6 @@ from utils import (
     batch_update_utils,
     discord_utils,
     google_utils,
-    logging_utils,
     command_predicates,
     sheets_constants,
     sheet_utils,
@@ -56,10 +55,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~roundhydra` (retrieves current round)
         Usage: `~roundhydra "Round Name"` (sets round)
         """
-        await logging_utils.log_command(
-            "roundhydra", ctx.guild, ctx.channel, ctx.author
-        )
-
         base = SheetCommandBase(ctx, self.gspread_client)
         curr_sheet_link, overview_sheet, row_to_find = await base.get_sheet_context()
 
@@ -141,10 +136,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~noteshydra` (retrieves current notes)
         Usage: `~noteshydra "This puzzle has unclued anagrams."` (sets notes)
         """
-
-        await logging_utils.log_command(
-            "noteshydra", ctx.guild, ctx.channel, ctx.author
-        )
 
         base = SheetCommandBase(ctx, self.gspread_client)
         curr_sheet_link, overview_sheet, row_to_find = await base.get_sheet_context()
@@ -228,10 +219,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Permission Category : Solver Roles only.
         Usage: `~renamehydra "New Puzzle Name"`
         """
-        await logging_utils.log_command(
-            "renamehydra", ctx.guild, ctx.channel, str(ctx.author)
-        )
-
         # Type guard: ensure we're in a guild text channel
         if not isinstance(ctx.channel, (nextcord.TextChannel, nextcord.Thread)):
             embed = hydra_helpers.create_failure_embed(
@@ -383,10 +370,6 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         Usage: `~catsummaryhydra`
         """
-        await logging_utils.log_command(
-            "catsummaryhydra", ctx.guild, ctx.channel, ctx.author
-        )
-
         matched_roles = await summary_utils.get_matched_roles(ctx)
         if not matched_roles:
             return
@@ -506,10 +489,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: ~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" "Some notes here" (with notes)
         Usage: ~anychanhydra "Puzzle Name" "Template" (uses the plain "Template" tab)
         """
-        await logging_utils.log_command(
-            "anychanhydra", ctx.guild, ctx.channel, ctx.author
-        )
-
         arg_list = shlex.split(args)
         if len(arg_list) < 2 or len(arg_list) > 4:
             embed = discord_utils.create_embed()
@@ -557,7 +536,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~mtahydra`
         Usage: `~mtahydra archive_category_name`
         """
-        await logging_utils.log_command("mtahydra", ctx.guild, ctx.channel, ctx.author)
         await hydra_sheet_utils.sheet_move_to_archive(self.gspread_client, ctx)
         await hydra_discord_utils.category_move_to_archive(ctx, category_name)
 
@@ -580,7 +558,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         4thPuzzle "http://link.com" "Some notes here"
         """
 
-        await logging_utils.log_command("chanhydra", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         content = content.strip()
@@ -691,9 +668,6 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         Usage: `~deletehydra #puzzle-channel` (deletes #puzzle-channel)
         """
-        await logging_utils.log_command(
-            "deletehydra", ctx.guild, ctx.channel, str(ctx.author)
-        )
         embed = discord_utils.create_embed()
 
         # Check if channel mention is provided
@@ -977,10 +951,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~watchcategoryhydra` (limit 100)
         Usage: `~watchcategoryhydra 50` (limit 50)
         """
-        await logging_utils.log_command(
-            "watchcategoryhydra", ctx.guild, ctx.channel, ctx.author
-        )
-
         matched_roles = await summary_utils.get_matched_roles(ctx)
         if not matched_roles:
             return
@@ -1232,9 +1202,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~solvedhydra`
         Usage: `~solvedhydra "answer"`
         """
-        await logging_utils.log_command(
-            "solvedhydra", ctx.guild, ctx.channel, ctx.author
-        )
         await self.statushydra(ctx, "solved", answer)
 
     @command_predicates.is_solver()
@@ -1247,9 +1214,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~backsolvedhydra`
         Usage: `~backsolvedhydra "answer"`
         """
-        await logging_utils.log_command(
-            "backsolvedhydra", ctx.guild, ctx.channel, ctx.author
-        )
         await self.statushydra(ctx, "backsolved", answer)
 
     @command_predicates.is_solver()
@@ -1262,9 +1226,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~solvedishhydra`
         Usage: `~solvedishhydra "answer"`
         """
-        await logging_utils.log_command(
-            "solvedishhydra", ctx.guild, ctx.channel, ctx.author
-        )
         await self.statushydra(ctx, "solvedish", answer)
 
     @command_predicates.is_solver()
@@ -1277,9 +1238,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~unsolvedhydra` (Removes the answer from the sheet)
         Usage: `~unsolvedhydra "answer"` (Updates the answer from the sheet to "answer")
         """
-        await logging_utils.log_command(
-            "unsolvedhydra", ctx.guild, ctx.channel, ctx.author
-        )
         await self.statushydra(ctx, "In Progress", answer)
 
     @command_predicates.is_solver()
@@ -1292,10 +1250,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~slainhydra ANSWER`
         Usage: `~slainhydra "A MULTIWORD ANSWER"`
         """
-        await logging_utils.log_command(
-            "slainhydra", ctx.guild, ctx.channel, ctx.author
-        )
-
         solvedhydra = self.bot.get_command("solvedhydra")
         mtahydra = self.bot.get_command("mtahydra")
 
@@ -1312,10 +1266,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~backslainhydra ANSWER`
         Usage: `~backslainhydra "A MULTIWORD ANSWER"`
         """
-        await logging_utils.log_command(
-            "backslainhydra", ctx.guild, ctx.channel, ctx.author
-        )
-
         backsolvedhydra = self.bot.get_command("backsolvedhydra")
         mtahydra = self.bot.get_command("mtahydra")
 
@@ -1332,10 +1282,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~unmtahydra`
         Usage: `~unmtahydra "Main Hunt Category Name"` (If I cannot find the main hunt category automatically)
         """
-        await logging_utils.log_command(
-            "unmtahydra", ctx.guild, ctx.channel, str(ctx.author)
-        )
-
         # Type guard: ensure we're in a guild text channel
         if not isinstance(ctx.channel, nextcord.TextChannel):
             embed = hydra_helpers.create_failure_embed(
@@ -1574,10 +1520,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~summaryallowhydra @role #channel`
         Usage: `~summaryallowhydra @role`
         """
-        await logging_utils.log_command(
-            "summaryallowhydra", ctx.guild, ctx.channel, ctx.author
-        )
-
         if chan_or_channame is None:
             chan_or_channame = ctx.channel
 
@@ -1648,10 +1590,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Permission Category : Trusted Roles only.
         Usage: `~summarydisallowhydra @role #channel`
         """
-        await logging_utils.log_command(
-            "summarydisallowhydra", ctx.guild, ctx.channel, ctx.author
-        )
-
         role = await discord_utils.find_role(ctx, role_or_rolename)
         if role is None:
             embed = hydra_helpers.create_failure_embed(
@@ -1695,10 +1633,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Permission Category : Trusted Roles only.
         Usage: `~summarylisthydra`
         """
-        await logging_utils.log_command(
-            "summarylisthydra", ctx.guild, ctx.channel, ctx.author
-        )
-
         with Session(database.DATABASE_ENGINE) as session:
             rows = (
                 session.query(database.SummaryGrants)

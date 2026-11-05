@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 import constants
 import database
-from utils import command_predicates, discord_utils, logging_utils
+from utils import command_predicates, discord_utils
 
 """
 Custom command module. Allows users to set their own "custom command" of saveable image/embed/messages making a lot of easy to retrieve utility.
@@ -254,9 +254,6 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         messages)
 
         """
-        await logging_utils.log_command(
-            "addcustomcommand", ctx.guild, ctx.channel, ctx.author
-        )
         command_name = command_name.lower()
         if not await self.check_cc_name(ctx, command_name, is_global=False):
             return
@@ -283,9 +280,6 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         Usage: `~addci command_name Link_to_image`
         Usage: `~addci command_name Link_to_hyperlink`
         """
-        await logging_utils.log_command(
-            "addcustomimage", ctx.guild, ctx.channel, ctx.author
-        )
         command_name = command_name.lower()
         if not await self.check_cc_name(ctx, command_name, is_global=False):
             return
@@ -319,9 +313,6 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         Permission Category : Bot Owner only.
         Usage: `~addgcc command_name Reply`
         """
-        await logging_utils.log_command(
-            "addglobalcustomcommand", ctx.guild, ctx.channel, ctx.author
-        )
         command_name = command_name.lower()
         if not await self.check_cc_name(ctx, command_name, is_global=True):
             return
@@ -362,9 +353,6 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         Usage: `~addgci command_name Link_to_image`
         Usage: `~addgci command_name Link_to_hyperlink`
         """
-        await logging_utils.log_command(
-            "addglobalcustomimage", ctx.guild, ctx.channel, ctx.author
-        )
         command_name = command_name.lower()
         if not await self.check_cc_name(ctx, command_name, is_global=True):
             return
@@ -416,9 +404,6 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
         Usage: `~listcc`
         """
-        await logging_utils.log_command(
-            "lscustomcommands", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         # The guild's custom commands
@@ -481,9 +466,6 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         Usage: `~listcr foo`
         Usage: `~listcr flipcoin`
         """
-        await logging_utils.log_command(
-            "listcustomresponses", ctx.guild, ctx.channel, ctx.author
-        )
         await self.list_cc_responses(ctx, command_name.lower())
         return
 
@@ -509,9 +491,6 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         Usage: `~editcc flipcoin` (then say `Heads`, `Tails` and `Edge` in subsequent
         messages)
         """
-        await logging_utils.log_command(
-            "editcustomcommand", ctx.guild, ctx.channel, ctx.author
-        )
         await self.edit_cc_generic(
             ctx, command_name.lower(), command_return, is_global=False
         )
@@ -539,9 +518,6 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         Permission Category : Bot Owner only.
         Usage: `~editgcc foo My new reply!`
         """
-        await logging_utils.log_command(
-            "editglobalcustomcommand", ctx.guild, ctx.channel, ctx.author
-        )
         await self.edit_cc_generic(
             ctx, command_name.lower(), command_return, is_global=True
         )
@@ -670,12 +646,6 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         Permission Category : Trusted Roles or Bot Owner only.
         Usage: `~rmcc potato`
         """
-        await logging_utils.log_command(
-            "rmcustomcommand",
-            ctx.guild,
-            ctx.channel,
-            ctx.author,
-        )
         command_name = command_name.lower()
 
         embed = discord_utils.create_embed()
@@ -741,12 +711,6 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         Permission Category : Trusted Roles or Bot Owner only.
         Usage: `~rmcr potato 1` (Removes the first response)
         """
-        await logging_utils.log_command(
-            "rmcustomresponse",
-            ctx.guild,
-            ctx.channel,
-            ctx.author,
-        )
         command_name = command_name.lower()
         await self.rm_cc_response(ctx, command_name, response_number)
         return

@@ -3,7 +3,7 @@ import asyncio
 from typing import Union
 from utils import sheets_constants
 from nextcord.ext import commands
-from utils import discord_utils, logging_utils, command_predicates
+from utils import discord_utils, command_predicates
 
 """
 Discord Channel management module. Bundle of all discord functions and commands related to managing a specific discord channel and managing it.
@@ -38,9 +38,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
         Note that channels may be mentioned or named, but a channel is named "all", then it must be mentioned to avoid issues.
         """
-        await logging_utils.log_command(
-            "movechannel", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         # get current channel
@@ -241,10 +238,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes.
         Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
-        # log command in console
-        await logging_utils.log_command(
-            "renamechannel", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if chan_b == "":
@@ -293,10 +286,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Permission Category : Verified Roles only.
         Usage: `~createthread new-thread-name`
         """
-        # log command in console
-        await logging_utils.log_command(
-            "createthread", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if await discord_utils.is_thread(ctx, ctx.channel):
@@ -336,10 +325,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Usage: `~createchannel new-channel-name` (creates new-channel-name in the category it's called from)
         Usage: `~createchannel new-channel-name "Category Name"`
         """
-        # log command in console
-        await logging_utils.log_command(
-            "createchannel", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if category_arg == "":
@@ -423,10 +408,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Usage: `~clonechannel new-channel-name` (Clones current channel)
         Usage: `~clonechannel #chan1 chan2 @roleA @userB` (clones then syncs permission of A in chan1 with B in chan2)
         """
-        # log command in console
-        await logging_utils.log_command(
-            "clonechannel", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if chan_b == "":
@@ -595,9 +576,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Usage: `~shiftchan "chana" top` (Shifts ChanA to top of category)
         Usage: `~shiftchan 0` (Shifts the current channel to top of category)
         """
-        await logging_utils.log_command(
-            "shiftchannel", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         pos_to_shift_to = -1
@@ -685,10 +663,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Permission Category : Verified Roles only.
         Usage: `~renamevc "VC-Name"`
         """
-        # log command in console
-        await logging_utils.log_command(
-            "renamevoicechan", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         voice_chan_list = ctx.guild.voice_channels
@@ -743,9 +717,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
         Usage: `~categorysort`
         """
-        await logging_utils.log_command(
-            "categorysort", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if cat_name == "":
@@ -832,10 +803,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Usage: `~renamecat newname` (Changes current category name to newname)
         Usage: `~renamecat "CatA" CatB` (Changes CatA name to CatB)
         """
-        # log command in console
-        await logging_utils.log_command(
-            "renamecategory", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if cat_b_name == "":
@@ -886,9 +853,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Usage: `~synccat` (Syncs current category)
         Usage: `~synccat "CatA"` (Syncs given category)
         """
-        await logging_utils.log_command(
-            "synccategory", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if cat_name == "":
@@ -958,9 +922,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Usage: `~shiftcat "Category A" 0` (Shifts Cat A to the top)
         Usage: `~shiftcat top` (Shifts the current category to the top)
         """
-        await logging_utils.log_command(
-            "shiftcategory", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         pos_to_shift_to = -1
@@ -1065,9 +1026,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Usage: `~clonecategory "Category A" "Category B"` (Clones Cat A as Cat B)
         Usage: `~clonecategory "Category A" "Category B" @RoleC @RoleD` (Clones Cat A as Cat B. Takes RoleC permission on Cat A, and replicates it with RoleD and Cat B)
         """
-        await logging_utils.log_command(
-            "clonecategory", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         # Input parsing I guess
@@ -1193,9 +1151,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Usage: `~listcat` (List all the categories in the server)
         Usage: `~listcat "Cat A"` (List all the channels in the given category)
         """
-        await logging_utils.log_command(
-            "listcategories", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if cat_name == "":
@@ -1247,9 +1202,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Permission Category : Server Moderators only.
         Usage: `~deletecat "Cat A"` (List all the channels in the given category)
         """
-        await logging_utils.log_command(
-            "deletecategory", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if cat_name == "":

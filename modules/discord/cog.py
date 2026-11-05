@@ -4,7 +4,7 @@ import aiohttp
 import io
 import emoji
 from nextcord.ext import commands
-from utils import discord_utils, logging_utils, command_predicates
+from utils import discord_utils, command_predicates
 
 """
 Discord module. Functions and commands related specifically to discord functionality, that does not intersect with any other modules.
@@ -36,8 +36,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~pin` (to just pin the last message)
         Usage: `~pin del` (to pin the message and also delete the msg)
         """
-        await logging_utils.log_command("pin", ctx.guild, ctx.channel, ctx.author)
-
         if not ctx.message.reference:
             channel_history = [
                 message async for message in ctx.message.channel.history(limit=2)
@@ -73,8 +71,6 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         Usage : `~pinme Message`
         """
-        await logging_utils.log_command("pinme", ctx.guild, ctx.channel, ctx.author)
-
         embed_or_none = await discord_utils.pin_message(ctx.message)
         # Error pinning, send error message to user
         if embed_or_none is not None:
@@ -93,7 +89,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~unpin` (as a reply to pinned message)
         Usage: `~unpin 3 delete` (unpins latest 3 pins and deletes command message)
         """
-        await logging_utils.log_command("unpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         to_delete = False  # Use this to decide whether to delete extra messages or not
@@ -168,7 +163,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~listpins~`
         """
 
-        await logging_utils.log_command("listpin", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         pins = await ctx.message.channel.pins()
@@ -197,7 +191,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         Permission Category : Verified Roles only.
         Usage: `~stats`
         """
-        await logging_utils.log_command("stats", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         guild = ctx.guild
@@ -242,7 +235,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~catstats` (current category)
         Usage: `~catstats "Cat Name"` (Named category)
         """
-        await logging_utils.log_command("catstats", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if cat_name == "":
@@ -288,9 +280,6 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         Usage: `~listreacts` (as a reply to a message)
         """
-        await logging_utils.log_command(
-            "listreacts", ctx.guild, ctx.channel, ctx.author
-        )
         embed = discord_utils.create_embed()
 
         if not ctx.message.reference:
@@ -323,7 +312,6 @@ class DiscordCog(commands.Cog, name="Discord"):
 
         Usage: `~listemojis`
         """
-        await logging_utils.log_command("listemoji", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
         embed.add_field(
             name=f"Emoji in {ctx.guild.name}",
@@ -341,7 +329,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         Permission Category : Verified Roles only.
         Usage: `~steal :emote1: :emote2:`
         """
-        await logging_utils.log_command("steal", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         for to_steal in emojis:
@@ -398,7 +385,6 @@ class DiscordCog(commands.Cog, name="Discord"):
         Usage: `~delete del` (delete both the bot message and the command message)
         """
 
-        await logging_utils.log_command("delete", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if not ctx.message.reference:

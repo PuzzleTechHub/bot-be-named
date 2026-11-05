@@ -4,7 +4,7 @@ import urllib
 import re
 from utils.paging_utils import Pages
 from nextcord.ext import commands
-from utils import discord_utils, logging_utils
+from utils import discord_utils
 from modules.lookup import lookup_constants, lookup_utils
 
 """
@@ -27,7 +27,6 @@ class LookupCog(commands.Cog, name="Lookup"):
 
         Usage: `~search <target_site> <[query...]>`
         """
-        await logging_utils.log_command("search", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         if len(args) < 1:
@@ -93,7 +92,6 @@ class LookupCog(commands.Cog, name="Lookup"):
 
         Usage: `~google <[query...]>`
         """
-        await logging_utils.log_command("google", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         results = lookup_utils.search_query(" ".join(args))
@@ -110,7 +108,6 @@ class LookupCog(commands.Cog, name="Lookup"):
 
         Usage: `~wikipedia <[query...]>`
         """
-        await logging_utils.log_command("wikipedia", ctx.guild, ctx.channel, ctx.author)
         embed = discord_utils.create_embed()
 
         results = lookup_utils.search_query(

@@ -1,10 +1,9 @@
 import sys
 import os
 from nextcord.ext import commands
-import database
 from modules.error_logging.error_handling import ErrorHandler
 from modules.error_logging import error_constants
-from utils import discord_utils, logging_utils, command_predicates
+from utils import discord_utils, command_predicates
 
 """
 Error logging module.
@@ -30,7 +29,6 @@ class ErrorLogCog(commands.Cog):
         Permission Category : Admin and Bot Owner only.
         Usage: `~errorlog`
         """
-        await logging_utils.log_command("errorlog", ctx.guild, ctx.channel, ctx.author)
         if not os.path.exists(error_constants.ERROR_LOGFILE):
             embed = discord_utils.create_embed()
             embed.add_field(
