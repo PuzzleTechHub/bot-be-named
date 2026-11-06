@@ -434,6 +434,68 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             )
         await discord_utils.send_message(ctx, embed)
 
+    @commands.command(name="subtractrole", aliases=["subrole"])
+    async def subtractrole(
+        self,
+        ctx,
+        rolename: Union[nextcord.Role, str],
+        *args: Union[nextcord.Role, nextcord.Member, str],
+    ):
+        """Lists all the users in a role, but removes those in subsequent roles, or given users.
+
+        Usage: `~subtractrole @role_a @role_b @role_c` (Those in @role_a but not in @role_b or @role_c)
+        Usage: `~subtractrole @role_a @user_a` (those in @role_a but who aren't @user_a)
+        """
+        embed = discord_utils.create_embed()
+
+        role_to_list = await discord_utils.find_role(ctx, rolename)
+
+        if role_to_list is None:
+            embed.add_field(
+                name="Failed",
+                value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        members_to_remove = set()
+        for name in args:
+            if isinstance(name, nextcord.Member):
+                members_to_remove.add(name)
+                continue
+            role = await discord_utils.find_role(ctx, name)
+            if role is not None:
+                members_to_remove.update(role.members)
+                continue
+            user = await discord_utils.find_user(ctx, name)
+            if user is not None:
+                members_to_remove.add(user)
+                continue
+            embed.add_field(
+                name="Error Finding Role or Member!",
+                value=f"Could not find role or member `{name}`. Perhaps check your spelling or try mentioning the role/user instead.",
+                inline=False,
+            )
+
+        members = [
+            user for user in role_to_list.members if user not in members_to_remove
+        ]
+
+        allusers = f"{', '.join([user.mention for user in members])}"
+
+        if allusers == "":
+            allusers = "(No members left)"
+        embed.add_field(
+            name=f"Members in {role_to_list} after subtracting necessary roles/members = {len(members)}",
+            value=allusers,
+            inline=False,
+        )
+        if len(members) > 0:
+            usernames = " ".join([f"@{user.name}" for user in members])
+            embed.add_field(name="Usernames", value=f"```{usernames}```", inline=False)
+        await discord_utils.send_message(ctx, embed)
+
     @commands.command(name="unreactrole", aliases=[])
     async def unreactrole(self, ctx, *args: Union[nextcord.Role, str]):
         """List all people for a given role who have not reacted to a message. (Either reply to the message, or it takes the message above)
