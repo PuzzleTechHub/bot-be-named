@@ -8,6 +8,7 @@ from database.models import (
     Prefixes,
     SheetTethers,
     SummaryGrants,
+    SolveStreams,
 )
 
 from database.database_utils import (

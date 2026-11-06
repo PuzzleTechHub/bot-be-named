@@ -119,6 +119,8 @@ def main():
             session.commit()
             session.query(database.SummaryGrants).filter_by(server_id=guild.id).delete()
             session.commit()
+            session.query(database.SolveStreams).filter_by(server_id=guild.id).delete()
+            session.commit()
         database.PREFIXES.pop(guild.id)
         database.VERIFIEDS.pop(guild.id)
         database.TRUSTEDS.pop(guild.id)
@@ -133,9 +135,13 @@ def main():
 
     @client.event
     async def on_guild_channel_delete(channel: nextcord.abc.GuildChannel):
-        """When a channel is deleted, remove its summary grants"""
+        """When a channel is deleted, remove its summary grants and solve streams"""
         with Session(database.DATABASE_ENGINE) as session:
             session.query(database.SummaryGrants).filter_by(
+                channel_id=channel.id
+            ).delete()
+            session.commit()
+            session.query(database.SolveStreams).filter_by(
                 channel_id=channel.id
             ).delete()
             session.commit()
