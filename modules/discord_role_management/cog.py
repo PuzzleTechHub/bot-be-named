@@ -425,6 +425,13 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             value=allusers,
             inline=False,
         )
+        if len(role_to_list.members) > 0:
+            usernames = " ".join([f"@{user.name}" for user in role_to_list.members])
+            embed.add_field(
+                name="Usernames",
+                value=f"```{usernames}```",
+                inline=False,
+            )
         await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="unreactrole", aliases=[])
