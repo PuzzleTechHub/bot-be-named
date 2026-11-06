@@ -25,7 +25,7 @@ status_dict = {
         "color": [217, 234, 211],
         "update_ans": True,
         "prefix": True,
-        "is_solve": True,
+        "is_solve": False,
         "prefix_name": "solvedish",
     },
     "Backsolved": {
@@ -91,8 +91,8 @@ UNSTARTED_NAME = "Unstarted"
 solved_prefixes = [status_dict[x].get("prefix_name") for x in status_dict]
 solved_prefixes = [y for y in solved_prefixes if y is not None]
 
-# ["Solved", "Solvedish", "Backsolved", "Postsolved"]
-solved_statues = [x for x in status_dict if status_dict[x].get("is_solve")]
+# ["Solved", "Backsolved", "Postsolved"]
+solve_statuses = [x for x in status_dict if status_dict[x].get("is_solve")]
 
 # Overview tab columns (row 3 is the header row, puzzles start on row 4)
 DISCORD_CHANNEL_ID_COLUMN = "A"

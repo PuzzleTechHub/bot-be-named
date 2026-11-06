@@ -1207,16 +1207,22 @@ class HydraCog(commands.Cog, name="Hydra"):
         status_col = overview_sheet.get_cell_value(
             sheets_constants.STATUS_COLUMN_LOCATION
         )
-        prev_status = overview_sheet.get_cell_value(status_col + str(row_to_find))
+        prev_status = sheet_utils.normalize_status(
+            overview_sheet.get_cell_value(status_col + str(row_to_find))
+        )
 
         new_status = sheet_utils.normalize_status(status)
+        was_solve = prev_status in sheets_constants.solve_statuses
+        is_solve = new_status in sheets_constants.solve_statuses
 
-        # Some statuses write a new timestamp, others clear
+        # From non-solve to solve makes a timestamp,
+        # From solve to non-solve clears the timestamp.
+        # Going between solves (e.g. Solved -> Backsolved) keeps the original time
+        # ... and going between non-solves clears leftover timestamps.
         new_value = None
-        if new_status in hydra_constants.SOLVED_TIMESTAMP_STATUSES:
-            if new_status != prev_status:
-                new_value = sheet_utils.get_timestamp()
-        elif has_solved_time:
+        if is_solve and not was_solve:
+            new_value = sheet_utils.get_timestamp()
+        elif not is_solve and has_solved_time:
             new_value = ""
 
         # Timestamp before lion, as channel renaming can get rate limited
