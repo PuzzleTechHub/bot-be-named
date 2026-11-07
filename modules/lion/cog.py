@@ -426,36 +426,10 @@ class LionCog(commands.Cog, name="Lion"):
     async def sheetmta_generic(self, ctx: commands.Context):
         """Just handles the sheet aspect of mtalion, moving the tab associated with ctx.channel to the end of the sheet"""
         embed = discord_utils.create_embed()
-        result, _ = sheet_utils.findsheettether(
-            ctx.message.channel.category_id, ctx.message.channel.id
-        )
+        base = SheetCommandBase(ctx, self.gspread_client)
+        _, overview_sheet, row_to_find = await base.get_sheet_context()
 
-        if result is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
-                f"are tethered to any Google sheet.",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        curr_sheet_link = str(result.sheet_link)
-        overview_sheet = await hydra_sheet_utils.get_overview(
-            self.gspread_client, ctx, curr_sheet_link
-        )
         if overview_sheet is None:
-            embed.add_field(
-                name="Failed",
-                value="Error! Overview tab not found in the sheet! Did you accidentally delete it?",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
-        if err_embed is not None:
-            await discord_utils.send_message(ctx, err_embed)
             return
 
         sheet_tab_id_col = sheets_constants.SHEET_TAB_ID_COLUMN
