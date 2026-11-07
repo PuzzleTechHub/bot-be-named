@@ -275,7 +275,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @command_predicates.is_bot_owner()
     @commands.command(
         name="commonmemberguilds",
-        aliases=["commonguild", "guildcommon"],
+        aliases=["commonguild", "guildcommon", "commonguildmembers"],
     )
     async def commonmemberguilds(
         self,
@@ -314,15 +314,24 @@ class AdminCog(commands.Cog, name="Admin"):
         members_guild_1 = guild_1_guild.members
         members_guild_2 = guild_2_guild.members
 
+        # Skip the bot or "No members in common" will never be reached
         members_common = [
-            member for member in members_guild_1 if member in members_guild_2
+            member
+            for member in members_guild_1
+            if member in members_guild_2 and member != ctx.bot.user
         ]
 
         if len(members_common) > 0:
+            members_string = " ".join(
+                [
+                    f"{member.mention} - `@{member.name}` \n "
+                    for member in members_common
+                ]
+            )
             embed.add_field(
                 name="Members common",
                 value=f"Members common in `{guild_1}` and `{guild_2}`\n"
-                f"{' '.join([member.mention for member in members_common])}",
+                f"{members_string}",
                 inline=False,
             )
         else:
