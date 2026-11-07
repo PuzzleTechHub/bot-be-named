@@ -159,10 +159,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
         embed = discord_utils.create_embed()
 
         # Get category and channel information
-        curr_cat = ctx.message.channel.category.name
-        curr_cat_id = str(ctx.message.channel.category_id)
+        curr_cat = ctx.message.channel.category
+        curr_cat_id = ctx.message.channel.category_id
         curr_chan = ctx.message.channel
-        curr_chan_id = str(ctx.message.channel.id)
+        curr_chan_id = ctx.message.channel.id
 
         curr_thread_id = None
         if await discord_utils.is_thread(ctx, curr_chan):
@@ -213,6 +213,14 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     inline=False,
                 )
             await discord_utils.send_message(ctx, embed)
+        elif curr_cat is None:
+            embed.add_field(
+                name="Failed",
+                value=f"The channel {curr_chan.mention} is not tethered to any Google sheet.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
         else:
             embed.add_field(
                 name="Failed",
@@ -259,10 +267,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """
         embed = discord_utils.create_embed()
 
-        curr_cat = ctx.message.channel.category.name
-        curr_cat_id = str(ctx.message.channel.category_id)
+        curr_cat = ctx.message.channel.category
+        curr_cat_id = ctx.message.channel.category_id
         curr_chan = ctx.message.channel
-        curr_chan_id = str(ctx.message.channel.id)
+        curr_chan_id = ctx.message.channel.id
 
         curr_thread_id = None
         if await discord_utils.is_thread(ctx, curr_chan):
@@ -311,6 +319,14 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     inline=False,
                 )
             await discord_utils.send_message(ctx, embed)
+        elif curr_cat is None:
+            embed.add_field(
+                name="Failed",
+                value=f"The channel {curr_chan.mention} is not tethered to any Google sheet.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
         else:
             embed.add_field(
                 name="Failed",
