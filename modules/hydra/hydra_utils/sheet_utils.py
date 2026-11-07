@@ -430,12 +430,6 @@ async def sheet_move_to_archive(gspread_client, ctx: Context):
     curr_sheet_link = str(result.sheet_link)
     overview_sheet = await get_overview(gspread_client, ctx, curr_sheet_link)
     if overview_sheet is None:
-        embed.add_field(
-            name="Failed",
-            value="Error! Overview tab not found in the sheet! Did you accidentally delete it?",
-            inline=False,
-        )
-        await discord_utils.send_message(ctx, embed)
         return
 
     row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
