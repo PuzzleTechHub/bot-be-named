@@ -15,6 +15,7 @@ from utils import (
     solved_utils,
 )
 from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
+from modules.hydra.hydra_utils.sheet_command_base import SheetCommandBase
 
 """
 Lion module. Module with GSheet-Discord interfacing. See module's README.md for more.
@@ -228,31 +229,9 @@ class LionCog(commands.Cog, name="Lion"):
 
         Usage: ~gettablion
         """
-        result, _ = sheet_utils.findsheettether(
-            ctx.message.channel.category_id, ctx.message.channel.id
-        )
-
-        if result is None:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
-                f"are tethered to any Google sheet.",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        curr_sheet_link = str(result.sheet_link)
-        overview_sheet = await hydra_sheet_utils.get_overview(
-            self.gspread_client, ctx, curr_sheet_link
-        )
+        base = SheetCommandBase(self.gspread_client)
+        curr_sheet_link, overview_sheet, row_to_find = await base.get_sheet_context()
         if overview_sheet is None:
-            return
-
-        row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
-        if err_embed is not None:
-            await discord_utils.send_message(ctx, err_embed)
             return
 
         tab_cell_label = sheets_constants.SHEET_TAB_ID_COLUMN + str(row_to_find)
@@ -345,30 +324,10 @@ class LionCog(commands.Cog, name="Lion"):
                 status_info = sheets_constants.status_dict.get("None")
 
             # Find tethered sheet
-            result, _ = sheet_utils.findsheettether(
-                ctx.message.channel.category_id, ctx.message.channel.id
-            )
+            base = SheetCommandBase(ctx, self.gspread_client)
+            _, overview_sheet, row_to_find = await base.get_sheet_context()
 
-            if result is None:
-                embed.add_field(
-                    name="Failed",
-                    value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
-                    f"are tethered to any Google sheet.",
-                    inline=False,
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
-
-            curr_sheet_link = str(result.sheet_link)
-            overview_sheet = await hydra_sheet_utils.get_overview(
-                self.gspread_client, ctx, curr_sheet_link
-            )
             if overview_sheet is None:
-                return
-
-            row_to_find, err_embed = overview_sheet.find_row_of_channel(ctx)
-            if err_embed is not None:
-                await discord_utils.send_message(ctx, err_embed)
                 return
 
             status_col = overview_sheet.get_cell_value(
