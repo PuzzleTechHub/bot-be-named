@@ -508,20 +508,9 @@ class LionCog(commands.Cog, name="Lion"):
             tab_name = chan_name.replace("#", "").replace("-", " ")
 
             sheet = self.gspread_client.open_by_url(curr_sheet_link)
-            try:
-                overview_sheet = await hydra_sheet_utils.get_overview(
-                    self.gspread_client, ctx, curr_sheet_link
-                )
-            # Error when the sheet has no Overview tab
-            except gspread.exceptions.WorksheetNotFound:
-                embed.add_field(
-                    name="Failed",
-                    value=f"The [sheet]({curr_sheet_link}) has no tab named 'Overview'. "
-                    f"Did you forget to add one?",
-                    inline=False,
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
+            overview_sheet = await hydra_sheet_utils.get_overview(
+                self.gspread_client, ctx, curr_sheet_link
+            )
 
             if not overview_sheet:
                 return
