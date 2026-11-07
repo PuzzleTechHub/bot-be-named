@@ -2,7 +2,7 @@ import emoji
 import gspread
 import nextcord
 from gspread.worksheet import Worksheet
-from nextcord.ext.commands import Context
+from nextcord.ext import commands
 
 from modules.hydra.hydra_utils import hydra_helpers
 from utils import batch_update_utils, discord_utils, sheets_constants
@@ -35,7 +35,7 @@ def get_new_puzzle_tab_index(worksheets: list[Worksheet]) -> int:
 
 async def create_puzzle_channel_from_template(
     bot,
-    ctx,
+    ctx: commands.Context,
     puzzle_name: str,
     template_name: str,
     puzzle_url: str | None,
@@ -324,7 +324,7 @@ async def create_puzzle_channel_from_template(
 
 
 async def findchanidcell(
-    gspread_client, ctx, sheet_link, list_channel_id
+    gspread_client, ctx: commands.Context, sheet_link, list_channel_id
 ) -> list[tuple[int, Worksheet, list]] | None:
     """Find the cell with the discord channel id based on overview (moved from HydraCog)."""
     try:
@@ -378,7 +378,7 @@ def firstemptyrow(worksheet):
 
 
 async def get_overview(
-    gspread_client, ctx: Context, sheet_link: str
+    gspread_client, ctx: commands.Context, sheet_link: str
 ) -> OverviewSheet | None:
     """Open an OverviewSheet with improved error messages (moved from HydraCog)."""
     try:
@@ -412,7 +412,7 @@ async def get_overview(
     return overview_sheet
 
 
-async def sheet_move_to_archive(gspread_client, ctx: Context):
+async def sheet_move_to_archive(gspread_client, ctx: commands.Context):
     """Handles the sheet aspect of mtahydra."""
     embed = discord_utils.create_embed()
     result, _ = findsheettether(ctx.message.channel.category_id, ctx.message.channel.id)
@@ -481,7 +481,7 @@ async def sheet_move_to_archive(gspread_client, ctx: Context):
 
 async def batch_create_puzzle_channels(
     bot,
-    ctx,
+    ctx: commands.Context,
     gspread_client,
     puzzle_configs: list[tuple[str, str | None, str | None]],
 ):

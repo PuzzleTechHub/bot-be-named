@@ -27,7 +27,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     @command_predicates.is_verified()
     @commands.command(name="movechan", aliases=["movechannel"])
     async def movechannel(
-        self, ctx, category_name: str, *args: Union[nextcord.TextChannel, str]
+        self,
+        ctx: commands.Context,
+        category_name: str,
+        *args: Union[nextcord.TextChannel, str],
     ):
         """Command to move channels to category with given name
 
@@ -223,7 +226,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     @commands.command(name="renamechan", aliases=["renamechannel", "renamethread"])
     async def renamechannel(
         self,
-        ctx,
+        ctx: commands.Context,
         chan_a: Union[nextcord.TextChannel, nextcord.Thread, str],
         chan_b: Union[nextcord.TextChannel, nextcord.Thread, str] = "",
     ):
@@ -280,7 +283,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
     @command_predicates.is_verified()
     @commands.command(name="makethread", aliases=["createthread"])
-    async def createthread(self, ctx, name: str):
+    async def createthread(self, ctx: commands.Context, name: str):
         """Command to create thread in same channel with given name
 
         Permission Category : Verified Roles only.
@@ -317,7 +320,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         name="createchan", aliases=["makechannel", "makechan", "createchannel"]
     )
     async def createchannel(
-        self, ctx, name: str, category_arg: Union[nextcord.CategoryChannel, str] = ""
+        self,
+        ctx: commands.Context,
+        name: str,
+        category_arg: Union[nextcord.CategoryChannel, str] = "",
     ):
         """Command to create channel in a given category. If given no category name, it defaults to current category.
 
@@ -390,7 +396,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     @commands.command(name="clonechan", aliases=["clonechannel", "chanclone"])
     async def clonechannel(
         self,
-        ctx,
+        ctx: commands.Context,
         chan_a: Union[nextcord.TextChannel, nextcord.VoiceChannel, str],
         chan_b: str = "",
         origRoleorUser: Union[nextcord.Role, nextcord.Member, str, None] = None,
@@ -560,7 +566,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     @commands.command(name="shiftchan", aliases=["shiftchannel"])
     async def shiftchannel(
         self,
-        ctx,
+        ctx: commands.Context,
         chan_a_name: Union[nextcord.TextChannel, str],
         chan_b_name: Union[nextcord.TextChannel, str] = "",
     ):
@@ -657,7 +663,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
     @command_predicates.is_verified()
     @commands.command(name="renamevc", aliases=["renamevoicechan", "renamevoice"])
-    async def renamevoicechan(self, ctx, new_name: str):
+    async def renamevoicechan(self, ctx: commands.Context, new_name: str):
         """Command to rename the Voice Channel in which the user currently is
 
         Permission Category : Verified Roles only.
@@ -710,7 +716,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         name="sortcat",
         aliases=["categorysort", "catsort", "sortcategory", "reorderchannels"],
     )
-    async def categorysort(self, ctx, cat_name: str = ""):
+    async def categorysort(self, ctx: commands.Context, cat_name: str = ""):
         """Sort all channels in a category. Specifically for puzzle hunts, `solved-`, `backsolved-`, and `solvedish-`
         prefixes will be put behind channels without a prefix.
         Permission Category : Verified Roles only.
@@ -793,7 +799,9 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
     @command_predicates.is_verified()
     @commands.command(name="renamecat", aliases=["renamecategory"])
-    async def renamecategory(self, ctx, cat_a_name: str, cat_b_name: str = ""):
+    async def renamecategory(
+        self, ctx: commands.Context, cat_a_name: str, cat_b_name: str = ""
+    ):
         """Renames the given category to whatever is asked
 
         Note that if you use more than 2 category renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes.
@@ -845,7 +853,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
     @command_predicates.is_trusted()
     @commands.command(name="synccat", aliases=["synccategory", "catsync"])
-    async def synccategory(self, ctx, cat_name: str = ""):
+    async def synccategory(self, ctx: commands.Context, cat_name: str = ""):
         """Changes permissions of all channels in Current Category to be synced to Cat-permissions.
         So any channel with different role permissions set up is reverted.
 
@@ -911,7 +919,9 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     @commands.command(
         name="shiftcat", aliases=["shiftcategory", "movecategory", "movecat"]
     )
-    async def shiftcategory(self, ctx, cat_a_name: str, cat_b_name: str = ""):
+    async def shiftcategory(
+        self, ctx: commands.Context, cat_a_name: str, cat_b_name: str = ""
+    ):
         """Shifts a category to below another category.
 
         Note : Use "0" or "top" instead to say "Top of the server". But if a category in the server is named "top" or "0" then the respective argument won't work
@@ -1011,7 +1021,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     )
     async def clonecategory(
         self,
-        ctx,
+        ctx: commands.Context,
         origCatName: str,
         targetCatName: str,
         origRole: Union[nextcord.Role, str] = None,
@@ -1144,7 +1154,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         name="listcat",
         aliases=["lscategories", "listcats", "lscats", "listcategories", "lscat"],
     )
-    async def listcategories(self, ctx, cat_name: str = ""):
+    async def listcategories(self, ctx: commands.Context, cat_name: str = ""):
         """List all the categories in a server. If Category is provided, list all channels in it.
 
         Permission Category : Admin and Bot Owner only.
@@ -1196,7 +1206,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         aliases=["delcategory", "delcat", "deletecategory"],
     )
     @command_predicates.is_admin()
-    async def deletecategory(self, ctx, cat_name: str = ""):
+    async def deletecategory(self, ctx: commands.Context, cat_name: str = ""):
         """Delete a category in the server. Requires emoji confirmation
 
         Permission Category : Server Moderators only.

@@ -5,6 +5,7 @@ Used in Misc module
 """
 
 import asyncio
+from nextcord.ext import commands
 
 
 class Pages:
@@ -15,7 +16,9 @@ class Pages:
     set up pagination of results
     """
 
-    def __init__(self, ctx, *, solutions, weights=None, embedTemp, endflag=None):
+    def __init__(
+        self, ctx: commands.Context, *, solutions, weights=None, embedTemp, endflag=None
+    ):
         self.bot = ctx.bot
         self.message = ctx.message
         self.channel = ctx.channel

@@ -24,7 +24,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
     @commands.command(name="assignrole", aliases=["makerole", "createrole", "addrole"])
     async def assignrole(
         self,
-        ctx,
+        ctx: commands.Context,
         rolename: Union[nextcord.Role, nextcord.Member, str],
         *args: Union[nextcord.Member, str],
     ):
@@ -154,7 +154,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
     @commands.command(name="unassignrole", aliases=["removerole"])
     async def unassignrole(
         self,
-        ctx,
+        ctx: commands.Context,
         rolename: Union[nextcord.Role, str],
         *args: Union[nextcord.Member, str],
     ):
@@ -264,7 +264,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
     @commands.command(name="clonerole", aliases=["syncrole"])
     async def clonerole(
         self,
-        ctx,
+        ctx: commands.Context,
         oldrole: Union[nextcord.Role, str],
         newrole: Union[nextcord.Role, str],
     ):
@@ -343,7 +343,9 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(name="deleterole")
-    async def deleterole(self, ctx, rolename: Union[nextcord.Role, str]):
+    async def deleterole(
+        self, ctx: commands.Context, rolename: Union[nextcord.Role, str]
+    ):
         """Delete a role from the server
 
         Permission Category : Admin or Bot Owner only.
@@ -384,7 +386,9 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             return
 
     @commands.command(name="listroles", aliases=["lsroles", "listrole", "lsrole"])
-    async def listroles(self, ctx, rolename: Union[nextcord.Role, str] = ""):
+    async def listroles(
+        self, ctx: commands.Context, rolename: Union[nextcord.Role, str] = ""
+    ):
         """List all roles in the server, or all users under a given role.
 
         Usage:`~listroles` (All roles in the server)
@@ -437,7 +441,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
     @commands.command(name="subtractrole", aliases=["subrole"])
     async def subtractrole(
         self,
-        ctx,
+        ctx: commands.Context,
         rolename: Union[nextcord.Role, str],
         *args: Union[nextcord.Role, nextcord.Member, str],
     ):
@@ -497,7 +501,9 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="unreactrole", aliases=[])
-    async def unreactrole(self, ctx, *args: Union[nextcord.Role, str]):
+    async def unreactrole(
+        self, ctx: commands.Context, *args: Union[nextcord.Role, str]
+    ):
         """List all people for a given role who have not reacted to a message. (Either reply to the message, or it takes the message above)
 
         Usage:(as reply to message) `~unreactrole here` (Everyone who can see this channel, including BBN)

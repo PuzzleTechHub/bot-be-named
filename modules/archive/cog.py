@@ -199,7 +199,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     @command_predicates.is_verified()
     @commands.command(name="archivechannel", aliases=["archivechan", "archivethread"])
-    async def archivechannel(self, ctx, *args: Union[nextcord.TextChannel, str]):
+    async def archivechannel(
+        self, ctx: commands.Context, *args: Union[nextcord.TextChannel, str]
+    ):
         """Command to download channel's history
 
         Permission Category : Verified Roles only.
@@ -306,7 +308,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     @command_predicates.is_verified()
     @commands.command(name="archivecategory", aliases=["archivecat"])
-    async def archivecategory(self, ctx, *args: str):
+    async def archivecategory(self, ctx: commands.Context, *args: str):
         """Command to download the history of every text channel in the category
 
         Permission Category : Verified Roles only.
@@ -401,7 +403,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(name="archiveserver")
-    async def archiveserver(self, ctx):
+    async def archiveserver(self, ctx: commands.Context):
         """Command to archive every text channel in the server. WARNING: This command will take *very*
         long on any reasonably aged server
 

@@ -401,7 +401,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="catsummaryhydra", aliases=["categorysummaryhydra"])
-    async def catsummaryhydra(self, ctx) -> None:
+    async def catsummaryhydra(self, ctx: commands.Context) -> None:
         """Collates all the notes on the overview sheet for each text channel in the categories allowed for your roles.
         Silently skips channels not on the overview. The sheet will need to follow the Hydra
         requirements for this to work as expected.
@@ -514,7 +514,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     @commands.command(name="anychanhydra", aliases=["anyhydra"])
     async def anychanhydra(
         self,
-        ctx,
+        ctx: commands.Context,
         *,
         args,
     ):
@@ -561,7 +561,9 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="mtahydra", aliases=["movetoarchivehydra"])
-    async def mtahydra(self, ctx, *, category_name: Optional[str] = None):
+    async def mtahydra(
+        self, ctx: commands.Context, *, category_name: Optional[str] = None
+    ):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category. If the category is full (50 channels), I will make a new one.
         If called from thread (instead of channel), closes the thread instead of moving channel.
@@ -982,7 +984,9 @@ class HydraCog(commands.Cog, name="Hydra"):
         name="watchcategoryhydra",
         aliases=["watchcathydra", "watchcat", "watchcategory"],
     )
-    async def watchcategoryhydra(self, ctx, limit_arg: Optional[int] = None):
+    async def watchcategoryhydra(
+        self, ctx: commands.Context, limit_arg: Optional[int] = None
+    ):
         """Summarise the last `limit` messages across the categories allowed for your roles:
         `limit` caps off at 250.
         Only counts messages from humans (not bots), in channels listed on a tethered sheet's Overview.
@@ -1184,7 +1188,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="statushydra")
-    async def statushydra(self, ctx, status: str, answer: str = None):
+    async def statushydra(self, ctx: commands.Context, status: str, answer: str = None):
         """Adds a status to the puzzle and updates the sheet and channel name accordingly.
         Same as `~statuslion`, but adds functionality for the timestamps on the Overview sheet:
 
@@ -1248,7 +1252,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             )
 
     async def post_solve_to_channel(
-        self, ctx, overview_sheet, row_to_find, status_col, answer
+        self, ctx: commands.Context, overview_sheet, row_to_find, status_col, answer
     ):
         """Posts a solved puzzle in solve streams linked to that Google sheet."""
         with Session(database.DATABASE_ENGINE) as session:
@@ -1324,7 +1328,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="solvedhydra")
-    async def solvedhydra(self, ctx, answer: str = None):
+    async def solvedhydra(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to solved and updates the sheet and channel name accordingly.
         Also records the solved time on the Overview sheet.
 
@@ -1336,7 +1340,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="backsolvedhydra")
-    async def backsolvedhydra(self, ctx, answer: str = None):
+    async def backsolvedhydra(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to backsolved and updates the sheet and channel name accordingly.
         Also records the solved time on the Overview sheet.
 
@@ -1348,7 +1352,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="solvedishhydra")
-    async def solvedishhydra(self, ctx, answer: str = None):
+    async def solvedishhydra(self, ctx: commands.Context, answer: str = None):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly.
         Records a new solved time on te Overview sheet.
 
@@ -1360,7 +1364,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="unsolvedhydra")
-    async def unsolvedhydra(self, ctx, answer: str = ""):
+    async def unsolvedhydra(self, ctx: commands.Context, answer: str = ""):
         """Sets the puzzle to in progress and updates the sheet and channel name accordingly.
         Clears the solved time on the Overview sheet.
 
@@ -1372,7 +1376,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="slainhydra", aliases=["donehydra"])
-    async def slainhydra(self, ctx, answer: str = None):
+    async def slainhydra(self, ctx: commands.Context, answer: str = None):
         """Runs `~solvedhydra` "ANSWER" then `~mtahydra`.
 
         Permission Category : Solver Roles only.
@@ -1388,7 +1392,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="backslainhydra")
-    async def backslainhydra(self, ctx, answer: str = None):
+    async def backslainhydra(self, ctx: commands.Context, answer: str = None):
         """Runs `~backsolvedhydra` "ANSWER" then `~mtahydra`.
 
         Permission Category : Solver Roles only.
@@ -1639,7 +1643,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     @commands.command(name="summaryallowhydra")
     async def summaryallowhydra(
         self,
-        ctx,
+        ctx: commands.Context,
         role_or_rolename: Union[nextcord.Role, str],
         chan_or_channame: Optional[Union[nextcord.TextChannel, str]] = None,
     ):
@@ -1712,7 +1716,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     @commands.command(name="summarydisallowhydra")
     async def summarydisallowhydra(
         self,
-        ctx,
+        ctx: commands.Context,
         role_or_rolename: Union[nextcord.Role, str],
         chan_or_channame: Union[nextcord.TextChannel, str],
     ):
@@ -1757,7 +1761,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_trusted()
     @commands.command(name="summarylisthydra")
-    async def summarylisthydra(self, ctx):
+    async def summarylisthydra(self, ctx: commands.Context):
         """Sends the list of roles allowed to run summaries in this server and where. Be careful where you call
         this!
 
@@ -1800,7 +1804,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     )
     async def addupdateshydra(
         self,
-        ctx,
+        ctx: commands.Context,
         channel: Optional[nextcord.TextChannel] = None,
         *sheet_links: str,
     ):
@@ -1901,7 +1905,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     )
     async def rmupdateshydra(
         self,
-        ctx,
+        ctx: commands.Context,
         channel: Optional[nextcord.TextChannel] = None,
         *sheet_links: str,
     ):

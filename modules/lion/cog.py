@@ -84,7 +84,7 @@ class LionCog(commands.Cog, name="Lion"):
 
     @command_predicates.is_solver()
     @commands.command(name="unsolved", aliases=["unsolvedcrab"])
-    async def unsolved(self, ctx: commands.context):
+    async def unsolved(self, ctx: commands.Context):
         """removes one of the solved prefixes from channel name
 
         Permission Category : Solver Roles only.
@@ -1107,7 +1107,7 @@ class LionCog(commands.Cog, name="Lion"):
             )
             await discord_utils.send_message(ctx, embed)
 
-    async def initoverview(self, ctx, hunturl, sheet):
+    async def initoverview(self, ctx: commands.Context, hunturl, sheet):
         """Initializes the overview sheet for the hunt."""
         overview = None
 
@@ -1205,7 +1205,7 @@ class LionCog(commands.Cog, name="Lion"):
 
     @command_predicates.is_solver()
     @commands.command(name="tetherlion", aliases=["tetherhydra"])
-    async def tetherlion(self, ctx, sheet_key_or_link: str):
+    async def tetherlion(self, ctx: commands.Context, sheet_key_or_link: str):
         """Tethers a sheet to the category and also checks that it is the correct format to be used by the lion commands
 
         Sheet must have the following tabs: Overview, Template, Meta Template

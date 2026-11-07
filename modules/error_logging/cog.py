@@ -23,7 +23,7 @@ class ErrorLogCog(commands.Cog):
 
     @commands.command(name="errorlog")
     @command_predicates.is_bot_owner_or_admin()
-    async def errorlog(self, ctx, num_lines: int = 50):
+    async def errorlog(self, ctx: commands.Context, num_lines: int = 50):
         """Shows errors in reverse chronological order
 
         Permission Category : Admin and Bot Owner only.
@@ -79,7 +79,7 @@ async def on_error(event, *args, **kwargs):
     await args.channel.send(embed=embed)
 
 
-async def on_command_error(ctx, error):
+async def on_command_error(ctx: commands.Context, error):
     """When a command exception is raised, log it in err.log and bot log channel"""
     details = f"**Error while running command**\n'''\n{ctx.message.clean_content}\n'''"
     user_error = ErrorHandler(ctx.message, error, details).handle_error()

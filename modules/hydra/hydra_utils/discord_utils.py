@@ -1,12 +1,12 @@
 from typing import Optional
 
 import nextcord
-from nextcord.ext.commands import Context
+from nextcord.ext import commands
 
 from utils import discord_utils
 
 
-async def category_move_to_archive(ctx: Context, archive_name: Optional[str]):
+async def category_move_to_archive(ctx: commands.Context, archive_name: Optional[str]):
     """Moves the current channel to an archive category, or archives the thread if called from a thread.
     1. Takes the current channel's category name, and splits it into words. Looks for (all words) Archive, then (all but last word) Archive,
     then (all but last two words) Archive etc.

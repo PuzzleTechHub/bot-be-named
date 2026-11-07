@@ -23,7 +23,7 @@ class TimeCog(commands.Cog, name="Time"):
         self.geopy_client = geopy.geocoders.GeoNames(os.getenv("GEOPY_USERNAME"))
 
     @commands.command(name="countdown")
-    async def countdown(self, ctx, *args):
+    async def countdown(self, ctx: commands.Context, *args):
         """Uses discord message time formatting to provide a countdown
 
         Usage: `~countdown September 22, 2021 9:00pm EDT`
@@ -61,7 +61,7 @@ class TimeCog(commands.Cog, name="Time"):
         await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="time")
-    async def time(self, ctx, *args):
+    async def time(self, ctx: commands.Context, *args):
         """Return the time in the specified location
 
         Usage: `~time Mumbai`

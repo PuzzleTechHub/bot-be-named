@@ -19,7 +19,7 @@ class MiscCog(commands.Cog, name="Misc"):
         self.bot = bot
 
     @commands.command(name="emojiall")
-    async def emojiall(self, ctx, emoji_count: int = 20):
+    async def emojiall(self, ctx: commands.Context, emoji_count: int = 20):
         """Reacts to the replied message with respective number of emojis (Uses A-Z emojis).
 
         Use: (as reply to another message) `~emojiall 5`
@@ -52,7 +52,7 @@ class MiscCog(commands.Cog, name="Misc"):
         await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
 
     @commands.command(name="emoji")
-    async def emoji(self, ctx, *args):
+    async def emoji(self, ctx: commands.Context, *args):
         """Finds the custom emoji mentioned and uses it.
         This command works for normal as well as animated emojis, as long as the bot is in one server with that emoji.
 
@@ -223,7 +223,7 @@ class MiscCog(commands.Cog, name="Misc"):
                 await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="about", aliases=["aboutthebot", "github"])
-    async def about(self, ctx):
+    async def about(self, ctx: commands.Context):
         """A quick primer about BBN and what it does
 
         Usage : `~about`
@@ -271,7 +271,7 @@ class MiscCog(commands.Cog, name="Misc"):
         await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="info", aliases=["startup", "start"])
-    async def info(self, ctx):
+    async def info(self, ctx: commands.Context):
         """A quick primer about helpful BBN functions
 
         Usage : `~info`
@@ -325,7 +325,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
     @command_predicates.is_trusted()
     @commands.command(name="botsay")
-    async def botsay(self, ctx, channel_id_or_name: str, *args):
+    async def botsay(self, ctx: commands.Context, channel_id_or_name: str, *args):
         """Say something in another channel
 
         Permission Category : Trusted roles only.
@@ -370,7 +370,7 @@ class MiscCog(commands.Cog, name="Misc"):
 
     @command_predicates.is_trusted()
     @commands.command(name="botsayembed")
-    async def botsayembed(self, ctx, channel_id_or_name: str, *args):
+    async def botsayembed(self, ctx: commands.Context, channel_id_or_name: str, *args):
         """Say something in another channel, but as an embed
 
         Permission Category : Trusted roles only.

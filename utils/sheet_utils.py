@@ -9,7 +9,7 @@ from typing import Optional, Union
 import emoji
 
 from datetime import datetime, timezone
-from nextcord.ext.commands import Context
+from nextcord.ext import commands
 
 """
 Sheets utils. Useful for any commands that require Google Sheets.
@@ -64,7 +64,11 @@ def addsheettethergeneric(
 
 
 async def sheetcrabgeneric(
-    gspread_client, ctx, tab_name: str, is_meta: bool, to_pin: str = ""
+    gspread_client,
+    ctx: commands.Context,
+    tab_name: str,
+    is_meta: bool,
+    to_pin: str = "",
 ):
     embed = discord_utils.create_embed()
 
@@ -114,7 +118,7 @@ async def sheetcrabgeneric(
 
 async def chancrabgeneric(
     gspread_client,
-    ctx,
+    ctx: commands.Context,
     chan_name: str,
     chan_type: str,
     is_meta: bool,
@@ -326,7 +330,12 @@ def get_sheet_from_key_or_link(
 
 
 async def sheetcreatetabgeneric(
-    gspread_client, ctx, curr_chan, curr_cat, tab_name, template_or_meta
+    gspread_client,
+    ctx: commands.Context,
+    curr_chan,
+    curr_cat,
+    tab_name,
+    template_or_meta,
 ):
     """Actually creates the sheet and handles errors"""
     embed = discord_utils.create_embed()
@@ -463,7 +472,7 @@ class OverviewSheet:
             return ""
 
     def find_row_of_channel(
-        self, ctx: Context
+        self, ctx: commands.Context
     ) -> tuple[int, None] | tuple[None, nextcord.Embed]:
         chan_id = str(ctx.channel.id)
         for i, row in enumerate(self.overview_data):

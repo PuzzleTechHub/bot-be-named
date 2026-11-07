@@ -13,7 +13,7 @@ def is_bot_owner():
     Is bot owner.
     """
 
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context):
         return await ctx.bot.is_owner(ctx.author)
 
     return commands.check(predicate)
@@ -24,7 +24,7 @@ def is_admin():
     Is an admin on the server.
     """
 
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context):
         if ctx.message.guild is None:
             return False
         return ctx.message.author.guild_permissions.administrator
@@ -37,7 +37,7 @@ def is_bot_owner_or_admin():
     Is bot owner, or an admin.
     """
 
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context):
         is_bot_owner = await ctx.bot.is_owner(ctx.author)
         if ctx.message.guild is None:
             return False
@@ -51,7 +51,7 @@ def is_guild_owner():
     Is guild owner.
     """
 
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context):
         if ctx.message.guild is None:
             return False
         return ctx.author == ctx.guild.owner
@@ -60,7 +60,7 @@ def is_guild_owner():
 
 
 def is_tester():
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context):
         if ctx.message.guild is None:
             return False
         if ctx.guild.id in database.TESTERS:
@@ -76,7 +76,7 @@ def is_tester():
 
 
 def is_solver():
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context):
         if ctx.message.guild is None:
             return False
         if ctx.guild.id in database.SOLVERS:
@@ -92,7 +92,7 @@ def is_solver():
 
 
 def is_verified():
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context):
         if ctx.message.guild is None:
             return False
         if ctx.guild.id in database.VERIFIEDS:
@@ -108,7 +108,7 @@ def is_verified():
 
 
 def is_trusted():
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context):
         if ctx.message.guild is None:
             return False
         if ctx.guild.id in database.TRUSTEDS:
@@ -122,7 +122,7 @@ def is_trusted():
 
 
 def is_trusted_or_bot_owner():
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context):
         if ctx.message.guild is None:
             return False
 

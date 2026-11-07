@@ -21,7 +21,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         self.bot = bot
 
     @commands.command(name="search")
-    async def search(self, ctx, target_site: str, *args):
+    async def search(self, ctx: commands.Context, target_site: str, *args):
         """
         Command to search the interwebs! (google)
 
@@ -86,7 +86,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="google")
-    async def google(self, ctx, *args):
+    async def google(self, ctx: commands.Context, *args):
         """
         Command to search google!
 
@@ -102,7 +102,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="wikipedia", aliases=["wiki"])
-    async def wikipedia(self, ctx, *args):
+    async def wikipedia(self, ctx: commands.Context, *args):
         """
         Command to search Wikipedia!
 
@@ -129,7 +129,7 @@ class LookupCog(commands.Cog, name="Lookup"):
         await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="nutrimatic", aliases=["n", "nu", "nut", "nutri"])
-    async def nutrimatic(self, ctx, *, query=None):
+    async def nutrimatic(self, ctx: commands.Context, *, query=None):
         if not query:
             await ctx.send('Example regex: `!nut "<asympote_>"`')
             return

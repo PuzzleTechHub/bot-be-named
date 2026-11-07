@@ -31,7 +31,10 @@ class AdminCog(commands.Cog, name="Admin"):
         name="addperm", aliases=["addverifieds", "addverified", "addperms"]
     )
     async def addperm(
-        self, ctx, role_permissions: str, role_or_rolename: Union[nextcord.Role, str]
+        self,
+        ctx: commands.Context,
+        role_permissions: str,
+        role_or_rolename: Union[nextcord.Role, str],
     ):
         """Add a new Permission Category for a given role on this server. Only available to server admins or bot owners.
 
@@ -134,7 +137,7 @@ class AdminCog(commands.Cog, name="Admin"):
             "lsperm",
         ],
     )
-    async def listperm(self, ctx, role_permissions: str):
+    async def listperm(self, ctx: commands.Context, role_permissions: str):
         """List all roles in the given Permission Category within the server.
 
         See also: `~addperms`
@@ -184,7 +187,10 @@ class AdminCog(commands.Cog, name="Admin"):
         aliases=["removeperms", "rmperms", "rmverified", "rmperm"],
     )
     async def removeperm(
-        self, ctx, role_permissions: str, role_or_rolename: Union[nextcord.Role, str]
+        self,
+        ctx: commands.Context,
+        role_permissions: str,
+        role_or_rolename: Union[nextcord.Role, str],
     ):
         """Remove a role from the given Permission Category within the server.
         Only available to server admins or bot owners.
@@ -279,7 +285,7 @@ class AdminCog(commands.Cog, name="Admin"):
     )
     async def commonmemberguilds(
         self,
-        ctx,
+        ctx: commands.Context,
         guild_1: Union[nextcord.Guild, str],
         guild_2: Union[nextcord.Guild, str],
     ):
@@ -349,7 +355,7 @@ class AdminCog(commands.Cog, name="Admin"):
     )
     async def guildowner(
         self,
-        ctx,
+        ctx: commands.Context,
         guild_name: Union[nextcord.Guild, str],
     ):
         """Mentions the guild owner for a specific guild the bot is in.
@@ -384,7 +390,7 @@ class AdminCog(commands.Cog, name="Admin"):
         name="lsguilds",
         aliases=["listguilds"],
     )
-    async def lsguilds(self, ctx):
+    async def lsguilds(self, ctx: commands.Context):
         """List all guilds that the bot is in, with their owners.
 
         Permission Category : Bot Owner Roles only.
@@ -419,7 +425,9 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(
         name="quitguild",
     )
-    async def quitguild(self, ctx, guild_name: Union[nextcord.Guild, str]):
+    async def quitguild(
+        self, ctx: commands.Context, guild_name: Union[nextcord.Guild, str]
+    ):
         """Quit a guild.
 
         Permission Category : Bot Owner Roles only.
@@ -457,7 +465,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(name="setprefix")
-    async def setprefix(self, ctx, prefix: str):
+    async def setprefix(self, ctx: commands.Context, prefix: str):
         """Sets the bot prefix for the server.
 
         Permission Category : Admin or Bot Owner Roles only.
@@ -486,7 +494,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(
         name="reloaddatabasecache", aliases=["reloaddbcache", "dbcachereload"]
     )
-    async def reloaddatabasecache(self, ctx):
+    async def reloaddatabasecache(self, ctx: commands.Context):
         """Reloads the custom command cache. This is useful when we're editing commands or playing with the Database.
 
         Permission Category : Admin or Bot Owner Roles only.

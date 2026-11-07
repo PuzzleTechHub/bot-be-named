@@ -1,3 +1,4 @@
+from nextcord.ext import commands
 from utils import discord_utils, sheet_utils
 from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
 
@@ -5,7 +6,7 @@ from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
 class SheetCommandBase:
     """Base class for commands that interact with overview sheets"""
 
-    def __init__(self, ctx, gspread_client):
+    def __init__(self, ctx: commands.Context, gspread_client):
         self.ctx = ctx
         self.gspread_client = gspread_client
         self.embed = discord_utils.create_embed()

@@ -43,7 +43,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         name="addtether",
         aliases=["editsheettether", "tether", "edittether", "addsheettether"],
     )
-    async def addsheettether(self, ctx, sheet_key_or_link: str):
+    async def addsheettether(self, ctx: commands.Context, sheet_key_or_link: str):
         """Tethers a sheet to the current category.
 
         For any Google sheets commands, a tether to either category or channel (See `~chantether`) is necessary.
@@ -101,7 +101,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
             "threadtether",
         ],
     )
-    async def addchannelsheettether(self, ctx, sheet_key_or_link: str):
+    async def addchannelsheettether(
+        self, ctx: commands.Context, sheet_key_or_link: str
+    ):
         """Tethers a sheet to the current channel/thread
 
         For any Google sheets commands, a tether to either category (See `~tether`) or channel is necessary.
@@ -147,7 +149,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
             "deltetherhydra",
         ],
     )
-    async def removesheettether(self, ctx):
+    async def removesheettether(self, ctx: commands.Context):
         """Remove the Category or Channel tethering to the sheet.
 
         If a channel tether and a category tether both exist, the channel tether will always be removed first.
@@ -235,7 +237,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @commands.command(
         name="prunetethers",
     )
-    async def prunetethers(self, ctx):
+    async def prunetethers(self, ctx: commands.Context):
         """Remove all tethers from channels that no longer exist
 
         See also : ~addtether
@@ -259,7 +261,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         name="showtether",
         aliases=["showsheettether", "displaysheettether", "displaytether"],
     )
-    async def displaysheettether(self, ctx):
+    async def displaysheettether(self, ctx: commands.Context):
         """Find the sheet the category is current tethered too
 
         Permission Category : Solver Roles only.
@@ -339,7 +341,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
     @command_predicates.is_solver()
     @commands.command(name="downloadsheet", aliases=["savesheet"])
-    async def downloadsheet(self, ctx, sheet_url=None):
+    async def downloadsheet(self, ctx: commands.Context, sheet_url=None):
         """Download the channel/category's currently tethered sheet. You can supply a URL or it will
         use the currently tethered sheet.
 

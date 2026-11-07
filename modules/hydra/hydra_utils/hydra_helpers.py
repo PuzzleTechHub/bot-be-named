@@ -2,6 +2,7 @@ import gspread
 import emoji
 from utils import discord_utils, sheet_utils
 import nextcord
+from nextcord.ext import commands
 
 """Helper functions for hydra/cog.py. Holds small and reusable pieces of code. More sophisticated helpers to to
 sheet_utils.py, discord_utils.py, etc."""
@@ -16,7 +17,9 @@ sheet_utils.py, discord_utils.py, etc."""
 # ==============================
 
 
-async def handle_gspread_error(ctx, e: gspread.exceptions.APIError, embed=None):
+async def handle_gspread_error(
+    ctx: commands.Context, e: gspread.exceptions.APIError, embed=None
+):
     """Centralized handler for gspread API errors."""
     if embed is None:
         embed = discord_utils.create_embed()
@@ -55,7 +58,7 @@ async def handle_gspread_error(ctx, e: gspread.exceptions.APIError, embed=None):
 
 
 def get_sheet_keys(
-    ctx, sheet_links
+    ctx: commands.Context, sheet_links
 ) -> tuple[list[str], list[str], nextcord.Embed | None]:
     """Turns sheet links into spreadsheet ids, without duplicates. When no links
     are provided, uses the tethered sheet. Returns (sheet_keys, bad_links, None) or ([], [], error_embed)
@@ -114,7 +117,9 @@ def create_failure_embed(message: str) -> nextcord.Embed:
     return embed
 
 
-async def send_and_react_success(ctx, embed, reaction=":check_mark_button:"):
+async def send_and_react_success(
+    ctx: commands.Context, embed, reaction=":check_mark_button:"
+):
     """Send a message and react with a success reaction."""
     await ctx.message.add_reaction(emoji.emojize(reaction))
     await discord_utils.send_message(ctx, embed)

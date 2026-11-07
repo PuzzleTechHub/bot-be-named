@@ -26,7 +26,9 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         self.bot = bot
         self.response_timeout = RESPONSE_TIMEOUT_SECONDS
 
-    async def check_cc_name(self, ctx, command_name, is_global: bool) -> bool:
+    async def check_cc_name(
+        self, ctx: commands.Context, command_name, is_global: bool
+    ) -> bool:
         """Checks if the command name is free before asking for any responses to fill it with."""
         embed = discord_utils.create_embed()
         if command_name in constants.DEFAULT_COMMANDS:
@@ -55,14 +57,14 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             return False
         return True
 
-    async def get_responses(self, ctx, command_name, command_return):
+    async def get_responses(self, ctx: commands.Context, command_name, command_return):
         """Returns the response given as a list. If none was given, triggers a method that asks for responses
         one message at a time. Returns None if cancelled."""
         if command_return:
             return [command_return]
         return await self.collect_responses(ctx, command_name)
 
-    async def collect_responses(self, ctx, command_name):
+    async def collect_responses(self, ctx: commands.Context, command_name):
         """Collects responses for a custom command that will be randomly selected out of, until they lock it in.
         Returns None if cancelled."""
         confirm_emoji = "✅"
@@ -157,7 +159,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             if response:
                 responses.append(response)
 
-    def describe_response(self, ctx, command_name, responses):
+    def describe_response(self, ctx: commands.Context, command_name, responses):
         """Short summary of how the customcommand went."""
         return (
             f"I have gathered {len(responses)} response{'s' if len(responses) > 1 else ''} for the command `{command_name}`. "
@@ -166,7 +168,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
     async def add_cc_generic(
         self,
-        ctx,
+        ctx: commands.Context,
         command_name,
         responses,
         is_image: bool,
@@ -236,7 +238,11 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         ],
     )
     async def addcustomcommand(
-        self, ctx, command_name: str, *, command_return: Optional[str] = None
+        self,
+        ctx: commands.Context,
+        command_name: str,
+        *,
+        command_return: Optional[str] = None,
     ):
         """Add your own custom command to the bot with an embed reply.
         Everything after the command name is the reply, line breaks are included.
@@ -270,7 +276,11 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         aliases=["addcustomimage", "addcimage", "addccimage", "addimagecc"],
     )
     async def addcustomimage(
-        self, ctx, command_name: str, *, command_return: Optional[str] = None
+        self,
+        ctx: commands.Context,
+        command_name: str,
+        *,
+        command_return: Optional[str] = None,
     ):
         """Add your own custom command to the bot with a reply. It is not in a bot embed, so is ideal for images and role pings.
         Everything after the command name is the reply, line breaks included.
@@ -301,7 +311,11 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         ],
     )
     async def addglobalcustomcommand(
-        self, ctx, command_name: str, *, command_return: Optional[str] = None
+        self,
+        ctx: commands.Context,
+        command_name: str,
+        *,
+        command_return: Optional[str] = None,
     ):
         """Add a global custom command to the bot with an embed reply. Every
         server with this bot will be able to call a global command, as long
@@ -341,7 +355,11 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         ],
     )
     async def addglobalcustomimage(
-        self, ctx, command_name: str, *, command_return: Optional[str] = None
+        self,
+        ctx: commands.Context,
+        command_name: str,
+        *,
+        command_return: Optional[str] = None,
     ):
         """Add a global custom command to the bot with a reply. It is not in
         a bot embed, so is ideal for images and role pings.
@@ -363,7 +381,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             ctx, command_name, responses, is_image=True, is_global=True
         )
 
-    async def list_cc_responses(self, ctx, command_name):
+    async def list_cc_responses(self, ctx: commands.Context, command_name):
         """Sends all the numbered response(s) of a given custom command."""
         embed = discord_utils.create_embed()
         # Look in this server first, then the global custom commands. Server commands take priority.
@@ -399,7 +417,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             "lcc",
         ],
     )
-    async def lscustomcommands(self, ctx):
+    async def lscustomcommands(self, ctx: commands.Context):
         """Lists the custom commands in the server.
 
         Usage: `~listcc`
@@ -460,7 +478,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             "listcresponses",
         ],
     )
-    async def listcustomresponses(self, ctx, command_name: str):
+    async def listcustomresponses(self, ctx: commands.Context, command_name: str):
         """List all the custom responses for a command in a server.
 
         Usage: `~listcr foo`
@@ -480,7 +498,11 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         ],
     )
     async def editcustomcommand(
-        self, ctx, command_name: str, *, command_return: Optional[str] = None
+        self,
+        ctx: commands.Context,
+        command_name: str,
+        *,
+        command_return: Optional[str] = None,
     ):
         """Edit a custom command for the bot, by replacing all its responses. If the
         command doesn't already exist, this command will add it instead (see `~help addcc`).
@@ -509,7 +531,11 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         ],
     )
     async def editglobalcustomcommand(
-        self, ctx, command_name: str, *, command_return: Optional[str] = None
+        self,
+        ctx: commands.Context,
+        command_name: str,
+        *,
+        command_return: Optional[str] = None,
     ):
         """Edit a global custom command for the bot, by replacing all its responses. If the
         global command doesn't already exist, this command will add it instead (see `~help addgcc`).
@@ -522,7 +548,9 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             ctx, command_name.lower(), command_return, is_global=True
         )
 
-    async def edit_cc_generic(self, ctx, command_name, command_return, is_global: bool):
+    async def edit_cc_generic(
+        self, ctx: commands.Context, command_name, command_return, is_global: bool
+    ):
         """Replaces all the responses of a server (or global) custom command.
         If the command doesn't exist yet, it gets added as a non-image command instead."""
         # Global commands are kept under constants.DB_GLOBAL instead of a server id
@@ -559,7 +587,9 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         )
         await discord_utils.send_message(ctx, embed)
 
-    async def rm_cc_response(self, ctx, command_name, response_number):
+    async def rm_cc_response(
+        self, ctx: commands.Context, command_name, response_number
+    ):
         """Removes one response from a server custom command, but will refuse to remove the last one.
         If the server has no command with that name, the Bot Owner can remove a response from the global one."""
         embed = discord_utils.create_embed()
@@ -636,7 +666,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
     )
     async def rmcustomcommand(
         self,
-        ctx,
+        ctx: commands.Context,
         command_name: str,
     ):
         """Removes an existing custom command. If this is triggered by the Bot Owner,
@@ -704,7 +734,9 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             "removecr",
         ],
     )
-    async def removecustomresponse(self, ctx, command_name: str, response_number: int):
+    async def removecustomresponse(
+        self, ctx: commands.Context, command_name: str, response_number: int
+    ):
         """Remove an existing response from a custom command. Global commands
         can only be edited by the Bot Owner.
 

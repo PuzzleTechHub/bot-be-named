@@ -25,7 +25,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     ####################
 
     @commands.command(name="pin")
-    async def pin(self, ctx, to_delete: str = ""):
+    async def pin(self, ctx: commands.Context, to_delete: str = ""):
         """Pin a message (Either reply to the message, or it auto pins the message above)
 
         If the message is already pinned, just unpins and repins (brings it to top of pins).
@@ -66,7 +66,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             return
 
     @commands.command(name="pinme")
-    async def pinme(self, ctx):
+    async def pinme(self, ctx: commands.Context):
         """Pins the message that called it.
 
         Usage : `~pinme Message`
@@ -79,7 +79,9 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.message.add_reaction(emoji.emojize(":pushpin:"))
 
     @commands.command(name="unpin")
-    async def unpin(self, ctx, num_to_unpin: int = 1, delete_argument: str = ""):
+    async def unpin(
+        self, ctx: commands.Context, num_to_unpin: int = 1, delete_argument: str = ""
+    ):
         """Unpins a specific message from a channel, or a given number of pins.
 
         If `delete` is passed in as the last argument, it deletes the original message that called the command and
@@ -157,7 +159,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
 
     @commands.command(name="lspin", aliases=["lspins", "listpin", "listpins"])
-    async def listpin(self, ctx):
+    async def listpin(self, ctx: commands.Context):
         """Lists all the pinned posts in the current channel
 
         Usage: `~listpins~`
@@ -185,7 +187,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     @command_predicates.is_verified()
     @commands.command(name="stats")
-    async def stats(self, ctx):
+    async def stats(self, ctx: commands.Context):
         """Get server stats
 
         Permission Category : Verified Roles only.
@@ -228,7 +230,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     @command_predicates.is_verified()
     @commands.command(name="catstats")
-    async def catstats(self, ctx, cat_name: str = ""):
+    async def catstats(self, ctx: commands.Context, cat_name: str = ""):
         """Get category stats
 
         Permission Category : Verified Roles only.
@@ -275,7 +277,7 @@ class DiscordCog(commands.Cog, name="Discord"):
             "lsreaction",
         ],
     )
-    async def listreacts(self, ctx):
+    async def listreacts(self, ctx: commands.Context):
         """List all reactions made to a given message
 
         Usage: `~listreacts` (as a reply to a message)
@@ -307,7 +309,7 @@ class DiscordCog(commands.Cog, name="Discord"):
         await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="listemoji", aliases=["lsemoji", "listemojis", "lsemojis"])
-    async def listemoji(self, ctx):
+    async def listemoji(self, ctx: commands.Context):
         """List all emojis in a server
 
         Usage: `~listemojis`
@@ -322,7 +324,9 @@ class DiscordCog(commands.Cog, name="Discord"):
     @command_predicates.is_verified()
     @commands.command(name="steal")
     async def steal(
-        self, ctx, *emojis: typing.Union[nextcord.Emoji, nextcord.PartialEmoji]
+        self,
+        ctx: commands.Context,
+        *emojis: typing.Union[nextcord.Emoji, nextcord.PartialEmoji],
     ):
         """Steals an emote from another server and uploads it to this server with the same name.
 
@@ -375,7 +379,7 @@ class DiscordCog(commands.Cog, name="Discord"):
 
     @command_predicates.is_solver()
     @commands.command(name="delete")
-    async def delete(self, ctx, to_delete: str = ""):
+    async def delete(self, ctx: commands.Context, to_delete: str = ""):
         """Delete a message sent by me and only me by replying to it with `~delete`.
 
         If you say del after the command, it deletes the original message that called the command too.

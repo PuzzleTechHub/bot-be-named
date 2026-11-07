@@ -1,5 +1,6 @@
 import re
 import nextcord
+from nextcord.ext import commands
 from sqlalchemy.orm import Session
 import database
 from utils import discord_utils, sheet_utils
@@ -20,7 +21,7 @@ def get_allowed_roles(guild, channel_id) -> list[nextcord.Role]:
     return [role for role in map(guild.get_role, role_ids) if role is not None]
 
 
-async def get_matched_roles(ctx) -> list[nextcord.Role]:
+async def get_matched_roles(ctx: commands.Context) -> list[nextcord.Role]:
     """Gets the roles for the channel called from the context. Sends an error reply if summaries aren't set up or
     caller does not have the required perms."""
     allowed = get_allowed_roles(ctx.guild, ctx.channel.id)
@@ -49,7 +50,7 @@ def get_role_categories(guild, role) -> list[nextcord.CategoryChannel]:
     ]
 
 
-async def get_roles_channels(gspread_client, ctx, role, categories):
+async def get_roles_channels(gspread_client, ctx: commands.Context, role, categories):
     """Finds the puzzle channels in the tethered sheets. Returns found and failed list."""
     channels = [
         channel
@@ -61,7 +62,7 @@ async def get_roles_channels(gspread_client, ctx, role, categories):
     return found, failed
 
 
-async def find_channel_rows(gspread_client, ctx, channels):
+async def find_channel_rows(gspread_client, ctx: commands.Context, channels):
     """Finds each channel's row in the tethered Overview sheet. Returns found, failed and missing lists.
     The missing channels either have no sheet tethered or are not on the overview."""
     sheet_channels = {}
