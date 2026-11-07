@@ -229,7 +229,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         Usage: ~gettablion
         """
-        base = SheetCommandBase(self.gspread_client)
+        base = SheetCommandBase(ctx, self.gspread_client)
         curr_sheet_link, overview_sheet, row_to_find = await base.get_sheet_context()
         if overview_sheet is None:
             return
