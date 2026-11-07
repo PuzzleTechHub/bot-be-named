@@ -1242,6 +1242,82 @@ class HydraCog(commands.Cog, name="Hydra"):
         statuslion = self.bot.get_command("statuslion")
         await statuslion(ctx, status, answer)
 
+        if is_solve and not was_solve:
+            await self.post_solve_to_channel(
+                ctx, overview_sheet, row_to_find, status_col, answer
+            )
+
+    async def post_solve_to_channel(
+        self, ctx, overview_sheet, row_to_find, status_col, answer
+    ):
+        """Posts a solved puzzle in solve streams linked to that Google sheet."""
+        with Session(database.DATABASE_ENGINE) as session:
+            streams = (
+                session.query(database.SolveStreams)
+                .filter_by(
+                    sheet_key=overview_sheet.spreadsheet.id, server_id=ctx.guild.id
+                )
+                .all()
+            )
+        if not streams:
+            return
+
+        # Count the solves currently on the Overview sheet
+        solve_count = 1
+        for row in range(4, len(overview_sheet.overview_data) + 1):
+            row_status = sheet_utils.normalize_status(
+                overview_sheet.get_cell_value(status_col + str(row))
+            )
+            if row != row_to_find and row_status in sheets_constants.solve_statuses:
+                solve_count += 1
+
+        name_col = overview_sheet.get_cell_value(
+            sheets_constants.PUZZLE_NAME_COLUMN_LOCATION
+        )
+        puzzle_name = overview_sheet.get_cell_value(name_col + str(row_to_find))
+        puzzle_text = f"**{puzzle_name}**" if puzzle_name else ctx.channel.mention
+
+        if answer is None:
+            answer_col = overview_sheet.get_cell_value(
+                sheets_constants.ANSWER_COLUMN_LOCATION,
+            )
+            answer = overview_sheet.get_cell_value(answer_col + str(row_to_find))
+
+        # Clean up answer formatting
+        if answer:
+            clean_answer = answer.strip().replace("\n", " ").upper()
+            answer_display = f"||`{clean_answer}`||"
+        else:
+            answer_display = "*(no answer provided)*"
+
+        stream_embed = discord_utils.create_embed()
+        stream_embed.add_field(
+            name="🎉 Puzzle Solved!",
+            value=(
+                f"Puzzle {puzzle_text} has been solved!\n\n"
+                f"**Answer:** {answer_display}\n\n"
+                f"This is the {solve_count}{hydra_helpers.get_ordinal_suffix(solve_count)} solve of the hunt."
+            ),
+            inline=False,
+        )
+
+        failed = []
+        for stream in streams:
+            stream_channel = self.bot.get_channel(stream.channel_id)
+            if stream_channel is None:
+                failed.append(f"`#{stream.channel_name}`")
+                continue
+            try:
+                await stream_channel.send(embed=stream_embed)
+            except nextcord.HTTPException:
+                failed.append(stream_channel.mention)
+        if failed:
+            embed = hydra_helpers.create_failure_embed(
+                f"I couldn't post this solve in {', '.join(failed)}. Do I have permission"
+                " to post messages there?"
+            )
+            await discord_utils.send_message(ctx, embed)
+
     @command_predicates.is_solver()
     @commands.command(name="solvedhydra")
     async def solvedhydra(self, ctx, answer: str = None):
