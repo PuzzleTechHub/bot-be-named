@@ -1275,7 +1275,11 @@ class HydraCog(commands.Cog, name="Hydra"):
             sheets_constants.PUZZLE_NAME_COLUMN_LOCATION
         )
         puzzle_name = overview_sheet.get_cell_value(name_col + str(row_to_find))
-        puzzle_text = f"**{puzzle_name}**" if puzzle_name else ctx.channel.mention
+        puzzle_text = (
+            f"**{puzzle_name}** ({ctx.channel.mention})"
+            if puzzle_name
+            else ctx.channel.mention
+        )
 
         if answer is None:
             answer_col = overview_sheet.get_cell_value(
