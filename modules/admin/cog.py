@@ -376,7 +376,7 @@ class AdminCog(commands.Cog, name="Admin"):
         aliases=["listguilds"],
     )
     async def lsguilds(self, ctx):
-        """List all guilds that the bot is in.
+        """List all guilds that the bot is in, with their owners.
 
         Permission Category : Bot Owner Roles only.
         Usage: `~lsguilds`
@@ -387,7 +387,12 @@ class AdminCog(commands.Cog, name="Admin"):
         guilds = sorted(guilds, key=lambda guild: guild.name)
 
         if len(guilds) > 0:
-            guilds_string = " ".join(["`" + guild.name + "` - \n" for guild in guilds])
+            guilds_string = " ".join(
+                [
+                    f"`{guild.name}` - `@{guild.owner.name if guild.owner else guild.owner_id}` \n"
+                    for guild in guilds
+                ]
+            )
             embed.add_field(
                 name=f"Guilds for {ctx.bot.user.name} = {len(guilds)}",
                 value=f"Guilds for {ctx.bot.user.mention}\n{guilds_string}",
