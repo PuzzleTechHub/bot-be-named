@@ -1242,6 +1242,82 @@ class HydraCog(commands.Cog, name="Hydra"):
         statuslion = self.bot.get_command("statuslion")
         await statuslion(ctx, status, answer)
 
+        if is_solve and not was_solve:
+            await self.post_solve_to_channel(
+                ctx, overview_sheet, row_to_find, status_col, answer
+            )
+
+    async def post_solve_to_channel(
+        self, ctx, overview_sheet, row_to_find, status_col, answer
+    ):
+        """Posts a solved puzzle in solve streams linked to that Google sheet."""
+        with Session(database.DATABASE_ENGINE) as session:
+            streams = (
+                session.query(database.SolveStreams)
+                .filter_by(
+                    sheet_key=overview_sheet.spreadsheet.id, server_id=ctx.guild.id
+                )
+                .all()
+            )
+        if not streams:
+            return
+
+        # Count the solves currently on the Overview sheet
+        solve_count = 1
+        for row in range(4, len(overview_sheet.overview_data) + 1):
+            row_status = sheet_utils.normalize_status(
+                overview_sheet.get_cell_value(status_col + str(row))
+            )
+            if row != row_to_find and row_status in sheets_constants.solve_statuses:
+                solve_count += 1
+
+        name_col = overview_sheet.get_cell_value(
+            sheets_constants.PUZZLE_NAME_COLUMN_LOCATION
+        )
+        puzzle_name = overview_sheet.get_cell_value(name_col + str(row_to_find))
+        puzzle_text = f"**{puzzle_name}**" if puzzle_name else ctx.channel.mention
+
+        if answer is None:
+            answer_col = overview_sheet.get_cell_value(
+                sheets_constants.ANSWER_COLUMN_LOCATION,
+            )
+            answer = overview_sheet.get_cell_value(answer_col + str(row_to_find))
+
+        # Clean up answer formatting
+        if answer:
+            clean_answer = answer.strip().replace("\n", " ").upper()
+            answer_display = f"||`{clean_answer}`||"
+        else:
+            answer_display = "*(no answer provided)*"
+
+        stream_embed = discord_utils.create_embed()
+        stream_embed.add_field(
+            name="🎉 Puzzle Solved!",
+            value=(
+                f"Puzzle {puzzle_text} has been solved!\n\n"
+                f"**Answer:** {answer_display}\n\n"
+                f"This is the {solve_count}{hydra_helpers.get_ordinal_suffix(solve_count)} solve of the hunt."
+            ),
+            inline=False,
+        )
+
+        failed = []
+        for stream in streams:
+            stream_channel = self.bot.get_channel(stream.channel_id)
+            if stream_channel is None:
+                failed.append(f"`#{stream.channel_name}`")
+                continue
+            try:
+                await stream_channel.send(embed=stream_embed)
+            except nextcord.HTTPException:
+                failed.append(stream_channel.mention)
+        if failed:
+            embed = hydra_helpers.create_failure_embed(
+                f"I couldn't post this solve in {', '.join(failed)}. Do I have permission"
+                " to post messages there?"
+            )
+            await discord_utils.send_message(ctx, embed)
+
     @command_predicates.is_solver()
     @commands.command(name="solvedhydra")
     async def solvedhydra(self, ctx, answer: str = None):
@@ -1712,6 +1788,174 @@ class HydraCog(commands.Cog, name="Hydra"):
             inline=False,
         )
 
+        await discord_utils.send_message(ctx, embed)
+
+    @command_predicates.is_trusted()
+    @commands.command(
+        name="addupdateshydra", aliases=["updateshydra", "addupdatehydra"]
+    )
+    async def addupdateshydra(
+        self,
+        ctx,
+        channel: Optional[nextcord.TextChannel] = None,
+        *sheet_links: str,
+    ):
+        """Posts updates (most importantly puzzle solves) to a channel every time a puzzle is solved on the linked sheets.
+        If no channel is given, defaults to the current channel.
+        If no sheet links are given, defaults to the tethered sheet of the category.
+
+        Permission Category : Trusted Roles only.
+        Usage: `~addupdateshydra #solve-stream` (from a channel whose category has a tethered sheet)
+        Usage: `~addupdateshydra #solve-stream <sheet_link_1> <sheet_link_2> ...`
+        Usage: `~addupdateshydra <sheet_link>` (from the channel to post in)
+        """
+
+        if channel is None:
+            channel = ctx.channel
+
+        if not isinstance(channel, nextcord.TextChannel):
+            embed = hydra_helpers.create_failure_embed(
+                f"I couldn't find text channel `{channel}`"
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        sheet_keys, bad_links, err_embed = hydra_helpers.get_sheet_keys(
+            ctx, sheet_links
+        )
+        if err_embed is not None:
+            await discord_utils.send_message(ctx, err_embed)
+            return
+
+        # now we have valid sheets and valid channel!
+
+        # Only keep sheets the bot can open now
+        open_keys = []
+        unopened_keys = []
+        for sheet_key in sheet_keys:
+            if sheet_utils.get_sheet_from_key_or_link(self.gspread_client, sheet_key):
+                open_keys.append(sheet_key)
+            else:
+                unopened_keys.append(sheet_key)
+
+        lines = []
+        with Session(database.DATABASE_ENGINE) as session:
+            for sheet_key in open_keys:
+                # Deletes then inserts any existing solve stream for this sheet in this channel.
+                # So essentially, no duplicates.
+                existed = (
+                    session.query(database.SolveStreams)
+                    .filter_by(sheet_key=sheet_key, channel_id=channel.id)
+                    .delete()
+                )
+                stmt = sqlalchemy.insert(database.SolveStreams).values(
+                    server_id=ctx.guild.id,
+                    server_name=ctx.guild.name,
+                    channel_id=channel.id,
+                    channel_name=channel.name,
+                    sheet_key=sheet_key,
+                )
+                session.execute(stmt)
+                sheet_text = (
+                    f"[Sheet](https://docs.google.com/spreadsheets/d/{sheet_key})"
+                )
+                if existed:
+                    lines.append(
+                        f"{sheet_text}: solves were already being posted to {channel.mention}."
+                    )
+                else:
+                    lines.append(
+                        f"{sheet_text}: solves will now be posted to {channel.mention}."
+                    )
+            session.commit()
+
+        for sheet_key in unopened_keys:
+            lines.append(
+                f"`{sheet_key}`: **Failed** - I can't find that sheet. Are you sure the link is a valid sheet with "
+                "permissions set to 'Anyone with the link can edit'?"
+            )
+
+        for link in bad_links:
+            lines.append(f"`{link}`: **Failed** - invalid sheet link.")
+
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"Solve streams to {channel.name}",
+            value="\n".join(lines),
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+
+    @command_predicates.is_trusted()
+    @commands.command(
+        name="rmupdatehydra",
+        aliases=[
+            "removeupdatehydra",
+            "removeupdateshydra",
+            "rmupdateshydra",
+        ],
+    )
+    async def rmupdateshydra(
+        self,
+        ctx,
+        channel: Optional[nextcord.TextChannel] = None,
+        *sheet_links: str,
+    ):
+        """Removes solve streams for the given sheets from a channel.
+        If no channel is given, defaults to the current channel.
+        If no sheets are given, defaults to the one tethered to the category.
+
+        Permission Category : Trusted Roles only.
+        Usage: `~rmupdatehydra #solve-stream` (from a channel whose category has a tethered sheet)
+        Usage: `~rmupdatehydra <sheet_link_1> <sheet_link_2> ...` (from any channel)
+        """
+        if channel is None:
+            channel = ctx.channel
+
+        if not isinstance(channel, nextcord.TextChannel):
+            embed = hydra_helpers.create_failure_embed(
+                f"I couldn't find text channel `{channel}`"
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        sheet_keys, bad_links, err_embed = hydra_helpers.get_sheet_keys(
+            ctx, sheet_links
+        )
+        if err_embed is not None:
+            await discord_utils.send_message(ctx, err_embed)
+            return
+
+        lines = []
+        with Session(database.DATABASE_ENGINE) as session:
+            for sheet_key in sheet_keys:
+                deleted = (
+                    session.query(database.SolveStreams)
+                    .filter_by(sheet_key=sheet_key, channel_id=channel.id)
+                    .delete()
+                )
+                sheet_text = (
+                    f"[Sheet](https://docs.google.com/spreadsheets/d/{sheet_key})"
+                )
+                if deleted:
+                    lines.append(
+                        f"{sheet_text}: solves will no longer be posted to {channel.mention}."
+                    )
+                else:
+                    lines.append(
+                        f"{sheet_text}: **Failed** - solves on this sheet aren't being posted to {channel.mention}."
+                    )
+            session.commit()
+
+        for link in bad_links:
+            lines.append(f"`{link}`: **Failed** - invalid sheet link.")
+
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name=f"Removed solve streams from {channel.name}",
+            value="\n".join(lines),
+            inline=False,
+        )
         await discord_utils.send_message(ctx, embed)
 
 

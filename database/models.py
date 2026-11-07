@@ -70,4 +70,14 @@ class SummaryGrants(Base):
     channel_id_role_id = Column(String, primary_key=True)
 
 
+class SolveStreams(Base):
+    __tablename__ = "solve_streams"
+    server_id = Column(BIGINT)
+    server_name = Column(String)
+    # A sheet can post to several channels, so (sheet_key, channel_id) is the key
+    channel_id = Column(BIGINT, primary_key=True)
+    channel_name = Column(String)
+    sheet_key = Column(String, primary_key=True)  # spreadsheet id from sheet link
+
+
 Base.metadata.create_all(DATABASE_ENGINE)
