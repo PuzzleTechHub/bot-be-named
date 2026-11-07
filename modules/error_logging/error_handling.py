@@ -40,7 +40,7 @@ class ErrorHandler:
 
         user_error = self.__user_error_message()
         if user_error == -1:  # No error from __user_error_message
-            return error_details
+            return str(error_details)
         else:
             return user_error
 
