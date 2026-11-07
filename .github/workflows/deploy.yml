@@ -1,0 +1,26 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency: deploy
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy on the VM
+        env:
+          SSH_KEY: ${{ secrets.VM_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VM_KNOWN_HOSTS }}
+          VM: ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}
+        run: |
+          install -m 600 /dev/null key
+          echo "$SSH_KEY" > key
+          echo "$KNOWN_HOSTS" > known_hosts
+          ssh -T -i key -o UserKnownHostsFile=known_hosts -o BatchMode=yes "$VM"
