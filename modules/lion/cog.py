@@ -14,6 +14,7 @@ from utils import (
     sheets_constants,
     solved_utils,
 )
+from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
 
 """
 Lion module. Module with GSheet-Discord interfacing. See module's README.md for more.
@@ -216,42 +217,6 @@ class LionCog(commands.Cog, name="Lion"):
     # LION STATUS COMMANDS #
     ########################
 
-    async def get_overview(
-        self, ctx: commands.Context, sheet_link: str
-    ) -> sheet_utils.OverviewSheet | None:
-        try:
-            overview_sheet = sheet_utils.OverviewSheet(self.gspread_client, sheet_link)
-
-        # Error when we can't open the curr sheet link
-        except gspread.exceptions.APIError as e:
-            error_json = e.response.json()
-            error_status = error_json.get("error", {}).get("status")
-            if error_status == "PERMISSION_DENIED":
-                embed = discord_utils.create_embed()
-                embed.add_field(
-                    name="Failed",
-                    value=f"I'm unable to open the tethered [sheet]({sheet_link}). "
-                    f"Did the permissions change?",
-                    inline=False,
-                )
-                await discord_utils.send_message(ctx, embed)
-                return None
-            else:
-                raise e
-        # Error when the sheet has no template tab
-        except gspread.exceptions.WorksheetNotFound:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
-                f"Did you forget to add one?",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return None
-
-        return overview_sheet
-
     @command_predicates.is_solver()
     @commands.command(name="gettablion", aliases=["tablion", "gettab"])
     async def gettablion(self, ctx: commands.Context):
@@ -279,7 +244,9 @@ class LionCog(commands.Cog, name="Lion"):
             return
 
         curr_sheet_link = str(result.sheet_link)
-        overview_sheet = await self.get_overview(ctx, curr_sheet_link)
+        overview_sheet = await hydra_sheet_utils.get_overview(
+            self.gspread_client, ctx, curr_sheet_link
+        )
         if overview_sheet is None:
             return
 
@@ -393,7 +360,9 @@ class LionCog(commands.Cog, name="Lion"):
                 return
 
             curr_sheet_link = str(result.sheet_link)
-            overview_sheet = await self.get_overview(ctx, curr_sheet_link)
+            overview_sheet = await hydra_sheet_utils.get_overview(
+                self.gspread_client, ctx, curr_sheet_link
+            )
             if overview_sheet is None:
                 return
 
@@ -513,7 +482,9 @@ class LionCog(commands.Cog, name="Lion"):
             return
 
         curr_sheet_link = str(result.sheet_link)
-        overview_sheet = await self.get_overview(ctx, curr_sheet_link)
+        overview_sheet = await hydra_sheet_utils.get_overview(
+            self.gspread_client, ctx, curr_sheet_link
+        )
         if overview_sheet is None:
             embed.add_field(
                 name="Failed",
@@ -605,7 +576,9 @@ class LionCog(commands.Cog, name="Lion"):
 
             sheet = self.gspread_client.open_by_url(curr_sheet_link)
             try:
-                overview_sheet = await self.get_overview(ctx, curr_sheet_link)
+                overview_sheet = await hydra_sheet_utils.get_overview(
+                    self.gspread_client, ctx, curr_sheet_link
+                )
             # Error when the sheet has no Overview tab
             except gspread.exceptions.WorksheetNotFound:
                 embed.add_field(
