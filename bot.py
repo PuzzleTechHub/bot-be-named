@@ -129,6 +129,8 @@ def main():
         database.PREFIXES.pop(guild.id)
         database.VERIFIEDS.pop(guild.id)
         database.TRUSTEDS.pop(guild.id)
+        database.SOLVERS.pop(guild.id)
+        database.TESTERS.pop(guild.id)
         database.CUSTOM_COMMANDS.pop(guild.id)
 
     @client.event
