@@ -454,10 +454,10 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             cc_list = database.CUSTOM_COMMANDS[guild_id].keys()
             custom_commands = (
                 "\n".join(sorted(cc_list))
-                + f"\nContact {owner.mention} to suggest more custom commands!"
+                + f"\n\n **Contact {owner.mention} to suggest more custom commands!**"
             )
             embed.add_field(
-                name=f"Global custom commands by {owner} : {guild_id}",
+                name="Global custom commands",
                 value=custom_commands,
                 inline=False,
             )
