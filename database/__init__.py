@@ -9,6 +9,7 @@ from database.models import (
     SheetTethers,
     SummaryGrants,
     SolveStreams,
+    ChannelMirrors,
 )
 
 from database.database_utils import (
@@ -18,6 +19,7 @@ from database.database_utils import (
     get_solvers,
     get_testers,
     get_custom_commands,
+    get_channel_mirrors,
 )
 
 PREFIXES = get_prefixes()
@@ -26,3 +28,4 @@ TRUSTEDS = get_trusteds()
 SOLVERS = get_solvers()
 TESTERS = get_testers()
 CUSTOM_COMMANDS = get_custom_commands()
+CHANNEL_MIRRORS = get_channel_mirrors()

@@ -80,4 +80,15 @@ class SolveStreams(Base):
     sheet_key = Column(String, primary_key=True)  # spreadsheet id from sheet link
 
 
+class ChannelMirrors(Base):
+    __tablename__ = "channel_mirrors"
+    server_id = Column(BIGINT)
+    server_name = Column(String)
+    # A channel can be mirrored into several channels, so (source, target) is the key
+    source_channel_id = Column(BIGINT, primary_key=True)
+    source_channel_name = Column(String)
+    target_channel_id = Column(BIGINT, primary_key=True)
+    target_channel_name = Column(String)
+
+
 Base.metadata.create_all(DATABASE_ENGINE)

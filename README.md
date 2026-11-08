@@ -275,6 +275,7 @@ sudo apt-get install postgresql-client-common postgresql-client
 
 - [Admin](./modules/admin) for administrator commands
 - [Archive](./modules/archive) for downloading channel/category/server contents into a Zip file
+- [Channel Mirror](./modules/mirror) for mirroring messages from one channel to another
 - [Custom Command](./modules/custom_command) for making custom commands in different servers
 - [Discord](modules/discord) for discord utility commands (e.g. roles, stats)
 - [Discord Channel Management](./modules/discord_channel_management) for cloning, creating, and moving channels
