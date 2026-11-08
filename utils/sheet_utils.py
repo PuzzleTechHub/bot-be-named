@@ -329,6 +329,20 @@ def get_sheet_from_key_or_link(
         return None
 
 
+def get_new_puzzle_tab_index(worksheets: list[gspread.Worksheet]) -> int:
+    """Searches for the first run of tabs ending with Template, then returns the index of
+    the tab right after. If no template, returns the last tab."""
+    insert_index = len(worksheets)
+    found_template = False
+    for ws in worksheets:
+        if ws.title.endswith("Template"):
+            insert_index = ws.index + 1
+            found_template = True
+        elif found_template:
+            break
+    return insert_index
+
+
 async def sheetcreatetabgeneric(
     gspread_client,
     ctx: commands.Context,
@@ -359,11 +373,9 @@ async def sheetcreatetabgeneric(
             return curr_sheet_link, newsheet
 
         # Make sure the template/metatemplate tab exists on the sheet.
-        template_index = 0
         try:
             curr_sheet = gspread_client.open_by_url(curr_sheet_link)
             template_id = curr_sheet.worksheet(template_or_meta).id
-            template_index = curr_sheet.worksheet(template_or_meta).index
         # Error when we can't open the curr sheet link
         except gspread.exceptions.APIError as e:
             error_json = e.response.json()
@@ -410,16 +422,10 @@ async def sheetcreatetabgeneric(
 
         # Try to duplicate the template/meta tab and rename it to the given name
         try:
-            # Index of template+2 (for template) and template+1 (for meta) is hardcoded for The Mathemagicians server
-            if template_or_meta == "Template":
-                i = 2
-            else:
-                i = 1
-
             newsheet = curr_sheet.duplicate_sheet(
                 source_sheet_id=template_id,
                 new_sheet_name=tab_name,
-                insert_sheet_index=template_index + i,
+                insert_sheet_index=get_new_puzzle_tab_index(curr_sheet.worksheets()),
             )
         except gspread.exceptions.APIError as e:
             error_json = e.response.json()

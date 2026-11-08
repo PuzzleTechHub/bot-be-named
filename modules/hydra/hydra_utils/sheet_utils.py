@@ -10,27 +10,13 @@ from utils.sheet_utils import (
     OverviewSheet,
     addsheettethergeneric,
     findsheettether,
+    get_new_puzzle_tab_index,
     get_timestamp,
 )
 
 ########################
 # RESERVED HYDRA UTILS #
 ########################
-
-
-def get_new_puzzle_tab_index(worksheets: list[Worksheet]) -> int:
-    """Searches for the first run of tabs in the sheet ending in "Template". Gives the index of the tab right after.
-    New puzzle tabs will be created at this index.
-    If no tab ends in "Template", gives the index after the last tab, so new puzzle tabs go at the end."""
-    insert_index = len(worksheets)
-    found_template = False
-    for ws in worksheets:
-        if ws.title.endswith("Template"):
-            insert_index = ws.index + 1
-            found_template = True
-        elif found_template:
-            break
-    return insert_index
 
 
 async def create_puzzle_channel_from_template(

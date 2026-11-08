@@ -1594,21 +1594,6 @@ class HydraCog(commands.Cog, name="Hydra"):
                 else self.gspread_client.open_by_url(curr_sheet_link)
             )
 
-            # Find index by looking for last occurrence of a sheet ending with "Template".
-            all_sheets = curr_sheet.worksheets()
-            template_index = 0
-            found_template = False
-            for sheet in all_sheets:
-                if sheet.title.endswith("Template"):
-                    template_index = sheet.index
-                    found_template = True
-                else:
-                    if found_template:
-                        break  # We found the last template already
-
-            if not found_template:
-                template_index = 0  # Move to start if no templates found
-
             # Use batch update to move the sheet
             curr_sheet.batch_update(
                 {
@@ -1617,7 +1602,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                             "updateSheetProperties": {
                                 "properties": {
                                     "sheetId": int(sheet_tab_id),
-                                    "index": template_index + 1,
+                                    "index": sheet_utils.get_new_puzzle_tab_index(
+                                        curr_sheet.worksheets()
+                                    ),
                                 },
                                 "fields": "index",
                             }
