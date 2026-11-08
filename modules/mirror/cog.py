@@ -1,10 +1,11 @@
+import time
 import nextcord
 import sqlalchemy
 import database
 from typing import Optional
 from nextcord.ext import commands
 from sqlalchemy.orm import Session
-from utils import discord_utils, command_predicates
+from utils import discord_utils, command_predicates, logging_utils
 
 """
 Channel Mirror module. Copies messages heard from one channel and puts them in another.
@@ -15,8 +16,94 @@ e.g., all messages in #mod-mails gets sent to #vets-chat.
 class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
     """For copying messages from one channel into another."""
 
+    # How long to wait before telling a channel again that a mirror is failing
+    FAILURE_NOTICE_COOLDOWN = 60 * 15  # in seconds
+
     def __init__(self, bot):
         self.bot = bot
+        # (source_channel_id, target_channel_id) -> time.monotonic() of the last failure notice
+        self.last_failure_notice: dict[tuple[int, int], float] = {}
+
+    async def notify_mirror_failure(
+        self, source: nextcord.TextChannel, target: nextcord.TextChannel
+    ):
+        """Tells the source channel that mirroring failed, at most once per cooldown per pair."""
+        mapping_key = (source.id, target.id)
+        current_timestamp = time.monotonic()
+
+        last = self.last_failure_notice.get(mapping_key)
+        if last is not None and current_timestamp - last < self.FAILURE_NOTICE_COOLDOWN:
+            return
+
+        self.last_failure_notice[mapping_key] = current_timestamp
+        try:
+            await source.send(
+                f"Couldn't mirror messages to {target.mention}. "
+                "Check that I can send messages and embeds there.",
+            )
+        except nextcord.HTTPException:
+            # Can't post here either, the log line is all we can do
+            pass
+
+    @commands.Cog.listener()
+    async def on_message(self, message: nextcord.Message):
+        """Mirrors messages into every channel the channel mirrors to."""
+        # Skip bots and webhook (BBN included)
+        # a bidirectional mirror can not fire each other endlessly
+        if message.is_system() or message.author.bot or message.webhook_id:
+            return
+        # Mirror sources are always text channels; this also skips DMs and threads
+        if not isinstance(message.channel, nextcord.TextChannel):
+            return
+
+        target_ids = database.CHANNEL_MIRRORS.get(message.channel.id)
+        if not target_ids:
+            return
+
+        embed = discord_utils.create_embed()
+        embed.description = message.content
+        embed.set_author(
+            name=message.author.display_name, icon_url=message.author.display_avatar.url
+        )
+        embed.timestamp = message.created_at
+        embed.add_field(
+            name="Original",
+            value=f"[Message in #{message.channel.name}]({message.jump_url})",
+            inline=False,
+        )
+        if message.attachments:
+            embed.add_field(
+                name="Attachments",
+                value=", ".join(a.filename for a in message.attachments)[:1024],
+                inline=False,
+            )
+            images = [
+                a
+                for a in message.attachments
+                if a.content_type and a.content_type.startswith("image/")
+            ]
+            if images:
+                embed.set_image(url=images[0].url)
+
+        # Copy the set, incase the original set is modified during iteration
+        # (it breaks if it does)
+        for target_id in list(target_ids):
+            target_channel = self.bot.get_channel(target_id)
+            if not isinstance(target_channel, nextcord.TextChannel):
+                continue
+            try:
+                await target_channel.send(embed=embed)
+                if (message.channel.id, target_channel.id) in self.last_failure_notice:
+                    self.last_failure_notice.pop(
+                        (message.channel.id, target_channel.id), None
+                    )
+            except nextcord.HTTPException as e:
+                # no permissions, for example
+                logging_utils.print_with_timestamp(
+                    f"Couldn't mirror #{message.channel.name} to #{target_channel.name} "
+                    f"in {message.guild}: {e}"
+                )
+                await self.notify_mirror_failure(message.channel, target_channel)
 
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(name="mirrorchan", aliases=["mirrorchannel"])
