@@ -72,3 +72,14 @@ def get_custom_commands():
                 row.responses,
             )
     return custom_commands
+
+
+def get_channel_mirrors():
+    channel_mirrors = {}
+    with Session(models.DATABASE_ENGINE) as session:
+        result = session.query(models.ChannelMirrors).all()
+        for row in result:
+            if row.source_channel_id not in channel_mirrors:
+                channel_mirrors[row.source_channel_id] = set()
+            channel_mirrors[row.source_channel_id].add(row.target_channel_id)
+    return channel_mirrors
