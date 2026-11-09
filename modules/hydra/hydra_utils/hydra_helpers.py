@@ -17,46 +17,6 @@ sheet_utils.py, discord_utils.py, etc."""
 # ==============================
 
 
-async def handle_gspread_error(
-    ctx: commands.Context, e: gspread.exceptions.APIError, embed=None
-):
-    """Centralized handler for gspread API errors."""
-    if embed is None:
-        embed = discord_utils.create_embed()
-
-    error_json = e.response.json()
-    error_status = error_json.get("error", {}).get("status")
-    error_message = error_json.get("error", {}).get("message", "")
-
-    if (
-        error_status == "BAD_REQUEST"
-        and "columnIndex" in error_message
-        and "is after last column" in error_message
-    ):
-        embed.add_field(
-            name="Failed",
-            value="Invalid Template!\n\n"
-            f"The worksheet provided is missing required columns. \n"
-            f"Visit the [BBN Server](discord.gg/x8f2ywHUky) to get the correct template. \n\n"
-            f"Error: `{error_message}`",
-            inline=False,
-        )
-    elif error_status == "PERMISSION_DENIED":
-        embed.add_field(
-            name="Failed",
-            value="Could not update the Google Sheet because permission was denied.",
-            inline=False,
-        )
-    else:
-        embed.add_field(
-            name="Failed",
-            value=f"Unknown GSheets API Error - `{error_message}`",
-            inline=False,
-        )
-    await discord_utils.send_message(ctx, embed)
-    return embed
-
-
 def get_sheet_keys(
     ctx: commands.Context, sheet_links
 ) -> tuple[list[str], list[str], nextcord.Embed | None]:

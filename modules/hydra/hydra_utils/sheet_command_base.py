@@ -1,6 +1,5 @@
 from nextcord.ext import commands
 from utils import discord_utils, sheet_utils
-from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
 
 
 class SheetCommandBase:
@@ -28,7 +27,7 @@ class SheetCommandBase:
             return None, None, None
 
         curr_sheet_link = str(result.sheet_link)
-        overview_sheet = await hydra_sheet_utils.get_overview(
+        overview_sheet = await sheet_utils.get_overview(
             self.gspread_client, self.ctx, curr_sheet_link
         )
 

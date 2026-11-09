@@ -1,6 +1,6 @@
 import nextcord
 from nextcord.ext import commands
-from typing import List, Union
+from typing import List, Optional, Union
 import constants
 
 """
@@ -568,3 +568,207 @@ async def pin_message(message: nextcord.Message) -> nextcord.Embed:
         return embed
 
     return None
+
+
+async def category_move_to_archive(ctx: commands.Context, archive_name: Optional[str]):
+    """Moves the current channel to an archive category, or archives the thread if called from a thread.
+    1. Takes the current channel's category name, and splits it into words. Looks for (all words) Archive, then (all but last word) Archive,
+    then (all but last two words) Archive etc.
+
+    2. Once it finds a candidate category, moves the channel to that category.
+
+    3. If the candidate category is full, create a new category with the same name, but with 2 appended to the end.
+
+    4. If the candidate category is full but the category with 2 appended to the end also exists and is full, try with 3, etc.
+    """
+    embed = create_embed()
+
+    # Type guard: Ensure we're working with a thread or text channel
+    if not isinstance(ctx.channel, (nextcord.Thread, nextcord.TextChannel)):
+        embed.add_field(
+            name="Failed",
+            value="This command can only be used in a guild (server) text channel or thread.",
+            inline=False,
+        )
+        await send_message(ctx, embed)
+        return
+
+    # Handling if mta is called from a thread
+    if await is_thread(ctx, ctx.channel):
+        # Checking if thread can be archived by the bot
+        if isinstance(ctx.channel, nextcord.Thread):
+            embed.add_field(
+                name="Success",
+                value=f"Archived {ctx.channel.mention} thread",
+                inline=False,
+            )
+            # Sending a new message unarchives the thread, so we send the success message before archiving it.
+            await send_message(ctx, embed)
+            try:
+                await ctx.channel.edit(archived=True)
+            except nextcord.Forbidden:
+                embed.add_field(
+                    name="Failed",
+                    value="Forbidden! Have you checked if the bot has the required permissions?",
+                )
+                await send_message(ctx, embed)
+        return
+
+    # Otherwise mta is called from a regular channel
+    archive_category = None
+    candidates = []
+
+    # Type guard: must have guild for category operations
+    if ctx.guild is None:
+        embed.add_field(
+            name="Failed",
+            value="This command must be used in a guild (server).",
+            inline=False,
+        )
+        await send_message(ctx, embed)
+        return
+
+    if archive_name is None:
+        # Find category with same name + Archive (or select combinations)
+        if ctx.channel.category is None:
+            embed.add_field(
+                name="Failed",
+                value="Channel must be in a category to automatically find archive.",
+                inline=False,
+            )
+            await send_message(ctx, embed)
+            return
+
+        cat_name = ctx.channel.category.name
+        cat_name_words = cat_name.split(" ")
+
+        for i in range(len(cat_name_words), 0, -1):
+            candidate = " ".join(cat_name_words[:i]) + " Archive"
+            candidates.append(candidate)
+
+        for cand in candidates:
+            archive_category = await find_category(ctx, cand)
+            if archive_category:
+                break
+
+    else:
+        archive_category = await find_category(ctx, archive_name)
+
+    if archive_category is None:
+        if archive_name is None:
+            embed.add_field(
+                name="Failed",
+                value=f"I can't find the archive, so I cannot move {ctx.channel.mention}. "
+                "I checked for the following categories: "
+                + ", ".join(f"`{c}`" for c in candidates),
+                inline=False,
+            )
+            await send_message(ctx, embed)
+            return
+        else:
+            embed.add_field(
+                name="Failed",
+                value=f"There is no category named `{archive_name}`, so I cannot move {ctx.channel.mention}.",
+                inline=False,
+            )
+            await send_message(ctx, embed)
+            return
+
+    if category_is_full(archive_category):
+        # Search for all categories that start with archive_category.name.
+        categories_starting_with_name = []
+        category_found = False
+
+        for category in ctx.guild.categories:
+            if category.name.startswith(archive_category.name):
+                categories_starting_with_name.append(category)
+
+        for category in categories_starting_with_name:
+            if not category_is_full(category):
+                archive_category = category
+                category_found = True
+                break
+
+        if not category_found:
+            # Check if we've hit the maximum category limit (50)
+            if len(ctx.guild.categories) >= 50:
+                embed.add_field(
+                    name="Failed",
+                    value=f"Cannot create new archive category. Server has reached the maximum limit of 50 categories. "
+                    f"Archive category `{archive_category.name}` is full.",
+                    inline=False,
+                )
+                await send_message(ctx, embed)
+                return
+
+            clonecat = ctx.bot.get_command("clonecat")
+            # Find the smallest numeric suffix >= 2 that's not already used
+            existing_names = {c.name for c in ctx.guild.categories}
+            suffix = 2
+            while f"{archive_category.name} {suffix}" in existing_names:
+                suffix += 1
+
+            category_to_make = f"{archive_category.name} {suffix}"
+
+            await ctx.invoke(
+                clonecat,
+                origCatName=archive_category.name,
+                targetCatName=category_to_make,
+            )
+            embed.add_field(
+                name="Created new archive category!",
+                value=f"Archive category `{archive_category.name}` is full, so created new category `{category_to_make}`!",
+                inline=False,
+            )
+            await send_message(ctx, embed)
+
+            embed = create_embed()  # Reset embed
+            archive_category = await find_category(
+                ctx, category_to_make
+            )  # Change it to the new one!
+
+    # Check if channel is already in the archive category
+    if (
+        archive_category
+        and ctx.channel.category
+        and archive_category == ctx.channel.category
+    ):
+        embed.add_field(
+            name="Failed",
+            value=f"Archive category `{archive_category.name}` is the same as current category `{ctx.channel.category.name}`. No need to move channel!",
+            inline=False,
+        )
+        await send_message(ctx, embed)
+        return
+
+    # Ensure we have a valid archive category
+    if archive_category is None:
+        embed.add_field(
+            name="Failed",
+            value="Could not find or create an archive category.",
+            inline=False,
+        )
+        await send_message(ctx, embed)
+        return
+
+    try:
+        # move channel - ctx.channel is guaranteed to be TextChannel here
+        if isinstance(ctx.channel, nextcord.TextChannel):
+            await ctx.channel.edit(category=archive_category)
+            await ctx.channel.edit(position=1)
+    except nextcord.Forbidden:
+        embed.add_field(
+            name="Failed",
+            value=f"Can you check my permissions? I can't seem to be able to move "
+            f"{ctx.channel.mention} to `{archive_category.name}`",
+            inline=False,
+        )
+        await send_message(ctx, embed)
+        return
+
+    embed.add_field(
+        name="Success",
+        value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`",
+        inline=False,
+    )
+    await send_message(ctx, embed)

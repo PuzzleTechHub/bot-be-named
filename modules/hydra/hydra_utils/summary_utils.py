@@ -6,7 +6,6 @@ import database
 from utils import discord_utils, sheet_utils
 from modules.hydra import constants as hydra_constants
 from modules.hydra.hydra_utils import hydra_helpers
-from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
 
 """Helper utilities for `~catsummaryhydra` and `~watchcategoryhydra`"""
 
@@ -77,7 +76,7 @@ async def find_channel_rows(gspread_client, ctx: commands.Context, channels):
     found = []
     failed = []
     for sheet_link, sheet_channel in sheet_channels.items():
-        cells = await hydra_sheet_utils.findchanidcell(
+        cells = await sheet_utils.findchanidcell(
             gspread_client, ctx, sheet_link, [channel.id for channel in sheet_channel]
         )
         if cells is None:
