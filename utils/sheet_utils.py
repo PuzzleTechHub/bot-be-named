@@ -883,11 +883,6 @@ async def findchanidcell(
     return all_chan_ids
 
 
-def firstemptyrow(worksheet):
-    """Finds the first empty row in a worksheet (moved from HydraCog)."""
-    return len(worksheet.get_values()) + 1
-
-
 async def get_overview(
     gspread_client, ctx: commands.Context, sheet_link: str
 ) -> OverviewSheet | None:

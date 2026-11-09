@@ -9,14 +9,10 @@ HISTORY_FETCH_LIMIT = 100  # per-channel history fetch for watchcategory
 # Confirmation timeouts
 DELETE_CONFIRM_TIMEOUT = 15.0  # seconds to wait for confirmation reactions
 
-# Category/channel limits
-CATEGORY_CHANNEL_LIMIT = 50  # max channels in a category before creating a new archive
-
 # Text preview lengths
 OVERVIEW_DESC_PREVIEW = 100  # characters to show in category summary
 
 # Reactions
-SUCCESS_REACTION = ":check_mark_button:"
 CONFIRM_EMOJI = "✅"
 CANCEL_EMOJI = "❌"
 

@@ -251,7 +251,6 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
     # If the title + description exceeds the character limit, we must break up the description into smaller parts.
     if character_count > EMBED_CHARACTER_LIMIT:
         print(f"Title and description are too long with {character_count} characters")
-        characters_remaining = character_count
         description = embed_description
         while description != "":
             embed_list.append(
@@ -272,7 +271,6 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
                 cutoff_point = EMBED_CHARACTER_LIMIT - len(embed_title) - 1
             embed_list[-1].description = description[: cutoff_point + 1]
             description = description[cutoff_point + 1 :]
-            characters_remaining -= cutoff_point
     # If the title + description are small, we can just copy them over
     else:
         embed_list.append(

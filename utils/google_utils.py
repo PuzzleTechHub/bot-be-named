@@ -1,7 +1,6 @@
 import gspread
 import os
 
-# import pandas as pd
 from oauth2client.service_account import ServiceAccountCredentials
 import json
 
@@ -53,39 +52,3 @@ def get_gdrive_credentials() -> ServiceAccountCredentials:
         "client_secret.json", scopes
     )
     return creds
-
-
-'''
-def get_dataframe_from_gsheet(
-    sheet: gspread.Spreadsheet, columns: list
-) -> pd.DataFrame:
-    """
-    Load in all the values from the google sheet.
-    NOTE: excludes headers from gsheet and replaces them with the ones in constants
-    :param sheet: (gspread.Spreadsheet)
-    :param columns: (list of str)
-    :return: (pd.DataFrame)
-    """
-    return pd.DataFrame(sheet.get_all_values()[1:], columns=columns)
-
-
-def update_sheet_from_df(sheet: gspread.Spreadsheet, df: pd.DataFrame) -> None:
-    """Dump the current dataframe onto the google sheet"""
-    sheet.update([df.columns.values.tolist()] + df.values.tolist())
-'''
-
-
-def get_sheet_link(sheet: gspread.Spreadsheet, tab: gspread.Worksheet = None) -> str:
-    """Get the URL for a Google sheet. Optionally add a specific tab"""
-    if tab:
-        # Ensure the tab belongs to the sheet
-        try:
-            sheet.worksheet(tab.title)
-        except gspread.exceptions.WorksheetNotFound:
-            raise KeyError(f"Sheet {sheet.title} has no tab {tab.title}")
-        return sheet.url + "#gid=" + str(tab.id)
-    else:
-        return sheet.url
-
-
-GSPREAD_CLIENT = create_gspread_client()

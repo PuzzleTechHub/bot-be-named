@@ -46,19 +46,6 @@ def is_bot_owner_or_admin():
     return commands.check(predicate)
 
 
-def is_guild_owner():
-    """
-    Is guild owner.
-    """
-
-    async def predicate(ctx: commands.Context):
-        if ctx.message.guild is None:
-            return False
-        return ctx.author == ctx.guild.owner
-
-    return commands.check(predicate)
-
-
 def is_tester():
     async def predicate(ctx: commands.Context):
         if ctx.message.guild is None:
