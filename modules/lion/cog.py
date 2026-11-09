@@ -14,7 +14,6 @@ from utils import (
     sheets_constants,
     solved_utils,
 )
-from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
 from modules.hydra.hydra_utils.sheet_command_base import SheetCommandBase
 
 """
@@ -508,7 +507,7 @@ class LionCog(commands.Cog, name="Lion"):
             tab_name = chan_name.replace("#", "").replace("-", " ")
 
             sheet = self.gspread_client.open_by_url(curr_sheet_link)
-            overview_sheet = await hydra_sheet_utils.get_overview(
+            overview_sheet = await sheet_utils.get_overview(
                 self.gspread_client, ctx, curr_sheet_link
             )
 

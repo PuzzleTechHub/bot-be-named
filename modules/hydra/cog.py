@@ -18,8 +18,6 @@ from utils import (
     sheet_utils,
 )
 from modules.hydra.hydra_utils import hydra_helpers, summary_utils
-from modules.hydra.hydra_utils import discord_utils as hydra_discord_utils
-from modules.hydra.hydra_utils import sheet_utils as hydra_sheet_utils
 from modules.hydra.hydra_utils.sheet_command_base import SheetCommandBase
 from modules.hydra import constants as hydra_constants
 import database
@@ -391,7 +389,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             await discord_utils.send_message(ctx, embed)
 
         except gspread.exceptions.APIError as e:
-            await hydra_helpers.handle_gspread_error(ctx, e, embed)
+            await sheet_utils.handle_gspread_error(ctx, e, embed)
             return
         except Exception as e:
             embed = hydra_helpers.create_failure_embed(
@@ -549,7 +547,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         puzzle_url = arg_list[2] if len(arg_list) > 2 else None
         notes = arg_list[3] if len(arg_list) > 3 else None
 
-        await hydra_sheet_utils.create_puzzle_channel_from_template(
+        await sheet_utils.create_puzzle_channel_from_template(
             self.bot,
             ctx,
             puzzle_name,
@@ -582,8 +580,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         Usage: `~mtahydra`
         Usage: `~mtahydra archive_category_name`
         """
-        await hydra_sheet_utils.sheet_move_to_archive(self.gspread_client, ctx)
-        await hydra_discord_utils.category_move_to_archive(ctx, category_name)
+        await sheet_utils.sheet_move_to_archive(self.gspread_client, ctx)
+        await discord_utils.category_move_to_archive(ctx, category_name)
 
     @command_predicates.is_solver()
     @commands.command(name="chanhydra")
@@ -651,7 +649,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             return
 
         # Batch create all channels and sheets
-        results = await hydra_sheet_utils.batch_create_puzzle_channels(
+        results = await sheet_utils.batch_create_puzzle_channels(
             self.bot,
             ctx,
             self.gspread_client,
@@ -847,7 +845,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                     await discord_utils.send_message(ctx, fallback_embed)
 
                 # 2. Get overview and find the row for this channel
-                overview_sheet = await hydra_sheet_utils.get_overview(
+                overview_sheet = await sheet_utils.get_overview(
                     self.gspread_client, ctx, curr_sheet_link
                 )
 
@@ -858,7 +856,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
                 if overview_sheet is not None:
                     # We need to find the row by channel ID
-                    list_chan_cells = await hydra_sheet_utils.findchanidcell(
+                    list_chan_cells = await sheet_utils.findchanidcell(
                         self.gspread_client,
                         ctx,
                         curr_sheet_link,
@@ -967,7 +965,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                 await discord_utils.send_message(ctx, success_embed)
 
             except gspread.exceptions.APIError as e:
-                await hydra_helpers.handle_gspread_error(ctx, e, embed)
+                await sheet_utils.handle_gspread_error(ctx, e, embed)
             except nextcord.Forbidden:
                 embed = hydra_helpers.create_failure_embed(
                     "I do not have permission to delete the channel."
@@ -1240,7 +1238,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             try:
                 overview_sheet.spreadsheet.batch_update(batch.build())
             except gspread.exceptions.APIError as e:
-                await hydra_helpers.handle_gspread_error(ctx, e)
+                await sheet_utils.handle_gspread_error(ctx, e)
                 return
 
         statuslion = self.bot.get_command("statuslion")
@@ -1617,7 +1615,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             )
             await discord_utils.send_message(ctx, tab_embed)
         except gspread.exceptions.APIError as e:
-            await hydra_helpers.handle_gspread_error(ctx, e, tab_embed)
+            await sheet_utils.handle_gspread_error(ctx, e, tab_embed)
             return
         except Exception as e:
             tab_embed = hydra_helpers.create_failure_embed(
