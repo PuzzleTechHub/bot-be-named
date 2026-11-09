@@ -1,5 +1,4 @@
 import gspread
-import emoji
 from utils import discord_utils, sheet_utils
 import nextcord
 from nextcord.ext import commands
@@ -75,14 +74,6 @@ def create_failure_embed(message: str) -> nextcord.Embed:
         inline=False,
     )
     return embed
-
-
-async def send_and_react_success(
-    ctx: commands.Context, embed, reaction=":check_mark_button:"
-):
-    """Send a message and react with a success reaction."""
-    await ctx.message.add_reaction(emoji.emojize(reaction))
-    await discord_utils.send_message(ctx, embed)
 
 
 def get_ordinal_suffix(n: int) -> str:

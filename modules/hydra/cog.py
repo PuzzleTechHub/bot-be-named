@@ -37,7 +37,6 @@ class HydraCog(commands.Cog, name="Hydra"):
     def __init__(self, bot):
         self.bot = bot
         self.lock = asyncio.Lock()
-        self.gdrive_credentials = google_utils.get_gdrive_credentials()
         self.gspread_client = google_utils.create_gspread_client()
 
     ###################
