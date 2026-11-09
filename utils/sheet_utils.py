@@ -371,6 +371,39 @@ def get_sheet_from_key_or_link(
         return None
 
 
+def get_sheet_keys(
+    ctx: commands.Context, sheet_links
+) -> tuple[list[str], list[str], nextcord.Embed | None]:
+    """Turns sheet links into spreadsheet ids, without duplicates. When no links
+    are provided, uses the tethered sheet. Returns (sheet_keys, bad_links, None) or ([], [], error_embed)
+    if there's no tethered sheet."""
+    if len(sheet_links) == 0:
+        result, _ = findsheettether(
+            ctx.message.channel.category_id, ctx.message.channel.id
+        )
+        if result is None:
+            return (
+                [],
+                [],
+                discord_utils.create_failure_embed(
+                    f"The channel {ctx.message.channel.mention} is not tethered to any Google sheet."
+                ),
+            )
+        sheet_links = [str(result.sheet_link)]
+
+    sheet_keys = []
+    bad_links = []
+    for link in sheet_links:
+        try:
+            sheet_key = gspread.utils.extract_id_from_url(link)
+        except gspread.exceptions.NoValidUrlKeyFound:
+            bad_links.append(link)
+            continue
+        if sheet_key not in sheet_keys:
+            sheet_keys.append(sheet_key)
+    return sheet_keys, bad_links, None
+
+
 def get_new_puzzle_tab_index(worksheets: list[gspread.Worksheet]) -> int:
     """Searches for the first run of tabs ending with Template, then returns the index of
     the tab right after. If no template, returns the last tab."""

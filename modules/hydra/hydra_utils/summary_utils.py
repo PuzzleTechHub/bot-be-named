@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 import database
 from utils import discord_utils, sheet_utils
 from modules.hydra import constants as hydra_constants
-from modules.hydra.hydra_utils import hydra_helpers
 
 """Helper utilities for `~catsummaryhydra` and `~watchcategoryhydra`"""
 
@@ -25,7 +24,7 @@ async def get_matched_roles(ctx: commands.Context) -> list[nextcord.Role]:
     caller does not have the required perms."""
     allowed = get_allowed_roles(ctx.guild, ctx.channel.id)
     if not allowed:
-        embed = hydra_helpers.create_failure_embed(
+        embed = discord_utils.create_failure_embed(
             "Summaries aren't set up in this channel. "
             "Ask an admin to run `~summaryallowhydra @role #channel`."
         )
@@ -34,7 +33,7 @@ async def get_matched_roles(ctx: commands.Context) -> list[nextcord.Role]:
 
     matched = [role for role in allowed if role in ctx.author.roles]
     if not matched:
-        embed = hydra_helpers.create_failure_embed("You need a role allowed here.")
+        embed = discord_utils.create_failure_embed("You need a role allowed here.")
         await discord_utils.send_message(ctx, embed)
     return matched
 

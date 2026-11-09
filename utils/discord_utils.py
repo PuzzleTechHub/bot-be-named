@@ -233,6 +233,35 @@ def populate_embed(names: list, values: list, inline: bool = False) -> nextcord.
     return embed
 
 
+def create_success_embed(message: str) -> nextcord.Embed:
+    """Create a standardized success embed."""
+    embed = create_embed()
+    embed.add_field(
+        name="Success",
+        value=message,
+        inline=False,
+    )
+    return embed
+
+
+def create_failure_embed(message: str) -> nextcord.Embed:
+    """Create a standardized failure embed."""
+    embed = create_embed()
+    embed.add_field(
+        name="Failed",
+        value=message,
+        inline=False,
+    )
+    return embed
+
+
+def get_ordinal_suffix(n: int) -> str:
+    """Return the ordinal suffix for a number (1st, 2nd, 3rd, 4th, etc.)"""
+    if 11 <= (n % 100) <= 13:
+        return "th"
+    return {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+
+
 def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
     """Splits embeds that are too long (discord character limit)
     Arguments:
@@ -566,6 +595,110 @@ async def pin_message(message: nextcord.Message) -> nextcord.Embed:
         return embed
 
     return None
+
+
+async def movetoarchive_generic(ctx: commands.Context, archive_name: str):
+    embed = create_embed()
+    # Handling if mta is called from a thread
+    if await is_thread(ctx, ctx.channel):
+        embed.add_field(
+            name="Success",
+            value=f"Archived {ctx.channel.mention} thread",
+            inline=False,
+        )
+        # Send before archiving, as a new message unarchives the thread
+        await send_message(ctx, embed)
+        # Checking if thread can be archived by the bot
+        try:
+            await ctx.channel.edit(archived=True)
+        except nextcord.Forbidden:
+            embed = create_embed()
+            embed.add_field(
+                name="Failed",
+                value="Forbidden! Have you checked if the bot has the required permissions?",
+            )
+            await send_message(ctx, embed)
+        return
+
+    # Otherwise mta is called from a regular channel
+    archive_category = None
+    candidates = []
+    if archive_name is None:
+        # Find category with same name + Archive (or select combinations)
+        cat_name = ctx.channel.category.name
+        while cat_name:
+            candidates.append(f"{cat_name} Archive")
+            candidates.append(f"Archive: {cat_name}")
+            candidates.append(f"{cat_name} archive")
+            cat_name, _, _ = cat_name.rpartition(" ")
+
+        for cand in candidates:
+            archive_category = await find_category(ctx, cand)
+            if archive_category:
+                break
+
+    else:
+        archive_category = await find_category(ctx, archive_name)
+
+    if archive_category is None:
+        if archive_name is None:
+            embed.add_field(
+                name="Failed",
+                value=f"I can't find the archive, so I cannot move {ctx.channel.mention}. "
+                "I checked for the following categories: "
+                + ", ".join(f"`{c}`" for c in candidates),
+                inline=False,
+            )
+            await send_message(ctx, embed)
+            return
+        else:
+            embed.add_field(
+                name="Failed",
+                value=f"There is no category named `{archive_name}`, so I cannot move {ctx.channel.mention}.",
+                inline=False,
+            )
+            await send_message(ctx, embed)
+            return
+
+    if category_is_full(archive_category):
+        embed.add_field(
+            name="Failed",
+            value=f"`{archive_category.name}` is already full, max limit is 50 channels. Consider renaming"
+            f" `{archive_category.name}` and creating a new `{archive_category.name}`.",
+            inline=False,
+        )
+        await send_message(ctx, embed)
+        return
+
+    if archive_category == ctx.channel.category:
+        embed.add_field(
+            name="Failed",
+            value=f"Archive category `{archive_category.name}` is the same as current category `{ctx.channel.category.name}`. No need to move channel!",
+            inline=False,
+        )
+        await send_message(ctx, embed)
+        return
+
+    try:
+        # move channel
+        await ctx.channel.edit(category=archive_category)
+        await ctx.channel.edit(position=1)
+    except nextcord.Forbidden:
+        embed.add_field(
+            name="Failed",
+            value=f"Can you check my permissions? I can't seem to be able to move "
+            f"{ctx.channel.mention} to `{archive_category.name}`",
+            inline=False,
+        )
+        await send_message(ctx, embed)
+        return
+
+    embed.add_field(
+        name="Success",
+        value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`",
+        inline=False,
+    )
+    await send_message(ctx, embed)
 
 
 async def category_move_to_archive(ctx: commands.Context, archive_name: Optional[str]):

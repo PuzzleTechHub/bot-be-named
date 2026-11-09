@@ -1,6 +1,5 @@
 import emoji
 import gspread
-import nextcord
 from nextcord.ext import commands
 
 from utils import (
@@ -12,7 +11,7 @@ from utils import (
     sheets_constants,
     solved_utils,
 )
-from modules.hydra.hydra_utils.sheet_command_base import SheetCommandBase
+from utils.sheet_command_base import SheetCommandBase
 
 """
 Lion module. Module with GSheet-Discord interfacing. See module's README.md for more.
@@ -27,187 +26,6 @@ class LionCog(commands.Cog, name="Lion"):
     def __init__(self, bot):
         self.bot = bot
         self.gspread_client = google_utils.create_gspread_client()
-
-    ################################
-    # SOLVED COMMANDS WITHOUT LION #
-    ################################
-
-    @command_predicates.is_solver()
-    @commands.command(name="solved", aliases=["solvedcrab"])
-    async def solved(self, ctx: commands.Context):
-        """Changes channel name to solved-<channel-name>
-
-        Permission Category : Solver Roles only.
-        Usage: `~solved`
-
-        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
-        """
-        status = "Solved"
-        status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
-        embed = await solved_utils.status_channel(ctx, status_prefix)
-        await discord_utils.send_message(ctx, embed)
-
-    @command_predicates.is_solver()
-    @commands.command(name="solvedish", aliases=["solvedishcrab"])
-    async def solvedish(self, ctx: commands.Context):
-        """Changes channel name to solvedish-<channel-name>
-
-        Permission Category : Solver Roles only.
-        Usage: `~solvedish`
-
-        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
-        """
-        status = "Solvedish"
-        status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
-        embed = await solved_utils.status_channel(ctx, status_prefix)
-        await discord_utils.send_message(ctx, embed)
-
-    @command_predicates.is_solver()
-    @commands.command(name="backsolved", aliases=["backsolvedcrab"])
-    async def backsolved(self, ctx: commands.Context):
-        """Changes channel name to backsolved-<channel-name>
-
-        Permission Category : Solver Roles only.
-        Usage: `~backsolved`
-
-        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
-        """
-        status = "Backsolved"
-        status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
-        embed = await solved_utils.status_channel(ctx, status_prefix)
-        await discord_utils.send_message(ctx, embed)
-
-    @command_predicates.is_solver()
-    @commands.command(name="unsolved", aliases=["unsolvedcrab"])
-    async def unsolved(self, ctx: commands.Context):
-        """removes one of the solved prefixes from channel name
-
-        Permission Category : Solver Roles only.
-        Usage: `~unsolved`
-
-        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
-        """
-        embed = await solved_utils.status_remove(ctx)
-        await discord_utils.send_message(ctx, embed)
-
-    async def movetoarchive_generic(self, ctx: commands.Context, archive_name: str):
-        embed = discord_utils.create_embed()
-        # Handling if mta is called from a thread
-        if await discord_utils.is_thread(ctx, ctx.channel):
-            embed.add_field(
-                name="Success",
-                value=f"Archived {ctx.channel.mention} thread",
-                inline=False,
-            )
-            # Send before archiving, as a new message unarchives the thread
-            await discord_utils.send_message(ctx, embed)
-            # Checking if thread can be archived by the bot
-            try:
-                await ctx.channel.edit(archived=True)
-            except nextcord.Forbidden:
-                embed = discord_utils.create_embed()
-                embed.add_field(
-                    name="Failed",
-                    value="Forbidden! Have you checked if the bot has the required permissions?",
-                )
-                await discord_utils.send_message(ctx, embed)
-            return
-
-        # Otherwise mta is called from a regular channel
-        archive_category = None
-        candidates = []
-        if archive_name is None:
-            # Find category with same name + Archive (or select combinations)
-            cat_name = ctx.channel.category.name
-            while cat_name:
-                candidates.append(f"{cat_name} Archive")
-                candidates.append(f"Archive: {cat_name}")
-                candidates.append(f"{cat_name} archive")
-                cat_name, _, _ = cat_name.rpartition(" ")
-
-            for cand in candidates:
-                archive_category = await discord_utils.find_category(ctx, cand)
-                if archive_category:
-                    break
-
-        else:
-            archive_category = await discord_utils.find_category(ctx, archive_name)
-
-        if archive_category is None:
-            if archive_name is None:
-                embed.add_field(
-                    name="Failed",
-                    value=f"I can't find the archive, so I cannot move {ctx.channel.mention}. "
-                    "I checked for the following categories: "
-                    + ", ".join(f"`{c}`" for c in candidates),
-                    inline=False,
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
-            else:
-                embed.add_field(
-                    name="Failed",
-                    value=f"There is no category named `{archive_name}`, so I cannot move {ctx.channel.mention}.",
-                    inline=False,
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
-
-        if discord_utils.category_is_full(archive_category):
-            embed.add_field(
-                name="Failed",
-                value=f"`{archive_category.name}` is already full, max limit is 50 channels. Consider renaming"
-                f" `{archive_category.name}` and creating a new `{archive_category.name}`.",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        if archive_category == ctx.channel.category:
-            embed.add_field(
-                name="Failed",
-                value=f"Archive category `{archive_category.name}` is the same as current category `{ctx.channel.category.name}`. No need to move channel!",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        try:
-            # move channel
-            await ctx.channel.edit(category=archive_category)
-            await ctx.channel.edit(position=1)
-        except nextcord.Forbidden:
-            embed.add_field(
-                name="Failed",
-                value=f"Can you check my permissions? I can't seem to be able to move "
-                f"{ctx.channel.mention} to `{archive_category.name}`",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        embed.add_field(
-            name="Success",
-            value=f"Moved channel {ctx.channel.mention} to `{archive_category.name}`",
-            inline=False,
-        )
-        await discord_utils.send_message(ctx, embed)
-
-    @command_predicates.is_solver()
-    @commands.command(name="mta", aliases=["movetoarchive", "mtacrab"])
-    async def movetoarchive(self, ctx: commands.Context, archive_name: str = None):
-        """Finds a category with `<category_name> Archive`, and moves the channel to that category.
-        Fails if there is no such category, or is the category is full (i.e. 50 Channels).
-        If called from thread (instead of channel), closes the thread instead of moving channel.
-
-        Attempts to search smart, for example `~mta "MH21 Students"` will search for "MH21 Students Archive" and "MH21 Archive" categories.
-        Some other common variants for "Archive" will also be attempted.
-
-        Permission Category : Solver Roles only.
-        Usage: `~mta`
-        Usage: `~movetoarchive archive_category_name`
-        """
-        await self.movetoarchive_generic(ctx, archive_name)
 
     ########################
     # LION STATUS COMMANDS #
@@ -485,7 +303,7 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: `~mtalion archive_category_name`
         """
         await self.sheetmta_generic(ctx)  # Attempt to move sheet stuff
-        await self.movetoarchive_generic(
+        await discord_utils.movetoarchive_generic(
             ctx, archive_name
         )  # Attempt to move channel stuff
 
