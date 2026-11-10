@@ -1,10 +1,7 @@
 import asyncio
 import os
-import re
-import unicodedata
 import zipfile
-from typing import TextIO, Tuple, Union, cast
-from pathlib import Path
+from typing import List, Set, Tuple, Union
 
 import nextcord
 from nextcord.ext import commands
@@ -14,8 +11,17 @@ from modules.archive import archive_constants, archive_utils
 from utils import command_predicates, discord_utils
 
 """
-Archive module. Downloads a channel's history and sends it as a file
+Archive module. Exports a channel's history as Discord-style HTML with DiscordChatExporter
+and sends it as a file
 """
+
+
+class ArchiveError(Exception):
+    """DiscordChatExporter could not export a channel"""
+
+    def __init__(self, message: str, forbidden: bool):
+        super().__init__(message)
+        self.forbidden = forbidden
 
 
 class ArchiveCog(commands.Cog, name="Archive"):
@@ -30,172 +36,175 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
         archive_utils.reset_archive_dir()
 
-    @staticmethod
-    async def archive_message(f: TextIO, msg: nextcord.Message):
-        f.write(
-            f"[ {msg.created_at.strftime('%m-%d-%Y, %H:%M:%S')} ] "
-            f"{msg.author.display_name.rjust(25, ' ')}: "
-            f"{msg.clean_content}"
-        )
-        for attachment in msg.attachments:
-            f.write(f" {attachment.filename}")
-            # change duplicate filenames
-            # img.png would become img (1).png
-            original_path = os.path.join(
-                archive_constants.ARCHIVE,
-                archive_constants.IMAGES,
-                attachment.filename,
+    def zip_dir(self, out_dir: str, zip_path: str, skip: Set[str] = frozenset()) -> int:
+        """Zip the export in out_dir, leaving out the files in skip (paths relative
+        to out_dir), and return the zip's size"""
+        with zipfile.ZipFile(zip_path, mode="w") as zf:
+            for root, _, files in os.walk(out_dir):  # underscore is directories
+                for filename in files:
+                    path = os.path.join(root, filename)
+                    arcname = os.path.relpath(path, out_dir)
+                    if arcname in skip:
+                        continue
+                    zf.write(path, arcname=arcname, compress_type=self.compression)
+        return os.path.getsize(zip_path)
+
+    def zip_without_biggest_media(
+        self, out_dir: str, zip_path: str, zip_size: int, filesize_limit: int
+    ) -> Tuple[int, List[Tuple[str, int]], bool]:
+        """Zip the export again, leaving out the biggest media files until it fits.
+
+        Returns the new zip's size, the files left out (biggest first), and whether
+        that was every media file.
+        """
+        media = archive_utils.list_media(out_dir)
+        skipped = archive_utils.pick_media_to_skip(media, zip_size, filesize_limit)
+        # The pick is an estimate, so check the real size and leave out more if needed
+        while True:
+            new_size = self.zip_dir(
+                out_dir, zip_path, skip={path for path, _ in skipped}
             )
-            proposed_path = original_path
-            dupe_counter = 1
-            while os.path.exists(proposed_path):
-                proposed_path = (
-                    original_path.split(".")[0]
-                    + f" ({dupe_counter})."
-                    + original_path.split(".")[1]
-                )
-                dupe_counter += 1
-            # The discord filenames can get too long and throw an OSError
-            try:
-                await attachment.save(proposed_path)
-            except OSError:
-                await attachment.save(
-                    f"path_too_long_{dupe_counter}.{original_path.split('.')[1]}"
-                )
-        # Important: Write the newline after each comment is done
-        f.write("\n")
+            if new_size <= filesize_limit or len(skipped) == len(media):
+                return new_size, skipped, len(skipped) == len(media)
+            skipped.append(media[len(skipped)])
 
     @staticmethod
-    async def archive_thread(f: TextIO, thread: nextcord.Thread) -> int:
-        thread_txt_size = 0
-        f.write(f"[  {thread.id} ] {'THREAD'.rjust(25, ' ')}: ")
-        f.write(thread.name + "\n")
-        thread_dir = os.path.join(
-            archive_constants.ARCHIVE,
-            f"{thread.parent.name}_{archive_constants.THREADS}",
-        )
-        # The thread "name" is by default the original message content. Slugify and truncate if necessary
-        norm_thread_name = (
-            unicodedata.normalize("NFKD", f"{thread.id}_{thread.name}")
-            .encode("ascii", "ignore")
-            .decode("ascii")
-        )
-        norm_thread_name = re.sub(r"[^\w\s-]", "", norm_thread_name.lower())
-        norm_thread_name = re.sub(r"[-\s]+", "-", norm_thread_name).strip("-_")
-        norm_thread_name = norm_thread_name[:250]
-        os.makedirs(thread_dir, exist_ok=True)
-        thread_log_path = os.path.join(thread_dir, norm_thread_name + ".txt")
-        with open(thread_log_path, "w") as thread_f:
-            async for t_msg in thread.history(limit=None, oldest_first=True):
-                await ArchiveCog.archive_message(thread_f, t_msg)
-            thread_txt_size += f.tell()
-
-        return thread_txt_size
+    def list_skipped(skipped: List[Tuple[str, int]], max_shown: int = 8) -> str:
+        """One line per left-out file, biggest first, short enough for an embed field"""
+        lines = [
+            f"`{archive_utils.media_display_name(path)[:50]}` "
+            f"({size / constants.BYTES_TO_MEGABYTES:.2f}MB)"
+            for path, size in skipped[:max_shown]
+        ]
+        if len(skipped) > max_shown:
+            lines.append(f"...and {len(skipped) - max_shown} more")
+        return "\n".join(lines)
 
     async def archive_one_channel(
         self,
         channel: Union[nextcord.TextChannel, nextcord.ForumChannel, nextcord.Thread],
-    ) -> Tuple[nextcord.File, int, nextcord.File, int]:
-        """Download a channel's history"""
-        # Write the chat log. Replace attachments with their filename (for easy reference)
-        text_log_path = os.path.join(
-            archive_constants.ARCHIVE,
-            channel.name + "_" + archive_constants.TEXT_LOG_PATH,
+    ) -> Tuple[str, str, int, List[str]]:
+        """Export a channel's history (with its threads and attachments) and zip it up"""
+        out_dir = os.path.join(archive_constants.ARCHIVE, str(channel.id))
+        returncode, stderr, failed = await archive_utils.run_export(
+            channel.id,
+            out_dir,
+            # A thread has no threads of its own
+            include_threads=not isinstance(channel, nextcord.Thread),
         )
-        total_thread_txt_size = 0
-        with open(text_log_path, "w") as f:
-            if hasattr(channel, "history"):
-                channel = cast(nextcord.TextChannel | nextcord.Thread, channel)
-                async for msg in channel.history(limit=None, oldest_first=True):
-                    await self.archive_message(f, msg)
-                    # Threads are attached to normal messages
-                    if msg.flags.has_thread and msg.thread:
-                        total_thread_txt_size += await self.archive_thread(
-                            f, msg.thread
-                        )
+        if returncode != 0:
+            raise ArchiveError(
+                archive_utils.first_error(stderr), "forbidden" in stderr.lower()
+            )
 
-            elif channel.type == nextcord.ChannelType.forum:
-                channel = cast(nextcord.ForumChannel, channel)
-                for thread in channel.threads:
-                    total_thread_txt_size += await self.archive_thread(f, thread)
-                async for thread in channel.archived_threads(limit=None):
-                    total_thread_txt_size += await self.archive_thread(f, thread)
-
-            text_file_size = f.tell()
-
-        ZIP_FILENAME = os.path.join(
-            archive_constants.ARCHIVE, channel.name + "_archive.zip"
+        zip_path = os.path.join(
+            archive_constants.ARCHIVE, f"{channel.name}_archive.zip"
         )
-        # Create a zipfile and then walk through all the saved chatlogs and images, and zip em up
-        with zipfile.ZipFile(ZIP_FILENAME, mode="w") as zf:
-            for root, directories, files in os.walk(archive_constants.ARCHIVE):
-                for filename in files:
-                    if filename == ZIP_FILENAME.split("/")[-1]:  # Don't include self
-                        continue
-                    zf.write(
-                        os.path.join(root, filename), compress_type=self.compression
-                    )
-            zf_file_size = zf.fp.tell()
-        return (
-            nextcord.File(ZIP_FILENAME),
-            zf_file_size,
-            nextcord.File(text_log_path),
-            text_file_size + total_thread_txt_size,
-        )
+        zip_size = self.zip_dir(out_dir, zip_path)
+        return out_dir, zip_path, zip_size, failed
 
-    def get_file_and_embed(
-        self, channel, filesize_limit, zip_file, zip_file_size, textfile, textfile_size
-    ):
-        """Check if zipfile and textfile can be sent or not, create embed with message"""
+    def get_file_and_embed(self, channel, filesize_limit, out_dir, zip_path, zip_size):
+        """Check if the zip can be sent. If it's too big, leave out the biggest media
+        files until it fits, and create an embed with message"""
         embed = discord_utils.create_embed()
 
-        if zip_file_size > filesize_limit:
-            # Note that this is an underestimate, since it's not compressed! But it takes a fair amount of text to hit
-            # limits.
-            if textfile_size > filesize_limit:
+        if zip_size > filesize_limit:
+            smaller_zip_path = os.path.join(
+                archive_constants.ARCHIVE, f"{channel.name}_archive_smaller.zip"
+            )
+            smaller_zip_size, skipped, all_media_skipped = (
+                self.zip_without_biggest_media(
+                    out_dir, smaller_zip_path, zip_size, filesize_limit
+                )
+            )
+            # With every media file left out, it's just the chat log
+            html_zip_path = os.path.join(
+                archive_constants.ARCHIVE, f"{channel.name}_chat_log.zip"
+            )
+            if all_media_skipped:
+                os.replace(smaller_zip_path, html_zip_path)
+            html_zip_size = smaller_zip_size
+            if html_zip_size > filesize_limit:
                 embed.add_field(
                     name="ERROR: History Too Big",
                     value=f"Sorry about that! The chat log in {channel.mention} is too big for me to send.\n"
                     f"The max file size I can send in this server is "
                     f"`{(filesize_limit / constants.BYTES_TO_MEGABYTES):.2f}MB`, but the chat log is "
-                    f"`{(textfile_size / constants.BYTES_TO_MEGABYTES):.2f}MB`",
+                    f"`{(html_zip_size / constants.BYTES_TO_MEGABYTES):.2f}MB`",
                     inline=False,
                 )
                 file = None
+            elif not all_media_skipped:
+                embed.add_field(
+                    name="WARNING: Attachments Too Big",
+                    value=f"There are too many photos in {channel.mention} for me to send. The max file size "
+                    f"I can send in this server is "
+                    f"`{(filesize_limit / constants.BYTES_TO_MEGABYTES):.2f}MB` but the zip is "
+                    f"`{(zip_size / constants.BYTES_TO_MEGABYTES):.2f}MB`. "
+                    f"I left out the {len(skipped)} biggest files, so they won't show in the archive:\n"
+                    + self.list_skipped(skipped),
+                    inline=False,
+                )
+                file = nextcord.File(smaller_zip_path)
             else:
                 embed.add_field(
                     name="WARNING: Attachments Too Big",
                     value=f"There are too many photos in {channel.mention} for me to send. The max file size "
                     f"I can send in this server is "
                     f"`{(filesize_limit / constants.BYTES_TO_MEGABYTES):.2f}MB` but the zip is "
-                    f"`{(zip_file_size / constants.BYTES_TO_MEGABYTES):.2f}MB`. I'll only be able to send you the chat log.",
+                    f"`{(zip_size / constants.BYTES_TO_MEGABYTES):.2f}MB`. I'll only be able to send you the chat log.",
                     inline=False,
                 )
-                ZIP_FILENAME = os.path.join(
-                    archive_constants.ARCHIVE, channel.name + "_archive.zip"
-                )
-                with zipfile.ZipFile(ZIP_FILENAME, mode="w") as zf:
-                    zf.write(
-                        os.path.join(
-                            archive_constants.ARCHIVE,
-                            channel.name + "_" + archive_constants.TEXT_LOG_PATH,
-                        ),
-                        compress_type=self.compression,
-                    )
-
-                    thread_dir = Path(
-                        archive_constants.ARCHIVE,
-                        f"{channel.name}_{archive_constants.THREADS}",
-                    )
-
-                    # Glob only succeeds if thread_dir exists
-                    for thread_file in thread_dir.glob("*.txt"):
-                        zf.write(thread_file, compress_type=self.compression)
-                file = zip_file
+                file = nextcord.File(html_zip_path)
         else:
-            file = zip_file
+            file = nextcord.File(zip_path)
             embed = None
         return file, embed
+
+    def add_failed_threads(self, embed, channel, failed):
+        """Warn about threads DCE couldn't export, even though the channel itself worked"""
+        if not failed:
+            return embed
+        if embed is None:
+            embed = discord_utils.create_embed()
+        embed.add_field(
+            name="WARNING: Some threads failed",
+            value=f"I couldn't archive everything in {channel.mention}:\n"
+            + "\n".join(failed)[:900],
+            inline=False,
+        )
+        return embed
+
+    def get_error_embed(self, channel, error: ArchiveError):
+        embed = discord_utils.create_embed()
+        if error.forbidden:
+            embed.add_field(
+                name="ERROR: No access",
+                value=f"Sorry! I don't have access to {channel.mention}. You'll need "
+                f"to give me permission to view the channel if you want "
+                f"to archive it",
+                inline=False,
+            )
+        else:
+            embed.add_field(
+                name="ERROR: Failed to archive",
+                value=f"Sorry! I couldn't archive {channel.mention}: {error}",
+                inline=False,
+            )
+        return embed
+
+    async def check_dce_installed(self, ctx) -> bool:
+        if archive_utils.dce_installed():
+            return True
+        embed = discord_utils.create_embed()
+        embed.add_field(
+            name="ERROR: Archiving is not set up",
+            value="I can't find DiscordChatExporter, which I need to archive channels. "
+            "Whoever runs me needs to run `python scripts/install_dce.py`.",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+        return False
 
     @command_predicates.is_verified()
     @commands.command(name="archivechannel", aliases=["archivechan", "archivethread"])
@@ -216,9 +225,12 @@ class ArchiveCog(commands.Cog, name="Archive"):
             embed = discord_utils.create_no_argument_embed("channel")
             await discord_utils.send_message(ctx, embed)
             return False
+        if not await self.check_dce_installed(ctx):
+            return False
         # If we don't have the lock, let the user know it may take a while.
         msg = None
-        archived = True
+        # Returned so ~deletehydra knows not to delete a channel that wasn't archived
+        all_archived = True
 
         for channelname in args:
             if self.lock.locked():
@@ -263,49 +275,34 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 msgs = await discord_utils.send_message(ctx, start_embed)
                 msg = msgs[0]
                 try:
-                    # zipfile, textfile
                     (
-                        zip_file,
-                        zip_file_size,
-                        textfile,
-                        textfile_size,
-                    ) = await asyncio.wait_for(
-                        self.archive_one_channel(channel),
-                        timeout=archive_constants.ARCHIVE_TIMEOUT,
+                        out_dir,
+                        zip_path,
+                        zip_size,
+                        failed,
+                    ) = await self.archive_one_channel(channel)
+                except ArchiveError as e:
+                    await discord_utils.send_message(
+                        ctx, self.get_error_embed(channel, e)
                     )
-                except nextcord.errors.Forbidden:
-                    embed.add_field(
-                        name="ERROR: No access",
-                        value=f"Sorry! I don't have access to {channel}. You'll need "
-                        f"to give me permission to view the channel if you want "
-                        f"to archive it",
-                        inline=False,
-                    )
-                    await discord_utils.send_message(ctx, embed)
-                    return False
-                except asyncio.TimeoutError:
-                    embed.add_field(
-                        name="ERROR: Archive timed out",
-                        value=f"Sorry! Archiving {channel.mention} took longer than "
-                        f"{archive_constants.ARCHIVE_TIMEOUT // 60} minutes, so I stopped. "
-                        f"Please try again later.",
-                        inline=False,
-                    )
-                    await discord_utils.send_message(ctx, embed)
                     return False
                 file, embed = self.get_file_and_embed(
                     channel,
                     ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE,
-                    zip_file,
-                    zip_file_size,
-                    textfile,
-                    textfile_size,
+                    out_dir,
+                    zip_path,
+                    zip_size,
                 )
+                embed = self.add_failed_threads(embed, channel, failed)
+                if file is None or failed:
+                    all_archived = False
                 # There has been an issue with AIO HTTP message sending fails, in which case discord.py crashes?
                 # So adding this try/catch for runtime to catch this. I don't think it's a deterministic error
                 try:
                     await ctx.send(file=file, embed=embed)
                 except RuntimeError:
+                    all_archived = False
+                    embed = discord_utils.create_embed()
                     embed.add_field(
                         name="ERROR: Failed to send archive",
                         value=f"Sorry! I had trouble sending you the archived file for "
@@ -314,18 +311,55 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         inline=False,
                     )
                     await discord_utils.send_message(ctx, embed)
-                    archived = False
                 if msg:
                     await msg.delete()
                     msg = None
             # Clean up the archive dir
             archive_utils.reset_archive_dir()
-        return archived
+        return all_archived
+
+    async def archive_many_channels(self, ctx, channels, name_for_errors):
+        """Archive each channel in turn and send its file, for ~archivecategory and ~archiveserver"""
+        for text_channel in channels:
+            archive_utils.reset_archive_dir()
+            try:
+                (
+                    out_dir,
+                    zip_path,
+                    zip_size,
+                    failed,
+                ) = await self.archive_one_channel(text_channel)
+                file, embed = self.get_file_and_embed(
+                    text_channel,
+                    ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE,
+                    out_dir,
+                    zip_path,
+                    zip_size,
+                )
+                embed = self.add_failed_threads(embed, text_channel, failed)
+                await ctx.send(file=file, embed=embed)
+            except ArchiveError as e:
+                await discord_utils.send_message(
+                    ctx, self.get_error_embed(text_channel, e)
+                )
+                continue
+            # Same concern as above with AIO HTTP message sending failures causing discord.py to crash (TODO: Check)
+            except RuntimeError:
+                embed = discord_utils.create_embed()
+                embed.add_field(
+                    name="ERROR: Failed to send archive",
+                    value=f"Sorry! I had trouble sending you the archived file for "
+                    f"{text_channel.mention}. Perhaps you can try again with {ctx.prefix}archivechannel"
+                    f" after I've finished archiving {name_for_errors}.",
+                    inline=False,
+                )
+                await discord_utils.send_message(ctx, embed)
+                continue
 
     @command_predicates.is_verified()
     @commands.command(name="archivecategory", aliases=["archivecat"])
     async def archivecategory(self, ctx: commands.Context, *args: str):
-        """Command to download the history of every text channel in the category
+        """Command to download the history of every text and forum channel in the category
 
         Permission Category : Verified Roles only.
         Usage: `~archivecategory "Category name"`
@@ -337,6 +371,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
             # No arguments provided
             embed = discord_utils.create_no_argument_embed("category")
             await discord_utils.send_message(ctx, embed)
+            return
+        if not await self.check_dce_installed(ctx):
             return
 
         # If we don't have the lock, let the user know it may take a while.
@@ -360,50 +396,16 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 await discord_utils.send_message(ctx, embed)
                 return
 
-            start_embed = await self.get_start_embed(category, category.text_channels)
+            channels = [
+                channel
+                for channel in category.channels
+                if isinstance(channel, (nextcord.TextChannel, nextcord.ForumChannel))
+            ]
+            start_embed = await self.get_start_embed(category, channels)
             msgs = await discord_utils.send_message(ctx, start_embed)
 
-            for text_channel in category.text_channels:
-                archive_utils.reset_archive_dir()
-                try:
-                    (
-                        zip_file,
-                        zip_file_size,
-                        textfile,
-                        textfile_size,
-                    ) = await self.archive_one_channel(text_channel)
-                    file, embed = self.get_file_and_embed(
-                        text_channel,
-                        ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE,
-                        zip_file,
-                        zip_file_size,
-                        textfile,
-                        textfile_size,
-                    )
-                    await ctx.send(file=file, embed=embed)
-                except nextcord.errors.Forbidden:
-                    embed.add_field(
-                        name="ERROR: No access",
-                        value=f"Sorry! I don't have access to {text_channel.mention}. You'll need "
-                        f"to give me permission to view the channel if you want "
-                        f"to archive it",
-                        inline=False,
-                    )
-                    await discord_utils.send_message(ctx, embed)
-                    continue
-                # There has been an issue with AIO HTTP message sending fails, in which case discord.py crashes?
-                # So adding this try/catch for runtime to catch this. I don't think it's a deterministic error
-                except RuntimeError:
-                    embed = discord_utils.create_embed()
-                    embed.add_field(
-                        name="ERROR: Failed to send archive",
-                        value=f"Sorry! I had trouble sending you the archived file for "
-                        f"{text_channel.mention}. Perhaps you can try again with {ctx.prefix}archivechannel"
-                        f" after I've finished archiving {category.mention}.",
-                        inline=False,
-                    )
-                    await discord_utils.send_message(ctx, embed)
-                    continue
+            await self.archive_many_channels(ctx, channels, category.mention)
+
             if msgs:
                 for msg in msgs:
                     await msg.delete()
@@ -420,13 +422,14 @@ class ArchiveCog(commands.Cog, name="Archive"):
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(name="archiveserver")
     async def archiveserver(self, ctx: commands.Context):
-        """Command to archive every text channel in the server. WARNING: This command will take *very*
+        """Command to archive every text and forum channel in the server. WARNING: This command will take *very*
         long on any reasonably aged server
 
         Permission Category : Admin or Bot Owner Roles only.
         Usage: `~archiveserver`
         """
-        embed = discord_utils.create_embed()
+        if not await self.check_dce_installed(ctx):
+            return
 
         # If we don't have the lock, let the user know it may take a while.
         msg = None
@@ -435,40 +438,15 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
         # LOCK EVERYTHING
         async with self.lock:
-            start_embed = await self.get_start_embed(ctx.guild, ctx.guild.text_channels)
+            channels = ctx.guild.text_channels + ctx.guild.forum_channels
+            start_embed = await self.get_start_embed(ctx.guild, channels)
             if msg:
                 await msg.delete()
                 msg = None
 
             msgs = await discord_utils.send_message(ctx, start_embed)
-            for text_channel in ctx.guild.text_channels:
-                archive_utils.reset_archive_dir()
-                try:
-                    (
-                        zip_file,
-                        zip_file_size,
-                        textfile,
-                        textfile_size,
-                    ) = await self.archive_one_channel(text_channel)
-                    file, embed = self.get_file_and_embed(
-                        text_channel,
-                        ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE,
-                        zip_file,
-                        zip_file_size,
-                        textfile,
-                        textfile_size,
-                    )
-                    await ctx.send(file=file, embed=embed)
-                except nextcord.errors.Forbidden:
-                    embed.add_field(
-                        name="ERROR: No access",
-                        value=f"Sorry! I don't have access to {text_channel.mention}. You'll need "
-                        f"to give me permission to view the channel if you want "
-                        f"to archive it",
-                        inline=False,
-                    )
-                    await discord_utils.send_message(ctx, embed)
-                    continue
+            await self.archive_many_channels(ctx, channels, ctx.guild)
+
             if msgs:
                 for msg in msgs:
                     await msg.delete()
