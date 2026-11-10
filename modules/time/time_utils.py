@@ -69,14 +69,13 @@ def format_utc_offset(timezone_dict):
         tz_abbr = localized_time.strftime("%Z")
 
         # Ge the actual offset at this time
-        seconds_offset = localized_time.utcoffset().total_seconds()
-        hours_offset = int(seconds_offset // 3600)
-        minutes_offset = int((seconds_offset % 3600) // 60)
+        seconds_offset = int(localized_time.utcoffset().total_seconds())
+        sign = "-" if seconds_offset < 0 else "+"
+        hours_offset, remainder = divmod(abs(seconds_offset), 3600)
+        minutes_offset = remainder // 60
 
         # Format the offset string
-        offset_str = (
-            f"{'+' if hours_offset >= 0 else ''}{hours_offset:02d}:{minutes_offset:02d}"
-        )
+        offset_str = f"{sign}{hours_offset:02d}:{minutes_offset:02d}"
 
         return f"{tz_abbr} (UTC{offset_str})"
     except Exception:

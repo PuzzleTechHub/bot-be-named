@@ -22,9 +22,10 @@ def add_prefix(channel, prefix: str):
         for other_prefix in [
             op for op in sheets_constants.solved_prefixes if op + "-" != prefix
         ]:
-            p = Prefix(channel, other_prefix)
+            p = Prefix(channel, other_prefix + "-")
             if p.has_prefix():
                 new_channel_name = p.remove_prefix()
+                break
         if new_channel_name is None:
             p = Prefix(channel, prefix)
         else:
