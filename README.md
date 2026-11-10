@@ -297,6 +297,8 @@ Significant portions of the bot were written by [Kevslinger](https://github.com/
 
 There are multiple repositories and code that BBN borrowed code from. Further info is included in respective modules.
 
+Channel archives are made with [DiscordChatExporter](https://github.com/Tyrrrz/DiscordChatExporter) by [Oleksii Holub (Tyrrrz)](https://github.com/Tyrrrz), used under the MIT License. BBN doesn't include it, but downloads it from a pinned release. See the [Archive module](./modules/archive) for details.
+
 ## Contributing/Issues
 
 See [Contributing.MD](/.github/CONTRIBUTING.md) for the full contribution guidelines. No AI, be on discord, be a human.
