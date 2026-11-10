@@ -215,9 +215,10 @@ class ArchiveCog(commands.Cog, name="Archive"):
             # No arguments provided
             embed = discord_utils.create_no_argument_embed("channel")
             await discord_utils.send_message(ctx, embed)
-            return
+            return False
         # If we don't have the lock, let the user know it may take a while.
         msg = None
+        archived = True
 
         for channelname in args:
             if self.lock.locked():
@@ -242,7 +243,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                             inline=False,
                         )
                         await discord_utils.send_message(ctx, embed)
-                        return
+                        return False
                     if channel.type.name not in [
                         "text",
                         "public_thread",
@@ -256,7 +257,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                             inline=False,
                         )
                         await discord_utils.send_message(ctx, embed)
-                        return
+                        return False
                 # If we've gotten to this point, we know we have a channel so we should probably let the user know.
                 start_embed = await self.get_start_embed(channel)
                 msgs = await discord_utils.send_message(ctx, start_embed)
@@ -268,7 +269,10 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         zip_file_size,
                         textfile,
                         textfile_size,
-                    ) = await self.archive_one_channel(channel)
+                    ) = await asyncio.wait_for(
+                        self.archive_one_channel(channel),
+                        timeout=archive_constants.ARCHIVE_TIMEOUT,
+                    )
                 except nextcord.errors.Forbidden:
                     embed.add_field(
                         name="ERROR: No access",
@@ -278,7 +282,17 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         inline=False,
                     )
                     await discord_utils.send_message(ctx, embed)
-                    return
+                    return False
+                except asyncio.TimeoutError:
+                    embed.add_field(
+                        name="ERROR: Archive timed out",
+                        value=f"Sorry! Archiving {channel.mention} took longer than "
+                        f"{archive_constants.ARCHIVE_TIMEOUT // 60} minutes, so I stopped. "
+                        f"Please try again later.",
+                        inline=False,
+                    )
+                    await discord_utils.send_message(ctx, embed)
+                    return False
                 file, embed = self.get_file_and_embed(
                     channel,
                     ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE,
@@ -300,11 +314,13 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         inline=False,
                     )
                     await discord_utils.send_message(ctx, embed)
+                    archived = False
                 if msg:
                     await msg.delete()
                     msg = None
             # Clean up the archive dir
             archive_utils.reset_archive_dir()
+        return archived
 
     @command_predicates.is_verified()
     @commands.command(name="archivecategory", aliases=["archivecat"])

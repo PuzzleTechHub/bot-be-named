@@ -819,7 +819,21 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         # Proceed with deletehydra
 
+        # If another deletion holds the lock, let the user know it may take a while.
+        delay_msg = None
+        if self.lock.locked():
+            delay_embed = discord_utils.create_embed()
+            delay_embed.add_field(
+                name="Warning: Delay!",
+                value="Another deletion is in progress, so this one may take a while. "
+                "I'll get to it as soon as possible.",
+                inline=False,
+            )
+            delay_msg = (await discord_utils.send_message(ctx, delay_embed))[0]
+
         async with self.lock:
+            if delay_msg:
+                await delay_msg.delete()
             progress_embed = discord_utils.create_embed()
             progress_embed.add_field(
                 name="Deletion in Progress",
@@ -832,7 +846,17 @@ class HydraCog(commands.Cog, name="Hydra"):
                 # 1. Archive channel first
                 archive_cmd = self.bot.get_command("archivechannel")
                 if archive_cmd:
-                    await ctx.invoke(archive_cmd, target_channel.mention)
+                    archived = await ctx.invoke(archive_cmd, target_channel.mention)
+                    if archived is False:
+                        await progress_msg.delete()
+                        fail_embed = discord_utils.create_embed()
+                        fail_embed.add_field(
+                            name="Aborted!",
+                            value=f"Archiving failed, so {target_channel.mention} will not be deleted.",
+                            inline=False,
+                        )
+                        await discord_utils.send_message(ctx, fail_embed)
+                        return
                 else:
                     # Fallback
                     fallback_embed = discord_utils.create_embed()
