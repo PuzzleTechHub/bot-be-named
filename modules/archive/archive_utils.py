@@ -47,9 +47,11 @@ async def run_export(
         "--reuse-media",
         "--media-dir",
         os.path.join(out_dir, archive_constants.MEDIA),
-        # The trailing separator tells DCE this is a folder, not a file name
+        # One file per channel or thread, named "<channel name> [<channel id>].html".
+        # DCE's default name adds the server and category names too, can exceed
+        # the 255-byte file name limit on Linux
         "-o",
-        os.path.join(out_dir, ""),
+        os.path.join(out_dir, "%C [%c].html"),
     ]
     if include_threads:
         args += ["--include-threads", "all"]
