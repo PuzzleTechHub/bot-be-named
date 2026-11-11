@@ -80,6 +80,14 @@ class ArchiveCog(commands.Cog, name="Archive"):
             lines.append(f"...and {len(skipped) - max_shown} more")
         return "\n".join(lines)
 
+    @staticmethod
+    def zip_path_for(channel, kind: str) -> str:
+        """Where to save a zip for this channel, e.g. archive/puzzle-1_archive.zip"""
+        return os.path.join(
+            archive_constants.ARCHIVE,
+            f"{archive_utils.safe_filename(channel.name)}_{kind}.zip",
+        )
+
     async def archive_one_channel(
         self,
         channel: Union[nextcord.TextChannel, nextcord.ForumChannel, nextcord.Thread],
@@ -97,9 +105,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 archive_utils.first_error(stderr), "forbidden" in stderr.lower()
             )
 
-        zip_path = os.path.join(
-            archive_constants.ARCHIVE, f"{channel.name}_archive.zip"
-        )
+        zip_path = self.zip_path_for(channel, "archive")
         zip_size = self.zip_dir(out_dir, zip_path)
         return out_dir, zip_path, zip_size, failed
 
@@ -109,18 +115,14 @@ class ArchiveCog(commands.Cog, name="Archive"):
         embed = discord_utils.create_embed()
 
         if zip_size > filesize_limit:
-            smaller_zip_path = os.path.join(
-                archive_constants.ARCHIVE, f"{channel.name}_archive_smaller.zip"
-            )
+            smaller_zip_path = self.zip_path_for(channel, "archive_smaller")
             smaller_zip_size, skipped, all_media_skipped = (
                 self.zip_without_biggest_media(
                     out_dir, smaller_zip_path, zip_size, filesize_limit
                 )
             )
             # With every media file left out, it's just the chat log
-            html_zip_path = os.path.join(
-                archive_constants.ARCHIVE, f"{channel.name}_chat_log.zip"
-            )
+            html_zip_path = self.zip_path_for(channel, "chat_log")
             if all_media_skipped:
                 os.replace(smaller_zip_path, html_zip_path)
             html_zip_size = smaller_zip_size
@@ -300,7 +302,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 # So adding this try/catch for runtime to catch this. I don't think it's a deterministic error
                 try:
                     await ctx.send(file=file, embed=embed)
-                except RuntimeError:
+                except (RuntimeError, nextcord.HTTPException):
                     all_archived = False
                     embed = discord_utils.create_embed()
                     embed.add_field(
@@ -344,7 +346,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 )
                 continue
             # Same concern as above with AIO HTTP message sending failures causing discord.py to crash (TODO: Check)
-            except RuntimeError:
+            # Skip chennel when there is a HTTPException because that's Discord refusing
+            except (RuntimeError, nextcord.HTTPException):
                 embed = discord_utils.create_embed()
                 embed.add_field(
                     name="ERROR: Failed to send archive",
@@ -473,7 +476,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
         if multiple_channels:
             embed.add_field(
                 name="List of Channels to Archive",
-                value=f"{chr(10).join([channel.name for channel in multiple_channels])}",
+                value=archive_utils.list_for_embed(
+                    [channel.name for channel in multiple_channels]
+                ),
                 inline=False,
             )
         embed.add_field(

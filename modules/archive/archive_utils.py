@@ -125,3 +125,26 @@ def media_display_name(path: str) -> str:
     name = urllib.parse.unquote(os.path.basename(path))
     stem, ext = os.path.splitext(name)
     return re.sub(r"-[0-9a-f]{16}$", "", stem) + ext
+
+
+def safe_filename(name: str, max_len: int = 80) -> str:
+    """A channel or thread name made safe to use in a file name on Linux and Windows.
+    Thread and forum post names can contain / ? * : and so on, which can't go in a path."""
+    safe = re.sub(r"[^\w\- .]", "_", name).strip(" .")
+    return safe[:max_len] or "channel"
+
+
+def list_for_embed(names: List[str], limit: int = 1024) -> str:
+    """One name per line, cut off with "...and N more" so it fits in an embed field
+    (Discord allows 1024 characters per field)"""
+    lines = []
+    used = 0
+    for i, name in enumerate(names):
+        line = name[:100]
+        more = f"...and {len(names) - i} more"
+        if used + len(line) + 1 + len(more) > limit:
+            lines.append(more)
+            break
+        lines.append(line)
+        used += len(line) + 1
+    return "\n".join(lines)
