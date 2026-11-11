@@ -1,3 +1,5 @@
+import os
+
 import nextcord
 from nextcord.ext import commands
 from typing import List, Optional, Union
@@ -188,6 +190,11 @@ async def createvoicechannelgeneric(
 ##########
 # EMBEDS #
 ##########
+
+
+def bot_owner_mention() -> str:
+    """Mentions the bot owner from the .env file"""
+    return f"<@{os.getenv('BOT_OWNER_DISCORD_ID')}>"
 
 
 def create_embed() -> nextcord.Embed:

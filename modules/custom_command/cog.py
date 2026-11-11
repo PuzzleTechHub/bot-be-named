@@ -1,5 +1,4 @@
 import asyncio
-import os
 from typing import Optional
 
 from nextcord.ext import commands
@@ -446,7 +445,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
         # The global commands
         guild_id = constants.DB_GLOBAL  # So -1
-        owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
+        owner_mention = discord_utils.bot_owner_mention()
         if (
             guild_id in database.CUSTOM_COMMANDS
             and len(database.CUSTOM_COMMANDS[guild_id]) > 0
@@ -454,7 +453,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             cc_list = database.CUSTOM_COMMANDS[guild_id].keys()
             custom_commands = (
                 "\n".join(sorted(cc_list))
-                + f"\n\n **Contact {owner.mention} to suggest more custom commands!**"
+                + f"\n\n **Contact {owner_mention} to suggest more custom commands!**"
             )
             embed.add_field(
                 name="Global custom commands",
@@ -464,7 +463,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         else:
             embed.add_field(
                 name="Success",
-                value=f"No global custom commands yet. Contact {owner.mention} to suggest one!",
+                value=f"No global custom commands yet. Contact {owner_mention} to suggest one!",
                 inline=False,
             )
         await discord_utils.send_message(ctx, embed)

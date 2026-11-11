@@ -1,5 +1,4 @@
 import nextcord
-import os
 from nextcord.ext import commands
 from emoji import EMOJI_DATA, emojize
 import emoji
@@ -230,7 +229,7 @@ class MiscCog(commands.Cog, name="Misc"):
         """
         embed = discord_utils.create_embed()
 
-        owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
+        owner_mention = discord_utils.bot_owner_mention()
         embed.add_field(
             name="About Me!",
             value="Hello!\n"
@@ -265,7 +264,7 @@ class MiscCog(commands.Cog, name="Misc"):
             value=f"When in doubt, use `{ctx.prefix}help commandname` to get more info about a specific command!\n\n"
             f"Refer to `{ctx.prefix}info` for additional information!\n\n"
             f"[Bot Github Link (I'm open source!)](https://github.com/PuzzleTechHub/bot-be-named)  - [Bot Discord Link](https://discord.gg/x8f2ywHUky)\n\n"
-            f"Any problems? Let {owner.mention} know.",
+            f"Any problems? Let {owner_mention} know.",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
