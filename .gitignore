@@ -5,6 +5,7 @@ venv/
 error_logfile.txt
 error_webhook.txt
 /archive/
+/tools/
 .idea
 env/
 nohup.out
