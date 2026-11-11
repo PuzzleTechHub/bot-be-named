@@ -106,7 +106,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
             )
 
         zip_path = self.zip_path_for(channel, "archive")
-        zip_size = self.zip_dir(out_dir, zip_path)
+        # Do zipping off the event loop
+        zip_size = await asyncio.to_thread(self.zip_dir, out_dir, zip_path)
         return out_dir, zip_path, zip_size, failed
 
     def get_file_and_embed(self, channel, filesize_limit, out_dir, zip_path, zip_size):
@@ -236,8 +237,9 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
         for channelname in args:
             if self.lock.locked():
-                embed = archive_utils.get_delay_embed()
-                msgs = await discord_utils.send_message(ctx, embed)
+                msgs = await discord_utils.send_message(
+                    ctx, archive_utils.get_delay_embed()
+                )
                 msg = msgs[0]
             # LOCK EVERYTHING
             async with self.lock:
@@ -250,28 +252,34 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     channel = channelname
                 else:
                     channel = await discord_utils.find_chan_or_thread(ctx, channelname)
+
+                    # A new embed for each error so fields don't get repeated from earlier channels
+                    error_embed = discord_utils.create_embed()
+
                     if channel is None:
-                        embed.add_field(
+                        error_embed.add_field(
                             name="ERROR: Cannot find channel",
                             value=f"Sorry, I cannot find a channel with name {channelname}. Try mentioning the channel (e.g. `#{channelname}`)",
                             inline=False,
                         )
-                        await discord_utils.send_message(ctx, embed)
-                        return False
+                        await discord_utils.send_message(ctx, error_embed)
+                        all_archived = False
+                        continue
                     if channel.type.name not in [
                         "text",
                         "public_thread",
                         "private_thread",
                         "forum",
                     ]:
-                        embed.add_field(
+                        error_embed.add_field(
                             name="ERROR: Cannot archive non-text channels",
                             value=f"Sorry! I can only archive text channels, but "
                             f"{channel} is a {channel.type} channel.",
                             inline=False,
                         )
-                        await discord_utils.send_message(ctx, embed)
-                        return False
+                        await discord_utils.send_message(ctx, error_embed)
+                        all_archived = False
+                        continue
                 # If we've gotten to this point, we know we have a channel so we should probably let the user know.
                 start_embed = await self.get_start_embed(channel)
                 msgs = await discord_utils.send_message(ctx, start_embed)
@@ -284,11 +292,16 @@ class ArchiveCog(commands.Cog, name="Archive"):
                         failed,
                     ) = await self.archive_one_channel(channel)
                 except ArchiveError as e:
+                    await msg.delete()
+                    msg = None
                     await discord_utils.send_message(
                         ctx, self.get_error_embed(channel, e)
                     )
-                    return False
-                file, embed = self.get_file_and_embed(
+                    all_archived = False
+                    continue
+                # Do off the main event loop
+                file, embed = await asyncio.to_thread(
+                    self.get_file_and_embed,
                     channel,
                     ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE,
                     out_dir,
@@ -316,8 +329,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                 if msg:
                     await msg.delete()
                     msg = None
-            # Clean up the archive dir
-            archive_utils.reset_archive_dir()
+        # Clean up the archive dir
+        archive_utils.reset_archive_dir()
         return all_archived
 
     async def archive_many_channels(self, ctx, channels, name_for_errors):
@@ -331,7 +344,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     zip_size,
                     failed,
                 ) = await self.archive_one_channel(text_channel)
-                file, embed = self.get_file_and_embed(
+                file, embed = await asyncio.to_thread(
+                    self.get_file_and_embed,
                     text_channel,
                     ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE,
                     out_dir,
