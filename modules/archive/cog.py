@@ -221,6 +221,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         Usage: `~archivechannel #channel1 "channel2"`
         """
         embed = discord_utils.create_embed()
+        owner = await self.bot.fetch_user(os.getenv("BOT_OWNER_DISCORD_ID"))
 
         # Check if the user supplied a channel
         if len(args) < 1:
@@ -321,7 +322,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
                     embed.add_field(
                         name="ERROR: Failed to send archive",
                         value=f"Sorry! I had trouble sending you the archived file for "
-                        f"{channel.mention}. Please try again later, and let kev know if this "
+                        f"{channel.mention}. Please try again later, and let {owner.mention} know if this "
                         f"issue persists",
                         inline=False,
                     )
