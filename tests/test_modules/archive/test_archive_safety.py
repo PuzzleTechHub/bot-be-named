@@ -98,3 +98,46 @@ async def test_archive_many_channels_keeps_going_after_upload_error(monkeypatch)
     assert len(sent_errors) == 1
     assert sent_errors[0].fields[0].name == "ERROR: Failed to send archive"
     assert "<#1>" in sent_errors[0].fields[0].value
+
+
+@pytest.mark.asyncio
+async def test_archivecategory_deletes_delay_warning_and_preserves_embed(monkeypatch):
+    import asyncio
+    cog = ArchiveCog.__new__(ArchiveCog)
+    cog.lock = asyncio.Lock()
+    await cog.lock.acquire()  # Lock it so locked() returns True before command acquires
+
+    # When cog.lock is locked, archivecategory will try to acquire it.
+    # To avoid hanging on `async with self.lock`, release it shortly or in background
+    asyncio.get_running_loop().call_soon(cog.lock.release)
+
+    cog.check_dce_installed = AsyncMock(return_value=True)
+
+    delay_msg = MagicMock()
+    delay_msg.delete = AsyncMock()
+    sent_messages = []
+
+    async def fake_send_message(ctx, embed):
+        sent_messages.append(embed)
+        return [delay_msg]
+
+    monkeypatch.setattr(
+        "modules.archive.cog.discord_utils.send_message", fake_send_message
+    )
+    monkeypatch.setattr(
+        "modules.archive.cog.discord_utils.find_category", AsyncMock(return_value=None)
+    )
+
+    ctx = MagicMock()
+    await ArchiveCog.archivecategory.callback(cog, ctx, "NonExistentCategory")
+
+    # The delay warning message was deleted once lock was acquired
+    delay_msg.delete.assert_awaited_once()
+
+    # The error message was sent without carrying the delay warning field
+    assert len(sent_messages) == 2
+    delay_embed, error_embed = sent_messages
+    assert delay_embed.fields[0].name == "Warning: Delay!"
+    assert len(error_embed.fields) == 1
+    assert error_embed.fields[0].name == "ERROR: Cannot find category"
+
