@@ -525,9 +525,7 @@ async def find_chan_or_thread(
         if (
             isinstance(
                 channel,
-                nextcord.TextChannel
-                | nextcord.VoiceChannel
-                | nextcord.ForumChannel,
+                nextcord.TextChannel | nextcord.VoiceChannel | nextcord.ForumChannel,
             )
             and channel.name.lower() == query_lower
         ):
