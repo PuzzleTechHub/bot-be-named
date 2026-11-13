@@ -454,6 +454,72 @@ async def find_category(
     return None
 
 
+_CHANNEL_NAME_EDGE_JUNK = "\u2060\u200b\u200c\u200d\ufeff \t\n\r"
+
+
+def _normalize_channel_query(chan_name: Optional[str]) -> Optional[str]:
+    """Strip leading # and edge paste artifacts from a channel name query.
+
+    Returns None if chan_name is None or empty after cleaning.
+    """
+    if chan_name is None:
+        return None
+    cleaned = chan_name.strip(_CHANNEL_NAME_EDGE_JUNK)
+    cleaned = cleaned.lstrip("#").strip(_CHANNEL_NAME_EDGE_JUNK)
+    return cleaned or None
+
+
+async def _lookup_chan_or_thread(
+    ctx: commands.Context, query: str, *, normalize_names: bool
+) -> Union[
+    nextcord.TextChannel,
+    nextcord.Thread,
+    nextcord.ForumChannel,
+    nextcord.VoiceChannel,
+    None,
+]:
+    """Try converters, then case-insensitive name match for one query string."""
+    for converter in (
+        commands.TextChannelConverter,
+        commands.ThreadConverter,
+        commands.GuildChannelConverter,
+    ):
+        try:
+            chan_or_thread = await converter().convert(ctx, query)
+
+            if not isinstance(
+                chan_or_thread,
+                nextcord.TextChannel
+                | nextcord.Thread
+                | nextcord.ForumChannel
+                | nextcord.VoiceChannel,
+            ):
+                continue
+
+            return chan_or_thread
+        except commands.BadArgument:
+            continue
+
+    # Fallback: case-insensitive name match (same idea as find_role).
+    query_lower = query.lower()
+    for channel in ctx.guild.channels:
+        if not isinstance(
+            channel,
+            nextcord.TextChannel | nextcord.VoiceChannel | nextcord.ForumChannel,
+        ):
+            continue
+        name = (
+            _normalize_channel_query(channel.name) if normalize_names else channel.name
+        )
+        if name is not None and name.lower() == query_lower:
+            return channel
+    for thread in getattr(ctx.guild, "threads", []):
+        name = _normalize_channel_query(thread.name) if normalize_names else thread.name
+        if name is not None and name.lower() == query_lower:
+            return thread
+    return None
+
+
 async def find_chan_or_thread(
     ctx: commands.Context,
     chan_name: Union[
@@ -462,16 +528,22 @@ async def find_chan_or_thread(
         nextcord.ForumChannel,
         nextcord.VoiceChannel,
         str,
+        None,
     ],
 ) -> Union[
-    nextcord.TextChannel, nextcord.Thread, nextcord.ForumChannel, nextcord.VoiceChannel
+    nextcord.TextChannel,
+    nextcord.Thread,
+    nextcord.ForumChannel,
+    nextcord.VoiceChannel,
+    None,
 ]:
-    """Convert the name to a nextcord Channel/Thread
+    """Convert a name or object to a nextcord channel/thread.
+
     Arguments:
         - ctx (nextcord.ext.commands.Context): The command's context
-        - chan_name (str): The name of the role
+        - chan_name: Channel/thread object, name string, or None
     Returns:
-        - chan_or_thread (nextcord.TextChannel): the channel or thread or None if not found
+        - TextChannel, Thread, ForumChannel, VoiceChannel, or None if not found
     """
 
     if (
@@ -486,27 +558,17 @@ async def find_chan_or_thread(
     ):
         return chan_name
 
-    for converter in (
-        commands.TextChannelConverter,
-        commands.ThreadConverter,
-        commands.GuildChannelConverter,
-    ):
-        try:
-            chan_or_thread = await converter().convert(ctx, chan_name)
+    raw = str(chan_name)
+    # Prefer exact input first so a VC named "#1" stays findable.
+    found = await _lookup_chan_or_thread(ctx, raw, normalize_names=False)
+    if found is not None:
+        return found
 
-            if not isinstance(
-                chan_or_thread,
-                nextcord.TextChannel
-                | nextcord.Thread
-                | nextcord.ForumChannel
-                | nextcord.VoiceChannel,
-            ):
-                continue
-
-            return chan_or_thread
-        except commands.BadArgument:
-            continue
-    return None
+    # Then strip paste junk / leading # (e.g. "⁠test-channel", "#general").
+    query = _normalize_channel_query(raw)
+    if not query or query == raw:
+        return None
+    return await _lookup_chan_or_thread(ctx, query, normalize_names=True)
 
 
 async def find_role(
