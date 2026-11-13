@@ -21,44 +21,6 @@ class TimeCog(commands.Cog, name="Time"):
         self.bot = bot
         self.geopy_client = geopy.geocoders.GeoNames(os.getenv("GEOPY_USERNAME"))
 
-    @commands.command(name="countdown")
-    async def countdown(self, ctx: commands.Context, *args):
-        """Uses discord message time formatting to provide a countdown
-
-        Usage: `~countdown September 22, 2021 9:00pm EDT`
-        Usage: `~countdown 13 Feb 2023 9 pm [UTC+5.5]`
-
-        See https://github.com/scrapinghub/dateparser/tree/master for a more comprehensive list of supported formats.
-        """
-        embed = discord_utils.create_embed()
-
-        if len(args) < 1:
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        user_time = time_utils.parse_date(" ".join(args))
-
-        if user_time is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Is {' '.join(args)} a valid time? We want a timezone too!",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        unix_time = int(datetime.datetime.timestamp(user_time))
-        embed.add_field(
-            name=f"{' '.join(args)}",
-            value=f"<t:{unix_time}:f> - `<t:{unix_time}:f>` - <t:{unix_time}:R>\n\n"
-            f"**Copyable format**\n"
-            f"```\n"
-            f"<t:{unix_time}:f> - `<t:{unix_time}:f>` - <t:{unix_time}:R>\n"
-            f"```\n"
-            f"[Guide to format](https://discord.com/developers/docs/reference#message-formatting-formats)",
-        )
-        await discord_utils.send_message(ctx, embed)
-
     @commands.command(name="time")
     async def time(self, ctx: commands.Context, *args):
         """Return the time in the specified location
