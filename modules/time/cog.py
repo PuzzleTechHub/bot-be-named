@@ -1,5 +1,4 @@
 import geopy
-import datetime
 import os
 
 from modules.time import time_utils
