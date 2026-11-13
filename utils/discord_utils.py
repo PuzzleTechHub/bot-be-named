@@ -454,14 +454,6 @@ async def find_category(
     return None
 
 
-def _normalize_channel_query(chan_name: str) -> str:
-    """Strip # and invisible Discord paste characters from a channel name query."""
-    # Discord often inserts word joiners / zero-widths when copying channel names.
-    invisible = "\u2060\u200b\u200c\u200d\ufeff"
-    cleaned = "".join(ch for ch in chan_name if ch not in invisible)
-    return cleaned.strip().lstrip("#").strip()
-
-
 async def find_chan_or_thread(
     ctx: commands.Context,
     chan_name: Union[
@@ -494,17 +486,13 @@ async def find_chan_or_thread(
     ):
         return chan_name
 
-    query = _normalize_channel_query(str(chan_name))
-    if not query:
-        return None
-
     for converter in (
         commands.TextChannelConverter,
         commands.ThreadConverter,
         commands.GuildChannelConverter,
     ):
         try:
-            chan_or_thread = await converter().convert(ctx, query)
+            chan_or_thread = await converter().convert(ctx, chan_name)
 
             if not isinstance(
                 chan_or_thread,
@@ -518,21 +506,6 @@ async def find_chan_or_thread(
             return chan_or_thread
         except commands.BadArgument:
             continue
-
-    # Fallback: case-insensitive name match (same idea as find_role).
-    query_lower = query.lower()
-    for channel in ctx.guild.channels:
-        if (
-            isinstance(
-                channel,
-                nextcord.TextChannel | nextcord.VoiceChannel | nextcord.ForumChannel,
-            )
-            and channel.name.lower() == query_lower
-        ):
-            return channel
-    for thread in getattr(ctx.guild, "threads", []):
-        if thread.name.lower() == query_lower:
-            return thread
     return None
 
 

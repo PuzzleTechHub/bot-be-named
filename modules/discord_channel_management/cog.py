@@ -392,7 +392,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             )
         await discord_utils.send_message(ctx, embed)
 
-    @command_predicates.is_verified()
+    @command_predicates.is_bot_owner_or_admin()
     @commands.command(
         name="addroletochan",
         aliases=["addroletochannel", "chanaddrole", "grantchanrole"],
@@ -405,12 +405,13 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             nextcord.TextChannel, nextcord.VoiceChannel, nextcord.Thread, str, None
         ] = None,
     ):
-        """Add a role's access to a channel (Discord permission overwrites).
+        """Grant a role view access to a channel (Discord permission overwrite).
+        Merges onto existing overwrites; only sets `view_channel`.
         Does not assign the role to users — use `~assignrole` for that.
         Defaults to the current channel if none is given.
         Does not work on threads; use the parent text channel instead.
 
-        Permission Category : Verified Roles only.
+        Permission Category : Admin and Bot Owner only.
         Usage: `~addroletochan @Role`
         Usage: `~addroletochan RoleName`
         Usage: `~addroletochan @Role #channel`
@@ -454,21 +455,13 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             return
 
         try:
-            await target_channel.set_permissions(
-                role_to_add,
-                view_channel=True,
-                send_messages=True,
-                read_message_history=True,
-                attach_files=True,
-                embed_links=True,
-                add_reactions=True,
-                connect=True,
-                speak=True,
-            )
+            overwrite = target_channel.overwrites_for(role_to_add)
+            overwrite.update(view_channel=True)
+            await target_channel.set_permissions(role_to_add, overwrite=overwrite)
         except nextcord.Forbidden:
             embed.add_field(
                 name="Failed",
-                value="Forbidden! Do I have `Manage Channels` (and a role above the target role)?",
+                value="Forbidden! Do I have the `Manage Roles` permission?",
                 inline=False,
             )
             await discord_utils.send_message(ctx, embed)
@@ -476,10 +469,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
         embed.add_field(
             name="Success",
-            value=(
-                f"Added {role_to_add.mention} to {target_channel.mention} "
-                f"(view / send / history, plus connect / speak for voice)."
-            ),
+            value=f"Granted {role_to_add.mention} view access to {target_channel.mention}.",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
