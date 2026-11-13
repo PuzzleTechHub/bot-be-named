@@ -1,6 +1,6 @@
 aiohttp==3.13.5
 emoji==2.15.0
-geopy==2.4.1
+geopy==2.5.0
 google_api_python_client==2.195.0
 gspread==6.2.1
 httplib2==0.31.2
