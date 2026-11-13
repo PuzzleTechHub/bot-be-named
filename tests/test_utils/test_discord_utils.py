@@ -33,6 +33,32 @@ def test_get_ordinal_suffix(n, expected):
 
 
 @pytest.mark.parametrize(
+    "raw, expected",
+    [
+        ("general", "general"),
+        ("#general", "general"),
+        ("  #general  ", "general"),
+        ("\u2060test-mostlybbn", "test-mostlybbn"),  # Discord paste word joiner
+        ("#\u200bgeneral", "general"),
+        ("\ufeff#general\ufeff", "general"),
+        ("👩\u200d💻-puzzle", "👩\u200d💻-puzzle"),  # keep mid-name ZWJ
+        (
+            "👨\u200d👩\u200d👧\u200d👦",
+            "👨\u200d👩\u200d👧\u200d👦",
+        ),
+        ("#1", "1"),  # normalize strips #; find_chan_or_thread tries exact first
+        ("", None),
+        ("   ", None),
+        ("###", None),
+        ("\u200b\u200b", None),
+        (None, None),
+    ],
+)
+def test_normalize_channel_query(raw, expected):
+    assert discord_utils._normalize_channel_query(raw) == expected
+
+
+@pytest.mark.parametrize(
     "make_embed, field_name",
     [
         (discord_utils.create_success_embed, "Success"),
