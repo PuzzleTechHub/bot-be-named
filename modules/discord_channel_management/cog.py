@@ -392,6 +392,88 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             )
         await discord_utils.send_message(ctx, embed)
 
+    @command_predicates.is_bot_owner_or_admin()
+    @commands.command(
+        name="addroletochan",
+        aliases=["addroletochannel", "chanaddrole", "grantchanrole"],
+    )
+    async def addroletochan(
+        self,
+        ctx: commands.Context,
+        role: Union[nextcord.Role, str],
+        channel: Union[
+            nextcord.TextChannel, nextcord.VoiceChannel, nextcord.Thread, str, None
+        ] = None,
+    ):
+        """Grant a role view access to a channel (Discord permission overwrite).
+        Merges onto existing overwrites; only sets `view_channel`.
+        Does not assign the role to users — use `~assignrole` for that.
+        Defaults to the current channel if none is given.
+        Does not work on threads; use the parent text channel instead.
+
+        Permission Category : Admin and Bot Owner only.
+        Usage: `~addroletochan @Role`
+        Usage: `~addroletochan RoleName`
+        Usage: `~addroletochan @Role #channel`
+        Usage: `~addroletochan RoleName #channel-name`
+        Usage: `~addroletochan RoleName channel-name`
+        """
+        embed = discord_utils.create_embed()
+
+        role_to_add = await discord_utils.find_role(ctx, role)
+        if role_to_add is None:
+            embed.add_field(
+                name="Failed",
+                value=f"Role `{role}` was not found. Create it first with `~assignrole`, or check spelling.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        if channel is None:
+            target_channel = ctx.channel
+        else:
+            target_channel = await discord_utils.find_chan_or_thread(ctx, channel)
+
+        if target_channel is None:
+            embed.add_field(
+                name="Failed",
+                value=f"Channel `{channel}` was not found.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        if isinstance(target_channel, nextcord.Thread):
+            embed.add_field(
+                name="Failed",
+                value="Threads inherit permissions from their parent channel. "
+                f"Run this on {target_channel.parent.mention} instead.",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        try:
+            overwrite = target_channel.overwrites_for(role_to_add)
+            overwrite.update(view_channel=True)
+            await target_channel.set_permissions(role_to_add, overwrite=overwrite)
+        except nextcord.Forbidden:
+            embed.add_field(
+                name="Failed",
+                value="Forbidden! Do I have the `Manage Roles` permission?",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        embed.add_field(
+            name="Success",
+            value=f"Granted {role_to_add.mention} view access to {target_channel.mention}.",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+
     @command_predicates.is_verified()
     @commands.command(name="clonechan", aliases=["clonechannel", "chanclone"])
     async def clonechannel(
