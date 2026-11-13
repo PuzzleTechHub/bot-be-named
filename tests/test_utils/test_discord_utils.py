@@ -46,6 +46,8 @@ def test_get_ordinal_suffix(n, expected):
             "👨\u200d👩\u200d👧\u200d👦",
             "👨\u200d👩\u200d👧\u200d👦",
         ),
+        ("test\u200bchannel", "test\u200bchannel"),  # mid ZWSP kept
+        ("\u2060test\u200bchan\u2060", "test\u200bchan"),  # edges only
         ("#1", "1"),  # normalize strips #; find_chan_or_thread tries exact first
         ("", None),
         ("   ", None),

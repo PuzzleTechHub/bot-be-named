@@ -528,9 +528,14 @@ async def find_chan_or_thread(
         nextcord.ForumChannel,
         nextcord.VoiceChannel,
         str,
+        None,
     ],
 ) -> Union[
-    nextcord.TextChannel, nextcord.Thread, nextcord.ForumChannel, nextcord.VoiceChannel
+    nextcord.TextChannel,
+    nextcord.Thread,
+    nextcord.ForumChannel,
+    nextcord.VoiceChannel,
+    None,
 ]:
     """Convert the name to a nextcord Channel/Thread
     Arguments:
