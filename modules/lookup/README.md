@@ -1,5 +1,5 @@
-# SEARCH Commands
+# Lookup Commands
 
-Quick Google searches at your fingertips! Want everyone to see the same search you're looking for? Too lazy to open up ~~Bing~~ Google on a Browser?
+Nutrimatic lookups for puzzle hunts (pattern / regex search via [nutrimatic.org](https://nutrimatic.org)).
 
-Use `~help Search` on the bot to know the commands in this module.
+Use `~help Lookup` on the bot to see the commands in this module.

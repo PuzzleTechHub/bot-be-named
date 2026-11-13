@@ -1,7 +1,6 @@
 """
-Search utils. Used for retrieving info from a Google Search.
+Pagination utils for multi-page embeds (e.g. Nutrimatic results).
 Code liberally copied/adapted from Moonrise's MBot - https://github.com/Moonrise55/Mbot/blob/f4e19df1df9fa4ef1a7730e63aa8009894aa304c/utils/paginator.py#L8
-Used in Misc module
 """
 
 import asyncio
