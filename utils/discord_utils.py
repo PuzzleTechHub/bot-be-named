@@ -537,12 +537,13 @@ async def find_chan_or_thread(
     nextcord.VoiceChannel,
     None,
 ]:
-    """Convert the name to a nextcord Channel/Thread
+    """Convert a name or object to a nextcord channel/thread.
+
     Arguments:
         - ctx (nextcord.ext.commands.Context): The command's context
-        - chan_name (str): The name of the role
+        - chan_name: Channel/thread object, name string, or None
     Returns:
-        - chan_or_thread (nextcord.TextChannel): the channel or thread or None if not found
+        - TextChannel, Thread, ForumChannel, VoiceChannel, or None if not found
     """
 
     if (
