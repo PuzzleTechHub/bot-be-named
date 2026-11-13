@@ -85,22 +85,6 @@ class LookupCog(commands.Cog, name="Lookup"):
             )
         await discord_utils.send_message(ctx, embed)
 
-    @commands.command(name="google")
-    async def google(self, ctx: commands.Context, *args):
-        """
-        Command to search google!
-
-        Usage: `~google <[query...]>`
-        """
-        embed = discord_utils.create_embed()
-
-        results = lookup_utils.search_query(" ".join(args))
-
-        embed.add_field(
-            name=f"Google Result for {' '.join(args)}", value=f"{chr(10).join(results)}"
-        )
-        await discord_utils.send_message(ctx, embed)
-
     @commands.command(name="wikipedia", aliases=["wiki"])
     async def wikipedia(self, ctx: commands.Context, *args):
         """
