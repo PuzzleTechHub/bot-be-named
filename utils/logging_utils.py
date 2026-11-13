@@ -13,6 +13,7 @@ webhook_url = os.getenv("WEBHOOK_URL")
 webhook = None
 session = None
 
+
 async def open_session():
     global session, webhook
     session = aiohttp.ClientSession()
