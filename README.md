@@ -284,7 +284,7 @@ sudo apt-get install postgresql-client-common postgresql-client
 - [Help](./modules/help) is an updated help command which automatically pulls docstrings for `~help`
 - [Hydra](./modules/hydra) is the **NEW AND IMPROVED** "Google Sheets-Discord" commands. Currently Work in progress.
 - [Lion](./modules/lion) is the "Google Sheets-Discord" commands currently used in every Puzzle Hunt.
-- [Lookup](./modules/lookup) for Searching the internet via google and wikipedia
+- [Lookup](./modules/lookup) for Nutrimatic and similar puzzle-hunt lookups
 - [Misc](./modules/misc) for misc. random (fun) commands
 - [Sheets](./modules/sheets) for working with Google Sheets during puzzlehunts
 - [Time](./modules/time) for finding the time anywhere in the world
