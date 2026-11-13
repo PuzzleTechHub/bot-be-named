@@ -456,6 +456,7 @@ async def find_category(
 
 _CHANNEL_NAME_EDGE_JUNK = "\u2060\u200b\u200c\u200d\ufeff \t\n\r"
 
+
 def _normalize_channel_query(chan_name: Optional[str]) -> Optional[str]:
     """Strip leading # and edge paste artifacts from a channel name query.
 
@@ -508,16 +509,12 @@ async def _lookup_chan_or_thread(
         ):
             continue
         name = (
-            _normalize_channel_query(channel.name)
-            if normalize_names
-            else channel.name
+            _normalize_channel_query(channel.name) if normalize_names else channel.name
         )
         if name is not None and name.lower() == query_lower:
             return channel
     for thread in getattr(ctx.guild, "threads", []):
-        name = (
-            _normalize_channel_query(thread.name) if normalize_names else thread.name
-        )
+        name = _normalize_channel_query(thread.name) if normalize_names else thread.name
         if name is not None and name.lower() == query_lower:
             return thread
     return None
