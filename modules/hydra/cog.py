@@ -556,6 +556,145 @@ class HydraCog(commands.Cog, name="Hydra"):
             notes,
         )
 
+    async def puzzle_from_template(
+        self,
+        ctx: commands.Context,
+        args: str,
+        template_name: str,
+        chan_type: str,
+    ):
+        """Shared body of the thread, forum, meta and tab-only hydra commands.
+        args is `"Puzzle Name" ["url"] ["notes"]`."""
+        try:
+            arg_list = shlex.split(args)
+        except ValueError as e:
+            arg_list = []
+            parse_error = f" ({e})"
+        else:
+            parse_error = ""
+
+        if len(arg_list) < 1 or len(arg_list) > 3:
+            embed = discord_utils.create_embed()
+            embed.add_field(
+                name="Failed",
+                value=f"Invalid arguments{parse_error}. Usage: "
+                f"`~{ctx.invoked_with} [puzzle name] [puzzle url (optional)] [notes (optional)]`",
+                inline=False,
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
+
+        puzzle_name = arg_list[0]
+        puzzle_url = arg_list[1] if len(arg_list) > 1 else None
+        notes = arg_list[2] if len(arg_list) > 2 else None
+
+        await sheet_utils.create_puzzle_channel_from_template(
+            self.bot,
+            ctx,
+            puzzle_name,
+            template_name,
+            puzzle_url,
+            self.gspread_client,
+            notes,
+            chan_type=chan_type,
+        )
+
+    @command_predicates.is_solver()
+    @commands.command(name="metachanhydra")
+    async def metachanhydra(self, ctx: commands.Context, *, args: str = ""):
+        """Creates a new tab from the Meta Template and a new channel for a meta puzzle, then adds it to the Overview.
+
+        Uses the "Template" tab if the sheet has no "Meta Template" tab.
+
+        Permission Category : Solver Roles only.
+        Usage: ~metachanhydra "Meta Name"
+        Usage: ~metachanhydra "Meta Name" "http://www.linktopuzzle.com"
+        Usage: ~metachanhydra "Meta Name" "http://www.linktopuzzle.com" "Some notes here"
+        """
+        await self.puzzle_from_template(ctx, args, "Meta", "chan")
+
+    @command_predicates.is_solver()
+    @commands.command(name="threadhydra")
+    async def threadhydra(self, ctx: commands.Context, *, args: str = ""):
+        """Creates a new tab and a new thread in this channel for a feeder puzzle, then adds it to the Overview.
+
+        Can't be used inside a thread.
+
+        Permission Category : Solver Roles only.
+        Usage: ~threadhydra "Puzzle Name"
+        Usage: ~threadhydra "Puzzle Name" "http://www.linktopuzzle.com"
+        Usage: ~threadhydra "Puzzle Name" "http://www.linktopuzzle.com" "Some notes here"
+        """
+        await self.puzzle_from_template(ctx, args, "Template", "thread")
+
+    @command_predicates.is_solver()
+    @commands.command(name="metathreadhydra")
+    async def metathreadhydra(self, ctx: commands.Context, *, args: str = ""):
+        """Creates a new tab from the Meta Template and a new thread in this channel for a meta puzzle, then adds it to the Overview.
+
+        Can't be used inside a thread. Uses the "Template" tab if the sheet has no "Meta Template" tab.
+
+        Permission Category : Solver Roles only.
+        Usage: ~metathreadhydra "Meta Name"
+        Usage: ~metathreadhydra "Meta Name" "http://www.linktopuzzle.com" "Some notes here"
+        """
+        await self.puzzle_from_template(ctx, args, "Meta", "thread")
+
+    @command_predicates.is_solver()
+    @commands.command(name="forumhydra")
+    async def forumhydra(self, ctx: commands.Context, *, args: str = ""):
+        """Creates a new tab and a new post in this forum for a feeder puzzle, then adds it to the Overview.
+
+        Must be used inside a post in the forum.
+
+        Permission Category : Solver Roles only.
+        Usage: ~forumhydra "Puzzle Name"
+        Usage: ~forumhydra "Puzzle Name" "http://www.linktopuzzle.com"
+        Usage: ~forumhydra "Puzzle Name" "http://www.linktopuzzle.com" "Some notes here"
+        """
+        await self.puzzle_from_template(ctx, args, "Template", "forum")
+
+    @command_predicates.is_solver()
+    @commands.command(name="metaforumhydra")
+    async def metaforumhydra(self, ctx: commands.Context, *, args: str = ""):
+        """Creates a new tab from the Meta Template and a new post in this forum for a meta puzzle, then adds it to the Overview.
+
+        Must be used inside a post in the forum. Uses the "Template" tab if the sheet has no "Meta Template" tab.
+
+        Permission Category : Solver Roles only.
+        Usage: ~metaforumhydra "Meta Name"
+        Usage: ~metaforumhydra "Meta Name" "http://www.linktopuzzle.com" "Some notes here"
+        """
+        await self.puzzle_from_template(ctx, args, "Meta", "forum")
+
+    @command_predicates.is_solver()
+    @commands.command(name="sheethydra")
+    async def sheethydra(self, ctx: commands.Context, *, args: str = ""):
+        """Creates a new tab for a puzzle without a channel, then adds it to the Overview.
+
+        The Overview row has no channel ID, so status commands can't find it.
+
+        Permission Category : Solver Roles only.
+        Usage: ~sheethydra "Puzzle Name"
+        Usage: ~sheethydra "Puzzle Name" "http://www.linktopuzzle.com"
+        Usage: ~sheethydra "Puzzle Name" "http://www.linktopuzzle.com" "Some notes here"
+        """
+        await self.puzzle_from_template(ctx, args, "Template", "none")
+
+    @command_predicates.is_solver()
+    @commands.command(name="metasheethydra")
+    async def metasheethydra(self, ctx: commands.Context, *, args: str = ""):
+        """Creates a new tab from the Meta Template for a meta without a channel, then adds it to the Overview.
+
+        The Overview row has no channel ID, so status commands can't find it.
+        Uses the "Template" tab if the sheet has no "Meta Template" tab.
+
+        Permission Category : Solver Roles only.
+        Usage: ~metasheethydra "Meta Name"
+        Usage: ~metasheethydra "Meta Name" "http://www.linktopuzzle.com" "Some notes here"
+        """
+        await self.puzzle_from_template(ctx, args, "Meta", "none")
+
     @command_predicates.is_solver()
     @commands.command(name="mtahydra", aliases=["movetoarchivehydra"])
     async def mtahydra(

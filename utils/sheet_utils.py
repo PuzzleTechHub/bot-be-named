@@ -585,8 +585,16 @@ async def create_puzzle_channel_from_template(
     puzzle_url: str | None,
     gspread_client,
     notes: str | None = None,
+    chan_type: str = "chan",
 ):
-    """Create a puzzle channel and a new tab from `template_name` template, and update in overview. Based off chancrabgeneric."""
+    """Create a puzzle channel and a new tab from `template_name` template, and update in overview. Based off chancrabgeneric.
+
+    chan_type is one of:
+        - "chan": a new text channel in the current category
+        - "thread": a new thread in the current channel
+        - "forum": a new post in the forum the command was used in (must be used inside a forum post)
+        - "none": only the tab; its Overview row has no channel ID
+    """
     embed = discord_utils.create_embed()
     tab_name = puzzle_name.replace("#", "").replace("-", " ")
 
@@ -595,6 +603,24 @@ async def create_puzzle_channel_from_template(
         embed.add_field(
             name="Failed",
             value="This command must be used in a channel inside a category!",
+        )
+        await discord_utils.send_message(ctx, embed)
+        return None, None, None
+
+    in_thread = await discord_utils.is_thread(ctx, ctx.channel)
+    if chan_type == "thread" and in_thread:
+        embed.add_field(
+            name="Failed",
+            value="Invalid! You cannot make a thread from inside another thread!",
+        )
+        await discord_utils.send_message(ctx, embed)
+        return None, None, None
+    if chan_type == "forum" and not (
+        in_thread and isinstance(ctx.channel.parent, nextcord.ForumChannel)
+    ):
+        embed.add_field(
+            name="Failed",
+            value="This command must be used inside a forum post!",
         )
         await discord_utils.send_message(ctx, embed)
         return None, None, None
@@ -714,66 +740,23 @@ async def create_puzzle_channel_from_template(
 
     final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
 
-    # create new channel
-    new_chan = await discord_utils.createchannelgeneric(
-        ctx.guild, ctx.channel.category, puzzle_name
-    )
-
-    if not new_chan:
-        embed.add_field(
-            name="Failed",
-            value="Forbidden! Have you checked if the bot has the required permissions?",
+    if chan_type == "none":
+        new_chan = None
+    else:
+        new_chan = await _create_and_set_up_puzzle_chan(
+            ctx,
+            gspread_client,
+            chan_type,
+            puzzle_name,
+            puzzle_url,
+            notes,
+            tab_name,
+            newsheet,
+            curr_sheet_link,
+            final_sheet_link,
         )
-        await discord_utils.send_message(ctx, embed)
-        return None, None, None
-
-    embed = discord_utils.create_embed()
-    embed.add_field(
-        name="Success",
-        value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
-        inline=False,
-    )
-    try:
-        msg = await new_chan.send(embed=embed)
-    except nextcord.Forbidden:
-        embed.add_field(
-            name="Failed",
-            value=f"Cannot send messages in `{puzzle_name}`!",
-            inline=False,
-        )
-        await discord_utils.send_message(ctx, embed)
-        return None, None, new_chan
-
-    embed_or_none = await discord_utils.pin_message(msg)
-    if embed_or_none is not None:
-        await new_chan.send(embed=embed_or_none)
-
-    if puzzle_url:
-        embed = discord_utils.create_embed()
-        embed.description = puzzle_url
-        msg2 = await new_chan.send(embed=embed)
-        embed_or_none = await discord_utils.pin_message(msg2)
-        if embed_or_none is not None:
-            await discord_utils.send_message(ctx, embed_or_none)
-        else:
-            await msg2.add_reaction(emoji.emojize(":pushpin:"))
-
-    if notes:
-        embed = discord_utils.create_embed()
-        embed.description = f"`{notes}`"
-        msg3 = await new_chan.send(embed=embed)
-
-        embed_or_none = await discord_utils.pin_message(msg3)
-
-        if embed_or_none is not None:
-            await discord_utils.send_message(ctx, embed_or_none)
-        else:
-            await msg3.add_reaction(emoji.emojize(":pushpin:"))
-
-    await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
-
-    # tether channel
-    addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
+        if new_chan is None:
+            return None, None, None
 
     # update overview and new sheet
     try:
@@ -797,11 +780,13 @@ async def create_puzzle_channel_from_template(
             is_formula=True,
         )
 
-        batch.update_cell_by_label(
-            sheet_id=overview_id,
-            label=discord_channel_id_col + str(first_empty),
-            value=str(new_chan.id),
-        )
+        # A tab-only puzzle has no channel, so column A stays empty
+        if new_chan is not None:
+            batch.update_cell_by_label(
+                sheet_id=overview_id,
+                label=discord_channel_id_col + str(first_empty),
+                value=str(new_chan.id),
+            )
         batch.update_cell_by_label(
             sheet_id=overview_id,
             label=sheet_tab_id_col + str(first_empty),
@@ -859,12 +844,108 @@ async def create_puzzle_channel_from_template(
 
     await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
     success_embed = discord_utils.create_embed()
-    success_embed.add_field(
+    if new_chan is None:
+        success_text = (
+            f"Tab **{tab_name}** created at [{newsheet.spreadsheet.title}]({final_sheet_link}) "
+            f"from template `{template_ws.title}`."
+        )
+    else:
+        success_text = (
+            f"Channel `{puzzle_name}` created as {new_chan.mention} "
+            f"from template `{template_ws.title}`, posts pinned!"
+        )
+    success_embed.add_field(name="Success", value=success_text, inline=False)
+    await discord_utils.send_message(ctx, success_embed)
+    return curr_sheet_link, newsheet, new_chan
+
+
+async def _create_and_set_up_puzzle_chan(
+    ctx: commands.Context,
+    gspread_client,
+    chan_type: str,
+    puzzle_name: str,
+    puzzle_url: str | None,
+    notes: str | None,
+    tab_name: str,
+    newsheet,
+    curr_sheet_link: str,
+    final_sheet_link: str,
+):
+    """Creates the channel, thread or forum post for create_puzzle_channel_from_template,
+    pins the tab link, puzzle link and notes, and tethers it. Returns None on failure."""
+    embed = discord_utils.create_embed()
+    if chan_type == "chan":
+        new_chan = await discord_utils.createchannelgeneric(
+            ctx.guild, ctx.channel.category, puzzle_name
+        )
+    elif chan_type == "thread":
+        new_chan = await discord_utils.createthreadgeneric(
+            ctx, ctx.message, ctx.channel, puzzle_name
+        )
+    elif chan_type == "forum":
+        new_chan = await discord_utils.createforumthreadgeneric(
+            ctx, ctx.channel, puzzle_name, f"Tab Link - {final_sheet_link}"
+        )
+    else:
+        raise ValueError(f"Unknown chan_type {chan_type!r}")
+
+    if not new_chan:
+        embed.add_field(
+            name="Failed",
+            value="Forbidden! Have you checked if the bot has the required permissions?",
+        )
+        await discord_utils.send_message(ctx, embed)
+        return None
+
+    embed = discord_utils.create_embed()
+    embed.add_field(
         name="Success",
-        value=f"Channel `{puzzle_name}` created as {new_chan.mention} from template `{template_ws.title}`, posts pinned!",
+        value=f"Tab **{tab_name}** has been created at [{newsheet.spreadsheet.title}]({final_sheet_link}) spreadsheet.",
         inline=False,
     )
-    await discord_utils.send_message(ctx, success_embed)
+    try:
+        msg = await new_chan.send(embed=embed)
+    except nextcord.Forbidden:
+        embed.add_field(
+            name="Failed",
+            value=f"Cannot send messages in `{puzzle_name}`!",
+            inline=False,
+        )
+        await discord_utils.send_message(ctx, embed)
+        return None
+
+    embed_or_none = await discord_utils.pin_message(msg)
+    if embed_or_none is not None:
+        await new_chan.send(embed=embed_or_none)
+
+    if puzzle_url:
+        embed = discord_utils.create_embed()
+        embed.description = puzzle_url
+        msg2 = await new_chan.send(embed=embed)
+        embed_or_none = await discord_utils.pin_message(msg2)
+        if embed_or_none is not None:
+            await discord_utils.send_message(ctx, embed_or_none)
+        else:
+            await msg2.add_reaction(emoji.emojize(":pushpin:"))
+
+    if notes:
+        embed = discord_utils.create_embed()
+        embed.description = f"`{notes}`"
+        msg3 = await new_chan.send(embed=embed)
+
+        embed_or_none = await discord_utils.pin_message(msg3)
+
+        if embed_or_none is not None:
+            await discord_utils.send_message(ctx, embed_or_none)
+        else:
+            await msg3.add_reaction(emoji.emojize(":pushpin:"))
+
+    if chan_type == "chan":
+        await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
+
+    # tether channel
+    addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
+    return new_chan
 
 
 async def findchanidcell(
