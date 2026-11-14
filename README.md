@@ -120,7 +120,7 @@ Open the `.env` you copied in step 1.
 | Line | Required? | What goes there |
 | --- | --- | --- |
 | `DISCORD_TOKEN` | Yes | The bot token from step 2. |
-| `BOT_OWNER_DISCORD_ID` | Yes | Your Discord user ID from step 2. This is how the bot will check if you're the owner. |
+| `BOT_OWNER_DISCORD_ID` | Yes | Your Discord user ID from step 2. This is how the bot will check if you're the owner. For several owners, separate the IDs with commas (`111, 222`), and all of them get bot ownerpermissions, but only the first one is mentioned when the bot tells people to contact the owner. |
 | `DATABASE_URL` | Yes | The connection string from step 4. |
 | `GEOPY_USERNAME` | No | Not required. A [GeoNames](https://www.geonames.org/login) username, with free web services enabled on its account page. Functions like `~time` won't work without this. |
 | `WEBHOOK_URL` | No | Not required. A Discord webhook that gets a line for every command used. To add one: in your test server, **Edit Channel -> Integrations -> Webhooks -> New Webhook -> Copy Webhook URL**, and paste it here in quotes. Leave as `""` to skip logging to a webhook. |

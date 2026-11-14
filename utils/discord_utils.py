@@ -192,9 +192,16 @@ async def createvoicechannelgeneric(
 ##########
 
 
+def bot_owner_ids() -> list[int]:
+    """The bot owners' Discord IDs from the .env file, in the order they're listed."""
+    raw_ids = os.getenv("BOT_OWNER_DISCORD_ID", "")
+    return [int(raw_id) for raw_id in raw_ids.replace(",", " ").split()]
+
+
 def bot_owner_mention() -> str:
-    """Mentions the bot owner from the .env file"""
-    return f"<@{os.getenv('BOT_OWNER_DISCORD_ID')}>"
+    """Mentions the bot owner from the .env file. With several owners, only the first one is mentioned."""
+    owner_ids = bot_owner_ids()
+    return f"<@{owner_ids[0]}>" if owner_ids else "the bot owner"
 
 
 def create_embed() -> nextcord.Embed:

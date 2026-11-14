@@ -89,9 +89,27 @@ def test_server_is_full(count, full):
 # Embeds
 
 
-def test_bot_owner_mention(monkeypatch):
-    monkeypatch.setenv("BOT_OWNER_DISCORD_ID", "1234")
-    assert discord_utils.bot_owner_mention() == "<@1234>"
+@pytest.mark.parametrize(
+    "value, ids, mention",
+    [
+        ("1234", [1234], "<@1234>"),
+        ("", [], "the bot owner"),
+        ("1234, 5678,9", [1234, 5678, 9], "<@1234>"),
+        (" 1234 , 5678 , 9 ", [1234, 5678, 9], "<@1234>"),
+        (" 1234 ", [1234], "<@1234>"),
+        (" 1234 ,4321", [1234, 4321], "<@1234>"),
+    ],
+)
+def test_bot_owners_from_env(monkeypatch, value, ids, mention):
+    monkeypatch.setenv("BOT_OWNER_DISCORD_ID", value)
+    assert discord_utils.bot_owner_ids() == ids
+    assert discord_utils.bot_owner_mention() == mention
+
+
+def test_bot_owners_env_not_set(monkeypatch):
+    monkeypatch.delenv("BOT_OWNER_DISCORD_ID", raising=False)
+    assert discord_utils.bot_owner_ids() == []
+    assert discord_utils.bot_owner_mention() == "the bot owner"
 
 
 def test_create_embed():

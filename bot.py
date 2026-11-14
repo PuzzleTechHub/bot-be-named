@@ -12,7 +12,7 @@ from dotenv.main import load_dotenv
 load_dotenv(override=True)
 
 import database  # noqa: E402
-from utils import logging_utils  # noqa: E402
+from utils import discord_utils, logging_utils  # noqa: E402
 
 
 def get_prefix(client, message):
@@ -33,6 +33,8 @@ def main():
         intents=intents,
         help_command=None,
         case_insensitive=True,
+        # Everyone in BOT_OWNER_DISCORD_ID will have bot owner permissions
+        owner_ids=set(discord_utils.bot_owner_ids()) or None,
     )
 
     # Get the modules of all cogs whose directory structure is modules/<module_name>/cog.py

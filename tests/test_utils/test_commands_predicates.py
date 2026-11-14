@@ -1,9 +1,11 @@
 from types import SimpleNamespace
 
+import nextcord
 import pytest
+from nextcord.ext import commands
 
 import database
-from utils import command_predicates
+from utils import command_predicates, discord_utils
 
 GUILD_ID = 111
 ROLE_ID = 222
@@ -113,6 +115,34 @@ async def test_is_bot_owner(owner, expected):
 async def test_is_bot_owner_works_in_dms():
     ctx = make_ctx(owner=True, in_guild=False)
     assert await check(command_predicates.is_bot_owner, ctx)
+
+
+def make_bot_like_bot_py():
+    """A real Bot instance similar to bot.py"""
+    intents = nextcord.Intents.default()
+    intents.message_content = True
+    return commands.Bot(
+        command_prefix="~",
+        intents=intents,
+        owner_ids=set(discord_utils.bot_owner_ids()) or None,
+    )
+
+
+@pytest.mark.parametrize(
+    "user_id, expected", [(1234, True), (5678, True), (9999, False)]
+)
+async def test_every_owner_in_env_is_bot_owner(monkeypatch, user_id, expected):
+    monkeypatch.setenv("BOT_OWNER_DISCORD_ID", "1234, 5678")
+    bot = make_bot_like_bot_py()
+    ctx = SimpleNamespace(bot=bot, author=SimpleNamespace(id=user_id))
+    assert await check(command_predicates.is_bot_owner, ctx) is expected
+
+
+def test_no_owner_in_env_defaults_to_app_owner(monkeypatch):
+    monkeypatch.setenv("BOT_OWNER_DISCORD_ID", "")
+    bot = make_bot_like_bot_py()
+    assert bot.owner_id is None
+    assert not bot.owner_ids
 
 
 @pytest.mark.parametrize("admin, expected", [(True, True), (False, False)])
