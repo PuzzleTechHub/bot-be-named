@@ -1,9 +1,10 @@
 import re
+import gspread
 import nextcord
 from nextcord.ext import commands
 from sqlalchemy.orm import Session
 import database
-from utils import discord_utils, sheet_utils
+from utils import discord_utils, sheet_utils, sheets_constants
 from modules.hydra import constants as hydra_constants
 
 """Helper utilities for `~catsummaryhydra` and `~watchcategoryhydra`"""
@@ -48,15 +49,44 @@ def get_role_categories(guild, role) -> list[nextcord.CategoryChannel]:
     ]
 
 
+def _role_can_view(channel, role) -> bool:
+    """Threads don't have permissions, so it uses that of its parents."""
+    target = getattr(channel, "parent", None) or channel
+    return target.overwrites_for(role).view_channel is not False
+
+
+def _is_solved(overview_values, rownum: int) -> bool:
+    """Whether the puzzle on this Overview row has a solve status."""
+    try:
+        status_col = sheet_utils.get_cell_value(
+            overview_values, sheets_constants.STATUS_COLUMN_LOCATION
+        )
+        status = sheet_utils.get_cell_value(overview_values, f"{status_col}{rownum}")
+    except gspread.exceptions.IncorrectCellLabel:
+        return False
+    return sheet_utils.normalize_status(status) in sheets_constants.solve_statuses
+
+
 async def get_roles_channels(gspread_client, ctx: commands.Context, role, categories):
-    """Finds the puzzle channels in the tethered sheets. Returns found and failed list."""
-    channels = [
-        channel
-        for category in categories
-        for channel in category.text_channels
-        if channel.overwrites_for(role).view_channel is not False
-    ]
+    """Finds the puzzle channels, threads and forum posts in the tethered sheets. Returns found and failed list.
+
+    Automatically archived threads (inactivity) are kept, but archived threads of solved puzzles
+    (~mtahydra) aren't."""
+    channels = []
+    for category in categories:
+        for channel in await discord_utils.get_category_channels(
+            category, include_archived=True
+        ):
+            if _role_can_view(channel, role):
+                channels.append(channel)
     found, failed, _ = await find_channel_rows(gspread_client, ctx, channels)
+    found = [
+        (channel, rownum, overview_values)
+        for channel, rownum, overview_values in found
+        if not (
+            getattr(channel, "archived", False) and _is_solved(overview_values, rownum)
+        )
+    ]
     return found, failed
 
 

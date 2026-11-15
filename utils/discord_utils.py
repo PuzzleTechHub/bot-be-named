@@ -461,6 +461,46 @@ async def find_category(
     return None
 
 
+_TEXT_CHANNEL_TYPES = {nextcord.ChannelType.text, nextcord.ChannelType.news}
+
+
+async def get_category_channels(
+    category: nextcord.CategoryChannel, include_archived: bool = False
+) -> list[nextcord.TextChannel | nextcord.Thread]:
+    """Every place puzzles can be discussed in a category: its text channels, their threads,
+    and the posts in its forum channels. Each channel's threads come right after it, active ones first.
+    Private threads are always left out.
+
+    Archived threads are left out unless include_archived is True. Active threads come from the bot's
+    cache, but archived ones need at least one API call per text or forum channel, so only ask for them
+    when needed. A channel whose archived threads the bot can't read just lists its active ones.
+    Arguments:
+        - category (nextcord.CategoryChannel)
+        - include_archived (bool): also list archived threads and forum posts
+    Returns:
+        - list of text channels and threads"""
+    found = []
+    for channel in category.channels:
+        if channel.type in _TEXT_CHANNEL_TYPES:
+            found.append(channel)
+        elif channel.type != nextcord.ChannelType.forum:
+            continue
+        threads = {
+            thread.id: thread
+            for thread in channel.threads
+            if not thread.archived and not thread.is_private()
+        }
+        if include_archived:
+            try:
+                async for thread in channel.archived_threads(limit=None):
+                    if not thread.is_private():
+                        threads.setdefault(thread.id, thread)
+            except nextcord.HTTPException:
+                pass
+        found.extend(threads.values())
+    return found
+
+
 _CHANNEL_NAME_EDGE_JUNK = "\u2060\u200b\u200c\u200d\ufeff \t\n\r"
 
 

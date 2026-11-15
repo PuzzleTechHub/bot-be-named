@@ -40,7 +40,29 @@ class _HasOverwrites:
         return self.overwrites.get(role, nextcord.PermissionOverwrite())
 
 
-class FakeChannel(_HasOverwrites):
+class _HasThreads:
+    """threads is the bot's cache. Archived threads that aren't cached are only
+    found by archived_threads(), like nextcord. Set archived_error to make that call fail."""
+
+    def _init_threads(self):
+        self.threads = []
+        self.uncached_archived = []
+        self.archived_error = None
+        self.archived_calls = 0
+
+    async def archived_threads(self, *, limit=50, private=False):
+        self.archived_calls += 1
+        if self.archived_error is not None:
+            raise self.archived_error
+        archived = [thread for thread in self.threads if thread.archived]
+        for thread in archived + self.uncached_archived:
+            if thread.is_private() == private:
+                yield thread
+
+
+class FakeChannel(_HasOverwrites, _HasThreads):
+    type = nextcord.ChannelType.text
+
     def __init__(self, channel_id, name, category=None, overwrites=None):
         super().__init__(overwrites)
         self.id = channel_id
@@ -48,8 +70,10 @@ class FakeChannel(_HasOverwrites):
         self.mention = f"<#{channel_id}>"
         self.category = category
         self.category_id = category.id if category else None
+        self._init_threads()
         if category is not None:
             category.text_channels.append(self)
+            category.channels.append(self)
 
     def __str__(self):
         return self.name
@@ -58,12 +82,61 @@ class FakeChannel(_HasOverwrites):
         return f"FakeChannel({self.name})"
 
 
+class FakeForum(_HasOverwrites, _HasThreads):
+    """A forum channel, having threads but no messages of its own."""
+
+    type = nextcord.ChannelType.forum
+
+    def __init__(self, channel_id, name, category, overwrites=None):
+        super().__init__(overwrites)
+        self.id = channel_id
+        self.name = name
+        self.mention = f"<#{channel_id}>"
+        self.category = category
+        self.category_id = category.id
+        self._init_threads()
+        category.channels.append(self)
+
+    def __repr__(self):
+        return f"FakeForum({self.name})"
+
+
+class FakeThread:
+    """A thread in a channel, or post in a forum. No overwrites."""
+
+    def __init__(
+        self, thread_id, name, parent, archived=False, private=False, cached=True
+    ):
+        self.id = thread_id
+        self.name = name
+        self.mention = f"<#{thread_id}>"
+        self.parent = parent
+        self.category_id = parent.category_id
+        self.archived = archived
+        self._private = private
+        if private:
+            self.type = nextcord.ChannelType.private_thread
+        else:
+            self.type = nextcord.ChannelType.public_thread
+        if cached:
+            parent.threads.append(self)
+        else:
+            parent.uncached_archived.append(self)
+
+    def is_private(self):
+        return self._private
+
+    def __repr__(self):
+        return f"FakeThread({self.name})"
+
+
 class FakeCategory(_HasOverwrites):
     def __init__(self, category_id, name, overwrites=None):
         super().__init__(overwrites)
         self.id = category_id
         self.name = name
         self.text_channels = []
+        self.channels = []  # text channels and forums, in creation order
 
     def __repr__(self):
         return f"FakeCategory({self.name})"

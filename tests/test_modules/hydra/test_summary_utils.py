@@ -9,9 +9,11 @@ from tests.fakes import (
     FakeCategory,
     FakeChannel,
     FakeContext,
+    FakeForum,
     FakeGuild,
     FakeMember,
     FakeRole,
+    FakeThread,
     add_grant,
     add_tether,
     patch_overview_sheets,
@@ -210,6 +212,112 @@ async def test_get_roles_channels_untethered_discussion_on_tethered_sheet(
     )
 
     assert (found, failed) == ([], [])
+
+
+async def test_get_roles_channels_threads_and_forum_posts(server, monkeypatch):
+    """Threads and forum posts on the Overview are summarised like channels"""
+    thread = FakeThread(301, "thread-puzzle", server.p1)
+    forum = FakeForum(302, "puzzle-forum", server.gph1_cat)
+    post = FakeThread(303, "forum-puzzle", forum)
+    add_tether(server.gph1_cat.id, GPH1_SHEET)
+    patch_overview_sheets(monkeypatch, {GPH1_SHEET: _overview(server.p1, thread, post)})
+
+    found, failed = await summary_utils.get_roles_channels(
+        None, _ctx(server, server.gph1), server.gph1, [server.gph1_cat]
+    )
+
+    assert [channel for channel, _, _ in found] == [server.p1, thread, post]
+    assert [rownum for _, rownum, _ in found] == [3, 4, 5]
+    assert failed == []
+
+
+async def test_get_roles_channels_threads_use_parent_permissions(server, monkeypatch):
+    """A thread under a denied channel, or a post in a denied forum, is left out"""
+    hidden_thread = FakeThread(301, "hidden-thread", server.hidden)
+    forum = FakeForum(302, "hidden-forum", server.gph1_cat, {server.gph1: DENY})
+    hidden_post = FakeThread(303, "hidden-post", forum)
+    add_tether(server.gph1_cat.id, GPH1_SHEET)
+    rows = _overview(server.p1, hidden_thread, hidden_post)
+    patch_overview_sheets(monkeypatch, {GPH1_SHEET: rows})
+
+    found, _ = await summary_utils.get_roles_channels(
+        None, _ctx(server, server.gph1), server.gph1, [server.gph1_cat]
+    )
+
+    assert [channel for channel, _, _ in found] == [server.p1]
+
+
+def _overview_with_status(*rows):
+    """Overview with the status column in E (B1 holds "E"). rows are (channel, status)."""
+    sheet = [["D", "E"], ["F", ""], ["", ""]]
+    for channel, status in rows:
+        sheet.append([str(channel.id), "", "", channel.name, status])
+    return sheet
+
+
+async def test_get_roles_channels_archived_threads(server, monkeypatch):
+    """Idle threads and forum posts Discord archived stay in, solved archived ones (~mtahydra) drop out"""
+    idle = FakeThread(301, "idle-thread", server.p1, archived=True, cached=False)
+    solved = FakeThread(302, "solved-thread", server.p1, archived=True)
+    backsolved = FakeThread(303, "backsolved-thread", server.p1, archived=True)
+    active_solved = FakeThread(304, "solved-not-mta", server.p1)
+    forum = FakeForum(310, "puzzle-forum", server.gph1_cat)
+    idle_post = FakeThread(311, "idle-post", forum, archived=True, cached=False)
+    solved_post = FakeThread(312, "solved-post", forum, archived=True, cached=False)
+    active_post = FakeThread(313, "solved-post-not-mta", forum)
+    add_tether(server.gph1_cat.id, GPH1_SHEET)
+    rows = _overview_with_status(
+        (server.p1, "In Progress"),
+        (idle, "Unstarted"),
+        (solved, "Solved"),
+        (backsolved, "backsolved"),
+        (active_solved, "Solved"),
+        (idle_post, "In Progress"),
+        (solved_post, "Postsolved"),
+        (active_post, "Solved"),
+    )
+    patch_overview_sheets(monkeypatch, {GPH1_SHEET: rows})
+
+    found, failed = await summary_utils.get_roles_channels(
+        None, _ctx(server, server.gph1), server.gph1, [server.gph1_cat]
+    )
+
+    # Under each parent, active threads come first, then archived ones
+    assert [channel for channel, _, _ in found] == [
+        server.p1,
+        active_solved,
+        idle,
+        active_post,
+        idle_post,
+    ]
+    assert failed == []
+
+
+@pytest.mark.parametrize(
+    "b1, status, kept",
+    [
+        ("E", "Solved", False),
+        ("E", "Postsolved", False),
+        ("E", "Solvedish", True),
+        ("E", "", True),
+        ("", "Solved", True),  # no status column set, so it can't be told apart
+        ("not a column", "Solved", True),
+    ],
+)
+async def test_get_roles_channels_archived_status_column(
+    server, monkeypatch, b1, status, kept
+):
+    thread = FakeThread(301, "archived-thread", server.p1, archived=True)
+    add_tether(server.gph1_cat.id, GPH1_SHEET)
+    rows = _overview_with_status((thread, status))
+    rows[0][1] = b1
+    patch_overview_sheets(monkeypatch, {GPH1_SHEET: rows})
+
+    found, _ = await summary_utils.get_roles_channels(
+        None, _ctx(server, server.gph1), server.gph1, [server.gph1_cat]
+    )
+
+    assert (thread in [channel for channel, _, _ in found]) == kept
 
 
 # find channel_rows

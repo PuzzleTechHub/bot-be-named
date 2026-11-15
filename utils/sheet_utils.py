@@ -533,6 +533,16 @@ async def sheetcreatetabgeneric(
             return
 
 
+def get_cell_value(rows: list[list[str]], label: str) -> str:
+    """Reads one cell from a sheet's rows with an A1-style label.
+    returns "" for cells past the end of the data. Raises gspread.exceptions.IncorrectCellLabel for invalid labels."""
+    row, col = gspread.utils.a1_to_rowcol(label)
+    try:
+        return rows[row - 1][col - 1]
+    except IndexError:
+        return ""
+
+
 class OverviewSheet:
     def __init__(self, gspread_client: gspread.Client, sheet_url: str):
         self.gspread_client = gspread_client
@@ -546,11 +556,7 @@ class OverviewSheet:
         self.overview_data = self.worksheet.get()
 
     def get_cell_value(self, label: str) -> str:
-        row, col = gspread.utils.a1_to_rowcol(label)
-        try:
-            return self.overview_data[row - 1][col - 1]
-        except IndexError:
-            return ""
+        return get_cell_value(self.overview_data, label)
 
     def find_row_of_channel(
         self, ctx: commands.Context

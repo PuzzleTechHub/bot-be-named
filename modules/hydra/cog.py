@@ -399,9 +399,10 @@ class HydraCog(commands.Cog, name="Hydra"):
     @command_predicates.is_solver()
     @commands.command(name="catsummaryhydra", aliases=["categorysummaryhydra"])
     async def catsummaryhydra(self, ctx: commands.Context) -> None:
-        """Collates all the notes on the overview sheet for each text channel in the categories allowed for your roles.
-        Silently skips channels not on the overview. The sheet will need to follow the Hydra
-        requirements for this to work as expected.
+        """Collates all the notes on the overview sheet for each text channel, thread and forum post in the categories
+        allowed for your roles. Silently skips archive categories, channels not on the overview, and archived
+        threads or forum posts of solved puzzles. The sheet will need to follow the Hydra requirements for this
+        to work as expected.
 
         An admin must first allow a role in this channel with `~summaryallowhydra`.
         You get one summary merged across every allowed role you have. For each role it covers the non-archive
@@ -1149,7 +1150,8 @@ class HydraCog(commands.Cog, name="Hydra"):
     ):
         """Summarise the last `limit` messages across the categories allowed for your roles:
         `limit` caps off at 250.
-        Only counts messages from humans (not bots), in channels listed on a tethered sheet's Overview.
+        Only counts messages from humans (not bots), in channels, threads, and forum posts listed on a
+        tethered sheet's Overview. Archived threads and forum posts of solved puzzles are skipped.
 
         An admin must first allow a role in this channel with `~summaryallowhydra`.
         You get one summary for each allowed role you have. Each one covers the non-archive categories

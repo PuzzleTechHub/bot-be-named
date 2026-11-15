@@ -4,7 +4,16 @@ import nextcord
 import pytest
 
 import constants
-from tests.fakes import FakeChannel, FakeContext, FakeGuild, FakeMember, FakeRole
+from tests.fakes import (
+    FakeCategory,
+    FakeChannel,
+    FakeContext,
+    FakeForum,
+    FakeGuild,
+    FakeMember,
+    FakeRole,
+    FakeThread,
+)
 from utils import discord_utils
 
 
@@ -266,3 +275,77 @@ async def test_pin_message_system_message():
     message = PinMessage(PinChannel(), nextcord.HTTPException(_Response(400), "no"))
     [field] = (await discord_utils.pin_message(message)).fields
     assert "Cannot pin system messages" in field.value
+
+
+# get_category_channels
+
+
+def _fake_voice():
+    return SimpleNamespace(type=nextcord.ChannelType.voice)
+
+
+async def test_get_category_channels_threads_follow_their_channel():
+    category = FakeCategory(100, "Puzzles")
+    hub = FakeChannel(1, "hub", category)
+    thread = FakeThread(2, "thread-puzzle", hub)
+    p1 = FakeChannel(3, "puzzle-1", category)
+    forum = FakeForum(4, "forum", category)
+    post = FakeThread(5, "forum-post", forum)
+    # The forum itself has no messages, so it isn't listed
+    result = await discord_utils.get_category_channels(category)
+    assert result == [hub, thread, p1, post]
+
+
+async def test_get_category_channels_default_skips_archived_without_api_calls():
+    category = FakeCategory(100, "Puzzles")
+    hub = FakeChannel(1, "hub", category)
+    FakeThread(2, "solved", hub, archived=True)
+    FakeThread(3, "private", hub, private=True)
+    forum = FakeForum(4, "forum", category)
+    FakeThread(5, "solved-post", forum, archived=True, cached=False)
+    assert await discord_utils.get_category_channels(category) == [hub]
+    assert hub.archived_calls == forum.archived_calls == 0
+
+
+async def test_get_category_channels_include_archived():
+    category = FakeCategory(100, "Puzzles")
+    hub = FakeChannel(1, "hub", category)
+    active = FakeThread(2, "active", hub)
+    cached = FakeThread(3, "archived-cached", hub, archived=True)
+    uncached = FakeThread(4, "archived-uncached", hub, archived=True, cached=False)
+    FakeThread(5, "private", hub, archived=True, private=True)
+    forum = FakeForum(6, "forum", category)
+    post = FakeThread(7, "old-post", forum, archived=True, cached=False)
+
+    result = await discord_utils.get_category_channels(category, include_archived=True)
+
+    # Active threads first, each thread once, private threads never
+    assert result == [hub, active, cached, uncached, post]
+
+
+async def test_get_category_channels_archived_forbidden_keeps_active():
+    category = FakeCategory(100, "Puzzles")
+    hub = FakeChannel(1, "hub", category)
+    active = FakeThread(2, "active", hub)
+    FakeThread(3, "archived", hub, archived=True, cached=False)
+    hub.archived_error = nextcord.Forbidden(
+        SimpleNamespace(status=403, reason="Forbidden"), "Missing Access"
+    )
+    p1 = FakeChannel(4, "puzzle-1", category)
+    old = FakeThread(5, "old", p1, archived=True, cached=False)
+
+    result = await discord_utils.get_category_channels(category, include_archived=True)
+
+    assert result == [hub, active, p1, old]
+
+
+async def test_get_category_channels_skips_voice_and_keeps_news():
+    category = FakeCategory(100, "Puzzles")
+    news = SimpleNamespace(type=nextcord.ChannelType.news, threads=[])
+    category.channels += [_fake_voice(), news]
+    assert await discord_utils.get_category_channels(category) == [news]
+
+
+async def test_get_category_channels_empty():
+    category = FakeCategory(100, "Empty")
+    assert await discord_utils.get_category_channels(category) == []

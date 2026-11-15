@@ -110,6 +110,14 @@ def test_get_cell_value(label, value):
         FakeClient({SHEET: {"Overview": OVERVIEW}}), SHEET
     )
     assert sheet.get_cell_value(label) == value
+    # The module-level function reads the same rows without opening a sheet
+    assert sheet_utils.get_cell_value(OVERVIEW, label) == value
+
+
+@pytest.mark.parametrize("label", ["", "E", "4", "??4"])
+def test_get_cell_value_bad_label(label):
+    with pytest.raises(gspread.exceptions.IncorrectCellLabel):
+        sheet_utils.get_cell_value(OVERVIEW, label)
 
 
 def test_find_row_of_channel(ctx):
