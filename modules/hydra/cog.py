@@ -866,9 +866,13 @@ class HydraCog(commands.Cog, name="Hydra"):
         # Use the raw IDs and look up channels and threads alike.
         target_channel = None
         if ctx.guild is not None and ctx.message.raw_channel_mentions:
-            target_channel = ctx.guild.get_channel_or_thread(
-                ctx.message.raw_channel_mentions[0]
-            )
+            target_id = ctx.message.raw_channel_mentions[0]
+            target_channel = ctx.guild.get_channel_or_thread(target_id)
+            if target_channel is None:
+                try:
+                    target_channel = await ctx.guild.fetch_channel(target_id)
+                except (nextcord.HTTPException, nextcord.InvalidData):
+                    target_channel = None
 
         if target_channel is None:
             embed = discord_utils.create_failure_embed(
