@@ -862,9 +862,13 @@ class HydraCog(commands.Cog, name="Hydra"):
             return
 
         # Parse the channel from the mention
+        # channel_mentions only resolves guild channels, so threads get dropped.
+        # Use the raw IDs and look up channels and threads alike.
         target_channel = None
-        if ctx.message.channel_mentions:
-            target_channel = ctx.message.channel_mentions[0]
+        if ctx.guild is not None and ctx.message.raw_channel_mentions:
+            target_channel = ctx.guild.get_channel_or_thread(
+                ctx.message.raw_channel_mentions[0]
+            )
 
         if target_channel is None:
             embed = discord_utils.create_failure_embed(
@@ -873,9 +877,11 @@ class HydraCog(commands.Cog, name="Hydra"):
             await discord_utils.send_message(ctx, embed)
             return
 
-        # Type guard: ensure target is a text channel
-        if not isinstance(target_channel, nextcord.TextChannel):
-            embed = discord_utils.create_failure_embed("Can only delete text channels.")
+        # Type guard: ensure target is a text channel or thread
+        if not isinstance(target_channel, (nextcord.TextChannel, nextcord.Thread)):
+            embed = discord_utils.create_failure_embed(
+                "Can only delete text channels and threads."
+            )
             await discord_utils.send_message(ctx, embed)
             return
 
