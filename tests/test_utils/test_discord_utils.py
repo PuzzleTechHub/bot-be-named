@@ -141,3 +141,19 @@ def test_merge_embed_keeps_field_order():
         ("3", "c", False),
         ("4", "d", True),
     ]
+
+
+async def test_send_failure_sends_one_failed_field():
+    from tests.fakes import FakeCategory, FakeChannel, FakeContext, FakeGuild
+
+    channel = FakeChannel(20, "puzzle-1", FakeCategory(10, "Puzzles"))
+    ctx = FakeContext(FakeGuild(categories=[channel.category]), channel)
+
+    sent = await discord_utils.send_failure(ctx, "Channel `x` was not found.")
+
+    assert sent == ctx.sent
+    [embed] = ctx.sent_embeds
+    [field] = embed.fields
+    assert field.name == "Failed"
+    assert field.value == "Channel `x` was not found."
+    assert field.inline is False

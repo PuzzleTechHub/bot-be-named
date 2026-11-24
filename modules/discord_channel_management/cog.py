@@ -49,11 +49,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         new_category = await discord_utils.find_category(ctx, category_name)
 
         if new_category is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Could not find category `{category_name}`",
+            await discord_utils.send_failure(
+                ctx,
+                f"Could not find category `{category_name}`",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         channels_to_move = []
@@ -128,12 +127,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
         # Check if category is already full
         if available_capacity == 0:
-            embed.add_field(
-                name="Failed",
-                value=f"Category `{new_category.name}` is already full, max limit is 50 channels!",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"Category `{new_category.name}` is already full, max limit is 50 channels!",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         channels_moved = []
@@ -252,11 +249,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
         old_channel = await discord_utils.find_chan_or_thread(ctx, old_channel_name)
         if old_channel is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Channel `{old_channel_name}` was not found.",
+            await discord_utils.send_failure(
+                ctx,
+                f"Channel `{old_channel_name}` was not found.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         # If user managed to tag a channel name instead of typing
@@ -267,11 +263,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             # rename channel
             await old_channel.edit(name=new_channel_name)
         except nextcord.Forbidden:
-            embed.add_field(
-                name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permissions?",
+            await discord_utils.send_failure(
+                ctx,
+                "Forbidden! Have you checked if the bot has the required permissions?",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         embed.add_field(
@@ -292,11 +287,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         embed = discord_utils.create_embed()
 
         if await discord_utils.is_thread(ctx, ctx.channel):
-            embed.add_field(
-                name="Failed",
-                value="Invalid! You cannot make a thread from inside another thread!",
+            await discord_utils.send_failure(
+                ctx,
+                "Invalid! You cannot make a thread from inside another thread!",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         channel = await discord_utils.createthreadgeneric(
@@ -362,20 +356,17 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
         # Category channel limit
         if discord_utils.category_is_full(category):
-            embed.add_field(
-                name="Failed",
-                value=f"Category `{category.name}` is already full, max limit is 50 channels.",
+            await discord_utils.send_failure(
+                ctx,
+                f"Category `{category.name}` is already full, max limit is 50 channels.",
             )
-            await discord_utils.send_message(ctx, embed)
             return None
         # Server channel limit
         if discord_utils.server_is_full(category.guild):
-            embed.add_field(
-                name="Failed",
-                value=f"Guild `{category.guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
+            await discord_utils.send_failure(
+                ctx,
+                f"Guild `{category.guild.name}` is completely full! Max limit is 500 channels/categories/... Please contact a mod for help.",
             )
-            # reply to user
-            await discord_utils.send_message(ctx, embed)
             return None
 
         channel = await discord_utils.createchannelgeneric(ctx.guild, category, name)
@@ -422,12 +413,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
         role_to_add = await discord_utils.find_role(ctx, role)
         if role_to_add is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Role `{role}` was not found. Create it first with `~assignrole`, or check spelling.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"Role `{role}` was not found. Create it first with `~assignrole`, or check spelling.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         if channel is None:
@@ -436,22 +425,18 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             target_channel = await discord_utils.find_chan_or_thread(ctx, channel)
 
         if target_channel is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Channel `{channel}` was not found.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"Channel `{channel}` was not found.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         if isinstance(target_channel, nextcord.Thread):
-            embed.add_field(
-                name="Failed",
-                value="Threads inherit permissions from their parent channel. "
+            await discord_utils.send_failure(
+                ctx,
+                "Threads inherit permissions from their parent channel. "
                 f"Run this on {target_channel.parent.mention} instead.",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         try:
@@ -459,12 +444,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             overwrite.update(view_channel=True)
             await target_channel.set_permissions(role_to_add, overwrite=overwrite)
         except nextcord.Forbidden:
-            embed.add_field(
-                name="Failed",
-                value="Forbidden! Do I have the `Manage Roles` permission?",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "Forbidden! Do I have the `Manage Roles` permission?",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         embed.add_field(
@@ -508,11 +491,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         old_channel = await discord_utils.find_chan_or_thread(ctx, old_channel_name)
 
         if old_channel is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Channel `{old_channel_name}` was not found.",
+            await discord_utils.send_failure(
+                ctx,
+                f"Channel `{old_channel_name}` was not found.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         if isinstance(origRoleorUser, str):
@@ -520,11 +502,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             if origUser is None:
                 origRole = await discord_utils.find_role(ctx, origRoleorUser)
                 if origRole is None:
-                    embed.add_field(
-                        name="Failed",
-                        value=f"Role/User `{origRoleorUser}` does not exist. Please use @ to tag them.",
+                    await discord_utils.send_failure(
+                        ctx,
+                        f"Role/User `{origRoleorUser}` does not exist. Please use @ to tag them.",
                     )
-                    await discord_utils.send_message(ctx, embed)
                     return
                 else:
                     origRoleorUser = origRole
@@ -547,13 +528,11 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                             inline=False,
                         )
                     except nextcord.Forbidden:
-                        embed.add_field(
-                            name="Failed",
-                            value=f"I couldn't find role `{targetRoleorUser}`, so I tried to make it. But I don't have "
+                        await discord_utils.send_failure(
+                            ctx,
+                            f"I couldn't find role `{targetRoleorUser}`, so I tried to make it. But I don't have "
                             f"permission to add a role in this server. Do I have the `add_roles` permission?",
-                            inline=False,
                         )
-                        await discord_utils.send_message(ctx, embed)
                         return
                 else:
                     targetRoleorUser = targetRole
@@ -688,30 +667,27 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 chan_shifting_to = chan_b_name
 
         if not isinstance(chan_to_shift, nextcord.TextChannel):
-            embed.add_field(
-                name="Failed",
-                value=f"I cannot find channel `{chan_to_shift}`. Perhaps check your spelling and try again.",
+            await discord_utils.send_failure(
+                ctx,
+                f"I cannot find channel `{chan_to_shift}`. Perhaps check your spelling and try again.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         # Not top, so position needs to be given
         if pos_to_shift_to == -1:
             if not isinstance(chan_shifting_to, nextcord.TextChannel):
-                embed.add_field(
-                    name="Failed",
-                    value=f"I cannot find channel `{chan_shifting_to}`. Perhaps check your spelling and try again.",
+                await discord_utils.send_failure(
+                    ctx,
+                    f"I cannot find channel `{chan_shifting_to}`. Perhaps check your spelling and try again.",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
             if chan_shifting_to.category != chan_to_shift.category:
                 # Different categories for channel to shift to
-                embed.add_field(
-                    name="Failed",
-                    value=f"The channel to be shifted {chan_to_shift.mention} is in category `{chan_to_shift.category}` but it's trying to shift to channel {chan_shifting_to.mention}, which is in category `{chan_shifting_to.category}`"
+                await discord_utils.send_failure(
+                    ctx,
+                    f"The channel to be shifted {chan_to_shift.mention} is in category `{chan_to_shift.category}` but it's trying to shift to channel {chan_shifting_to.mention}, which is in category `{chan_shifting_to.category}`"
                     f"\nUse `~movechan` to move the channel across categories first.",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
             # No errors
             pos_to_shift_to = chan_shifting_to.position + 1
@@ -720,11 +696,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         try:
             await chan_to_shift.edit(position=pos_to_shift_to)
         except nextcord.Forbidden:
-            embed.add_field(
-                name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permissions?",
+            await discord_utils.send_failure(
+                ctx,
+                "Forbidden! Have you checked if the bot has the required permissions?",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         if pos_to_shift_to == 0:
@@ -763,23 +738,20 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 break
 
         if voice_chan_to_rename is None:
-            embed.add_field(
-                name="Failed",
-                value=f"User {calling_user.mention} needs to be in a Voice Channel to use `~renamevc`!",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"User {calling_user.mention} needs to be in a Voice Channel to use `~renamevc`!",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         try:
             oldvcname = voice_chan_to_rename.name
             await voice_chan_to_rename.edit(name=new_name)
         except nextcord.Forbidden:
-            embed.add_field(
-                name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permissions?",
+            await discord_utils.send_failure(
+                ctx,
+                "Forbidden! Have you checked if the bot has the required permissions?",
             )
-            await discord_utils.send_message(ctx, embed)
             return
         embed.add_field(
             name="Success",
@@ -815,12 +787,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         category = await discord_utils.find_category(ctx, category_to_sort_name)
 
         if category is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Error! The category named `{category_to_sort_name}` not found.  Perhaps check your spelling and try again.",
+            await discord_utils.send_failure(
+                ctx,
+                f"Error! The category named `{category_to_sort_name}` not found.  Perhaps check your spelling and try again.",
             )
-            # reply to user
-            await discord_utils.send_message(ctx, embed)
             return
 
         channel_list = self.sort_channels(category.text_channels)
@@ -844,11 +814,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             except nextcord.Forbidden:
                 if start_embed_msg:
                     await start_embed_msg.delete()
-                embed.add_field(
-                    name="Failed",
-                    value=f"Unable to sort `{channel.mention}`. Do I have the correct `manage_channel` positions?",
+                await discord_utils.send_failure(
+                    ctx,
+                    f"Unable to sort `{channel.mention}`. Do I have the correct `manage_channel` positions?",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
 
         if start_embed_msg:
@@ -905,26 +874,20 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         old_category = await discord_utils.find_category(ctx, old_category_name)
 
         if old_category is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Error! The category named `{old_category_name}` not found.  Perhaps check your spelling and try again.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"Error! The category named `{old_category_name}` not found.  Perhaps check your spelling and try again.",
             )
-            # reply to user
-            await discord_utils.send_message(ctx, embed)
             return
 
         try:
             # rename category
             await old_category.edit(name=new_category_name)
         except nextcord.Forbidden:
-            embed.add_field(
-                name="Failed",
-                value="Forbidden! Have you checked if the bot has the `manage_channels` permissions?",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "Forbidden! Have you checked if the bot has the `manage_channels` permissions?",
             )
-            # reply to user
-            await discord_utils.send_message(ctx, embed)
             return
         embed.add_field(
             name="Success",
@@ -953,13 +916,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         category = await discord_utils.find_category(ctx, category_to_sync_name)
 
         if category is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Error! The category named `{category_to_sync_name}` not found.  Perhaps check your spelling and try again.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"Error! The category named `{category_to_sync_name}` not found.  Perhaps check your spelling and try again.",
             )
-            # reply to user
-            await discord_utils.send_message(ctx, embed)
             return
 
         start_embed = discord_utils.create_embed()
@@ -979,13 +939,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         except nextcord.Forbidden:
             if start_msg:
                 await start_msg.delete()
-            embed.add_field(
-                name="Failed",
-                value="Forbidden! Have you checked if the bot has the required permissions?",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "Forbidden! Have you checked if the bot has the required permissions?",
             )
-            # reply to user
-            await discord_utils.send_message(ctx, embed)
             return
 
         if start_msg:
@@ -1038,22 +995,18 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 cat_shifting_to_name = cat_b_name
 
         if cat_to_shift_name is None:
-            embed.add_field(
-                name="Failed",
-                value=f"The current channel {ctx.channel.mention} does not exist in a category I can move. Check `~help shiftcat`.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"The current channel {ctx.channel.mention} does not exist in a category I can move. Check `~help shiftcat`.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         cat_to_shift = await discord_utils.find_category(ctx, cat_to_shift_name)
         if cat_to_shift is None:
-            embed.add_field(
-                name="Failed",
-                value=f"I cannot find category `{cat_to_shift_name}`. Perhaps check your spelling and try again.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"I cannot find category `{cat_to_shift_name}`. Perhaps check your spelling and try again.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         # Not top, so position needs to be given
@@ -1062,24 +1015,20 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                 ctx, cat_shifting_to_name
             )
             if cat_shifting_to is None:
-                embed.add_field(
-                    name="Failed",
-                    value=f"I cannot find category `{cat_shifting_to_name}`. Perhaps check your spelling and try again.",
-                    inline=False,
+                await discord_utils.send_failure(
+                    ctx,
+                    f"I cannot find category `{cat_shifting_to_name}`. Perhaps check your spelling and try again.",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
             pos_to_shift_to = cat_shifting_to.position + 1
 
         try:
             await cat_to_shift.edit(position=pos_to_shift_to)
         except nextcord.Forbidden:
-            embed.add_field(
-                name="Failed",
-                value=f"I was unable to shift category `{cat_to_shift}`. Do I have the `manage_channels` permission?",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"I was unable to shift category `{cat_to_shift}`. Do I have the `manage_channels` permission?",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         if pos_to_shift_to == 0:
@@ -1124,12 +1073,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         # First, make sure origCat exists
         origCat = await discord_utils.find_category(ctx, origCatName)
         if origCat is None:
-            embed.add_field(
-                name="Failed",
-                value=f"I cannot find category {origCatName}. Perhaps check your spelling and try again.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"I cannot find category {origCatName}. Perhaps check your spelling and try again.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
         # Either neither origRole nor targetRole are supplied, or both are. If XOR, that's a fail.
         if (
@@ -1138,12 +1085,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             or origRole is None
             and targetRole is not None
         ):
-            embed.add_field(
-                name="Failed",
-                value="Next time, please supply both `origRole` and `targetRole`, or neither.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "Next time, please supply both `origRole` and `targetRole`, or neither.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         origRole_or_none = await discord_utils.find_role(ctx, origRole)
@@ -1151,13 +1096,11 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
         # If we have looped over all the roles and still can't find an origRole, then that's an error
         if origRole_or_none is None and origRole is not None:
-            embed.add_field(
-                name="Failed",
-                value=f"Cannot find role {origRole}, are you sure it exists? Retry this command with @{origRole} "
+            await discord_utils.send_failure(
+                ctx,
+                f"Cannot find role {origRole}, are you sure it exists? Retry this command with @{origRole} "
                 + "if it does.",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         # if targetRole doesn't exist, create it
@@ -1176,12 +1119,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                     inline=False,
                 )
             except nextcord.Forbidden:
-                embed.add_field(
-                    name="Failed",
-                    value=f"I was unable to create role {targetRole}. Do I have the `manage_roles` permission?",
-                    inline=False,
+                await discord_utils.send_failure(
+                    ctx,
+                    f"I was unable to create role {targetRole}. Do I have the `manage_roles` permission?",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
 
         targetCat = await discord_utils.find_category(ctx, targetCatName)
@@ -1263,13 +1204,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         category = await discord_utils.find_category(ctx, cat_name)
 
         if category is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Error! The category named `{cat_name}` not found.  Perhaps check your spelling and try again.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"Error! The category named `{cat_name}` not found.  Perhaps check your spelling and try again.",
             )
-            # reply to user
-            await discord_utils.send_message(ctx, embed)
             return
 
         channel_list = category.channels
@@ -1297,26 +1235,20 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         embed = discord_utils.create_embed()
 
         if cat_name == "":
-            embed.add_field(
-                name="Failed",
-                value="No category given",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "No category given",
             )
-            # reply to user
-            await discord_utils.send_message(ctx, embed)
             return
 
         # Return the channel names in a given category
         category = await discord_utils.find_category(ctx, cat_name)
 
         if category is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Error! The category named `{cat_name}` not found.  Perhaps check your spelling and try again.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"Error! The category named `{cat_name}` not found.  Perhaps check your spelling and try again.",
             )
-            # reply to user
-            await discord_utils.send_message(ctx, embed)
             return
 
         channel_list = category.channels
@@ -1372,7 +1304,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                         value=f"{chr(10).join(channels)}",
                         inline=False,
                     )
-                except:
+                except nextcord.HTTPException:
                     final_embed.add_field(
                         name="Failed",
                         value=f"The category named `{category.name}` could not be deleted!",

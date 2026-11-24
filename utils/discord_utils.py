@@ -269,6 +269,11 @@ def create_failure_embed(message: str) -> nextcord.Embed:
     return embed
 
 
+async def send_failure(ctx: commands.Context, message: str) -> list[nextcord.Message]:
+    """Send a one-field "Failed" embed."""
+    return await send_message(ctx, create_failure_embed(message))
+
+
 def get_ordinal_suffix(n: int) -> str:
     """Return the ordinal suffix for a number (1st, 2nd, 3rd, 4th, etc.)"""
     if 11 <= (n % 100) <= 13:
