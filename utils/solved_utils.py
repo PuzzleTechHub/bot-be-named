@@ -112,7 +112,7 @@ async def update_puzzle_status(
         if status == curr_status:
             embed.add_field(
                 name="Note",
-                value=f"The puzzle status was already set to `{status}`. No changes were made.",
+                value=f"The puzzle status was already set to `{status}`. No changes were made to the channel name.",
                 inline=False,
             )
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))

@@ -240,6 +240,9 @@ async def test_update_puzzle_status_same_status_notes_it():
     assert ok is True
     assert channel.edits == []
     assert _field_names(ctx) == ["Success", "Note"]
+    assert sheet.spreadsheet.batches
+    note = ctx.sent_embeds[0].fields[1].value
+    assert note.endswith("No changes were made to the channel name.")
 
 
 async def test_update_puzzle_status_permission_denied_returns_false():
