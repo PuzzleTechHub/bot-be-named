@@ -109,21 +109,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                 await discord_utils.send_message(ctx, embed)
 
         except gspread.exceptions.APIError as e:
-            error_json = e.response.json()
-            error_status = error_json.get("error", {}).get("status")
-            if error_status == "PERMISSION_DENIED":
-                embed.add_field(
-                    name="Failed",
-                    value="Could not update the sheet. Permission denied.",
-                    inline=False,
-                )
-            else:
-                embed.add_field(
-                    name="Failed",
-                    value=f"Unknown GSheets API Error - `{error_json.get('error', {}).get('message')}`",
-                    inline=False,
-                )
-            await discord_utils.send_message(ctx, embed)
+            await sheet_utils.handle_gspread_error(ctx, e, embed)
 
     @command_predicates.is_solver()
     @commands.command(name="noteshydra")
@@ -235,21 +221,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                 await discord_utils.send_message(ctx, embed)
 
         except gspread.exceptions.APIError as e:
-            error_json = e.response.json()
-            error_status = error_json.get("error", {}).get("status")
-            if error_status == "PERMISSION_DENIED":
-                embed.add_field(
-                    name="Failed",
-                    value="Could not update the sheet. Permission denied.",
-                    inline=False,
-                )
-            else:
-                embed.add_field(
-                    name="Failed",
-                    value=f"Unknown GSheets API Error - `{error_json.get('error', {}).get('message')}`",
-                    inline=False,
-                )
-            await discord_utils.send_message(ctx, embed)
+            await sheet_utils.handle_gspread_error(ctx, e, embed)
 
     @command_predicates.is_solver()
     @commands.command(name="renamehydra")
@@ -1061,11 +1033,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                         sh.del_worksheet_by_id(tab_id)
                         tab_deleted = True
 
-                    except gspread.WorksheetNotFound:  # Report error in final message
-                        pass
-                    except gspread.exceptions.APIError:
-                        pass
                     except Exception:
+                        # The channel is already gone, so carry on; the report
+                        # below shows the tab as not deleted.
                         pass
 
                 # 5. Delete overview row
@@ -1090,9 +1060,8 @@ class HydraCog(commands.Cog, name="Hydra"):
 
                             row_moved = True
 
-                    except gspread.exceptions.APIError:  # Report in final message
-                        pass
                     except Exception:
+                        # Same as the tab: the report shows the row as not deleted.
                         pass
 
                 # Delete progress message
@@ -1128,7 +1097,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                 await discord_utils.send_message(ctx, success_embed)
 
             except gspread.exceptions.APIError as e:
-                await sheet_utils.handle_gspread_error(ctx, e, embed)
+                await sheet_utils.handle_gspread_error(ctx, e)
             except nextcord.Forbidden:
                 embed = discord_utils.create_failure_embed(
                     "I do not have permission to delete the channel."

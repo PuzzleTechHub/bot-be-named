@@ -53,17 +53,6 @@ def solved_time_value(
     return None
 
 
-async def send_api_error(ctx: commands.Context, e: gspread.exceptions.APIError):
-    """Reports a gspread error that the status update didn't expect."""
-    if hasattr(e, "response"):
-        error_json = e.response.json()
-        error_message = error_json.get("error", {}).get("message")
-        await discord_utils.send_failure(
-            ctx,
-            f"Unknown GSheets API Error - `{error_message}`",
-        )
-
-
 async def update_puzzle_status(
     ctx: commands.Context,
     overview_sheet,
@@ -113,17 +102,14 @@ async def update_puzzle_status(
                 batch_update_builder.build()
             )
         except gspread.exceptions.APIError as e:
-            error_json = e.response.json()
-            error_status = error_json.get("error", {}).get("status")
-            if error_status == "PERMISSION_DENIED":
-                sheet_updated = False
-                embed.add_field(
-                    name="Failed",
-                    value="Could not update the sheet.",
-                    inline=False,
-                )
-            else:
-                raise e
+            if not sheet_utils.is_permission_denied(e):
+                raise
+            sheet_updated = False
+            embed.add_field(
+                name="Failed",
+                value="Could not update the sheet.",
+                inline=False,
+            )
 
         embed.add_field(
             name="Success",
@@ -158,7 +144,7 @@ async def update_puzzle_status(
         return sheet_updated
 
     except gspread.exceptions.APIError as e:
-        await send_api_error(ctx, e)
+        await sheet_utils.handle_gspread_error(ctx, e)
         return False
 
 

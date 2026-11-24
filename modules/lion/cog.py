@@ -130,7 +130,7 @@ class LionCog(commands.Cog, name="Lion"):
             base = SheetCommandBase(ctx, self.gspread_client)
             _, overview_sheet, row_to_find = await base.get_sheet_context()
         except gspread.exceptions.APIError as e:
-            await solved_utils.send_api_error(ctx, e)
+            await sheet_utils.handle_gspread_error(ctx, e)
             return
 
         if overview_sheet is None:
@@ -169,13 +169,8 @@ class LionCog(commands.Cog, name="Lion"):
                     inline=False,
                 )
         except gspread.exceptions.APIError as e:
-            error_json = e.response.json()
-            error_message = error_json.get("error", {}).get("message")
-            embed.add_field(
-                name="Failed",
-                value=f"Google Sheets API Error: `{error_message}`",
-                inline=False,
-            )
+            await sheet_utils.handle_gspread_error(ctx, e, embed)
+            return
         except StopIteration:
             embed.add_field(
                 name="Failed",
@@ -302,14 +297,8 @@ class LionCog(commands.Cog, name="Lion"):
 
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
         except gspread.exceptions.APIError as e:
-            if hasattr(e, "response"):
-                error_json = e.response.json()
-                error_message = error_json.get("error", {}).get("message")
-                await discord_utils.send_failure(
-                    ctx,
-                    f"Unknown GSheets API Error - `{error_message}`",
-                )
-                return
+            await sheet_utils.handle_gspread_error(ctx, e)
+            return
 
     @command_predicates.is_solver()
     @commands.command(name="chanlion")
@@ -566,17 +555,14 @@ class LionCog(commands.Cog, name="Lion"):
             _template_id = curr_sheet.worksheet("Template").id
         # Error when we can't open the curr sheet link
         except gspread.exceptions.APIError as e:
-            error_json = e.response.json()
-            error_status = error_json.get("error", {}).get("status")
-            if error_status == "PERMISSION_DENIED":
-                await discord_utils.send_failure(
-                    ctx,
-                    f"I'm unable to open the tethered [sheet]({curr_link}). "
-                    f"Did the permissions change?",
-                )
-                return None
-            else:
-                raise e
+            if not sheet_utils.is_permission_denied(e):
+                raise
+            await discord_utils.send_failure(
+                ctx,
+                f"I'm unable to open the tethered [sheet]({curr_link}). "
+                f"Did the permissions change?",
+            )
+            return None
         # Error when the sheet has no template tab
         except gspread.exceptions.WorksheetNotFound:
             await discord_utils.send_failure(

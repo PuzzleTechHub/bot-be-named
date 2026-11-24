@@ -234,6 +234,34 @@ async def test_handle_gspread_error_adds_to_given_embed(ctx):
     assert [f.name for f in embed.fields] == ["Success", "Failed"]
 
 
+class HtmlResponse:
+    """What Google sends on a 502: not JSON."""
+
+    text = "<html>Bad Gateway</html>"
+
+    def json(self):
+        raise ValueError("not JSON")
+
+
+async def test_handle_gspread_error_without_json(ctx):
+    error = gspread.exceptions.APIError(HtmlResponse())
+    embed = await sheet_utils.handle_gspread_error(ctx, error)
+    assert "Bad Gateway" in embed.fields[0].value
+
+
+@pytest.mark.parametrize(
+    "status, expected", [("PERMISSION_DENIED", True), ("BAD_REQUEST", False)]
+)
+def test_is_permission_denied(status, expected):
+    assert sheet_utils.is_permission_denied(api_error(status)) is expected
+
+
+def test_is_permission_denied_without_json():
+    assert not sheet_utils.is_permission_denied(
+        gspread.exceptions.APIError(HtmlResponse())
+    )
+
+
 # get_sheet_from_key_or_link
 
 

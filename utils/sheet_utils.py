@@ -31,9 +31,8 @@ async def handle_gspread_error(
     if embed is None:
         embed = discord_utils.create_embed()
 
-    error_json = e.response.json()
-    error_status = error_json.get("error", {}).get("status")
-    error_message = error_json.get("error", {}).get("message", "")
+    error_status = e.error.get("status")
+    error_message = e.error.get("message", "")
 
     if (
         error_status == "BAD_REQUEST"
@@ -62,6 +61,11 @@ async def handle_gspread_error(
         )
     await discord_utils.send_message(ctx, embed)
     return embed
+
+
+def is_permission_denied(e: gspread.exceptions.APIError) -> bool:
+    """True if Google refused the bot access to the sheet."""
+    return e.error.get("status") == "PERMISSION_DENIED"
 
 
 def addsheettethergeneric(
@@ -453,20 +457,14 @@ async def sheetcreatetabgeneric(
             template_id = curr_sheet.worksheet(template_or_meta).id
         # Error when we can't open the curr sheet link
         except gspread.exceptions.APIError as e:
-            error_json = e.response.json()
-            error_status = error_json.get("error", {}).get("status")
-            if error_status == "PERMISSION_DENIED":
-                embed = discord_utils.create_embed()
-                embed.add_field(
-                    name="Failed",
-                    value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
-                    f"Did the permissions change?",
-                    inline=False,
-                )
-                await discord_utils.send_message(ctx, embed)
-                return curr_sheet_link, newsheet
-            else:
-                raise e
+            if not is_permission_denied(e):
+                raise
+            await discord_utils.send_failure(
+                ctx,
+                f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
+                f"Did the permissions change?",
+            )
+            return curr_sheet_link, newsheet
         # Error when the sheet has no template tab
         except gspread.exceptions.WorksheetNotFound:
             embed = discord_utils.create_embed()
@@ -503,34 +501,20 @@ async def sheetcreatetabgeneric(
                 insert_sheet_index=get_new_puzzle_tab_index(curr_sheet.worksheets()),
             )
         except gspread.exceptions.APIError as e:
-            error_json = e.response.json()
-            error_status = error_json.get("error", {}).get("status")
-            if error_status == "PERMISSION_DENIED":
-                embed = discord_utils.create_embed()
-                embed.add_field(
-                    name="Failed",
-                    value=f"Could not duplicate '{template_or_meta}' tab in the "
-                    f"[Google sheet at link]({curr_sheet_link}). "
-                    f"Is the permission set up with 'Anyone with link can edit'?",
-                    inline=False,
-                )
-                await discord_utils.send_message(ctx, embed)
-                return curr_sheet_link, None
-            else:
-                raise e
+            if not is_permission_denied(e):
+                raise
+            await discord_utils.send_failure(
+                ctx,
+                f"Could not duplicate '{template_or_meta}' tab in the "
+                f"[Google sheet at link]({curr_sheet_link}). "
+                f"Is the permission set up with 'Anyone with link can edit'?",
+            )
+            return curr_sheet_link, None
         return curr_sheet_link, newsheet
 
     except gspread.exceptions.APIError as e:
-        if hasattr(e, "response"):
-            error_json = e.response.json()
-            error_message = error_json.get("error", {}).get("message")
-            embed.add_field(
-                name="Failed",
-                value=f"Unknown GSheets API Error - `{error_message}`",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
+        await handle_gspread_error(ctx, e)
+        return curr_sheet_link, None
 
 
 def get_cell_value(rows: list[list[str]], label: str) -> str:
@@ -649,20 +633,14 @@ async def create_puzzle_channel_from_template(
     try:
         curr_sheet = gspread_client.open_by_url(curr_sheet_link)
     except gspread.exceptions.APIError as e:
-        error_json = e.response.json()
-        error_status = error_json.get("error", {}).get("status")
-        if error_status == "PERMISSION_DENIED":
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
-                f"Did the permissions change?",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return None, None, None
-        else:
-            raise e
+        if not is_permission_denied(e):
+            raise
+        await discord_utils.send_failure(
+            ctx,
+            f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
+            f"Did the permissions change?",
+        )
+        return None, None, None
 
     desired_template_tab = (
         f"{template_name.title()} Template"
@@ -728,21 +706,15 @@ async def create_puzzle_channel_from_template(
         )
 
     except gspread.exceptions.APIError as e:
-        error_json = e.response.json()
-        error_status = error_json.get("error", {}).get("status")
-        if error_status == "PERMISSION_DENIED":
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"Could not duplicate '{desired_template_tab}' tab in the "
-                f"[Google sheet at link]({curr_sheet_link}). "
-                f"Is the permission set up with 'Anyone with link can edit'?",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return None, None, None
-        else:
-            raise e
+        if not is_permission_denied(e):
+            raise
+        await discord_utils.send_failure(
+            ctx,
+            f"Could not duplicate '{desired_template_tab}' tab in the "
+            f"[Google sheet at link]({curr_sheet_link}). "
+            f"Is the permission set up with 'Anyone with link can edit'?",
+        )
+        return None, None, None
 
     final_sheet_link = curr_sheet_link + "/edit#gid=" + str(newsheet.id)
 
@@ -1000,17 +972,14 @@ async def get_overview(
     try:
         overview_sheet = OverviewSheet(gspread_client, sheet_link)
     except gspread.exceptions.APIError as e:
-        error_json = e.response.json()
-        error_status = error_json.get("error", {}).get("status")
-        if error_status == "PERMISSION_DENIED":
-            await discord_utils.send_failure(
-                ctx,
-                f"I'm unable to open the tethered [sheet]({sheet_link}). "
-                f"Did the permissions change?",
-            )
-            return None
-        else:
-            raise e
+        if not is_permission_denied(e):
+            raise
+        await discord_utils.send_failure(
+            ctx,
+            f"I'm unable to open the tethered [sheet]({sheet_link}). "
+            f"Did the permissions change?",
+        )
+        return None
     except gspread.exceptions.WorksheetNotFound:
         await discord_utils.send_failure(
             ctx,
@@ -1065,13 +1034,8 @@ async def sheet_move_to_archive(gspread_client, ctx: commands.Context):
                 inline=False,
             )
     except gspread.exceptions.APIError as e:
-        error_json = e.response.json()
-        error_message = error_json.get("error", {}).get("message")
-        embed.add_field(
-            name="Failed",
-            value=f"Google Sheets API Error: `{error_message}`",
-            inline=False,
-        )
+        await handle_gspread_error(ctx, e, embed)
+        return
     except StopIteration:
         embed.add_field(
             name="Failed",
@@ -1126,20 +1090,14 @@ async def batch_create_puzzle_channels(
         await discord_utils.send_message(ctx, embed)
         return []
     except gspread.exceptions.APIError as e:
-        error_json = e.response.json()
-        error_status = error_json.get("error", {}).get("status")
-        if error_status == "PERMISSION_DENIED":
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
-                f"Did the permissions change?",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return []
-        else:
-            raise e
+        if not is_permission_denied(e):
+            raise
+        await discord_utils.send_failure(
+            ctx,
+            f"I'm unable to open the tethered [sheet]({curr_sheet_link}). "
+            f"Did the permissions change?",
+        )
+        return []
     except Exception as e:
         embed = discord_utils.create_embed()
         embed.add_field(
@@ -1210,31 +1168,23 @@ async def batch_create_puzzle_channels(
     try:
         batch_response = spreadsheet.batch_update({"requests": requests})  # noqa: F841
     except gspread.exceptions.APIError as e:
-        error_json = e.response.json()
-        error_status = error_json.get("error", {}).get("status")
-        error_message = error_json.get("error", {}).get("message", "")
+        error_message = e.error.get("message", "")
 
         # Check for duplicate sheet name error
         if "already exists" in error_message:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"One or more sheets already exist with the given names. Error: {error_message}",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"One or more sheets already exist with the given names. Error: {error_message}",
             )
-            await discord_utils.send_message(ctx, embed)
             return []
-        elif error_status == "PERMISSION_DENIED":
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value="Could not duplicate tabs. Is the permission set to 'Anyone with link can edit'?",
-                inline=False,
+        elif is_permission_denied(e):
+            await discord_utils.send_failure(
+                ctx,
+                "Could not duplicate tabs. Is the permission set to 'Anyone with link can edit'?",
             )
-            await discord_utils.send_message(ctx, embed)
             return []
         else:
-            raise e
+            raise
     except Exception as e:
         embed = discord_utils.create_embed()
         embed.add_field(
@@ -1387,17 +1337,8 @@ async def batch_create_puzzle_channels(
     try:
         spreadsheet.batch_update(batch.build())
     except gspread.exceptions.APIError as e:
-        if hasattr(e, "response"):
-            error_json = e.response.json()
-            error_message = error_json.get("error", {}).get("message")
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"Unknown GSheets API Error - `{error_message}`",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-            return []
+        await handle_gspread_error(ctx, e)
+        return []
     except Exception as e:
         embed = discord_utils.create_embed()
         embed.add_field(
