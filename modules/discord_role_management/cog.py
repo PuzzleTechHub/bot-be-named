@@ -44,12 +44,10 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         embed = discord_utils.create_embed()
 
         if isinstance(rolename, nextcord.Member):
-            embed.add_field(
-                name="Failed",
-                value=f"Role name given is same as {rolename.mention}. Did you forget to specify a rolename?",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"Role name given is same as {rolename.mention}. Did you forget to specify a rolename?",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         role_to_assign = await discord_utils.find_role(ctx, rolename)
@@ -67,13 +65,11 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 )
                 is_new_role = True
             except nextcord.Forbidden:
-                embed.add_field(
-                    name="Failed",
-                    value=f"I couldn't find role `{rolename}`, so I tried to make it. But I don't have "
+                await discord_utils.send_failure(
+                    ctx,
+                    f"I couldn't find role `{rolename}`, so I tried to make it. But I don't have "
                     f"permission to add a role in this server. Do I have the `add_roles` permission?",
-                    inline=False,
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
 
         if len(args) > 0 and args[0] == "here":
@@ -91,13 +87,11 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             max_rank_author_roles < all_guild_roles_ranks[role_to_assign]
             and not is_new_role
         ):
-            embed.add_field(
-                name="Failed",
-                value=f"Not allowed! The role you're assigning ({role_to_assign.mention}) is higher than any of your current roles!"
+            await discord_utils.send_failure(
+                ctx,
+                f"Not allowed! The role you're assigning ({role_to_assign.mention}) is higher than any of your current roles!"
                 f"\nPlease contact a server admin to reorder server roles first.",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         users_with_role_list = []
@@ -172,24 +166,20 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         role_to_unassign = await discord_utils.find_role(ctx, rolename)
 
         if not role_to_unassign:
-            embed.add_field(
-                name="Failed",
-                value=f"I can't find role `{rolename}` in this server. Make sure you check the spelling and punctuation!",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"I can't find role `{rolename}` in this server. Make sure you check the spelling and punctuation!",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         if len(args) > 0 and args[0] == "here":
             args = ctx.channel.members
 
         if len(args) < 1:
-            embed.add_field(
-                name="Failed",
-                value="No users provided! You must give at least one user to unassign.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "No users provided! You must give at least one user to unassign.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         # ctx.guild.roles = [@everyone, @bots, @mods, etc] (bottom to top)
@@ -201,13 +191,11 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
         # Role to be unassigned is higher than user's current roles.
         if max_rank_author_roles < all_guild_roles_ranks[role_to_unassign]:
-            embed.add_field(
-                name="Failed",
-                value=f"Not allowed! The role you're unassigning ({role_to_unassign.mention}) is higher than any of your current roles!"
+            await discord_utils.send_failure(
+                ctx,
+                f"Not allowed! The role you're unassigning ({role_to_unassign.mention}) is higher than any of your current roles!"
                 f"\nPlease contact a server admin to reorder server roles first.",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         users_with_role_list = []
@@ -286,12 +274,10 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         newrole_as_role = await discord_utils.find_role(ctx, newrole)
 
         if not oldrole_as_role:
-            embed.add_field(
-                name="Failed",
-                value=f"I couldn't find role `{oldrole}` to clone! Perhaps check your spelling and try again.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"I couldn't find role `{oldrole}` to clone! Perhaps check your spelling and try again.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         # Cannot find the role, so we'll make one
@@ -310,13 +296,11 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                     inline=False,
                 )
             except nextcord.Forbidden:
-                embed.add_field(
-                    name="Failed",
-                    value=f"I tried to make `{newrole}`, but I don't have "
+                await discord_utils.send_failure(
+                    ctx,
+                    f"I tried to make `{newrole}`, but I don't have "
                     f"permission to add a role in this server. Do I have the `add_roles` permission?",
-                    inline=False,
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
         else:
             try:
@@ -331,13 +315,11 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                     inline=False,
                 )
             except nextcord.Forbidden:
-                embed.add_field(
-                    name="Failed",
-                    value=f"I tried to edit {newrole_as_role.mention}, but I don't have "
+                await discord_utils.send_failure(
+                    ctx,
+                    f"I tried to edit {newrole_as_role.mention}, but I don't have "
                     f"permission to edit a role in this server. Do I have the `manage_roles` permission?",
-                    inline=False,
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
         await discord_utils.send_message(ctx, embed)
 
@@ -357,12 +339,10 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         role_to_delete = await discord_utils.find_role(ctx, rolename)
 
         if role_to_delete is None:
-            embed.add_field(
-                name="Failed",
-                value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         # Delete the role or error if it didn't work.
@@ -377,12 +357,10 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             await discord_utils.send_message(ctx, embed)
             return
         except nextcord.Forbidden:
-            embed.add_field(
-                name="Failed",
-                value="I don't have permission to add or remove a role in this server. Do I have the `add_roles` permission?",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "I don't have permission to add or remove a role in this server. Do I have the `add_roles` permission?",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
     @commands.command(name="listroles", aliases=["lsroles", "listrole", "lsrole"])
@@ -413,12 +391,10 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         role_to_list = await discord_utils.find_role(ctx, rolename)
 
         if role_to_list is None:
-            embed.add_field(
-                name="Failed",
-                value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         allusers = f"{', '.join([user.mention for user in role_to_list.members])}"
@@ -455,12 +431,10 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         role_to_list = await discord_utils.find_role(ctx, rolename)
 
         if role_to_list is None:
-            embed.add_field(
-                name="Failed",
-                value=f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"I can't find `{rolename}` in this server. Make sure you check the spelling and punctuation!",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         members_to_remove = set()
