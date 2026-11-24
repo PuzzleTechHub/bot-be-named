@@ -250,10 +250,12 @@ async def test_update_puzzle_status_permission_denied_returns_false():
     ok = await solved_utils.update_puzzle_status(ctx, sheet, ROW, "Solved")
 
     assert ok is False
-    # Unchanged from ~statuslion before the move: it still renames the channel
-    # and shows Success after the Failed field.
-    assert channel.edits == ["solved-puzzle-1"]
-    assert _field_names(ctx)[0] == "Failed"
+    assert channel.edits == []
+    assert ctx.message.reactions == []
+    [embed] = ctx.sent_embeds
+    [field] = embed.fields
+    assert field.name == "Failed"
+    assert "permission was denied" in field.value
 
 
 async def test_update_puzzle_status_other_api_error_reports_and_returns_false():

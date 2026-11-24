@@ -67,7 +67,6 @@ async def update_puzzle_status(
     status = sheet_utils.normalize_status(status)
     status_info = get_status_info(status)
     embed = discord_utils.create_embed()
-    sheet_updated = True
 
     try:
         status_col = overview_sheet.get_cell_value(
@@ -97,19 +96,9 @@ async def update_puzzle_status(
         color = status_info.get("color")
         batch_update_builder.color_update(tab_id, color)
 
-        try:
-            overview_sheet.worksheet.spreadsheet.batch_update(
-                batch_update_builder.build()
-            )
-        except gspread.exceptions.APIError as e:
-            if not sheet_utils.is_permission_denied(e):
-                raise
-            sheet_updated = False
-            embed.add_field(
-                name="Failed",
-                value="Could not update the sheet.",
-                inline=False,
-            )
+        # An API error here (permission denied included) goes to the except
+        # at the bottom. On failure the channel is not renamed.
+        overview_sheet.worksheet.spreadsheet.batch_update(batch_update_builder.build())
 
         embed.add_field(
             name="Success",
@@ -128,7 +117,7 @@ async def update_puzzle_status(
             )
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
             await discord_utils.send_message(ctx, embed)
-            return sheet_updated
+            return True
 
         new_embed = None
         if past_prefix and not add_prefix:
@@ -141,7 +130,7 @@ async def update_puzzle_status(
 
         await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
         await discord_utils.send_message(ctx, embed)
-        return sheet_updated
+        return True
 
     except gspread.exceptions.APIError as e:
         await sheet_utils.handle_gspread_error(ctx, e)
