@@ -70,7 +70,8 @@ class LookupCog(commands.Cog, name="Lookup"):
                 errA = [m.start() for m in re.finditer("<b>", text1)]
                 errB = [m.start() for m in re.finditer("</b>", text1)]
                 finalend = text1[errA[-1] + 3 : errB[-1]]
-            except:
+            except IndexError:
+                # No bolded message at the end of this page
                 pass
 
         # prep solution and weights for paginator

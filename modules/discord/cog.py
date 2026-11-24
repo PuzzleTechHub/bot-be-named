@@ -359,13 +359,13 @@ class DiscordCog(commands.Cog, name="Discord"):
                                 value=f"Error adding `:{name}:` to server. Do I have the correct permissions to manage emotes in this server?",
                             )
                             await ses.close()
-                        except:
+                        except nextcord.HTTPException:
                             embed.add_field(
                                 name="Failed",
                                 value=f"Could not add `:{name}:` to server. Do you have any emote slots left?",
                             )
                             await ses.close()
-                    except:
+                    except aiohttp.ClientError:
                         embed.add_field(
                             name="Failed",
                             value=f"Could not find emote `:{name}:`.",

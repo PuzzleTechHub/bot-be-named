@@ -1,11 +1,6 @@
 [tool.ruff]
 target-version = "py312"
 
-[tool.ruff.lint]
-extend-ignore = [
-  "E722"  # Strictly, should properly catch exceptions...
-]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
