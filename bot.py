@@ -27,6 +27,8 @@ def get_prefix(client, message):
 
 
 def main():
+    database.load_all()
+
     intents = nextcord.Intents.default()
     intents.members = True
     intents.message_content = True

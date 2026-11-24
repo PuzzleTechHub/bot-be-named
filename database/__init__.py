@@ -22,10 +22,33 @@ from database.database_utils import (
     get_channel_mirrors,
 )
 
-PREFIXES = get_prefixes()
-VERIFIEDS = get_verifieds()
-TRUSTEDS = get_trusteds()
-SOLVERS = get_solvers()
-TESTERS = get_testers()
-CUSTOM_COMMANDS = get_custom_commands()
-CHANNEL_MIRRORS = get_channel_mirrors()
+from database.models import Base
+
+# These are in-memory caches which will be filled by load_all(). Importing this package doesn't touch the database.
+PREFIXES: dict = {}
+VERIFIEDS: dict = {}
+TRUSTEDS: dict = {}
+SOLVERS: dict = {}
+TESTERS: dict = {}
+CUSTOM_COMMANDS: dict = {}
+CHANNEL_MIRRORS: dict = {}
+
+
+def load_all():
+    """Create any missing tables, then fill every cache from the database.
+
+    The caches are refilled in place, so code holding a reference to one sees the new contents.
+    """
+    Base.metadata.create_all(DATABASE_ENGINE)
+    for cache, loader in (
+        (PREFIXES, get_prefixes),
+        (VERIFIEDS, get_verifieds),
+        (TRUSTEDS, get_trusteds),
+        (SOLVERS, get_solvers),
+        (TESTERS, get_testers),
+        (CUSTOM_COMMANDS, get_custom_commands),
+        (CHANNEL_MIRRORS, get_channel_mirrors),
+    ):
+        fresh = loader()
+        cache.clear()
+        cache.update(fresh)

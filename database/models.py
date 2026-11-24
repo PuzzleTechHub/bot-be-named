@@ -9,6 +9,7 @@ uri = os.getenv("DATABASE_URL")
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 
+# Connecting is held off. SQLAlchemy only connects on first use. Tables are created in database.load_all().
 DATABASE_ENGINE = create_engine(uri, echo=False, future=True)
 Base = declarative_base()
 
@@ -88,6 +89,3 @@ class ChannelMirrors(Base):
     source_channel_name = Column(String)
     target_channel_id = Column(BIGINT, primary_key=True)
     target_channel_name = Column(String)
-
-
-Base.metadata.create_all(DATABASE_ENGINE)

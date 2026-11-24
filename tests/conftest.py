@@ -20,6 +20,7 @@ import database  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 assert database.DATABASE_ENGINE.dialect.name == "sqlite"
+database.load_all()
 
 
 @pytest.fixture(autouse=True)

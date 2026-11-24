@@ -1,0 +1,127 @@
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+from sqlalchemy.orm import Session
+
+import database
+
+REPO = Path(__file__).parent.parent
+CACHES = [
+    "PREFIXES",
+    "VERIFIEDS",
+    "TRUSTEDS",
+    "SOLVERS",
+    "TESTERS",
+    "CUSTOM_COMMANDS",
+    "CHANNEL_MIRRORS",
+]
+TABLES = [
+    database.Prefixes,
+    database.Verifieds,
+    database.CustomCommands,
+    database.ChannelMirrors,
+]
+
+
+@pytest.fixture
+def clean_tables():
+    """Empty the tables load_all reads, and reload the caches afterwards."""
+
+    def wipe():
+        with Session(database.DATABASE_ENGINE) as session:
+            for table in TABLES:
+                session.query(table).delete()
+            session.commit()
+
+    wipe()
+    yield
+    wipe()
+    database.load_all()
+
+
+def add_rows():
+    with Session(database.DATABASE_ENGINE) as session:
+        session.add(database.Prefixes(server_id=1, server_name="s", prefix="!"))
+        for role_id, permissions in [
+            (10, "Verified"),
+            (11, "Verified"),
+            (20, "Trusted"),
+        ]:
+            session.add(
+                database.Verifieds(
+                    server_id=1,
+                    server_name="s",
+                    role_id=role_id,
+                    role_name="r",
+                    permissions=permissions,
+                    role_id_permissions=f"{role_id}_{permissions}",
+                )
+            )
+        session.add(
+            database.CustomCommands(
+                server_id=1,
+                server_name="s",
+                server_id_command="1 hello",
+                command_name="Hello",
+                command_return="hi",
+                image=False,
+                responses=None,
+            )
+        )
+        session.add(
+            database.ChannelMirrors(
+                server_id=1,
+                server_name="s",
+                source_channel_id=100,
+                source_channel_name="a",
+                target_channel_id=200,
+                target_channel_name="b",
+            )
+        )
+        session.commit()
+
+
+def test_load_all_fills_caches(clean_tables):
+    add_rows()
+    database.load_all()
+    assert database.PREFIXES == {1: "!"}
+    assert database.VERIFIEDS == {1: [10, 11]}
+    assert database.TRUSTEDS == {1: [20]}
+    assert database.SOLVERS == {}
+    assert database.TESTERS == {}
+    assert database.CUSTOM_COMMANDS == {1: {"hello": ("hi", False, None)}}
+    assert database.CHANNEL_MIRRORS == {100: {200}}
+
+
+def test_load_all_refills_the_same_dicts(clean_tables):
+    before = {name: getattr(database, name) for name in CACHES}
+    database.PREFIXES[999] = "stale"
+    add_rows()
+    database.load_all()
+    for name in CACHES:
+        assert getattr(database, name) is before[name]
+    assert 999 not in database.PREFIXES
+    assert database.PREFIXES == {1: "!"}
+
+
+def test_importing_does_not_touch_the_database():
+    cogs = sorted(
+        f"modules.{p.parent.name}.cog" for p in (REPO / "modules").glob("*/cog.py")
+    )
+    code = (
+        "import importlib, database\nfor m in %r:\n    importlib.import_module(m)\n"
+        % cogs
+    )
+    env = dict(os.environ, DATABASE_URL="postgresql://nobody:nothing@127.0.0.1:1/none")
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=REPO,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    assert result.returncode == 0, result.stderr
