@@ -9,7 +9,6 @@ uri = os.getenv("DATABASE_URL")
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 
-print(uri)
 DATABASE_ENGINE = create_engine(uri, echo=False, future=True)
 Base = declarative_base()
 
