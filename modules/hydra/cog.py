@@ -16,6 +16,7 @@ from utils import (
     command_predicates,
     sheets_constants,
     sheet_utils,
+    solved_utils,
 )
 from modules.hydra.hydra_utils import summary_utils
 from utils.sheet_command_base import SheetCommandBase
@@ -1388,20 +1389,13 @@ class HydraCog(commands.Cog, name="Hydra"):
         )
 
         new_status = sheet_utils.normalize_status(status)
-        was_solve = prev_status in sheets_constants.solve_statuses
-        is_solve = new_status in sheets_constants.solve_statuses
+        was_solve = solved_utils.is_solve_status(prev_status)
+        is_solve = solved_utils.is_solve_status(new_status)
+        new_value = solved_utils.solved_time_value(
+            prev_status, new_status, has_solved_time, sheet_utils.get_timestamp()
+        )
 
-        # From non-solve to solve makes a timestamp,
-        # From solve to non-solve clears the timestamp.
-        # Going between solves (e.g. Solved -> Backsolved) keeps the original time
-        # ... and going between non-solves clears leftover timestamps.
-        new_value = None
-        if is_solve and not was_solve:
-            new_value = sheet_utils.get_timestamp()
-        elif not is_solve and has_solved_time:
-            new_value = ""
-
-        # Timestamp before lion, as channel renaming can get rate limited
+        # Timestamp before the status update, as channel renaming can get rate limited
         if new_value is not None:
             batch = batch_update_utils.BatchUpdateBuilder()
             batch.update_cell_by_label(
@@ -1415,10 +1409,11 @@ class HydraCog(commands.Cog, name="Hydra"):
                 await sheet_utils.handle_gspread_error(ctx, e)
                 return
 
-        statuslion = self.bot.get_command("statuslion")
-        await statuslion(ctx, status, answer)
+        sheet_updated = await solved_utils.update_puzzle_status(
+            ctx, overview_sheet, row_to_find, status, answer
+        )
 
-        if is_solve and not was_solve:
+        if sheet_updated and is_solve and not was_solve:
             await self.post_solve_to_channel(
                 ctx, overview_sheet, row_to_find, status_col, answer
             )

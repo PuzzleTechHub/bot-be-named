@@ -126,115 +126,19 @@ class LionCog(commands.Cog, name="Lion"):
         Usage: ~statuslion solved "answer"
         Usage: ~statuslion "custom-update-string" "answer"
         """
-        status = sheet_utils.normalize_status(status)
-        embed = discord_utils.create_embed()
-
         try:
-            status_info = sheets_constants.status_dict.get(status)
-
-            # If something other than known strings (Custom status)
-            if status_info is None:
-                status_info = sheets_constants.status_dict.get("None")
-
-            # Find tethered sheet
             base = SheetCommandBase(ctx, self.gspread_client)
             _, overview_sheet, row_to_find = await base.get_sheet_context()
-
-            if overview_sheet is None:
-                return
-
-            status_col = overview_sheet.get_cell_value(
-                sheets_constants.STATUS_COLUMN_LOCATION
-            )
-
-            tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
-            tab_cell_label = sheets_constants.SHEET_TAB_ID_COLUMN + str(row_to_find)
-            tab_id = overview_sheet.get_cell_value(tab_cell_label)
-            puzzle_tab = overview_sheet.spreadsheet.get_worksheet_by_id(int(tab_id))
-
-            batch_update_builder = batch_update_utils.BatchUpdateBuilder()
-
-            if answer is not None and status_info.get("update_ans"):
-                batch_update_builder.update_cell_by_label(
-                    puzzle_tab.id, tab_ans_loc, answer.upper()
-                )
-            elif not status_info.get("update_ans"):
-                batch_update_builder.update_cell_by_label(
-                    puzzle_tab.id, tab_ans_loc, ""
-                )
-
-            curr_status = overview_sheet.get_cell_value(status_col + str(row_to_find))
-            curr_stat_info = sheets_constants.status_dict.get(curr_status)
-
-            if curr_stat_info is None:
-                curr_stat_info = sheets_constants.status_dict.get("None")
-
-            batch_update_builder.update_cell_by_label(
-                overview_sheet.worksheet.id, status_col + str(row_to_find), status
-            )
-
-            color = status_info.get("color")
-            batch_update_builder.color_update(tab_id, color)
-
-            try:
-                overview_sheet.worksheet.spreadsheet.batch_update(
-                    batch_update_builder.build()
-                )
-            except gspread.exceptions.APIError as e:
-                error_json = e.response.json()
-                error_status = error_json.get("error", {}).get("status")
-                if error_status == "PERMISSION_DENIED":
-                    embed.add_field(
-                        name="Failed",
-                        value="Could not update the sheet.",
-                        inline=False,
-                    )
-                else:
-                    raise e
-
-            embed.add_field(
-                name="Success",
-                value="The sheet was successfully updated.",
-                inline=False,
-            )
-
-            add_prefix = status_info.get("prefix")
-            past_prefix = curr_stat_info.get("prefix")
-
-            if status == curr_status:
-                embed.add_field(
-                    name="Note",
-                    value=f"The puzzle status was already set to `{status}`. No changes were made.",
-                    inline=False,
-                )
-                await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
-                await discord_utils.send_message(ctx, embed)
-                return
-
-            if add_prefix:
-                prefix_name = status_info.get("prefix_name")
-
-            if past_prefix and not add_prefix:
-                new_embed = await solved_utils.status_remove(ctx)
-                embed = discord_utils.merge_embed(embed, new_embed)
-            if add_prefix:
-                new_embed = await solved_utils.status_channel(ctx, prefix_name)
-                embed = discord_utils.merge_embed(embed, new_embed)
-
-            await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
-            await discord_utils.send_message(ctx, embed)
-
         except gspread.exceptions.APIError as e:
-            if hasattr(e, "response"):
-                error_json = e.response.json()
-                error_message = error_json.get("error", {}).get("message")
-                embed.add_field(
-                    name="Failed",
-                    value=f"Unknown GSheets API Error - `{error_message}`",
-                    inline=False,
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
+            await solved_utils.send_api_error(ctx, e)
+            return
+
+        if overview_sheet is None:
+            return
+
+        await solved_utils.update_puzzle_status(
+            ctx, overview_sheet, row_to_find, status, answer
+        )
 
     async def sheetmta_generic(self, ctx: commands.Context):
         """Just handles the sheet aspect of mtalion, moving the tab associated with ctx.channel to the end of the sheet"""
