@@ -628,13 +628,11 @@ class LionCog(commands.Cog, name="Lion"):
             await discord_utils.send_message(ctx, embed)
         # If we can't open the sheet, send an error and return
         else:
-            embed.add_field(
-                name="Failed",
-                value="Sorry, we can't find a sheet there. "
+            await discord_utils.send_failure(
+                ctx,
+                "Sorry, we can't find a sheet there. "
                 "Did you forget to set your sheet as 'Anyone with the link can edit'?",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
 

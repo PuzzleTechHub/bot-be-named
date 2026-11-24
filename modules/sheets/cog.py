@@ -77,13 +77,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await discord_utils.send_message(ctx, embed)
         # If we can't open the sheet, send an error and return
         else:
-            embed.add_field(
-                name="Failed",
-                value="Sorry, we can't find a sheet there. "
+            await discord_utils.send_failure(
+                ctx,
+                "Sorry, we can't find a sheet there. "
                 "Did you forget to set your sheet as 'Anyone with the link can edit'?",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
     @command_predicates.is_solver()
@@ -127,13 +125,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
             await discord_utils.send_message(ctx, embed)
         # If we can't open the sheet, send an error and return
         else:
-            embed.add_field(
-                name="Failed",
-                value="Sorry, we can't find a sheet there. "
+            await discord_utils.send_failure(
+                ctx,
+                "Sorry, we can't find a sheet there. "
                 "Did you forget to set your sheet as 'Anyone with the link can edit'?",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
     @command_predicates.is_solver()
@@ -214,21 +210,17 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 )
             await discord_utils.send_message(ctx, embed)
         elif curr_cat is None:
-            embed.add_field(
-                name="Failed",
-                value=f"The channel {curr_chan.mention} is not tethered to any Google sheet.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"The channel {curr_chan.mention} is not tethered to any Google sheet.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
         else:
-            embed.add_field(
-                name="Failed",
-                value=f"The category **{curr_cat}** or the channel {curr_chan.mention} "
+            await discord_utils.send_failure(
+                ctx,
+                f"The category **{curr_cat}** or the channel {curr_chan.mention} "
                 f"are not tethered to any Google sheet.",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
     @command_predicates.is_bot_owner_or_admin()
@@ -320,21 +312,17 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 )
             await discord_utils.send_message(ctx, embed)
         elif curr_cat is None:
-            embed.add_field(
-                name="Failed",
-                value=f"The channel {curr_chan.mention} is not tethered to any Google sheet.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"The channel {curr_chan.mention} is not tethered to any Google sheet.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
         else:
-            embed.add_field(
-                name="Failed",
-                value=f"Neither the category **{curr_cat}** nor the channel {curr_chan.mention} "
+            await discord_utils.send_failure(
+                ctx,
+                f"Neither the category **{curr_cat}** nor the channel {curr_chan.mention} "
                 f"are tethered to any Google sheet.",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
     @command_predicates.is_solver()
