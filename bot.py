@@ -1,4 +1,6 @@
+import asyncio
 import os
+import time
 import constants
 import sqlalchemy
 import nextcord
@@ -35,7 +37,10 @@ def main():
         case_insensitive=True,
         # Everyone in BOT_OWNER_DISCORD_ID will have bot owner permissions
         owner_ids=set(discord_utils.bot_owner_ids()) or None,
+        # Don't wait for member lists at startup, on_ready fetches them in the background
+        chunk_guilds_at_startup=False,
     )
+    background_tasks = set()
 
     # Get the modules of all cogs whose directory structure is modules/<module_name>/cog.py
     for folder in os.listdir("modules"):
@@ -84,6 +89,23 @@ def main():
             constants.DEFAULT_COMMANDS.append(command.qualified_name.lower())
             for alias in command.aliases:
                 constants.DEFAULT_COMMANDS.append(alias.lower())
+
+        # on_ready can fire again after a reconnect, make sure only one fetch runs at a time
+        if not background_tasks:
+            task = asyncio.create_task(fetch_all_members(list(client.guilds)))
+            # Keep a reference so the task isn't garbage collected
+            background_tasks.add(task)
+            task.add_done_callback(background_tasks.discard)
+
+    async def fetch_all_members(guilds):
+        """Fetch every guild's member list in the background, after on_ready"""
+        start = time.monotonic()
+        failed = await discord_utils.chunk_all_guilds(guilds)
+        logging_utils.print_with_timestamp(
+            f"Fetched member lists for {len(guilds) - len(failed)}/{len(guilds)} guilds "
+            f"in {time.monotonic() - start:.1f} s"
+            + (f". Failed: {', '.join(g.name for g in failed)}" if failed else "")
+        )
 
     @client.event
     async def on_guild_join(guild: nextcord.Guild):

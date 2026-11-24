@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 import nextcord
@@ -593,6 +594,47 @@ async def find_role(
     return None
 
 
+# The bot starts with chunk_guilds_at_startup=False, so a guild's member list can be incomplete
+# until it's fetched. chunk_all_guilds() fetches them in the background after on_ready, and
+# commands that read guild/role/channel .members call ensure_members_cached() first in case
+# that hasn't reached their guild yet.
+MEMBER_FETCH_TIMEOUT = 60
+
+
+async def ensure_members_cached(guild: Optional[nextcord.Guild]) -> bool:
+    """Make sure the guild's full member list is cached, fetching it from Discord if needed.
+
+    Arguments:
+        - guild (nextcord.Guild): The guild, or None (in DMs)
+    Returns:
+        - bool: True if the member list is complete, False if fetching failed or timed out
+        (the command then carries on with whatever members are cached)."""
+    if guild is None or guild.chunked:
+        return True
+    try:
+        await asyncio.wait_for(guild.chunk(), timeout=MEMBER_FETCH_TIMEOUT)
+    except (asyncio.TimeoutError, nextcord.ClientException):
+        return False
+    return True
+
+
+async def chunk_all_guilds(guilds: List[nextcord.Guild]) -> List[nextcord.Guild]:
+    """Fetch the member list of every guild that isn't fully cached yet, one guild at a time.
+
+    Arguments:
+        - guilds (List[nextcord.Guild]): The guilds to fetch
+    Returns:
+        - List[nextcord.Guild]: The guilds whose member list couldn't be fetched"""
+    failed = []
+    for guild in guilds:
+        try:
+            if not await ensure_members_cached(guild):
+                failed.append(guild)
+        except Exception:  # Don't let one guild stop the rest
+            failed.append(guild)
+    return failed
+
+
 async def find_user(
     ctx: commands.Context, user_name: Union[nextcord.Member, str]
 ) -> nextcord.Role:
@@ -605,6 +647,7 @@ async def find_user(
 
     if (isinstance(user_name, nextcord.Member)) or user_name is None:
         return user_name
+    await ensure_members_cached(ctx.guild)
     guild_users = ctx.guild.members
     for user in guild_users:
         # Not quite sure the difference between user.name and user.display_name, probably waiting on nextcord 3.0 to hash this

@@ -148,6 +148,13 @@ class FakeGuild:
         self.name = name
         self.roles = list(roles)
         self.categories = list(categories)
+        # Member list fully cached? chunk() "fetches" it and counts the calls.
+        self.chunked = True
+        self.chunk_calls = 0
+
+    async def chunk(self):
+        self.chunk_calls += 1
+        self.chunked = True
 
     def get_role(self, role_id):
         return next((role for role in self.roles if role.id == role_id), None)

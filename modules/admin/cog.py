@@ -317,6 +317,8 @@ class AdminCog(commands.Cog, name="Admin"):
             await discord_utils.send_message(ctx, embed)
             return
 
+        await discord_utils.ensure_members_cached(guild_1_guild)
+        await discord_utils.ensure_members_cached(guild_2_guild)
         members_guild_1 = guild_1_guild.members
         members_guild_2 = guild_2_guild.members
 

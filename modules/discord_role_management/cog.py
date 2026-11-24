@@ -73,6 +73,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
                 return
 
         if len(args) > 0 and args[0] == "here":
+            await discord_utils.ensure_members_cached(ctx.guild)
             args = ctx.channel.members
 
         # ctx.guild.roles = [@everyone, @bots, @mods, etc] (bottom to top)
@@ -173,6 +174,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             return
 
         if len(args) > 0 and args[0] == "here":
+            await discord_utils.ensure_members_cached(ctx.guild)
             args = ctx.channel.members
 
         if len(args) < 1:
@@ -397,6 +399,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             )
             return
 
+        await discord_utils.ensure_members_cached(ctx.guild)
         allusers = f"{', '.join([user.mention for user in role_to_list.members])}"
         if allusers == "":
             allusers = "(This role has no members)"
@@ -437,6 +440,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
             )
             return
 
+        await discord_utils.ensure_members_cached(ctx.guild)
         members_to_remove = set()
         for name in args:
             if isinstance(name, nextcord.Member):
@@ -485,6 +489,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         """
         embed = discord_utils.create_embed()
 
+        await discord_utils.ensure_members_cached(ctx.guild)
         members = []
         if len(args) > 0 and args[0] == "here":
             members = ctx.channel.members

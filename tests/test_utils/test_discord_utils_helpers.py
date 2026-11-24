@@ -1,3 +1,4 @@
+import asyncio
 from types import SimpleNamespace
 
 import nextcord
@@ -172,6 +173,66 @@ async def test_find_user_missing_names_and_not_found():
     ctx = _ctx(members=[_member("solver")])
     assert await discord_utils.find_user(ctx, "nobody") is None
     assert await discord_utils.find_user(ctx, None) is None
+
+
+async def test_find_user_fetches_member_list_first():
+    ctx = _ctx(members=[_member("solver")], chunked=False)
+    assert await discord_utils.find_user(ctx, "solver") is not None
+    assert ctx.guild.chunk_calls == 1
+
+
+# ensure_members_cached / chunk_all_guilds
+
+
+async def test_ensure_members_cached_skips_dms_and_cached_guilds():
+    guild = FakeGuild()
+    assert await discord_utils.ensure_members_cached(None) is True
+    assert await discord_utils.ensure_members_cached(guild) is True
+    assert guild.chunk_calls == 0
+
+
+async def test_ensure_members_cached_fetches_uncached_guild():
+    guild = FakeGuild()
+    guild.chunked = False
+    assert await discord_utils.ensure_members_cached(guild) is True
+    assert guild.chunk_calls == 1
+    # Now cached, so no second fetch
+    assert await discord_utils.ensure_members_cached(guild) is True
+    assert guild.chunk_calls == 1
+
+
+async def test_ensure_members_cached_timeout(monkeypatch):
+    async def never_answers():
+        await asyncio.sleep(10)
+
+    monkeypatch.setattr(discord_utils, "MEMBER_FETCH_TIMEOUT", 0.01)
+    guild = FakeGuild()
+    guild.chunked = False
+    guild.chunk = never_answers
+    assert await discord_utils.ensure_members_cached(guild) is False
+
+
+async def test_ensure_members_cached_without_members_intent():
+    async def no_intent():
+        raise nextcord.ClientException("Intents.members must be enabled to use this.")
+
+    guild = FakeGuild()
+    guild.chunked = False
+    guild.chunk = no_intent
+    assert await discord_utils.ensure_members_cached(guild) is False
+
+
+async def test_chunk_all_guilds_carries_on_after_a_failure():
+    async def broken():
+        raise RuntimeError("gateway closed")
+
+    guilds = [FakeGuild(i, f"Guild {i}") for i in range(3)]
+    for guild in guilds:
+        guild.chunked = False
+    guilds[1].chunk = broken
+    assert await discord_utils.chunk_all_guilds(guilds) == [guilds[1]]
+    assert guilds[0].chunk_calls == 1
+    assert guilds[2].chunk_calls == 1
 
 
 async def test_find_guild():
