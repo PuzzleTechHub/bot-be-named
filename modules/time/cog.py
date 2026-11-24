@@ -43,12 +43,10 @@ class TimeCog(commands.Cog, name="Time"):
         timezone_dict = self.get_tz(location)
         # Unable to find the location in the geonames database
         if timezone_dict is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Cannot find location `{location}`!",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"Cannot find location `{location}`!",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         names = ["Location", "Timezone", "Current Time"]

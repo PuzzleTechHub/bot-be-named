@@ -58,13 +58,10 @@ async def send_api_error(ctx: commands.Context, e: gspread.exceptions.APIError):
     if hasattr(e, "response"):
         error_json = e.response.json()
         error_message = error_json.get("error", {}).get("message")
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name="Failed",
-            value=f"Unknown GSheets API Error - `{error_message}`",
-            inline=False,
+        await discord_utils.send_failure(
+            ctx,
+            f"Unknown GSheets API Error - `{error_message}`",
         )
-        await discord_utils.send_message(ctx, embed)
 
 
 async def update_puzzle_status(
@@ -209,11 +206,10 @@ async def status_channel(ctx: commands.Context, status_prefix):
         try:
             await ctx.channel.edit(name=new_channel_name)
         except nextcord.Forbidden:
-            embed.add_field(
-                name="Failed",
-                value=f"Unable to prepend `{status_prefix}` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?",
+            await discord_utils.send_failure(
+                ctx,
+                f"Unable to prepend `{status_prefix}` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?",
             )
-            await discord_utils.send_message(ctx, embed)
             return
         embed.add_field(
             name="Success",

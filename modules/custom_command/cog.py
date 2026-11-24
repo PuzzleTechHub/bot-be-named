@@ -599,11 +599,10 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             ) and command_name in database.CUSTOM_COMMANDS.get(constants.DB_GLOBAL, {}):
                 guild_id = constants.DB_GLOBAL
             else:
-                embed.add_field(
-                    name="Failed",
-                    value=f"The command `{ctx.prefix}{command_name}` does not exist in `{ctx.guild.name}`.",
+                await discord_utils.send_failure(
+                    ctx,
+                    f"The command `{ctx.prefix}{command_name}` does not exist in `{ctx.guild.name}`.",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
 
         command_return, is_image, responses = database.CUSTOM_COMMANDS[guild_id][
@@ -614,20 +613,18 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         # command_return as the one response.
         responses = list(responses or [command_return])
         if not 1 <= response_number <= len(responses):
-            embed.add_field(
-                name="Failed",
-                value=f"`{ctx.prefix}{command_name}` does not have a response number `{response_number}`."
+            await discord_utils.send_failure(
+                ctx,
+                f"`{ctx.prefix}{command_name}` does not have a response number `{response_number}`."
                 f" `{ctx.prefix}{command_name}` only has {len(responses)} response{'s' if len(responses) > 1 else ''}.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
         if len(responses) == 1:
-            embed.add_field(
-                name="Failed",
-                value=f"`{ctx.prefix}{command_name}` only has one response, so it can't be removed. "
+            await discord_utils.send_failure(
+                ctx,
+                f"`{ctx.prefix}{command_name}` only has one response, so it can't be removed. "
                 f"Use `{ctx.prefix}rmcc {command_name}` to delete the command instead.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         responses.pop(response_number - 1)

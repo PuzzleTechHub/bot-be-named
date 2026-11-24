@@ -534,13 +534,10 @@ class HydraCog(commands.Cog, name="Hydra"):
         """
         arg_list = shlex.split(args)
         if len(arg_list) < 2 or len(arg_list) > 4:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value="Invalid arguments. Usage: `~anychanhydra [puzzle name] [template name] [puzzle url (optional)] [notes (optional)]`",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "Invalid arguments. Usage: `~anychanhydra [puzzle name] [template name] [puzzle url (optional)] [notes (optional)]`",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         puzzle_name = arg_list[0]
@@ -576,14 +573,11 @@ class HydraCog(commands.Cog, name="Hydra"):
             parse_error = ""
 
         if len(arg_list) < 1 or len(arg_list) > 3:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"Invalid arguments{parse_error}. Usage: "
+            await discord_utils.send_failure(
+                ctx,
+                f"Invalid arguments{parse_error}. Usage: "
                 f"`~{ctx.invoked_with} [puzzle name] [puzzle url (optional)] [notes (optional)]`",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         puzzle_name = arg_list[0]
@@ -747,12 +741,10 @@ class HydraCog(commands.Cog, name="Hydra"):
         content = content.strip()
 
         if not content:
-            embed.add_field(
-                name="Failed",
-                value="You need to provide at least a puzzle name.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "You need to provide at least a puzzle name.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         # Parse all puzzle configurations
@@ -1010,13 +1002,10 @@ class HydraCog(commands.Cog, name="Hydra"):
                         return
                 else:
                     # Fallback
-                    fallback_embed = discord_utils.create_embed()
-                    fallback_embed.add_field(
-                        name="Failed",
-                        value="Could not find archivechannel command. Continuing without archiving.",
-                        inline=False,
+                    await discord_utils.send_failure(
+                        ctx,
+                        "Could not find archivechannel command. Continuing without archiving.",
                     )
-                    await discord_utils.send_message(ctx, fallback_embed)
 
                 # 2. Get overview and find the row for this channel
                 overview_sheet = await sheet_utils.get_overview(

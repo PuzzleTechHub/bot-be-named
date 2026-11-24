@@ -56,13 +56,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
         embed = discord_utils.create_embed()
 
         if ctx.channel.category is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Sorry, tether is used for categories, there is no category for this channel. "
+            await discord_utils.send_failure(
+                ctx,
+                f"Sorry, tether is used for categories, there is no category for this channel. "
                 f"Consider adding a category to this channel or using `{ctx.prefix}chantether`",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         proposed_sheet = sheet_utils.addsheettethergeneric(
@@ -348,8 +346,6 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Permission Category : Solver Roles only.
         Usage: `~savesheet`
         """
-        embed = discord_utils.create_embed()
-
         http = self.gdrive_credentials.authorize(httplib2.Http())
         service = discovery.build("drive", "v3", http=http)
 
@@ -358,25 +354,22 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 ctx.channel.id, ctx.channel.category.id
             )
             if tether_db_result is None:
-                embed.add_field(
-                    name="Failed",
-                    value=f"There is no sheet tethered to {ctx.channel.mention} or the "
+                await discord_utils.send_failure(
+                    ctx,
+                    f"There is no sheet tethered to {ctx.channel.mention} or the "
                     f"**{ctx.channel.category.name}** category. You'll need to supply a sheet link "
                     f"for me to download.",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
             sheet_url = tether_db_result.sheet_link
 
         sheet = sheet_utils.get_sheet_from_key_or_link(self.gspread_client, sheet_url)
         if sheet is None:
-            embed.add_field(
-                name="Failed",
-                value="I can't find that sheet. Are you sure the link is a valid sheet with permissions set to "
+            await discord_utils.send_failure(
+                ctx,
+                "I can't find that sheet. Are you sure the link is a valid sheet with permissions set to "
                 "'Anyone with the link can edit'?",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         try:
@@ -385,12 +378,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
             )
             response = request.execute()
         except googleapiclient.errors.HttpError:
-            embed.add_field(
-                name="Failed",
-                value="Sorry, your sheet is too large and cannot be downloaded.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "Sorry, your sheet is too large and cannot be downloaded.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         download_dir = "saved_sheets"
@@ -406,15 +397,12 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     file_size
                     > ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE
                 ):
-                    embed = discord_utils.create_embed()
-                    embed.add_field(
-                        name="Failed",
-                        value=f"Sorry, your sheet is {(file_size / constants.BYTES_TO_MEGABYTES):.2f}MB big, "
+                    await discord_utils.send_failure(
+                        ctx,
+                        f"Sorry, your sheet is {(file_size / constants.BYTES_TO_MEGABYTES):.2f}MB big, "
                         "but I can only send files of up to "
                         "{(ctx.guild.filesize_limit*0+constants.HARDCODED_FILE_SIZE/constants.BYTES_TO_MEGABYTES):.2f}MB.",
-                        inline=False,
                     )
-                    await discord_utils.send_message(ctx, embed)
                     return
 
             await ctx.send(file=nextcord.File(download_path))

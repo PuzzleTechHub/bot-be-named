@@ -220,8 +220,6 @@ class LionCog(commands.Cog, name="Lion"):
     ):
         """Does the final touches on the sheet after creating a puzzle"""
         try:
-            embed = discord_utils.create_embed()
-
             tab_name = chan_name.replace("#", "").replace("-", " ")
 
             sheet = self.gspread_client.open_by_url(curr_sheet_link)
@@ -307,12 +305,10 @@ class LionCog(commands.Cog, name="Lion"):
             if hasattr(e, "response"):
                 error_json = e.response.json()
                 error_message = error_json.get("error", {}).get("message")
-                embed.add_field(
-                    name="Failed",
-                    value=f"Unknown GSheets API Error - `{error_message}`",
-                    inline=False,
+                await discord_utils.send_failure(
+                    ctx,
+                    f"Unknown GSheets API Error - `{error_message}`",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
 
     @command_predicates.is_solver()
@@ -550,20 +546,16 @@ class LionCog(commands.Cog, name="Lion"):
     ##########################
 
     async def validate_template(self, ctx: commands.Context, proposed_sheet):
-        embed = discord_utils.create_embed()
-
         proposed_template = sheet_utils.get_sheet_from_key_or_link(
             self.gspread_client, proposed_sheet
         )
 
         if not proposed_template:
-            embed.add_field(
-                name="Failed",
-                value="Sorry, we can't find a sheet there. "
+            await discord_utils.send_failure(
+                ctx,
+                "Sorry, we can't find a sheet there. "
                 "Did you forget to set your sheet as 'Anyone with the link can edit'?",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return None
 
         curr_link = proposed_template.url
@@ -577,27 +569,21 @@ class LionCog(commands.Cog, name="Lion"):
             error_json = e.response.json()
             error_status = error_json.get("error", {}).get("status")
             if error_status == "PERMISSION_DENIED":
-                embed = discord_utils.create_embed()
-                embed.add_field(
-                    name="Failed",
-                    value=f"I'm unable to open the tethered [sheet]({curr_link}). "
+                await discord_utils.send_failure(
+                    ctx,
+                    f"I'm unable to open the tethered [sheet]({curr_link}). "
                     f"Did the permissions change?",
-                    inline=False,
                 )
-                await discord_utils.send_message(ctx, embed)
                 return None
             else:
                 raise e
         # Error when the sheet has no template tab
         except gspread.exceptions.WorksheetNotFound:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"The [sheet]({curr_link}) has no tab named 'Template'. "
+            await discord_utils.send_failure(
+                ctx,
+                f"The [sheet]({curr_link}) has no tab named 'Template'. "
                 f"Did you forget to add one?",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return None
 
         # Make sure the Meta Template tab exists on the sheet.
@@ -606,14 +592,11 @@ class LionCog(commands.Cog, name="Lion"):
             _overview_id = curr_sheet.worksheet("Meta Template").id
         # Error when the sheet has no Meta Template tab
         except gspread.exceptions.WorksheetNotFound:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"The [sheet]({curr_link}) has no tab named 'Meta Template'. "
+            await discord_utils.send_failure(
+                ctx,
+                f"The [sheet]({curr_link}) has no tab named 'Meta Template'. "
                 f"Did you forget to add one?",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return None
 
         # Make sure the Overview tab exists on the sheet.
@@ -622,14 +605,11 @@ class LionCog(commands.Cog, name="Lion"):
             _overview_id = curr_sheet.worksheet("Overview").id
         # Error when the sheet has no Overview tab
         except gspread.exceptions.WorksheetNotFound:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"The [sheet]({curr_link}) has no tab named 'Overview'. "
+            await discord_utils.send_failure(
+                ctx,
+                f"The [sheet]({curr_link}) has no tab named 'Overview'. "
                 f"Did you forget to add one?",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return None
 
         return proposed_template

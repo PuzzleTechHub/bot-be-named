@@ -896,11 +896,10 @@ async def _create_and_set_up_puzzle_chan(
         raise ValueError(f"Unknown chan_type {chan_type!r}")
 
     if not new_chan:
-        embed.add_field(
-            name="Failed",
-            value="Forbidden! Have you checked if the bot has the required permissions?",
+        await discord_utils.send_failure(
+            ctx,
+            "Forbidden! Have you checked if the bot has the required permissions?",
         )
-        await discord_utils.send_message(ctx, embed)
         return None
 
     embed = discord_utils.create_embed()
@@ -961,32 +960,23 @@ async def findchanidcell(
     try:
         overview_wrapper = OverviewSheet(gspread_client, sheet_link)
     except gspread.exceptions.APIError as e:
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name="Failed",
-            value=f"I'm unable to open the tethered sheet. Error: {str(e)}",
-            inline=False,
+        await discord_utils.send_failure(
+            ctx,
+            f"I'm unable to open the tethered sheet. Error: {str(e)}",
         )
-        await discord_utils.send_message(ctx, embed)
         return None
     except gspread.exceptions.SpreadsheetNotFound:
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name="Failed",
-            value=f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
+        await discord_utils.send_failure(
+            ctx,
+            f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
             f"Did you forget to add one?",
-            inline=False,
         )
-        await discord_utils.send_message(ctx, embed)
         return None
     except Exception as e:
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name="Failed",
-            value=f"An unknown error occurred when trying to open the tethered sheet. Error: {str(e)}",
-            inline=False,
+        await discord_utils.send_failure(
+            ctx,
+            f"An unknown error occurred when trying to open the tethered sheet. Error: {str(e)}",
         )
-        await discord_utils.send_message(ctx, embed)
         return None
 
     overview_values = overview_wrapper.overview_data
@@ -1013,26 +1003,20 @@ async def get_overview(
         error_json = e.response.json()
         error_status = error_json.get("error", {}).get("status")
         if error_status == "PERMISSION_DENIED":
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"I'm unable to open the tethered [sheet]({sheet_link}). "
+            await discord_utils.send_failure(
+                ctx,
+                f"I'm unable to open the tethered [sheet]({sheet_link}). "
                 f"Did the permissions change?",
-                inline=False,
             )
-            await discord_utils.send_message(ctx, embed)
             return None
         else:
             raise e
     except gspread.exceptions.WorksheetNotFound:
-        embed = discord_utils.create_embed()
-        embed.add_field(
-            name="Failed",
-            value=f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
+        await discord_utils.send_failure(
+            ctx,
+            f"The [sheet]({sheet_link}) has no tab named 'Overview'. "
             f"Did you forget to add one?",
-            inline=False,
         )
-        await discord_utils.send_message(ctx, embed)
         return None
 
     return overview_sheet
@@ -1044,13 +1028,11 @@ async def sheet_move_to_archive(gspread_client, ctx: commands.Context):
     result, _ = findsheettether(ctx.message.channel.category_id, ctx.message.channel.id)
 
     if result is None:
-        embed.add_field(
-            name="Failed",
-            value=f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
+        await discord_utils.send_failure(
+            ctx,
+            f"Neither the category **{ctx.message.channel.category.name}** nor the channel {ctx.message.channel.mention} "
             f"are tethered to any Google sheet.",
-            inline=False,
         )
-        await discord_utils.send_message(ctx, embed)
         return
 
     curr_sheet_link = str(result.sheet_link)

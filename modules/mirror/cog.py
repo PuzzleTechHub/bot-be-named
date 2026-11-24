@@ -126,32 +126,26 @@ class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
         embed = discord_utils.create_embed()
 
         if ctx.guild is None:
-            embed.add_field(
-                name="Failed",
-                value="This command must be used in a server.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "This command must be used in a server.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         if target is None:
             if not isinstance(ctx.channel, nextcord.TextChannel):
-                embed.add_field(
-                    name="Failed",
-                    value=f"I can only mirror messages into a text channel, not `{ctx.channel}`.",
-                    inline=False,
+                await discord_utils.send_failure(
+                    ctx,
+                    f"I can only mirror messages into a text channel, not `{ctx.channel}`.",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
             target = ctx.channel
 
         if source == target:
-            embed.add_field(
-                name="Failed",
-                value="A channel cannot mirror itself.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "A channel cannot mirror itself.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         with Session(database.DATABASE_ENGINE) as session:
@@ -206,12 +200,10 @@ class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
 
         if target is None:
             if not isinstance(ctx.channel, nextcord.TextChannel):
-                embed.add_field(
-                    name="Failed",
-                    value="Mirrors only exist in server text channels.",
-                    inline=False,
+                await discord_utils.send_failure(
+                    ctx,
+                    "Mirrors only exist in server text channels.",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
             target = ctx.channel
 
@@ -251,13 +243,10 @@ class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
         Usage: `~listmirrorchan`
         """
         if ctx.guild is None:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value="This command must be used in a server.",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "This command must be used in a server.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         with Session(database.DATABASE_ENGINE) as session:

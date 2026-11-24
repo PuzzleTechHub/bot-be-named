@@ -50,13 +50,11 @@ class AdminCog(commands.Cog, name="Admin"):
         embed = discord_utils.create_embed()
 
         if role_permissions not in database.VERIFIED_CATEGORIES:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
+            await discord_utils.send_failure(
+                ctx,
+                f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
                 f"but you supplied {role_permissions}",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         role_to_assign = await discord_utils.find_role(ctx, role_or_rolename)
@@ -92,12 +90,10 @@ class AdminCog(commands.Cog, name="Admin"):
                 session.execute(stmt)
                 session.commit()
             else:
-                embed = discord_utils.create_embed()
-                embed.add_field(
-                    name="Failed",
-                    value=f"Role {role_to_assign.mention} is already `{result.permissions}`!",
+                await discord_utils.send_failure(
+                    ctx,
+                    f"Role {role_to_assign.mention} is already `{result.permissions}`!",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
 
         if role_permissions == models.VERIFIED:
@@ -148,13 +144,11 @@ class AdminCog(commands.Cog, name="Admin"):
         embed = discord_utils.create_embed()
 
         if role_permissions not in database.VERIFIED_CATEGORIES:
-            embed = discord_utils.create_embed()
-            embed.add_field(
-                name="Failed",
-                value=f"`role_permissions` must be in `{', '.join(database.VERIFIED_CATEGORIES)}`, "
+            await discord_utils.send_failure(
+                ctx,
+                f"`role_permissions` must be in `{', '.join(database.VERIFIED_CATEGORIES)}`, "
                 f"but you supplied `{role_permissions}`",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         cache_map = {
@@ -202,21 +196,19 @@ class AdminCog(commands.Cog, name="Admin"):
         embed = discord_utils.create_embed()
 
         if role_permissions not in database.VERIFIED_CATEGORIES:
-            embed.add_field(
-                name="Failed",
-                value=f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
+            await discord_utils.send_failure(
+                ctx,
+                f"`role_permissions` must be in {', '.join(database.VERIFIED_CATEGORIES)}, "
                 f"but you supplied {role_permissions}",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         role_to_remove = await discord_utils.find_role(ctx, role_or_rolename)
         if role_to_remove is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Sorry, I can't find role `{role_or_rolename}`.",
+            await discord_utils.send_failure(
+                ctx,
+                f"Sorry, I can't find role `{role_or_rolename}`.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         with Session(database.DATABASE_ENGINE) as session:
@@ -229,11 +221,10 @@ class AdminCog(commands.Cog, name="Admin"):
                 .first()
             )
             if result is None:
-                embed.add_field(
-                    name="Failed",
-                    value=f"Role {role_to_remove.mention} is not `{role_permissions}` in `{ctx.guild.name}`",
+                await discord_utils.send_failure(
+                    ctx,
+                    f"Role {role_to_remove.mention} is not `{role_permissions}` in `{ctx.guild.name}`",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
             else:
                 session.delete(result)
@@ -302,19 +293,17 @@ class AdminCog(commands.Cog, name="Admin"):
         guild_2_guild = await discord_utils.find_guild(ctx, guild_2)
 
         if guild_1_guild is None:
-            embed.add_field(
-                name="Failed",
-                value=f"There is no guild named `{guild_1}`. Please double check the spelling.",
+            await discord_utils.send_failure(
+                ctx,
+                f"There is no guild named `{guild_1}`. Please double check the spelling.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         if guild_2_guild is None:
-            embed.add_field(
-                name="Failed",
-                value=f"There is no guild named `{guild_2}`. Please double check the spelling.",
+            await discord_utils.send_failure(
+                ctx,
+                f"There is no guild named `{guild_2}`. Please double check the spelling.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         await discord_utils.ensure_members_cached(guild_1_guild)
@@ -372,11 +361,10 @@ class AdminCog(commands.Cog, name="Admin"):
         guild = await discord_utils.find_guild(ctx, guild_name)
 
         if guild is None:
-            embed.add_field(
-                name="Failed",
-                value=f"There is no guild named `{guild_name}`. Please double check the spelling.",
+            await discord_utils.send_failure(
+                ctx,
+                f"There is no guild named `{guild_name}`. Please double check the spelling.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         owner = guild.owner
@@ -440,22 +428,20 @@ class AdminCog(commands.Cog, name="Admin"):
         guild = await discord_utils.find_guild(ctx, guild_name)
 
         if guild is None:
-            embed.add_field(
-                name="Failed",
-                value=f"There is no guild named `{guild_name}`. Please double check the spelling.",
+            await discord_utils.send_failure(
+                ctx,
+                f"There is no guild named `{guild_name}`. Please double check the spelling.",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         try:
             await guild.leave()
 
         except nextcord.HTTPException:
-            embed.add_field(
-                name="Failed",
-                value=f"Could not leave guild `{guild_name}`",
+            await discord_utils.send_failure(
+                ctx,
+                f"Could not leave guild `{guild_name}`",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         embed.add_field(
