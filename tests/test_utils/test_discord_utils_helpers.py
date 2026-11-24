@@ -48,12 +48,6 @@ async def test_send_message_splits_long_field():
     assert "".join(f.value for f in fields) == long_text
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=ValueError,
-    reason="Bug: a long field ending on a split point leaves an empty field, "
-    "which Discord rejects",
-)
 async def test_send_message_long_field_ending_on_split():
     ctx = _ctx()
     embed = discord_utils.create_embed()
@@ -61,12 +55,6 @@ async def test_send_message_long_field_ending_on_split():
     await discord_utils.send_message(ctx, embed)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=ValueError,
-    reason="Bug: split_embed doesn't count fields that fit, so many medium fields "
-    "end up in one embed over Discord's 6000 character limit",
-)
 async def test_send_message_splits_many_fields():
     ctx = _ctx()
     embed = discord_utils.create_embed()

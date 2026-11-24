@@ -293,6 +293,8 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
 
     EMBED_CHARACTER_LIMIT = 2000  # Actual limit is 2000.
     FIELD_CHARACTER_LIMIT = 1000  # Actual limit is 1000.
+    DISCORD_EMBED_LIMIT = 6000  # Total characters in one embed
+    DISCORD_FIELD_COUNT_LIMIT = 25
     embed_list = []
 
     character_count = len(embed_title) + len(embed_description)
@@ -327,84 +329,34 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
             )
         )
 
-    character_count = len(embed_list[-1].title) + len(embed_list[-1].description)
-
-    # Iterate over all the proposed fields in the embed
+    # Split each field into pieces of at most FIELD_CHARACTER_LIMIT, cutting at spaces,
+    # then add them to embeds while each embed stays within Discord's limits.
     for field in embed.fields:
-        field_description = field.value
-        field_character_count = len(field_description)
-        # Cut down the proposed fields to the appropriate size
-        while field_character_count > FIELD_CHARACTER_LIMIT:
-            # If we can add a full-sized field to the embed, do it
-            if (
-                character_count + len(field.name) + FIELD_CHARACTER_LIMIT
-                <= EMBED_CHARACTER_LIMIT
-            ):
-                cutoff_point = field_description[:FIELD_CHARACTER_LIMIT].rfind(" ")
-                if cutoff_point == -1:
-                    cutoff_point = FIELD_CHARACTER_LIMIT - 1
-                embed_list[-1].add_field(
-                    name=field.name,
-                    value=field_description[: cutoff_point + 1],
-                    inline=False,
-                )
-                field_character_count -= cutoff_point
-                field_description = field_description[cutoff_point + 1 :]
-            # If we can't add a full field to the embed, add a chopped field and then create a new embed
-            else:
-                cutoff_point = field_description[
-                    : EMBED_CHARACTER_LIMIT - character_count - len(field.name)
-                ].rfind(" ")
-                if cutoff_point == -1:
-                    cutoff_point = (
-                        EMBED_CHARACTER_LIMIT - character_count - len(field.name) - 1
-                    )
-                embed_list[-1].add_field(
-                    name=field.name,
-                    value=field_description[: cutoff_point + 1],
-                    inline=False,
-                )
-                field_character_count -= cutoff_point
-                field_description = field_description[cutoff_point + 1 :]
-                # We just filled the entire embed up, so now we need to make a new one
-                embed_list.append(
-                    nextcord.Embed(
-                        title=embed_title + " (continued)", color=embed.color
-                    )
-                )
-                character_count = len(embed_list[-1].title)
-        # Once we've gotten to here, we know that the remaining field character count is able to fit in one field.
-        # Since the field character limit is smaller than the embed character limit, we know we'd only need one split.
-        if (
-            field_character_count + len(field.name) + character_count
-            > EMBED_CHARACTER_LIMIT
-        ):
-            cutoff_point = field_description[
-                : EMBED_CHARACTER_LIMIT - character_count - len(field.name)
-            ].rfind(" ")
+        pieces = []
+        value = field.value
+        while len(value) > FIELD_CHARACTER_LIMIT:
+            cutoff_point = value[:FIELD_CHARACTER_LIMIT].rfind(" ")
             if cutoff_point == -1:
-                cutoff_point = (
-                    EMBED_CHARACTER_LIMIT - character_count - len(field.name) - 1
-                )
-            embed_list[-1].add_field(
-                name=field.name,
-                value=field_description[: cutoff_point + 1],
-                inline=False,
-            )
-            embed_list.append(
-                nextcord.Embed(title=embed_title + " (continued)", color=embed.color)
-            )
-            field_description = field_description[cutoff_point + 1 :]
-            character_count = len(embed_list[-1].title) + len(field.name)
-            embed_list[-1].add_field(
-                name=field.name, value=field_description, inline=False
-            )
+                cutoff_point = FIELD_CHARACTER_LIMIT - 1
+            pieces.append(value[: cutoff_point + 1])
+            value = value[cutoff_point + 1 :]
+        # A field cut exactly at its end leaves nothing, and Discord rejects empty fields
+        if value or not pieces:
+            pieces.append(value)
+        inline = field.inline if len(pieces) == 1 else False
 
-        # I believe if we run here then we just don't need to split anything.
-        else:
-            embed_list[-1].add_field(
-                name=field.name, value=field_description, inline=field.inline
-            )
+        for piece in pieces:
+            current = embed_list[-1]
+            if (
+                len(current) + len(field.name) + len(piece) > DISCORD_EMBED_LIMIT
+                or len(current.fields) >= DISCORD_FIELD_COUNT_LIMIT
+            ):
+                current = nextcord.Embed(
+                    title=embed_title + " (continued)", color=embed.color
+                )
+                embed_list.append(current)
+            current.add_field(name=field.name, value=piece, inline=inline)
+
     return embed_list
 
 
