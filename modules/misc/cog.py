@@ -24,8 +24,6 @@ class MiscCog(commands.Cog, name="Misc"):
         Use: (as reply to another message) `~emojiall 5`
         Use: (as reply to another message) `~emojiall` (defaults to 20)
         """
-        embed = discord_utils.create_embed()
-
         if emoji_count <= 0:
             emoji_count = 1
         elif emoji_count > 20:
@@ -35,11 +33,10 @@ class MiscCog(commands.Cog, name="Misc"):
         # 🇦 🇧 🇨 🇩 🇪 🇫 🇬 🇭 🇮 🇯 🇰 🇱 🇲 🇳 🇴 🇵 🇶 🇷 🇸 🇹 🇺 🇻 🇼 🇽 🇾 🇿
 
         if not ctx.message.reference:
-            embed.add_field(
-                name="Failed",
-                value="You need to reply to a message to use emojiall",
+            await discord_utils.send_failure(
+                ctx,
+                "You need to reply to a message to use emojiall",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         # If it's replying to a message
@@ -69,12 +66,10 @@ class MiscCog(commands.Cog, name="Misc"):
         embed = discord_utils.create_embed()
 
         if not args:
-            embed.add_field(
-                name="Failed",
-                value="You need to specify at least one emoji name!",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "You need to specify at least one emoji name!",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         should_delete = False
@@ -85,23 +80,20 @@ class MiscCog(commands.Cog, name="Misc"):
             emoji_args = emoji_args[:-1]
 
         if not emoji_args:  # no emojis after removing delete
-            embed.add_field(
-                name="Failed",
-                value="You need to specify at least one emoji name!",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                "You need to specify at least one emoji name!",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         if should_delete:
             try:
                 await ctx.message.delete()
             except nextcord.Forbidden:
-                embed.add_field(
-                    name="Failed",
-                    value="I don't have permission to delete messages!",
+                await discord_utils.send_failure(
+                    ctx,
+                    "I don't have permission to delete messages!",
                 )
-                await discord_utils.send_message(ctx, embed)
                 return
 
         emojis = []
@@ -165,12 +157,10 @@ class MiscCog(commands.Cog, name="Misc"):
                 emojis.append((emoji, hasurl))
 
         if not emojis:
-            embed.add_field(
-                name="Failed",
-                value=f"No valid emojis found. Failed: {', '.join(failed_emojis)}",
-                inline=False,
+            await discord_utils.send_failure(
+                ctx,
+                f"No valid emojis found. Failed: {', '.join(failed_emojis)}",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         if ctx.message.reference:
@@ -182,12 +172,10 @@ class MiscCog(commands.Cog, name="Misc"):
                         ctx.message.reference.message_id
                     )
                 except (nextcord.NotFound, nextcord.Forbidden, nextcord.HTTPException):
-                    embed.add_field(
-                        name="Failed",
-                        value="Could not find the referenced message.",
-                        inline=False,
+                    await discord_utils.send_failure(
+                        ctx,
+                        "Could not find the referenced message.",
                     )
-                    await discord_utils.send_message(ctx, embed)
                     return
 
             for emoji, _ in emojis:
@@ -342,22 +330,20 @@ class MiscCog(commands.Cog, name="Misc"):
 
         channel = await discord_utils.find_chan_or_thread(ctx, channel_id_or_name)
         if channel is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Error! The channel `{channel_id_or_name}` was not found",
+            await discord_utils.send_failure(
+                ctx,
+                f"Error! The channel `{channel_id_or_name}` was not found",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         try:
             await channel.send(message)
         except nextcord.Forbidden:
-            embed.add_field(
-                name="Failed",
-                value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
+            await discord_utils.send_failure(
+                ctx,
+                f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
                 f"the bot has the required permissions?",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         embed.add_field(
@@ -387,11 +373,10 @@ class MiscCog(commands.Cog, name="Misc"):
 
         channel = await discord_utils.find_chan_or_thread(ctx, channel_id_or_name)
         if channel is None:
-            embed.add_field(
-                name="Failed",
-                value=f"Error! The channel `{channel_id_or_name}` was not found",
+            await discord_utils.send_failure(
+                ctx,
+                f"Error! The channel `{channel_id_or_name}` was not found",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         try:
@@ -399,12 +384,11 @@ class MiscCog(commands.Cog, name="Misc"):
             sent_embed.description = message
             await channel.send(embed=sent_embed)
         except nextcord.Forbidden:
-            embed.add_field(
-                name="Failed",
-                value=f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
+            await discord_utils.send_failure(
+                ctx,
+                f"Forbidden! The bot is unable to speak on {channel.mention}! Have you checked if "
                 f"the bot has the required permissions?",
             )
-            await discord_utils.send_message(ctx, embed)
             return
 
         # reply to user
