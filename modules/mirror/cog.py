@@ -1,10 +1,8 @@
 import time
 import nextcord
-import sqlalchemy
 import database
 from typing import Optional
 from nextcord.ext import commands
-from sqlalchemy.orm import Session
 from utils import discord_utils, command_predicates, logging_utils
 
 """
@@ -148,29 +146,11 @@ class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
             )
             return
 
-        with Session(database.DATABASE_ENGINE) as session:
-            existed = (
-                session.query(database.ChannelMirrors)
-                .filter_by(source_channel_id=source.id, target_channel_id=target.id)
-                .first()
-            )
-            if existed is None:
-                stmt = sqlalchemy.insert(database.ChannelMirrors).values(
-                    server_id=ctx.guild.id,
-                    server_name=ctx.guild.name,
-                    source_channel_id=source.id,
-                    source_channel_name=source.name,
-                    target_channel_id=target.id,
-                    target_channel_name=target.name,
-                )
-                session.execute(stmt)
-                session.commit()
+        added = database.add_channel_mirror(
+            ctx.guild.id, ctx.guild.name, source.id, source.name, target.id, target.name
+        )
 
-        if source.id not in database.CHANNEL_MIRRORS:
-            database.CHANNEL_MIRRORS[source.id] = set()
-        database.CHANNEL_MIRRORS[source.id].add(target.id)
-
-        if existed:
+        if not added:
             value = f"Messages in {source.mention} are already being mirrored to {target.mention}."
         else:
             value = f"New messages in {source.mention} will be mirrored to {target.mention}."
@@ -207,16 +187,7 @@ class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
                 return
             target = ctx.channel
 
-        with Session(database.DATABASE_ENGINE) as session:
-            deleted = (
-                session.query(database.ChannelMirrors)
-                .filter_by(source_channel_id=source.id, target_channel_id=target.id)
-                .delete()
-            )
-            session.commit()
-
-        if source.id in database.CHANNEL_MIRRORS:
-            database.CHANNEL_MIRRORS[source.id].discard(target.id)
+        deleted = database.delete_channel_mirror(source.id, target.id)
 
         if deleted:
             embed.add_field(
@@ -249,16 +220,10 @@ class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
             )
             return
 
-        with Session(database.DATABASE_ENGINE) as session:
-            result = (
-                session.query(database.ChannelMirrors)
-                .filter_by(server_id=ctx.guild.id)
-                .all()
-            )
-            lines = [
-                f"<#{row.source_channel_id}> -> <#{row.target_channel_id}>"
-                for row in result
-            ]
+        lines = [
+            f"<#{row.source_channel_id}> -> <#{row.target_channel_id}>"
+            for row in database.get_server_channel_mirrors(ctx.guild.id)
+        ]
 
         embed = discord_utils.create_embed()
         if lines:

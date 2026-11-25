@@ -22,8 +22,6 @@ from modules.hydra.hydra_utils import summary_utils
 from utils.sheet_command_base import SheetCommandBase
 from modules.hydra import constants as hydra_constants
 import database
-import sqlalchemy
-from sqlalchemy.orm import Session
 
 """
 Hydra module. Module with more advanced GSheet-Discord interfacing. See module's README.md for more.
@@ -1392,14 +1390,9 @@ class HydraCog(commands.Cog, name="Hydra"):
         self, ctx: commands.Context, overview_sheet, row_to_find, status_col, answer
     ):
         """Posts a solved puzzle in solve streams linked to that Google sheet."""
-        with Session(database.DATABASE_ENGINE) as session:
-            streams = (
-                session.query(database.SolveStreams)
-                .filter_by(
-                    sheet_key=overview_sheet.spreadsheet.id, server_id=ctx.guild.id
-                )
-                .all()
-            )
+        streams = database.get_solve_streams(
+            overview_sheet.spreadsheet.id, ctx.guild.id
+        )
         if not streams:
             return
 
@@ -1941,35 +1934,20 @@ class HydraCog(commands.Cog, name="Hydra"):
                 unopened_keys.append(sheet_key)
 
         lines = []
-        with Session(database.DATABASE_ENGINE) as session:
-            for sheet_key in open_keys:
-                # Deletes then inserts any existing solve stream for this sheet in this channel.
-                # So essentially, no duplicates.
-                existed = (
-                    session.query(database.SolveStreams)
-                    .filter_by(sheet_key=sheet_key, channel_id=channel.id)
-                    .delete()
+        for sheet_key in open_keys:
+            # Replaces any existing solve stream for this sheet in this channel, so no duplicates.
+            existed = database.set_solve_stream(
+                ctx.guild.id, ctx.guild.name, channel.id, channel.name, sheet_key
+            )
+            sheet_text = f"[Sheet](https://docs.google.com/spreadsheets/d/{sheet_key})"
+            if existed:
+                lines.append(
+                    f"{sheet_text}: solves were already being posted to {channel.mention}."
                 )
-                stmt = sqlalchemy.insert(database.SolveStreams).values(
-                    server_id=ctx.guild.id,
-                    server_name=ctx.guild.name,
-                    channel_id=channel.id,
-                    channel_name=channel.name,
-                    sheet_key=sheet_key,
+            else:
+                lines.append(
+                    f"{sheet_text}: solves will now be posted to {channel.mention}."
                 )
-                session.execute(stmt)
-                sheet_text = (
-                    f"[Sheet](https://docs.google.com/spreadsheets/d/{sheet_key})"
-                )
-                if existed:
-                    lines.append(
-                        f"{sheet_text}: solves were already being posted to {channel.mention}."
-                    )
-                else:
-                    lines.append(
-                        f"{sheet_text}: solves will now be posted to {channel.mention}."
-                    )
-            session.commit()
 
         for sheet_key in unopened_keys:
             lines.append(
@@ -2027,25 +2005,17 @@ class HydraCog(commands.Cog, name="Hydra"):
             return
 
         lines = []
-        with Session(database.DATABASE_ENGINE) as session:
-            for sheet_key in sheet_keys:
-                deleted = (
-                    session.query(database.SolveStreams)
-                    .filter_by(sheet_key=sheet_key, channel_id=channel.id)
-                    .delete()
+        for sheet_key in sheet_keys:
+            deleted = database.delete_solve_stream(sheet_key, channel.id)
+            sheet_text = f"[Sheet](https://docs.google.com/spreadsheets/d/{sheet_key})"
+            if deleted:
+                lines.append(
+                    f"{sheet_text}: solves will no longer be posted to {channel.mention}."
                 )
-                sheet_text = (
-                    f"[Sheet](https://docs.google.com/spreadsheets/d/{sheet_key})"
+            else:
+                lines.append(
+                    f"{sheet_text}: **Failed** - solves on this sheet aren't being posted to {channel.mention}."
                 )
-                if deleted:
-                    lines.append(
-                        f"{sheet_text}: solves will no longer be posted to {channel.mention}."
-                    )
-                else:
-                    lines.append(
-                        f"{sheet_text}: **Failed** - solves on this sheet aren't being posted to {channel.mention}."
-                    )
-            session.commit()
 
         for link in bad_links:
             lines.append(f"`{link}`: **Failed** - invalid sheet link.")

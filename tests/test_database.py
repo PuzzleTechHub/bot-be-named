@@ -244,3 +244,85 @@ def test_delete_role_and_channel_summary_grants():
     assert database.get_summary_role_ids(201) == [8]
     database.delete_channel_summary_grants(201)
     assert [row.channel_id for row in database.get_server_summary_grants(1)] == [202]
+
+
+# solve streams
+
+
+def _stream(channel_id, sheet_key, server_id=1, channel_name=None):
+    return database.set_solve_stream(
+        server_id, "Server", channel_id, channel_name or f"chan-{channel_id}", sheet_key
+    )
+
+
+def test_set_solve_stream_reports_existing_and_refreshes_name():
+    assert _stream(200, "sheet") is False
+    assert _stream(200, "sheet", channel_name="renamed") is True
+    [row] = database.get_solve_streams("sheet", 1)
+    assert (row.channel_id, row.channel_name) == (200, "renamed")
+
+
+def test_get_solve_streams_by_sheet_and_server():
+    _stream(200, "sheet")
+    _stream(201, "sheet")
+    _stream(202, "other")
+    _stream(300, "sheet", server_id=2)
+    assert sorted(row.channel_id for row in database.get_solve_streams("sheet", 1)) == [
+        200,
+        201,
+    ]
+
+
+def test_delete_solve_streams():
+    _stream(200, "sheet")
+    _stream(200, "other")
+    _stream(201, "sheet")
+    assert database.delete_solve_stream("sheet", 200) is True
+    assert database.delete_solve_stream("sheet", 200) is False
+    database.delete_channel_solve_streams(201)
+    assert database.get_solve_streams("sheet", 1) == []
+    assert [row.channel_id for row in database.get_solve_streams("other", 1)] == [200]
+
+
+# channel mirrors
+
+
+def _mirror(source_id, target_id, server_id=1):
+    return database.add_channel_mirror(
+        server_id, "Server", source_id, f"s-{source_id}", target_id, f"t-{target_id}"
+    )
+
+
+def _mirror_pairs(server_id=1):
+    return sorted(
+        (row.source_channel_id, row.target_channel_id)
+        for row in database.get_server_channel_mirrors(server_id)
+    )
+
+
+def test_add_channel_mirror_once_and_caches():
+    assert _mirror(10, 20) is True
+    assert _mirror(10, 20) is False
+    _mirror(10, 21)
+    assert _mirror_pairs() == [(10, 20), (10, 21)]
+    assert database.CHANNEL_MIRRORS == {10: {20, 21}}
+
+
+def test_delete_channel_mirror_updates_cache():
+    _mirror(10, 20)
+    _mirror(10, 21)
+    assert database.delete_channel_mirror(10, 20) is True
+    assert database.delete_channel_mirror(10, 20) is False
+    assert _mirror_pairs() == [(10, 21)]
+    assert database.CHANNEL_MIRRORS == {10: {21}}
+
+
+def test_delete_channel_mirrors_for_source_and_target():
+    _mirror(10, 20)
+    _mirror(30, 10)
+    _mirror(30, 40)
+    _mirror(50, 60, server_id=2)
+    database.delete_channel_mirrors_for(10)
+    assert _mirror_pairs() == [(30, 40)]
+    assert _mirror_pairs(2) == [(50, 60)]
+    assert database.CHANNEL_MIRRORS == {30: {40}, 50: {60}}

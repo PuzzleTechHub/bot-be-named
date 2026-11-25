@@ -13,6 +13,13 @@ from database.models import (
 )
 
 from database.database_utils import (
+    PREFIXES,
+    VERIFIEDS,
+    TRUSTEDS,
+    SOLVERS,
+    TESTERS,
+    CUSTOM_COMMANDS,
+    CHANNEL_MIRRORS,
     get_prefixes,
     get_verifieds,
     get_trusteds,
@@ -30,18 +37,17 @@ from database.database_utils import (
     get_summary_role_ids,
     delete_role_summary_grants,
     delete_channel_summary_grants,
+    get_solve_streams,
+    set_solve_stream,
+    delete_solve_stream,
+    delete_channel_solve_streams,
+    add_channel_mirror,
+    delete_channel_mirror,
+    get_server_channel_mirrors,
+    delete_channel_mirrors_for,
 )
 
 from database.models import Base
-
-# These are in-memory caches which will be filled by load_all(). Importing this package doesn't touch the database.
-PREFIXES: dict = {}
-VERIFIEDS: dict = {}
-TRUSTEDS: dict = {}
-SOLVERS: dict = {}
-TESTERS: dict = {}
-CUSTOM_COMMANDS: dict = {}
-CHANNEL_MIRRORS: dict = {}
 
 
 def load_all():

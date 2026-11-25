@@ -3,6 +3,15 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from database import models
 
+# These are in-memory caches which will be filled by load_all(). Importing this package doesn't touch the database.
+PREFIXES: dict = {}
+VERIFIEDS: dict = {}
+TRUSTEDS: dict = {}
+SOLVERS: dict = {}
+TESTERS: dict = {}
+CUSTOM_COMMANDS: dict = {}
+CHANNEL_MIRRORS: dict = {}
+
 
 def get_prefixes():
     prefixes = {}
@@ -210,3 +219,131 @@ def delete_channel_summary_grants(channel_id: int):
     with Session(models.DATABASE_ENGINE) as session:
         session.query(models.SummaryGrants).filter_by(channel_id=channel_id).delete()
         session.commit()
+
+
+#################
+# SOLVE STREAMS #
+#################
+
+
+def get_solve_streams(sheet_key: str, server_id: int) -> list[models.SolveStreams]:
+    """The channels a sheet's solves are posted to in a server."""
+    with Session(models.DATABASE_ENGINE) as session:
+        return (
+            session.query(models.SolveStreams)
+            .filter_by(sheet_key=sheet_key, server_id=server_id)
+            .all()
+        )
+
+
+def set_solve_stream(
+    server_id: int,
+    server_name: str,
+    channel_id: int,
+    channel_name: str,
+    sheet_key: str,
+) -> bool:
+    """Posts a sheet's solves to a channel. Replaces any existing row for the pair, so the names
+    are refreshed. True if the pair already existed."""
+    with Session(models.DATABASE_ENGINE) as session:
+        existed = (
+            session.query(models.SolveStreams)
+            .filter_by(sheet_key=sheet_key, channel_id=channel_id)
+            .delete()
+        )
+        session.add(
+            models.SolveStreams(
+                server_id=server_id,
+                server_name=server_name,
+                channel_id=channel_id,
+                channel_name=channel_name,
+                sheet_key=sheet_key,
+            )
+        )
+        session.commit()
+    return bool(existed)
+
+
+def delete_solve_stream(sheet_key: str, channel_id: int) -> bool:
+    """False if the sheet wasn't posting to that channel."""
+    with Session(models.DATABASE_ENGINE) as session:
+        deleted = (
+            session.query(models.SolveStreams)
+            .filter_by(sheet_key=sheet_key, channel_id=channel_id)
+            .delete()
+        )
+        session.commit()
+    return bool(deleted)
+
+
+def delete_channel_solve_streams(channel_id: int):
+    with Session(models.DATABASE_ENGINE) as session:
+        session.query(models.SolveStreams).filter_by(channel_id=channel_id).delete()
+        session.commit()
+
+
+###################
+# CHANNEL MIRRORS #
+###################
+# These also keep the CHANNEL_MIRRORS cache (source id -> set of target ids) in step.
+
+
+def add_channel_mirror(
+    server_id: int,
+    server_name: str,
+    source_id: int,
+    source_name: str,
+    target_id: int,
+    target_name: str,
+) -> bool:
+    """Mirrors messages from source into target. False if that mirror already existed."""
+    with Session(models.DATABASE_ENGINE) as session:
+        existed = session.get(models.ChannelMirrors, (source_id, target_id))
+        if existed is None:
+            session.add(
+                models.ChannelMirrors(
+                    server_id=server_id,
+                    server_name=server_name,
+                    source_channel_id=source_id,
+                    source_channel_name=source_name,
+                    target_channel_id=target_id,
+                    target_channel_name=target_name,
+                )
+            )
+            session.commit()
+    CHANNEL_MIRRORS.setdefault(source_id, set()).add(target_id)
+    return existed is None
+
+
+def delete_channel_mirror(source_id: int, target_id: int) -> bool:
+    """False if there was no such mirror."""
+    with Session(models.DATABASE_ENGINE) as session:
+        deleted = (
+            session.query(models.ChannelMirrors)
+            .filter_by(source_channel_id=source_id, target_channel_id=target_id)
+            .delete()
+        )
+        session.commit()
+    if source_id in CHANNEL_MIRRORS:
+        CHANNEL_MIRRORS[source_id].discard(target_id)
+    return bool(deleted)
+
+
+def get_server_channel_mirrors(server_id: int) -> list[models.ChannelMirrors]:
+    with Session(models.DATABASE_ENGINE) as session:
+        return session.query(models.ChannelMirrors).filter_by(server_id=server_id).all()
+
+
+def delete_channel_mirrors_for(channel_id: int):
+    """Deletes every mirror from or into a channel, e.g. when it's deleted."""
+    with Session(models.DATABASE_ENGINE) as session:
+        session.query(models.ChannelMirrors).filter_by(
+            source_channel_id=channel_id
+        ).delete()
+        session.query(models.ChannelMirrors).filter_by(
+            target_channel_id=channel_id
+        ).delete()
+        session.commit()
+    CHANNEL_MIRRORS.pop(channel_id, None)
+    for target_ids in CHANNEL_MIRRORS.values():
+        target_ids.discard(channel_id)

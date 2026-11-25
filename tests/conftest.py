@@ -24,9 +24,12 @@ database.load_all()
 
 
 @pytest.fixture(autouse=True)
-def clean_grants():
+def clean_rows():
     yield
     with Session(database.DATABASE_ENGINE) as session:
         session.query(database.SummaryGrants).delete()
         session.query(database.SheetTethers).delete()
+        session.query(database.SolveStreams).delete()
+        session.query(database.ChannelMirrors).delete()
         session.commit()
+    database.CHANNEL_MIRRORS.clear()

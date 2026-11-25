@@ -168,22 +168,8 @@ def main():
     async def on_guild_channel_delete(channel: nextcord.abc.GuildChannel):
         """When a channel is deleted, remove its summary grants, solve streams and channel mirrors"""
         database.delete_channel_summary_grants(channel.id)
-        with Session(database.DATABASE_ENGINE) as session:
-            session.query(database.SolveStreams).filter_by(
-                channel_id=channel.id
-            ).delete()
-            session.commit()
-            session.query(database.ChannelMirrors).filter_by(
-                source_channel_id=channel.id
-            ).delete()
-            session.commit()
-            session.query(database.ChannelMirrors).filter_by(
-                target_channel_id=channel.id
-            ).delete()
-            session.commit()
-        database.CHANNEL_MIRRORS.pop(channel.id, None)
-        for target_ids in database.CHANNEL_MIRRORS.values():
-            target_ids.discard(channel.id)
+        database.delete_channel_solve_streams(channel.id)
+        database.delete_channel_mirrors_for(channel.id)
 
     @client.event
     async def on_message(message: nextcord.Message):
