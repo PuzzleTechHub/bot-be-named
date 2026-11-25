@@ -125,3 +125,26 @@ def test_importing_does_not_touch_the_database():
         timeout=120,
     )
     assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "postgres://u:p@127.0.0.1:1/db",
+        "postgresql://u:p@127.0.0.1:1/db",
+        "postgresql+psycopg2://u:p@127.0.0.1:1/db",
+    ],
+)
+def test_postgres_urls_use_psycopg2(url):
+    # SQLAlchemy 2.1 would pick psycopg (v3) for a plain postgresql:// URL
+    code = "import database; print(database.DATABASE_ENGINE.url.drivername)"
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=REPO,
+        env=dict(os.environ, DATABASE_URL=url),
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "postgresql+psycopg2"
