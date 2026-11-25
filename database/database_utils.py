@@ -136,3 +136,77 @@ def delete_tether(channel_or_cat_id: int):
             channel_or_cat_id=channel_or_cat_id
         ).delete()
         session.commit()
+
+
+##################
+# SUMMARY GRANTS #
+##################
+
+
+def _grant_id(channel_id: int, role_id: int) -> str:
+    """summary_grants' primary key: "<channel id>_<role id>"."""
+    return f"{channel_id}_{role_id}"
+
+
+def add_summary_grant(
+    server_id: int,
+    server_name: str,
+    channel_id: int,
+    channel_name: str,
+    role_id: int,
+    role_name: str,
+) -> bool:
+    """Lets a role run summaries in a channel. False if it already could."""
+    grant_id = _grant_id(channel_id, role_id)
+    with Session(models.DATABASE_ENGINE) as session:
+        if session.get(models.SummaryGrants, grant_id) is not None:
+            return False
+        session.add(
+            models.SummaryGrants(
+                server_id=server_id,
+                server_name=server_name,
+                channel_id=channel_id,
+                channel_name=channel_name,
+                role_id=role_id,
+                role_name=role_name,
+                channel_id_role_id=grant_id,
+            )
+        )
+        session.commit()
+    return True
+
+
+def delete_summary_grant(channel_id: int, role_id: int) -> bool:
+    """False if there was no such grant."""
+    with Session(models.DATABASE_ENGINE) as session:
+        deleted = (
+            session.query(models.SummaryGrants)
+            .filter_by(channel_id_role_id=_grant_id(channel_id, role_id))
+            .delete()
+        )
+        session.commit()
+    return bool(deleted)
+
+
+def get_server_summary_grants(server_id: int) -> list[models.SummaryGrants]:
+    with Session(models.DATABASE_ENGINE) as session:
+        return session.query(models.SummaryGrants).filter_by(server_id=server_id).all()
+
+
+def get_summary_role_ids(channel_id: int) -> list[int]:
+    """IDs of the roles allowed to run summaries in a channel."""
+    with Session(models.DATABASE_ENGINE) as session:
+        rows = session.query(models.SummaryGrants).filter_by(channel_id=channel_id)
+        return [row.role_id for row in rows]
+
+
+def delete_role_summary_grants(role_id: int):
+    with Session(models.DATABASE_ENGINE) as session:
+        session.query(models.SummaryGrants).filter_by(role_id=role_id).delete()
+        session.commit()
+
+
+def delete_channel_summary_grants(channel_id: int):
+    with Session(models.DATABASE_ENGINE) as session:
+        session.query(models.SummaryGrants).filter_by(channel_id=channel_id).delete()
+        session.commit()

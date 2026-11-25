@@ -162,18 +162,13 @@ def main():
     @client.event
     async def on_guild_role_delete(role: nextcord.Role):
         """When a role is deleted, remove the summary grants"""
-        with Session(database.DATABASE_ENGINE) as session:
-            session.query(database.SummaryGrants).filter_by(role_id=role.id).delete()
-            session.commit()
+        database.delete_role_summary_grants(role.id)
 
     @client.event
     async def on_guild_channel_delete(channel: nextcord.abc.GuildChannel):
         """When a channel is deleted, remove its summary grants, solve streams and channel mirrors"""
+        database.delete_channel_summary_grants(channel.id)
         with Session(database.DATABASE_ENGINE) as session:
-            session.query(database.SummaryGrants).filter_by(
-                channel_id=channel.id
-            ).delete()
-            session.commit()
             session.query(database.SolveStreams).filter_by(
                 channel_id=channel.id
             ).delete()

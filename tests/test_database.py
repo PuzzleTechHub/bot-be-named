@@ -190,3 +190,57 @@ def test_delete_tether_only_that_one():
     database.delete_tether(100)
     assert [row.channel_or_cat_id for row in database.get_all_tethers()] == [200]
     database.delete_tether(100)
+
+
+# summary grants
+
+
+def _grant(channel_id, role_id, server_id=1):
+    return database.add_summary_grant(
+        server_id,
+        "Server",
+        channel_id,
+        f"chan-{channel_id}",
+        role_id,
+        f"role-{role_id}",
+    )
+
+
+def test_add_summary_grant_once():
+    assert _grant(200, 7) is True
+    assert _grant(200, 7) is False
+    [row] = database.get_server_summary_grants(1)
+    assert (row.channel_id, row.role_id, row.channel_id_role_id) == (200, 7, "200_7")
+
+
+def test_summary_role_ids_per_channel():
+    _grant(200, 7)
+    _grant(200, 8)
+    _grant(201, 9)
+    assert sorted(database.get_summary_role_ids(200)) == [7, 8]
+    assert database.get_summary_role_ids(999) == []
+
+
+def test_server_summary_grants_only_that_server():
+    _grant(200, 7)
+    _grant(300, 7, server_id=2)
+    assert [row.channel_id for row in database.get_server_summary_grants(2)] == [300]
+
+
+def test_delete_summary_grant():
+    _grant(200, 7)
+    _grant(200, 8)
+    assert database.delete_summary_grant(200, 7) is True
+    assert database.delete_summary_grant(200, 7) is False
+    assert database.get_summary_role_ids(200) == [8]
+
+
+def test_delete_role_and_channel_summary_grants():
+    _grant(200, 7)
+    _grant(201, 7)
+    _grant(201, 8)
+    _grant(202, 9)
+    database.delete_role_summary_grants(7)
+    assert database.get_summary_role_ids(201) == [8]
+    database.delete_channel_summary_grants(201)
+    assert [row.channel_id for row in database.get_server_summary_grants(1)] == [202]

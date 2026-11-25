@@ -1805,31 +1805,15 @@ class HydraCog(commands.Cog, name="Hydra"):
             await discord_utils.send_message(ctx, embed)
             return
 
-        grant_id = f"{channel.id}_{role.id}"
-        with Session(database.DATABASE_ENGINE) as session:
-            result = (
-                session.query(database.SummaryGrants)
-                .filter_by(channel_id_role_id=grant_id)
-                .first()
+        added = database.add_summary_grant(
+            ctx.guild.id, ctx.guild.name, channel.id, channel.name, role.id, role.name
+        )
+        if not added:
+            embed = discord_utils.create_failure_embed(
+                f"{role.mention} is already allowed in {channel.mention}"
             )
-            if result is not None:
-                embed = discord_utils.create_failure_embed(
-                    f"{role.mention} is already allowed in {channel.mention}"
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
-
-            statement = sqlalchemy.insert(database.SummaryGrants).values(
-                server_id=ctx.guild.id,
-                server_name=ctx.guild.name,
-                channel_id=channel.id,
-                channel_name=channel.name,
-                role_id=role.id,
-                role_name=role.name,
-                channel_id_role_id=grant_id,
-            )
-            session.execute(statement)
-            session.commit()
+            await discord_utils.send_message(ctx, embed)
+            return
 
         embed = discord_utils.create_success_embed(
             f"{role.mention} can now run summaries in {channel.mention}."
@@ -1865,13 +1849,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             await discord_utils.send_message(ctx, embed)
             return
 
-        with Session(database.DATABASE_ENGINE) as session:
-            deleted = (
-                session.query(database.SummaryGrants)
-                .filter_by(channel_id_role_id=f"{channel.id}_{role.id}")
-                .delete()
-            )
-            session.commit()
+        deleted = database.delete_summary_grant(channel.id, role.id)
 
         if not deleted:
             embed = discord_utils.create_failure_embed(
@@ -1892,16 +1870,10 @@ class HydraCog(commands.Cog, name="Hydra"):
         Permission Category : Trusted Roles only.
         Usage: `~summarylisthydra`
         """
-        with Session(database.DATABASE_ENGINE) as session:
-            rows = (
-                session.query(database.SummaryGrants)
-                .filter_by(server_id=ctx.guild.id)
-                .all()
-            )
-            grants = [
-                (row.role_id, row.role_name, row.channel_id, row.channel_name)
-                for row in rows
-            ]
+        grants = [
+            (row.role_id, row.role_name, row.channel_id, row.channel_name)
+            for row in database.get_server_summary_grants(ctx.guild.id)
+        ]
 
         lines = []
         for role_id, role_name, channel_id, channel_name in grants:

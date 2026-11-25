@@ -257,19 +257,9 @@ def add_tether(channel_or_cat_id, sheet_link, server_id=SERVER_ID):
 
 def add_grant(channel, role, server_id=SERVER_ID):
     """Same row ~summaryallowhydra writes."""
-    with Session(database.DATABASE_ENGINE) as session:
-        session.add(
-            database.SummaryGrants(
-                server_id=server_id,
-                server_name="Test server",
-                channel_id=channel.id,
-                channel_name=channel.name,
-                role_id=role.id,
-                role_name=role.name,
-                channel_id_role_id=f"{channel.id}_{role.id}",
-            )
-        )
-        session.commit()
+    database.add_summary_grant(
+        server_id, "Test server", channel.id, channel.name, role.id, role.name
+    )
 
 
 class FakeOverviewSheet:

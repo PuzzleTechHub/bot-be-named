@@ -2,7 +2,6 @@ import re
 import gspread
 import nextcord
 from nextcord.ext import commands
-from sqlalchemy.orm import Session
 import database
 from utils import discord_utils, sheet_utils, sheets_constants
 from modules.hydra import constants as hydra_constants
@@ -12,11 +11,7 @@ from modules.hydra import constants as hydra_constants
 
 def get_allowed_roles(guild, channel_id) -> list[nextcord.Role]:
     """Roles granted summaries in this channel, skips deleted roles."""
-    with Session(database.DATABASE_ENGINE) as session:
-        rows = (
-            session.query(database.SummaryGrants).filter_by(channel_id=channel_id).all()
-        )
-        role_ids = [row.role_id for row in rows]
+    role_ids = database.get_summary_role_ids(channel_id)
     return [role for role in map(guild.get_role, role_ids) if role is not None]
 
 
