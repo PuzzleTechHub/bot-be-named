@@ -9,7 +9,6 @@ import shutil
 from nextcord.ext import commands
 from nextcord.ext.tasks import loop
 from googleapiclient import discovery
-from sqlalchemy.orm import Session
 from utils import sheets_constants
 from utils import discord_utils, google_utils, logging_utils, command_predicates
 from utils import sheet_utils
@@ -163,11 +162,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         # If the tethering exists, remove it from the sheet.
         if curr_chan_or_cat_row is not None:
             sheet_link = curr_chan_or_cat_row.sheet_link
-            with Session(database.DATABASE_ENGINE) as session:
-                session.query(database.SheetTethers).filter_by(
-                    channel_or_cat_id=curr_chan_or_cat_row.channel_or_cat_id
-                ).delete()
-                session.commit()
+            database.delete_tether(curr_chan_or_cat_row.channel_or_cat_id)
             if tether_type == sheets_constants.THREAD:
                 embed.add_field(
                     name="Success",
@@ -385,10 +380,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @loop(hours=12)
     async def prune_tethers(self):
         """Function which runs periodically to remove all tethers to channels which have been deleted"""
-        with Session(database.DATABASE_ENGINE) as session:
-            result = session.query(database.SheetTethers)
-
-        listresults = list(result)
+        listresults = database.get_all_tethers()
         to_delete = []
         not_in_server = set()
         for x in listresults:
@@ -416,10 +408,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         print()
         for x in to_delete:
-            session.query(database.SheetTethers).filter_by(
-                server_id=x[0], channel_or_cat_id=x[1]
-            ).delete()
-            session.commit()
+            database.delete_tether(x[1])
             print(f"Deleting tether at {x[0]} - {x[1]}")
         return to_delete
 

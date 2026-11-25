@@ -11,6 +11,7 @@ from tests.fakes import (
     FakeThread,
     add_tether,
 )
+import database
 from utils import google_utils
 
 CHANNEL_SHEET = "https://docs.google.com/spreadsheets/d/channel/edit"
@@ -54,3 +55,22 @@ async def test_downloadsheet_without_category_or_tether(cog):
     assert embed.fields[0].value.startswith(
         f"There is no sheet tethered to {lone.mention}. You'll need"
     )
+
+
+async def test_prune_tethers_removes_only_missing_channels(cog):
+    category = FakeCategory(100, "GPH 1 Puzzles")
+    channel = FakeChannel(201, "puzzle-1", category)
+    thread = FakeThread(300, "thread", channel)
+    guild = FakeGuild(categories=[category])
+    guild.channels = [category, channel]
+    guild.threads = [thread]
+    cog.bot.guilds = [guild]
+    for place_id in (100, 201, 300, 999, guild.id):
+        add_tether(place_id, CHANNEL_SHEET)
+    add_tether(555, CHANNEL_SHEET, server_id=42)  # a server the bot isn't in
+
+    to_delete = await cog.prune_tethers.coro(cog)
+
+    assert to_delete == [(guild.id, 999)]
+    kept = {row.channel_or_cat_id for row in database.get_all_tethers()}
+    assert kept == {100, 201, 300, 555, guild.id}

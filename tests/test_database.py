@@ -148,3 +148,45 @@ def test_postgres_urls_use_psycopg2(url):
     )
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == "postgresql+psycopg2"
+
+
+# sheet tethers
+
+LINK = "https://docs.google.com/spreadsheets/d/one/edit"
+OTHER_LINK = "https://docs.google.com/spreadsheets/d/two/edit"
+
+
+def test_set_tether_adds_row():
+    database.set_tether(1, "Server", 100, "puzzles", LINK)
+    row = database.get_tether(100)
+    assert (row.server_id, row.server_name, row.channel_or_cat_name) == (
+        1,
+        "Server",
+        "puzzles",
+    )
+    assert row.sheet_link == LINK
+
+
+def test_set_tether_again_only_changes_link():
+    database.set_tether(1, "Server", 100, "puzzles", LINK)
+    database.set_tether(2, "Renamed", 100, "renamed", OTHER_LINK)
+    [row] = database.get_all_tethers()
+    assert (row.server_id, row.channel_or_cat_name, row.sheet_link) == (
+        1,
+        "puzzles",
+        OTHER_LINK,
+    )
+
+
+def test_get_tether_missing_or_none():
+    database.set_tether(1, "Server", 100, "puzzles", LINK)
+    assert database.get_tether(200) is None
+    assert database.get_tether(None) is None
+
+
+def test_delete_tether_only_that_one():
+    database.set_tether(1, "Server", 100, "puzzles", LINK)
+    database.set_tether(1, "Server", 200, "puzzle-1", OTHER_LINK)
+    database.delete_tether(100)
+    assert [row.channel_or_cat_id for row in database.get_all_tethers()] == [200]
+    database.delete_tether(100)

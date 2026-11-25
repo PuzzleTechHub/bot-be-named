@@ -5,8 +5,6 @@ import nextcord
 import gspread
 from gspread.worksheet import Worksheet
 import database
-from sqlalchemy.sql.expression import insert
-from sqlalchemy.orm import Session
 from typing import Optional, Union
 import emoji
 
@@ -82,30 +80,13 @@ def addsheettethergeneric(
     if not proposed_sheet:
         return None
 
-    # If the channel already has a sheet, then we update it.
-    # Otherwise, we add the channel to our master sheet to establish the tether
-
-    with Session(database.DATABASE_ENGINE) as session:
-        result = (
-            session.query(database.SheetTethers)
-            .filter_by(channel_or_cat_id=curr_catorchan.id)
-            .first()
-        )
-        # If there is already an entry, we just need to update it.
-        if result is not None:
-            result.sheet_link = proposed_sheet.url
-        # Otherwise, we need to create an entry
-        else:
-            stmt = insert(database.SheetTethers).values(
-                server_id=curr_guild.id,
-                server_name=curr_guild.name,
-                channel_or_cat_name=curr_catorchan.name,
-                channel_or_cat_id=curr_catorchan.id,
-                sheet_link=proposed_sheet.url,
-            )
-            session.execute(stmt)
-        # Commits change
-        session.commit()
+    database.set_tether(
+        curr_guild.id,
+        curr_guild.name,
+        curr_catorchan.id,
+        curr_catorchan.name,
+        proposed_sheet.url,
+    )
     return proposed_sheet
 
 
@@ -380,33 +361,14 @@ def findsheettether(
 ):
     """For finding the appropriate sheet tethering for a given category or channel"""
     result = None
-    tether_type = None
-    # Search DB for the sheet tether, if there is one
-    with Session(database.DATABASE_ENGINE) as session:
-        # Search for channel's tether
-        result = (
-            session.query(database.SheetTethers)
-            .filter_by(channel_or_cat_id=curr_thread_id)
-            .first()
-        )
+    for tether_type, place_id in (
+        (sheets_constants.THREAD, curr_thread_id),
+        (sheets_constants.CHANNEL, curr_chan_id),
+        (sheets_constants.CATEGORY, curr_cat_id),
+    ):
+        result = database.get_tether(place_id)
         if result is not None:
-            tether_type = sheets_constants.THREAD
-        else:
-            result = (
-                session.query(database.SheetTethers)
-                .filter_by(channel_or_cat_id=curr_chan_id)
-                .first()
-            )
-            # If we miss on the channel ID, try the category ID
-            if result is not None:
-                tether_type = sheets_constants.CHANNEL
-            else:
-                result = (
-                    session.query(database.SheetTethers)
-                    .filter_by(channel_or_cat_id=curr_cat_id)
-                    .first()
-                )
-                tether_type = sheets_constants.CATEGORY
+            break
     return result, tether_type
 
 

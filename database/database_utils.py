@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy.orm import Session
 from database import models
 
@@ -83,3 +85,54 @@ def get_channel_mirrors():
                 channel_mirrors[row.source_channel_id] = set()
             channel_mirrors[row.source_channel_id].add(row.target_channel_id)
     return channel_mirrors
+
+
+#################
+# SHEET TETHERS #
+#################
+
+
+def get_tether(channel_or_cat_id: Optional[int]) -> Optional[models.SheetTethers]:
+    """The tether row for a category, channel or thread ID, or None."""
+    if channel_or_cat_id is None:
+        return None
+    with Session(models.DATABASE_ENGINE) as session:
+        return session.get(models.SheetTethers, channel_or_cat_id)
+
+
+def get_all_tethers() -> list[models.SheetTethers]:
+    with Session(models.DATABASE_ENGINE) as session:
+        return session.query(models.SheetTethers).all()
+
+
+def set_tether(
+    server_id: int,
+    server_name: str,
+    channel_or_cat_id: int,
+    channel_or_cat_name: str,
+    sheet_link: str,
+):
+    """Tethers a category, channel or thread to a sheet. An existing tether only gets the new link."""
+    with Session(models.DATABASE_ENGINE) as session:
+        result = session.get(models.SheetTethers, channel_or_cat_id)
+        if result is not None:
+            result.sheet_link = sheet_link
+        else:
+            session.add(
+                models.SheetTethers(
+                    server_id=server_id,
+                    server_name=server_name,
+                    channel_or_cat_id=channel_or_cat_id,
+                    channel_or_cat_name=channel_or_cat_name,
+                    sheet_link=sheet_link,
+                )
+            )
+        session.commit()
+
+
+def delete_tether(channel_or_cat_id: int):
+    with Session(models.DATABASE_ENGINE) as session:
+        session.query(models.SheetTethers).filter_by(
+            channel_or_cat_id=channel_or_cat_id
+        ).delete()
+        session.commit()

@@ -20,6 +20,10 @@ from database.database_utils import (
     get_testers,
     get_custom_commands,
     get_channel_mirrors,
+    get_tether,
+    get_all_tethers,
+    set_tether,
+    delete_tether,
 )
 
 from database.models import Base
