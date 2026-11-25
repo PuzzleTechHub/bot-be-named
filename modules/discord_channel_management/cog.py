@@ -261,7 +261,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
         try:
             # rename channel
-            await old_channel.edit(name=new_channel_name)
+            await discord_utils.rename_channel(old_channel, new_channel_name)
         except nextcord.Forbidden:
             await discord_utils.send_failure(
                 ctx,

@@ -1,10 +1,12 @@
 import asyncio
 import os
+import time
 
 import nextcord
 from nextcord.ext import commands
 from typing import List, Optional, Union
 import constants
+from utils import logging_utils
 
 """
 Discord utils. Lots of little functions required for making smoother discord operations,
@@ -203,6 +205,31 @@ def bot_owner_mention() -> str:
     """Mentions the bot owner from the .env file. With several owners, only the first one is mentioned."""
     owner_ids = bot_owner_ids()
     return f"<@{owner_ids[0]}>" if owner_ids else "the bot owner"
+
+
+async def rename_channel(channel, new_name: str) -> None:
+    """Rename a channel or thread, logging the attempt and how long it took.
+
+    Discord allows 2 renames per channel every 10 minutes, and nextcord waits out
+    the limit without saying so, so a slow rename in the log means it was held back.
+    """
+    old_name = channel.name
+    where = getattr(getattr(channel, "guild", None), "name", "unknown server")
+    logging_utils.print_with_timestamp(
+        f"Renaming #{old_name} to #{new_name} in {where} ({channel.id})"
+    )
+    start = time.monotonic()
+    try:
+        await channel.edit(name=new_name)
+    except Exception as e:
+        logging_utils.print_with_timestamp(
+            f"Rename of #{old_name} to #{new_name} failed after "
+            f"{time.monotonic() - start:.1f} s: {type(e).__name__}"
+        )
+        raise
+    logging_utils.print_with_timestamp(
+        f"Renamed #{old_name} to #{new_name} after {time.monotonic() - start:.1f} s"
+    )
 
 
 def create_embed() -> nextcord.Embed:

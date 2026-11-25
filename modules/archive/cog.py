@@ -396,8 +396,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         # If we don't have the lock, let the user know it may take a while.
         msg = None
         if self.lock.locked():
-            embed = archive_utils.get_delay_embed()
-            await discord_utils.send_message(ctx, embed)
+            msg = await ctx.send(embed=archive_utils.get_delay_embed())
         # LOCK EVERYTHING
         async with self.lock:
             if msg:

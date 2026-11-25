@@ -1,1 +1,26 @@
 fly.toml
+
+# Secrets: pass them to the container as environment variables instead.
+# google_utils writes client_secret.json from those variables when it is missing.
+.env
+*.json
+
+# Local environments, caches and logs
+.venv/
+venv/
+env/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.coverage
+error_logfile.txt
+error_webhook.txt
+nohup.out
+/archive/
+/tools/
+
+# Repo and editor files
+.git/
+.github/
+.claude/
+.idea/

@@ -131,3 +131,21 @@ def test_get_sheet_keys_dedupes_and_keeps_order():
         ["not a link", "also bad"],
         None,
     )
+
+
+# hyperlink_formula
+
+
+def test_hyperlink_formula_plain_name():
+    assert (
+        sheet_utils.hyperlink_formula("https://x/edit#gid=1", "Puzzle 1")
+        == '=HYPERLINK("https://x/edit#gid=1", "Puzzle 1")'
+    )
+
+
+def test_hyperlink_formula_doubles_quotes():
+    # A lone " would end the formula string early and the cell would show #ERROR!
+    assert (
+        sheet_utils.hyperlink_formula("https://x/edit#gid=1", 'The "Big" One')
+        == '=HYPERLINK("https://x/edit#gid=1", "The ""Big"" One")'
+    )

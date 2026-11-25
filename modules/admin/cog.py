@@ -115,15 +115,14 @@ class AdminCog(commands.Cog, name="Admin"):
             )
             return
 
-        cache_map = database.PERMISSION_CACHES
+        role_ids = database.PERMISSION_CACHES[role_permissions].get(ctx.guild.id, [])
+        # Roles deleted from the server stay in the database, and get_role returns None for them.
+        roles = [role for role in map(ctx.guild.get_role, role_ids) if role is not None]
 
-        if (
-            ctx.guild.id in cache_map[role_permissions]
-            and len(cache_map[role_permissions][ctx.guild.id]) > 0
-        ):
+        if roles:
             embed.add_field(
                 name=f"{role_permissions}s for {ctx.guild.name}",
-                value=f"{' '.join([ctx.guild.get_role(role).mention for role in cache_map[role_permissions][ctx.guild.id]])}",
+                value=" ".join(role.mention for role in roles),
                 inline=False,
             )
         else:

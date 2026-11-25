@@ -356,6 +356,17 @@ def get_timestamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
+def hyperlink_formula(link: str, text: str) -> str:
+    """=HYPERLINK formula for an Overview cell.
+
+    A sheet formula string escapes a double quote by doubling it, so a puzzle name
+    with a " in it would break it.
+    """
+    link = link.replace('"', '""')
+    text = text.replace('"', '""')
+    return f'=HYPERLINK("{link}", "{text}")'
+
+
 def findsheettether(
     curr_cat_id: int, curr_chan_id: int, curr_thread_id: Optional[int] = None
 ):
@@ -794,7 +805,7 @@ async def create_puzzle_channel_from_template(
         batch.update_cell_by_label(
             sheet_id=overview_id,
             label=puzzle_name_col + str(first_empty),
-            value=f'=HYPERLINK("{final_sheet_link}", "{puzzle_name}")',
+            value=hyperlink_formula(final_sheet_link, puzzle_name),
             is_formula=True,
         )
 
@@ -1278,7 +1289,7 @@ async def batch_create_puzzle_channels(
             # Batch update overview row
             overview_updates = {
                 puzzle_name_col + str(row_num): (
-                    f'=HYPERLINK("{final_sheet_link}", "{puzzle_name}")',
+                    hyperlink_formula(final_sheet_link, puzzle_name),
                     True,  # is_formula
                 ),
                 discord_channel_id_col + str(row_num): (str(channel.id), False),

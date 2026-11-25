@@ -58,7 +58,7 @@ class ErrorHandler:
         elif isinstance(self.error, errors.MissingPermissions):
             return (
                 "You are missing the following permissions required to run the"
-                f" command: {', '.join(self.error.missing_perms)}."
+                f" command: {', '.join(self.error.missing_permissions)}."
             )
         elif isinstance(self.error, errors.DisabledCommand):
             return "That command is disabled or under maintenance."

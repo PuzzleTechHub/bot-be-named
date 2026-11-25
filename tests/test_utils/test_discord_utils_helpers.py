@@ -15,7 +15,7 @@ from tests.fakes import (
     FakeRole,
     FakeThread,
 )
-from utils import discord_utils
+from utils import discord_utils, logging_utils
 
 
 def _ctx(**guild_attrs):
@@ -398,3 +398,45 @@ async def test_get_category_channels_skips_voice_and_keeps_news():
 async def test_get_category_channels_empty():
     category = FakeCategory(100, "Empty")
     assert await discord_utils.get_category_channels(category) == []
+
+
+# rename_channel
+
+
+class RenamableChannel(FakeChannel):
+    def __init__(self, name, error=None):
+        super().__init__(20, name, FakeCategory(10, "Puzzles"))
+        self.guild = FakeGuild()
+        self.error = error
+
+    async def edit(self, name):
+        if self.error:
+            raise self.error
+        self.name = name
+
+
+async def test_rename_channel_logs_the_attempt_and_the_result(monkeypatch):
+    lines = []
+    monkeypatch.setattr(logging_utils, "print_with_timestamp", lines.append)
+    channel = RenamableChannel("puzzle-1")
+
+    await discord_utils.rename_channel(channel, "solved-puzzle-1")
+
+    assert channel.name == "solved-puzzle-1"
+    assert lines[0] == "Renaming #puzzle-1 to #solved-puzzle-1 in Test server (20)"
+    assert lines[1].startswith("Renamed #puzzle-1 to #solved-puzzle-1 after ")
+
+
+async def test_rename_channel_logs_and_reraises_a_failure(monkeypatch):
+    lines = []
+    monkeypatch.setattr(logging_utils, "print_with_timestamp", lines.append)
+    channel = RenamableChannel(
+        "puzzle-1", nextcord.Forbidden(_Response(403), "Missing Permissions")
+    )
+
+    with pytest.raises(nextcord.Forbidden):
+        await discord_utils.rename_channel(channel, "solved-puzzle-1")
+
+    assert channel.name == "puzzle-1"
+    assert lines[1].startswith("Rename of #puzzle-1 to #solved-puzzle-1 failed after ")
+    assert lines[1].endswith(": Forbidden")

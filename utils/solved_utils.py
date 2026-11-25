@@ -179,7 +179,7 @@ async def status_channel(ctx: commands.Context, status_prefix):
     new_channel_name = add_prefix(ctx.channel, status_prefix + "-")
     if new_channel_name:
         try:
-            await ctx.channel.edit(name=new_channel_name)
+            await discord_utils.rename_channel(ctx.channel, new_channel_name)
         except nextcord.Forbidden:
             await discord_utils.send_failure(
                 ctx,
@@ -207,7 +207,7 @@ async def status_remove(ctx: commands.Context):
     for prefix in prefixes:
         new_channel_name = remove_prefix(ctx.message.channel, prefix + "-")
         if new_channel_name:
-            await channel.edit(name=new_channel_name)
+            await discord_utils.rename_channel(channel, new_channel_name)
             embed.add_field(
                 name="Success",
                 value=f"Marking {channel.mention} as un-{prefix}!",

@@ -314,7 +314,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             batch.update_cell_by_label(
                 sheet_id=overview_sheet.worksheet.id,
                 label=puzzle_name_col + str(row_to_find),
-                value=f'=HYPERLINK("{final_sheet_link}", "{new_name}")',
+                value=sheet_utils.hyperlink_formula(final_sheet_link, new_name),
                 is_formula=True,
             )
 
@@ -342,7 +342,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             # Rename the Discord channel
             new_channel_name = new_name.lower().replace(" ", "-")
             try:
-                await ctx.channel.edit(name=new_channel_name)
+                await discord_utils.rename_channel(ctx.channel, new_channel_name)
             finally:
                 await progress_msg.delete()
 
@@ -998,6 +998,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                 tab_name = None
                 row_to_find = None
                 tab_id_found = False
+                # Why the tab or Overview row was not deleted, for the report.
+                tab_problem = "I could not find the channel on the Overview sheet"
+                row_problem = tab_problem
 
                 if overview_sheet is not None:
                     # We need to find the row by channel ID
@@ -1020,8 +1023,13 @@ class HydraCog(commands.Cog, name="Hydra"):
                             if tab_id_str:
                                 tab_id = int(tab_id_str)
                                 tab_id_found = True
+                            else:
+                                tab_problem = "its Overview row has no tab ID"
                         except (gspread.exceptions.APIError, IndexError, ValueError):
                             tab_id_found = False
+                            tab_problem = (
+                                "I could not read the tab ID on its Overview row"
+                            )
 
                 # 3. Delete discord channel
                 channel_name = target_channel.name
@@ -1043,10 +1051,11 @@ class HydraCog(commands.Cog, name="Hydra"):
                         sh.del_worksheet_by_id(tab_id)
                         tab_deleted = True
 
-                    except Exception:
-                        # The channel is already gone, so carry on; the report
-                        # below shows the tab as not deleted.
-                        pass
+                    except gspread.exceptions.WorksheetNotFound:
+                        # The channel is already gone, so carry on and say why in the report.
+                        tab_problem = "the tab was already deleted"
+                    except Exception as e:
+                        tab_problem = f"{type(e).__name__}: {e}"[:300]
 
                 # 5. Delete overview row
                 row_moved = False
@@ -1061,7 +1070,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                         else:
                             row_values = []
 
-                        if row_values:
+                        if not row_values:
+                            row_problem = "its Overview row was already empty"
+                        else:
                             overview_ws.delete_rows(row_to_find)
                             # A new row probably should be created here, but
                             # the filter on the overview sheet doesn't apply
@@ -1070,9 +1081,9 @@ class HydraCog(commands.Cog, name="Hydra"):
 
                             row_moved = True
 
-                    except Exception:
-                        # Same as the tab: the report shows the row as not deleted.
-                        pass
+                    except Exception as e:
+                        # Same as the tab: carry on and say why in the report.
+                        row_problem = f"{type(e).__name__}: {e}"[:300]
 
                 # Delete progress message
                 await progress_msg.delete()
@@ -1089,13 +1100,15 @@ class HydraCog(commands.Cog, name="Hydra"):
                     status_lines.append(f"- ✅ Tab '{tab_name}' deleted from sheet.")
                 else:
                     status_lines.append(
-                        f"- ❌ Failed to delete tab '{tab_name}' from sheet."
+                        f"- ❌ Did not delete the tab for {channel_name}: {tab_problem}."
                     )
 
                 if row_moved:
                     status_lines.append("- ✅ Overview row deleted.")
                 else:
-                    status_lines.append("- ❌ Failed to delete overview row.")
+                    status_lines.append(
+                        f"- ❌ Did not delete the Overview row: {row_problem}."
+                    )
 
                 success_embed.add_field(
                     name="Report of deletion",
