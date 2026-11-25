@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 import time
 
 import nextcord
@@ -43,6 +44,21 @@ def category_is_full(category: nextcord.CategoryChannel) -> bool:
         - bool
     """
     return len(category.channels) >= 50
+
+
+def numbered_categories(
+    guild: nextcord.Guild, base: nextcord.CategoryChannel
+) -> list[tuple[int, nextcord.CategoryChannel]]:
+    """The base category and its numbered copies (`Archive`, `Archive 2`, `Archive 3`...),
+    as (number, category) sorted by number. The base counts as 1. Names match ignoring case.
+    """
+    pattern = re.compile(rf"{re.escape(base.name)}\s+(\d+)", re.IGNORECASE)
+    numbered = [(1, base)]
+    for category in guild.categories:
+        match = pattern.fullmatch(category.name)
+        if match and category != base:
+            numbered.append((int(match.group(1)), category))
+    return sorted(numbered, key=lambda pair: pair[0])
 
 
 def server_is_full(guild: nextcord.Guild) -> bool:
@@ -849,11 +865,11 @@ async def category_move_to_archive(ctx: commands.Context, archive_name: Optional
     1. Takes the current channel's category name, and splits it into words. Looks for (all words) Archive, then (all but last word) Archive,
     then (all but last two words) Archive etc.
 
-    2. Once it finds a candidate category, moves the channel to that category.
+    2. If numbered copies of that category exist (`X Archive 2`, `X Archive 3`...), uses the highest-numbered
+    one, even if a lower one has room. An archive named in the command is used as given unless it is full.
 
-    3. If the candidate category is full, create a new category with the same name, but with 2 appended to the end.
-
-    4. If the candidate category is full but the category with 2 appended to the end also exists and is full, try with 3, etc.
+    3. Moves the channel there. If that category is full, makes the next one (`X Archive 4` after `X Archive 3`)
+    by cloning it, and moves the channel there instead.
     """
     embed = create_embed()
 
@@ -948,58 +964,45 @@ async def category_move_to_archive(ctx: commands.Context, archive_name: Optional
             await send_message(ctx, embed)
             return
 
+    # Use the highest-numbered archive (`X Archive 3` over `X Archive 2` over `X Archive`),
+    # even if a lower one has room, so a hunt can start a new archive per round.
+    # An archive named in the command is used as given unless it is full.
+    base_category = archive_category
+    numbered = numbered_categories(ctx.guild, base_category)
+    if archive_name is None or category_is_full(archive_category):
+        archive_category = numbered[-1][1]
+
     if category_is_full(archive_category):
-        # Search for all categories that start with archive_category.name.
-        categories_starting_with_name = []
-        category_found = False
-
-        for category in ctx.guild.categories:
-            if category.name.startswith(archive_category.name):
-                categories_starting_with_name.append(category)
-
-        for category in categories_starting_with_name:
-            if not category_is_full(category):
-                archive_category = category
-                category_found = True
-                break
-
-        if not category_found:
-            # Check if we've hit the maximum category limit (50)
-            if len(ctx.guild.categories) >= 50:
-                embed.add_field(
-                    name="Failed",
-                    value=f"Cannot create new archive category. Server has reached the maximum limit of 50 categories. "
-                    f"Archive category `{archive_category.name}` is full.",
-                    inline=False,
-                )
-                await send_message(ctx, embed)
-                return
-
-            clonecat = ctx.bot.get_command("clonecat")
-            # Find the smallest numeric suffix >= 2 that's not already used
-            existing_names = {c.name for c in ctx.guild.categories}
-            suffix = 2
-            while f"{archive_category.name} {suffix}" in existing_names:
-                suffix += 1
-
-            category_to_make = f"{archive_category.name} {suffix}"
-
-            await ctx.invoke(
-                clonecat,
-                origCatName=archive_category.name,
-                targetCatName=category_to_make,
-            )
+        # Check if we've hit the maximum category limit (50)
+        if len(ctx.guild.categories) >= 50:
             embed.add_field(
-                name="Created new archive category!",
-                value=f"Archive category `{archive_category.name}` is full, so created new category `{category_to_make}`!",
+                name="Failed",
+                value=f"Cannot create new archive category. Server has reached the maximum limit of 50 categories. "
+                f"Archive category `{archive_category.name}` is full.",
                 inline=False,
             )
             await send_message(ctx, embed)
+            return
 
-            embed = create_embed()  # Reset embed
-            archive_category = await find_category(
-                ctx, category_to_make
-            )  # Change it to the new one!
+        clonecat = ctx.bot.get_command("clonecat")
+        category_to_make = f"{base_category.name} {numbered[-1][0] + 1}"
+
+        await ctx.invoke(
+            clonecat,
+            origCatName=archive_category.name,
+            targetCatName=category_to_make,
+        )
+        embed.add_field(
+            name="Created new archive category!",
+            value=f"Archive category `{archive_category.name}` is full, so created new category `{category_to_make}`!",
+            inline=False,
+        )
+        await send_message(ctx, embed)
+
+        embed = create_embed()  # Reset embed
+        archive_category = await find_category(
+            ctx, category_to_make
+        )  # Change it to the new one!
 
     # Check if channel is already in the archive category
     if (

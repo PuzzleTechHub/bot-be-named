@@ -1,5 +1,6 @@
 import asyncio
 from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock
 
 import nextcord
 import pytest
@@ -440,3 +441,107 @@ async def test_rename_channel_logs_and_reraises_a_failure(monkeypatch):
     assert channel.name == "puzzle-1"
     assert lines[1].startswith("Rename of #puzzle-1 to #solved-puzzle-1 failed after ")
     assert lines[1].endswith(": Forbidden")
+
+
+# numbered_categories and category_move_to_archive
+
+
+def _archive_guild(*names, full=()):
+    categories = [FakeCategory(100 + i, name) for i, name in enumerate(names)]
+    for category in categories:
+        if category.name in full:
+            category.channels = [object()] * 50
+    return FakeGuild(categories=categories)
+
+
+def _category(guild, name):
+    return next(category for category in guild.categories if category.name == name)
+
+
+def test_numbered_categories_sorted_by_number():
+    guild = _archive_guild(
+        "Puzzles Archive 3", "Puzzles Archive", "Puzzles archive 2", "Puzzles Archived"
+    )
+    base = _category(guild, "Puzzles Archive")
+    assert [(n, c.name) for n, c in discord_utils.numbered_categories(guild, base)] == [
+        (1, "Puzzles Archive"),
+        (2, "Puzzles archive 2"),
+        (3, "Puzzles Archive 3"),
+    ]
+
+
+def test_numbered_categories_ignores_other_names():
+    guild = _archive_guild(
+        "Puzzles Archive", "Puzzles Archived", "Puzzles Archive old", "Other Archive 2"
+    )
+    base = _category(guild, "Puzzles Archive")
+    assert discord_utils.numbered_categories(guild, base) == [(1, base)]
+
+
+def _mta_ctx(guild, monkeypatch):
+    """A channel in Puzzles, plus a clonecat that adds the new category to the guild."""
+
+    async def find(ctx, name):
+        return next((c for c in guild.categories if c.name == name), None)
+
+    monkeypatch.setattr(discord_utils, "find_category", find)
+    channel = MagicMock(spec=nextcord.TextChannel)
+    channel.type = nextcord.ChannelType.text
+    channel.category = FakeCategory(1, "Puzzles")
+    channel.mention = "<#20>"
+    channel.edit = AsyncMock()
+    ctx = FakeContext(guild, channel)
+    ctx.bot = SimpleNamespace(get_command=lambda name: name)
+    ctx.cloned = []
+
+    async def invoke(command, origCatName, targetCatName):
+        ctx.cloned.append((command, origCatName, targetCatName))
+        guild.categories.append(FakeCategory(999, targetCatName))
+
+    ctx.invoke = invoke
+    return ctx, channel
+
+
+async def test_mta_uses_the_highest_numbered_archive_even_with_room_lower(
+    monkeypatch,
+):
+    guild = _archive_guild("Puzzles Archive", "Puzzles Archive 3", "Puzzles Archive 2")
+    ctx, channel = _mta_ctx(guild, monkeypatch)
+
+    await discord_utils.category_move_to_archive(ctx, None)
+
+    channel.edit.assert_any_await(category=_category(guild, "Puzzles Archive 3"))
+    assert ctx.cloned == []
+
+
+async def test_mta_makes_the_next_archive_when_the_highest_is_full(monkeypatch):
+    guild = _archive_guild(
+        "Puzzles Archive", "Puzzles Archive 2", full=("Puzzles Archive 2",)
+    )
+    ctx, channel = _mta_ctx(guild, monkeypatch)
+
+    await discord_utils.category_move_to_archive(ctx, None)
+
+    assert ctx.cloned == [("clonecat", "Puzzles Archive 2", "Puzzles Archive 3")]
+    channel.edit.assert_any_await(category=_category(guild, "Puzzles Archive 3"))
+
+
+async def test_mta_uses_a_named_archive_as_given(monkeypatch):
+    guild = _archive_guild("Puzzles Archive", "Puzzles Archive 2")
+    ctx, channel = _mta_ctx(guild, monkeypatch)
+
+    await discord_utils.category_move_to_archive(ctx, "Puzzles Archive")
+
+    channel.edit.assert_any_await(category=_category(guild, "Puzzles Archive"))
+
+
+async def test_mta_named_archive_when_full_moves_to_the_highest(monkeypatch):
+    guild = _archive_guild(
+        "Puzzles Archive", "Puzzles Archive 2", full=("Puzzles Archive",)
+    )
+    ctx, channel = _mta_ctx(guild, monkeypatch)
+
+    await discord_utils.category_move_to_archive(ctx, "Puzzles Archive")
+
+    channel.edit.assert_any_await(category=_category(guild, "Puzzles Archive 2"))
+    assert ctx.cloned == []

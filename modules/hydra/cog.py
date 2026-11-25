@@ -682,7 +682,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         self, ctx: commands.Context, *, category_name: Optional[str] = None
     ):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
-        Fails if there is no such category. If the category is full (50 channels), I will make a new one.
+        Fails if there is no such category. If `<category_name> Archive 2`, `3`... exist, uses the highest-numbered
+        one, so a new archive can be started for each round. If that one is full (50 channels), I will make the next one.
         If called from thread (instead of channel), closes the thread instead of moving channel.
 
         In the hydra implementation of ~mta, the archive category name is standardized.
