@@ -664,6 +664,21 @@ class HydraCog(commands.Cog, name="Hydra"):
         await self.puzzle_from_template(ctx, args, "Meta", "none")
 
     @command_predicates.is_solver()
+    @commands.command(name="tetherhydra")
+    async def tetherhydra(self, ctx: commands.Context, sheet_key_or_link: str):
+        """Tethers a sheet to the category after checking it has the tabs hydra needs:
+        Overview, Template and Meta Template.
+
+        See also `~chantether` to tether a single channel.
+
+        Permission Category : Solver Roles only.
+        Usage: ~tetherhydra sheeturl
+        """
+        await sheet_utils.tether_template_sheet(
+            self.gspread_client, ctx, sheet_key_or_link
+        )
+
+    @command_predicates.is_solver()
     @commands.command(name="mtahydra", aliases=["movetoarchivehydra"])
     async def mtahydra(
         self, ctx: commands.Context, *, category_name: Optional[str] = None

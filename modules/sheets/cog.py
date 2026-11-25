@@ -154,20 +154,11 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """
         embed = discord_utils.create_embed()
 
-        # Get category and channel information
         curr_cat = ctx.message.channel.category
-        curr_cat_id = ctx.message.channel.category_id
         curr_chan = ctx.message.channel
-        curr_chan_id = ctx.message.channel.id
+        in_thread = await discord_utils.is_thread(ctx, curr_chan)
 
-        curr_thread_id = None
-        if await discord_utils.is_thread(ctx, curr_chan):
-            curr_thread_id = ctx.message.channel.id
-            curr_chan_id = ctx.message.channel.parent.id
-
-        curr_chan_or_cat_row, tether_type = sheet_utils.findsheettether(
-            curr_cat_id, curr_chan_id, curr_thread_id
-        )
+        curr_chan_or_cat_row, tether_type = sheet_utils.find_channel_tether(curr_chan)
 
         # If the tethering exists, remove it from the sheet.
         if curr_chan_or_cat_row is not None:
@@ -177,13 +168,13 @@ class SheetsCog(commands.Cog, name="Sheets"):
                     channel_or_cat_id=curr_chan_or_cat_row.channel_or_cat_id
                 ).delete()
                 session.commit()
-            if tether_type == sheets_constants.THREAD and curr_thread_id is not None:
+            if tether_type == sheets_constants.THREAD:
                 embed.add_field(
                     name="Success",
                     value=f"{ctx.channel.mention}'s tether to [sheet]({sheet_link}) has been removed!",
                     inline=False,
                 )
-            elif tether_type == sheets_constants.CHANNEL and curr_thread_id is not None:
+            elif tether_type == sheets_constants.CHANNEL and in_thread:
                 embed.add_field(
                     name="Success",
                     value=f"{ctx.channel.parent.mention}'s tether to [sheet]({sheet_link}) has been removed!",
@@ -260,29 +251,21 @@ class SheetsCog(commands.Cog, name="Sheets"):
         embed = discord_utils.create_embed()
 
         curr_cat = ctx.message.channel.category
-        curr_cat_id = ctx.message.channel.category_id
         curr_chan = ctx.message.channel
-        curr_chan_id = ctx.message.channel.id
+        in_thread = await discord_utils.is_thread(ctx, curr_chan)
 
-        curr_thread_id = None
-        if await discord_utils.is_thread(ctx, curr_chan):
-            curr_thread_id = ctx.message.channel.id
-            curr_chan_id = ctx.message.channel.parent.id
-
-        curr_chan_or_cat_row, tether_type = sheet_utils.findsheettether(
-            curr_cat_id, curr_chan_id, curr_thread_id
-        )
+        curr_chan_or_cat_row, tether_type = sheet_utils.find_channel_tether(curr_chan)
 
         if curr_chan_or_cat_row is not None:
             curr_sheet_link = curr_chan_or_cat_row.sheet_link
-            if tether_type == sheets_constants.THREAD and curr_thread_id is not None:
+            if tether_type == sheets_constants.THREAD:
                 embed.add_field(
                     name="Result",
                     value=f"The channel {curr_chan.mention} is currently tethered to the "
                     f"[Google sheet at link]({curr_sheet_link})",
                     inline=False,
                 )
-            elif tether_type == sheets_constants.CHANNEL and curr_thread_id is not None:
+            elif tether_type == sheets_constants.CHANNEL and in_thread:
                 embed.add_field(
                     name="Result",
                     value=f"The channel {curr_chan.parent.mention} is currently tethered to the "
@@ -338,14 +321,18 @@ class SheetsCog(commands.Cog, name="Sheets"):
         service = discovery.build("drive", "v3", http=http)
 
         if sheet_url is None:
-            tether_db_result, _ = sheet_utils.findsheettether(
-                ctx.channel.id, ctx.channel.category.id
-            )
+            tether_db_result, _ = sheet_utils.find_channel_tether(ctx.channel)
             if tether_db_result is None:
+                if ctx.channel.category is None:
+                    where = f"{ctx.channel.mention}"
+                else:
+                    where = (
+                        f"{ctx.channel.mention} or the "
+                        f"**{ctx.channel.category.name}** category"
+                    )
                 await discord_utils.send_failure(
                     ctx,
-                    f"There is no sheet tethered to {ctx.channel.mention} or the "
-                    f"**{ctx.channel.category.name}** category. You'll need to supply a sheet link "
+                    f"There is no sheet tethered to {where}. You'll need to supply a sheet link "
                     f"for me to download.",
                 )
                 return

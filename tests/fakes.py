@@ -111,6 +111,7 @@ class FakeThread:
         self.name = name
         self.mention = f"<#{thread_id}>"
         self.parent = parent
+        self.category = parent.category
         self.category_id = parent.category_id
         self.archived = archived
         self._private = private

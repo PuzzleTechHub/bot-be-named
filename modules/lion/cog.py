@@ -534,74 +534,8 @@ class LionCog(commands.Cog, name="Lion"):
     # LION TEMPLATE COMMANDS #
     ##########################
 
-    async def validate_template(self, ctx: commands.Context, proposed_sheet):
-        proposed_template = sheet_utils.get_sheet_from_key_or_link(
-            self.gspread_client, proposed_sheet
-        )
-
-        if not proposed_template:
-            await discord_utils.send_failure(
-                ctx,
-                "Sorry, we can't find a sheet there. "
-                "Did you forget to set your sheet as 'Anyone with the link can edit'?",
-            )
-            return None
-
-        curr_link = proposed_template.url
-
-        # Make sure the template tab exists on the sheet.
-        try:
-            curr_sheet = self.gspread_client.open_by_url(curr_link)
-            _template_id = curr_sheet.worksheet("Template").id
-        # Error when we can't open the curr sheet link
-        except gspread.exceptions.APIError as e:
-            if not sheet_utils.is_permission_denied(e):
-                raise
-            await discord_utils.send_failure(
-                ctx,
-                f"I'm unable to open the tethered [sheet]({curr_link}). "
-                f"Did the permissions change?",
-            )
-            return None
-        # Error when the sheet has no template tab
-        except gspread.exceptions.WorksheetNotFound:
-            await discord_utils.send_failure(
-                ctx,
-                f"The [sheet]({curr_link}) has no tab named 'Template'. "
-                f"Did you forget to add one?",
-            )
-            return None
-
-        # Make sure the Meta Template tab exists on the sheet.
-        try:
-            curr_sheet = self.gspread_client.open_by_url(curr_link)
-            _overview_id = curr_sheet.worksheet("Meta Template").id
-        # Error when the sheet has no Meta Template tab
-        except gspread.exceptions.WorksheetNotFound:
-            await discord_utils.send_failure(
-                ctx,
-                f"The [sheet]({curr_link}) has no tab named 'Meta Template'. "
-                f"Did you forget to add one?",
-            )
-            return None
-
-        # Make sure the Overview tab exists on the sheet.
-        try:
-            curr_sheet = self.gspread_client.open_by_url(curr_link)
-            _overview_id = curr_sheet.worksheet("Overview").id
-        # Error when the sheet has no Overview tab
-        except gspread.exceptions.WorksheetNotFound:
-            await discord_utils.send_failure(
-                ctx,
-                f"The [sheet]({curr_link}) has no tab named 'Overview'. "
-                f"Did you forget to add one?",
-            )
-            return None
-
-        return proposed_template
-
     @command_predicates.is_solver()
-    @commands.command(name="tetherlion", aliases=["tetherhydra"])
+    @commands.command(name="tetherlion")
     async def tetherlion(self, ctx: commands.Context, sheet_key_or_link: str):
         """Tethers a sheet to the category and also checks that it is the correct format to be used by the lion commands
 
@@ -609,31 +543,9 @@ class LionCog(commands.Cog, name="Lion"):
 
         Usage: ~tetherlion sheeturl
         """
-        embed = discord_utils.create_embed()
-
-        if await self.validate_template(ctx, sheet_key_or_link) is None:
-            return
-
-        proposed_sheet = sheet_utils.addsheettethergeneric(
-            self.gspread_client, sheet_key_or_link, ctx.guild, ctx.channel.category
+        await sheet_utils.tether_template_sheet(
+            self.gspread_client, ctx, sheet_key_or_link
         )
-
-        if proposed_sheet:
-            embed.add_field(
-                name="Success",
-                value=f"The category **{ctx.channel.category.name}** is now tethered to the "
-                f"[Google sheet at link]({proposed_sheet.url})",
-                inline=False,
-            )
-            await discord_utils.send_message(ctx, embed)
-        # If we can't open the sheet, send an error and return
-        else:
-            await discord_utils.send_failure(
-                ctx,
-                "Sorry, we can't find a sheet there. "
-                "Did you forget to set your sheet as 'Anyone with the link can edit'?",
-            )
-            return
 
 
 def setup(bot):

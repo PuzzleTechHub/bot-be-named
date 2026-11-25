@@ -45,6 +45,8 @@ def test_no_command_name_or_alias_used_twice(bot):
     "command",
     [
         "statushydra",
+        "tetherhydra",
+        "tetherlion",
         "catsummaryhydra",
         "watchcat",
         "addcc",

@@ -109,6 +109,71 @@ def addsheettethergeneric(
     return proposed_sheet
 
 
+async def tether_template_sheet(
+    gspread_client, ctx: commands.Context, sheet_key_or_link
+):
+    """Tethers a sheet to the current category after checking it has the Template,
+    Meta Template and Overview tabs. Used by ~tetherhydra and ~tetherlion."""
+    if ctx.channel.category is None:
+        await discord_utils.send_failure(
+            ctx,
+            f"Sorry, tether is used for categories, there is no category for this channel. "
+            f"Consider adding a category to this channel or using `{ctx.prefix}chantether`",
+        )
+        return
+
+    proposed_sheet = get_sheet_from_key_or_link(gspread_client, sheet_key_or_link)
+    if not proposed_sheet:
+        await discord_utils.send_failure(
+            ctx,
+            "Sorry, we can't find a sheet there. "
+            "Did you forget to set your sheet as 'Anyone with the link can edit'?",
+        )
+        return
+
+    curr_link = proposed_sheet.url
+    for tab_name in ["Template", "Meta Template", "Overview"]:
+        try:
+            proposed_sheet.worksheet(tab_name)
+        # Error when we can't open the sheet
+        except gspread.exceptions.APIError as e:
+            if not is_permission_denied(e):
+                raise
+            await discord_utils.send_failure(
+                ctx,
+                f"I'm unable to open the tethered [sheet]({curr_link}). "
+                f"Did the permissions change?",
+            )
+            return
+        except gspread.exceptions.WorksheetNotFound:
+            await discord_utils.send_failure(
+                ctx,
+                f"The [sheet]({curr_link}) has no tab named '{tab_name}'. "
+                f"Did you forget to add one?",
+            )
+            return
+
+    proposed_sheet = addsheettethergeneric(
+        gspread_client, curr_link, ctx.guild, ctx.channel.category
+    )
+    if not proposed_sheet:
+        await discord_utils.send_failure(
+            ctx,
+            "Sorry, we can't find a sheet there. "
+            "Did you forget to set your sheet as 'Anyone with the link can edit'?",
+        )
+        return
+
+    embed = discord_utils.create_embed()
+    embed.add_field(
+        name="Success",
+        value=f"The category **{ctx.channel.category.name}** is now tethered to the "
+        f"[Google sheet at link]({proposed_sheet.url})",
+        inline=False,
+    )
+    await discord_utils.send_message(ctx, embed)
+
+
 async def sheetcrabgeneric(
     gspread_client,
     ctx: commands.Context,
@@ -343,6 +408,19 @@ def findsheettether(
                 )
                 tether_type = sheets_constants.CATEGORY
     return result, tether_type
+
+
+def find_channel_tether(channel):
+    """Finds the tether for a channel, thread or forum post: the thread's own tether first,
+    then its parent channel's, then the category's. Works in channels with no category.
+    Returns (result, tether_type) like findsheettether."""
+    if channel.type in {
+        nextcord.ChannelType.news_thread,
+        nextcord.ChannelType.public_thread,
+        nextcord.ChannelType.private_thread,
+    }:
+        return findsheettether(channel.category_id, channel.parent.id, channel.id)
+    return findsheettether(channel.category_id, channel.id)
 
 
 def get_sheet_from_key_or_link(
