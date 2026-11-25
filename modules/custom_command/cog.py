@@ -2,8 +2,6 @@ import asyncio
 from typing import Optional
 
 from nextcord.ext import commands
-from sqlalchemy import insert
-from sqlalchemy.orm import Session
 
 import constants
 import database
@@ -175,53 +173,26 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
     ):
         """Saves a new custom command to the database and then the cache. Then, it sends the result."""
         embed = discord_utils.create_embed()
-        command_return = responses[0]  # TODO Drop this soon
         # Global commands are kept under constants.DB_GLOBAL instead of a server id
         server_id = constants.DB_GLOBAL if is_global else ctx.guild.id
         server_name = "Global" if is_global else ctx.guild.name
 
-        with Session(database.DATABASE_ENGINE) as session:
-            result = (
-                session.query(database.CustomCommands)
-                .filter_by(server_id_command=f"{server_id} {command_name}")
-                .first()
+        if database.add_custom_command(
+            server_id, server_name, command_name, responses, is_image
+        ):
+            embed.add_field(
+                name="Success",
+                value=f"Added `{ctx.prefix}{command_name}` with value{'s' if len(responses) > 1 else ''}"
+                f" `{' | '.join(responses)}`",
             )
-            if result is None:
-                stmt = insert(database.CustomCommands).values(
-                    server_id=server_id,
-                    server_name=server_name,
-                    server_id_command=f"{server_id} {command_name}",
-                    command_name=command_name,
-                    command_return=command_return,
-                    image=is_image,
-                    responses=responses,
-                )
-                session.execute(stmt)
-                session.commit()
-
-                embed.add_field(
-                    name="Success",
-                    value=f"Added `{ctx.prefix}{command_name}` with value{'s' if len(responses) > 1 else ''}"
-                    f" `{' | '.join(responses)}`",
-                )
-            # Already in the database but missing from the cache, so
-            # tell the user that the command already exists
-            else:
-                command_return = result.command_return
-                responses = result.responses
-                is_image = bool(result.image)
-                embed.add_field(
-                    name="Failed",
-                    value=f"The command `{ctx.prefix}{command_name}` already exists in `{server_name}`. "
-                    f"If you'd like to replace `{ctx.prefix}{command_name}`, please use "
-                    f"`{ctx.prefix}{'editgcc' if is_global else 'editcc'} {command_name}`",
-                )
-
-            # update cache
-            database.CUSTOM_COMMANDS.setdefault(server_id, {})[command_name] = (
-                command_return,
-                is_image,
-                responses,
+        # Already in the database but missing from the cache (it's cached now), so
+        # tell the user that the command already exists
+        else:
+            embed.add_field(
+                name="Failed",
+                value=f"The command `{ctx.prefix}{command_name}` already exists in `{server_name}`. "
+                f"If you'd like to replace `{ctx.prefix}{command_name}`, please use "
+                f"`{ctx.prefix}{'editgcc' if is_global else 'editcc'} {command_name}`",
             )
         await discord_utils.send_message(ctx, embed)
 
@@ -568,17 +539,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             return
 
         embed = discord_utils.create_embed()
-        # Update command in DB
-        with Session(database.DATABASE_ENGINE) as session:
-            session.query(database.CustomCommands).filter_by(
-                server_id_command=f"{server_id} {command_name}"
-            ).update({"command_return": responses[0], "responses": responses})
-            session.commit()
-        database.CUSTOM_COMMANDS[server_id][command_name] = (
-            responses[0],
-            database.CUSTOM_COMMANDS[server_id][command_name][1],
-            responses,
-        )
+        database.set_custom_command_responses(server_id, command_name, responses)
         embed.add_field(
             name="Success",
             value=f"Edited command `{ctx.prefix}{command_name}` to have value{'s' if len(responses) > 1 else ''} "
@@ -628,16 +589,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             return
 
         responses.pop(response_number - 1)
-        with Session(database.DATABASE_ENGINE) as session:
-            session.query(database.CustomCommands).filter_by(
-                server_id_command=f"{guild_id} {command_name}"
-            ).update({"command_return": responses[0], "responses": responses})
-            session.commit()
-        database.CUSTOM_COMMANDS[guild_id][command_name] = (
-            responses[0],
-            is_image,
-            responses,
-        )
+        database.set_custom_command_responses(guild_id, command_name, responses)
         embed.add_field(
             name="Success",
             value=f"Removed response {response_number} from `{ctx.prefix}{command_name}`. "
@@ -677,12 +629,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         embed = discord_utils.create_embed()
         guild_id = ctx.guild.id
         if command_name in database.CUSTOM_COMMANDS[guild_id]:
-            del database.CUSTOM_COMMANDS[guild_id][command_name]  # Delete from cache
-            with Session(database.DATABASE_ENGINE) as session:
-                session.query(database.CustomCommands).filter_by(
-                    server_id_command=f"{guild_id} {command_name}"
-                ).delete()
-                session.commit()
+            database.delete_custom_command(guild_id, command_name)
 
             # Tell the Bot Owner if a global command with the same name is still there
             owner_note = ""
@@ -701,13 +648,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
             ctx.author
         ) and command_name in database.CUSTOM_COMMANDS.get(constants.DB_GLOBAL, {}):
             # Delete global commands
-            guild_id = constants.DB_GLOBAL
-            del database.CUSTOM_COMMANDS[guild_id][command_name]  # Delete from cache
-            with Session(database.DATABASE_ENGINE) as session:
-                session.query(database.CustomCommands).filter_by(
-                    server_id_command=f"{guild_id} {command_name}"
-                ).delete()
-                session.commit()
+            database.delete_custom_command(constants.DB_GLOBAL, command_name)
             embed.add_field(
                 name="Success",
                 value=f"Deleted global command `{ctx.prefix}{command_name}`",

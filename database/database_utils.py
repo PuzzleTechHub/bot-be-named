@@ -1,6 +1,8 @@
 from typing import Optional
 
 from sqlalchemy.orm import Session
+
+import constants
 from database import models
 
 # These are in-memory caches which will be filled by load_all(). Importing this package doesn't touch the database.
@@ -77,10 +79,8 @@ def get_custom_commands():
         for row in result:
             if row.server_id not in custom_commands:
                 custom_commands[row.server_id] = {}
-            custom_commands[row.server_id][row.command_name.lower()] = (
-                row.command_return,
-                row.image,
-                row.responses,
+            custom_commands[row.server_id][row.command_name.lower()] = _command_entry(
+                row
             )
     return custom_commands
 
@@ -347,3 +347,251 @@ def delete_channel_mirrors_for(channel_id: int):
     CHANNEL_MIRRORS.pop(channel_id, None)
     for target_ids in CHANNEL_MIRRORS.values():
         target_ids.discard(channel_id)
+
+
+############
+# PREFIXES #
+############
+
+
+def add_server(server_id: int, server_name: str):
+    """Gives a server the default prefix if it has none, plus empty role and custom command
+    caches."""
+    if server_id not in PREFIXES:
+        with Session(models.DATABASE_ENGINE) as session:
+            row = session.get(models.Prefixes, server_id)
+            if row is None:
+                session.add(
+                    models.Prefixes(
+                        server_id=server_id,
+                        server_name=server_name,
+                        prefix=constants.DEFAULT_BOT_PREFIX,
+                    )
+                )
+                session.commit()
+                PREFIXES[server_id] = constants.DEFAULT_BOT_PREFIX
+            else:
+                PREFIXES[server_id] = row.prefix
+    for cache in PERMISSION_CACHES.values():
+        cache.setdefault(server_id, [])
+    CUSTOM_COMMANDS.setdefault(server_id, {})
+
+
+def set_prefix(server_id: int, prefix: str):
+    with Session(models.DATABASE_ENGINE) as session:
+        session.query(models.Prefixes).filter_by(server_id=server_id).update(
+            {"prefix": prefix}
+        )
+        session.commit()
+    PREFIXES[server_id] = prefix
+
+
+def get_server_prefix(server_id: int) -> str:
+    """The prefix in the database, or the default one if the server has none."""
+    with Session(models.DATABASE_ENGINE) as session:
+        row = session.get(models.Prefixes, server_id)
+    return row.prefix if row is not None else constants.DEFAULT_BOT_PREFIX
+
+
+#############
+# VERIFIEDS #
+#############
+# These also keep the VERIFIEDS / TRUSTEDS / SOLVERS / TESTERS caches (server id -> role ids) in step.
+
+PERMISSION_CACHES = {
+    models.VERIFIED: VERIFIEDS,
+    models.TRUSTED: TRUSTEDS,
+    models.SOLVER: SOLVERS,
+    models.TESTER: TESTERS,
+}
+
+
+def _role_id_permissions(role_id: int, permissions: str) -> str:
+    """verifieds' primary key: "<role id>_<permissions>"."""
+    return f"{role_id}_{permissions}"
+
+
+def add_permission_role(
+    server_id: int,
+    server_name: str,
+    role_id: int,
+    role_name: str,
+    permissions: str,
+) -> bool:
+    """Puts a role in a permission category. False if it was already in it."""
+    key = _role_id_permissions(role_id, permissions)
+    with Session(models.DATABASE_ENGINE) as session:
+        if session.get(models.Verifieds, key) is not None:
+            return False
+        session.add(
+            models.Verifieds(
+                server_id=server_id,
+                server_name=server_name,
+                role_id=role_id,
+                role_name=role_name,
+                permissions=permissions,
+                role_id_permissions=key,
+            )
+        )
+        session.commit()
+    PERMISSION_CACHES[permissions].setdefault(server_id, []).append(role_id)
+    return True
+
+
+def delete_permission_role(server_id: int, role_id: int, permissions: str) -> bool:
+    """False if the role wasn't in that category in this server."""
+    with Session(models.DATABASE_ENGINE) as session:
+        deleted = (
+            session.query(models.Verifieds)
+            .filter_by(
+                server_id=server_id,
+                role_id_permissions=_role_id_permissions(role_id, permissions),
+            )
+            .delete()
+        )
+        session.commit()
+    role_ids = PERMISSION_CACHES[permissions].get(server_id, [])
+    if role_id in role_ids:
+        role_ids.remove(role_id)
+    return bool(deleted)
+
+
+def get_server_permission_roles(server_id: int) -> dict[str, list[int]]:
+    """Role IDs in each permission category, for every category."""
+    role_ids: dict[str, list[int]] = {
+        permissions: [] for permissions in models.VERIFIED_CATEGORIES
+    }
+    with Session(models.DATABASE_ENGINE) as session:
+        for row in session.query(models.Verifieds).filter_by(server_id=server_id):
+            if row.permissions in role_ids:
+                role_ids[row.permissions].append(row.role_id)
+    return role_ids
+
+
+###################
+# CUSTOM COMMANDS #
+###################
+# Server IDs here can also be constants.DB_GLOBAL, for global commands. These keep the
+# CUSTOM_COMMANDS cache (server id -> command name -> entry) in step. An entry is
+# (command_return, is_image, responses). TODO: make it a class
+
+
+def _command_key(server_id: int, command_name: str) -> str:
+    """custom_commands' primary key: "<server id> <command name>"."""
+    return f"{server_id} {command_name}"
+
+
+def _command_entry(row: models.CustomCommands) -> tuple:
+    return (row.command_return, row.image, row.responses)
+
+
+def find_custom_command(server_id: int, command_name: str) -> Optional[tuple]:
+    """Looks a command up in the database, in this server and then globally, and caches it under
+    the ID it was found under. None if it's in neither."""
+    with Session(models.DATABASE_ENGINE) as session:
+        for owner_id in (server_id, constants.DB_GLOBAL):
+            row = session.get(
+                models.CustomCommands, _command_key(owner_id, command_name)
+            )
+            if row is not None:
+                entry = _command_entry(row)
+                CUSTOM_COMMANDS.setdefault(owner_id, {})[command_name] = entry
+                return entry
+    return None
+
+
+def add_custom_command(
+    server_id: int,
+    server_name: str,
+    command_name: str,
+    responses: list[str],
+    is_image: bool,
+) -> bool:
+    """Adds a command. False if the database already had one by that name, which then gets cached."""
+    key = _command_key(server_id, command_name)
+    with Session(models.DATABASE_ENGINE) as session:
+        row = session.get(models.CustomCommands, key)
+        if row is not None:
+            CUSTOM_COMMANDS.setdefault(server_id, {})[command_name] = _command_entry(
+                row
+            )
+            return False
+        session.add(
+            models.CustomCommands(
+                server_id=server_id,
+                server_name=server_name,
+                server_id_command=key,
+                command_name=command_name,
+                command_return=responses[0],  # TODO Drop this soon
+                image=is_image,
+                responses=responses,
+            )
+        )
+        session.commit()
+    CUSTOM_COMMANDS.setdefault(server_id, {})[command_name] = (
+        responses[0],
+        is_image,
+        responses,
+    )
+    return True
+
+
+def set_custom_command_responses(
+    server_id: int, command_name: str, responses: list[str]
+):
+    """Replaces a command's responses. Whether it's an image is kept."""
+    with Session(models.DATABASE_ENGINE) as session:
+        session.query(models.CustomCommands).filter_by(
+            server_id_command=_command_key(server_id, command_name)
+        ).update({"command_return": responses[0], "responses": responses})
+        session.commit()
+    server_commands = CUSTOM_COMMANDS.setdefault(server_id, {})
+    old = server_commands.get(command_name)
+    is_image = old[1] if old is not None else False
+    server_commands[command_name] = (responses[0], is_image, responses)
+
+
+def delete_custom_command(server_id: int, command_name: str):
+    CUSTOM_COMMANDS.get(server_id, {}).pop(command_name, None)
+    with Session(models.DATABASE_ENGINE) as session:
+        session.query(models.CustomCommands).filter_by(
+            server_id_command=_command_key(server_id, command_name)
+        ).delete()
+        session.commit()
+
+
+def get_server_custom_commands(server_id: int) -> dict[str, tuple]:
+    """Command name -> entry, for one server (or constants.DB_GLOBAL)."""
+    with Session(models.DATABASE_ENGINE) as session:
+        rows = session.query(models.CustomCommands).filter_by(server_id=server_id)
+        return {row.command_name.lower(): _command_entry(row) for row in rows}
+
+
+###############
+# SERVER DATA #
+###############
+
+
+def delete_server_data(server_id: int):
+    """Deletes everything stored for a server, e.g. when the bot leaves it, cache entries too."""
+    with Session(models.DATABASE_ENGINE) as session:
+        mirrors = (
+            session.query(models.ChannelMirrors).filter_by(server_id=server_id).all()
+        )
+        for table in (
+            models.CustomCommands,
+            models.Prefixes,
+            models.Verifieds,
+            models.SheetTethers,
+            models.SummaryGrants,
+            models.SolveStreams,
+            models.ChannelMirrors,
+        ):
+            session.query(table).filter_by(server_id=server_id).delete()
+        session.commit()
+    for cache in (PREFIXES, CUSTOM_COMMANDS, *PERMISSION_CACHES.values()):
+        cache.pop(server_id, None)
+    for mirror in mirrors:
+        CHANNEL_MIRRORS.get(mirror.source_channel_id, set()).discard(
+            mirror.target_channel_id
+        )

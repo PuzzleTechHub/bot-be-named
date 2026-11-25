@@ -2,12 +2,9 @@ import asyncio
 import os
 import time
 import constants
-import sqlalchemy
 import nextcord
 import random
 from nextcord.ext import commands
-from sqlalchemy import insert
-from sqlalchemy.orm import Session
 
 from dotenv.main import load_dotenv
 
@@ -60,32 +57,12 @@ def main():
             )
         )
         for guild in client.guilds:
-            if guild.id not in database.PREFIXES:
-                database.PREFIXES[guild.id] = constants.DEFAULT_BOT_PREFIX
-                # Add default prefix to DB
-                with Session(database.DATABASE_ENGINE) as session:
-                    stmt = sqlalchemy.insert(database.Prefixes).values(
-                        server_id=guild.id,
-                        server_name=guild.name,
-                        prefix=constants.DEFAULT_BOT_PREFIX,
-                    )
-                    session.execute(stmt)
-                    session.commit()
+            # Default prefix for new servers, and empty role and custom command caches
+            database.add_server(guild.id, guild.name)
             logging_utils.print_with_timestamp(
                 f"{client.user.name} has connected to the following guild: "
                 f"{guild.name} (id: {guild.id}) with prefix {database.PREFIXES[guild.id]}"
             )
-            # Make sure there are at least empty entries for VERIFIEDS, and CUSTOM_COMMANDS for every guild we're in
-            if guild.id not in database.VERIFIEDS:
-                database.VERIFIEDS[guild.id] = []
-            if guild.id not in database.TRUSTEDS:
-                database.TRUSTEDS[guild.id] = []
-            if guild.id not in database.SOLVERS:
-                database.SOLVERS[guild.id] = []
-            if guild.id not in database.TESTERS:
-                database.TESTERS[guild.id] = []
-            if guild.id not in database.CUSTOM_COMMANDS:
-                database.CUSTOM_COMMANDS[guild.id] = {}
         # Populate default command list
         for command in client.commands:
             constants.DEFAULT_COMMANDS.append(command.qualified_name.lower())
@@ -113,51 +90,13 @@ def main():
     async def on_guild_join(guild: nextcord.Guild):
         """When the bot joins a new guild, add it to the database for prefixes"""
         logging_utils.print_with_timestamp(f"Joining {guild} -- Hi!")
-        with Session(database.DATABASE_ENGINE) as session:
-            stmt = insert(database.Prefixes).values(
-                server_id=guild.id,
-                server_name=guild.name,
-                prefix=constants.DEFAULT_BOT_PREFIX,
-            )
-            session.execute(stmt)
-            session.commit()
-        database.PREFIXES[guild.id] = constants.DEFAULT_BOT_PREFIX
-        database.VERIFIEDS[guild.id] = []
-        database.TRUSTEDS[guild.id] = []
-        database.SOLVERS[guild.id] = []
-        database.TESTERS[guild.id] = []
-        database.CUSTOM_COMMANDS[guild.id] = {}
+        database.add_server(guild.id, guild.name)
 
     @client.event
     async def on_guild_remove(guild: nextcord.Guild):
         """When the bot leaves a guild, remove all database entries pertaining to that guild"""
         logging_utils.print_with_timestamp(f"Leaving {guild} -- Bye bye!")
-        with Session(database.DATABASE_ENGINE) as session:
-            session.query(database.CustomCommands).filter_by(
-                server_id=guild.id
-            ).delete()
-            session.commit()
-            session.query(database.Prefixes).filter_by(server_id=guild.id).delete()
-            session.commit()
-            session.query(database.Verifieds).filter_by(server_id=guild.id).delete()
-            session.commit()
-            session.query(database.SheetTethers).filter_by(server_id=guild.id).delete()
-            session.commit()
-            session.query(database.SummaryGrants).filter_by(server_id=guild.id).delete()
-            session.commit()
-            session.query(database.SolveStreams).filter_by(server_id=guild.id).delete()
-            session.commit()
-            session.query(database.ChannelMirrors).filter_by(
-                server_id=guild.id
-            ).delete()
-            session.commit()
-
-        database.PREFIXES.pop(guild.id)
-        database.VERIFIEDS.pop(guild.id)
-        database.TRUSTEDS.pop(guild.id)
-        database.SOLVERS.pop(guild.id)
-        database.TESTERS.pop(guild.id)
-        database.CUSTOM_COMMANDS.pop(guild.id)
+        database.delete_server_data(guild.id)
 
     @client.event
     async def on_guild_role_delete(role: nextcord.Role):
@@ -202,37 +141,12 @@ def main():
 
                 # Find it in the DB if it's not in the cache
                 if custom_command is None:
-                    with Session(database.DATABASE_ENGINE) as session:
-                        # Check in this server
-                        result = (
-                            session.query(database.CustomCommands)
-                            .filter_by(
-                                server_id_command=f"{message.guild.id} {command_name}"
-                            )
-                            .first()
-                        )
-                        # Check for global custom commands
-                        if result is None:
-                            result = (
-                                session.query(database.CustomCommands)
-                                .filter_by(
-                                    server_id_command=f"{constants.DB_GLOBAL} {command_name}"
-                                )
-                                .first()
-                            )
-                        # Not a custom command found in the DB either
-                        if result is None:
-                            return
-                        custom_command = (
-                            result.command_return,
-                            result.image,
-                            result.responses,
-                        )
-
-                        # Add to cache under the id it was found under
-                        database.CUSTOM_COMMANDS.setdefault(result.server_id, {})[
-                            command_name
-                        ] = custom_command
+                    custom_command = database.find_custom_command(
+                        message.guild.id, command_name
+                    )
+                    # Not a custom command found in the DB either
+                    if custom_command is None:
+                        return
 
                 command_return, is_image, responses = custom_command
 

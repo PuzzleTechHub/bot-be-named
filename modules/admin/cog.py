@@ -1,9 +1,7 @@
 import nextcord
-import sqlalchemy
 import database
 import constants
 from nextcord.ext import commands
-from sqlalchemy.orm import Session
 from utils import discord_utils, command_predicates
 from database import models
 from typing import Union
@@ -70,52 +68,18 @@ class AdminCog(commands.Cog, name="Admin"):
             await discord_utils.send_message(ctx, embed)
             return
 
-        with Session(database.DATABASE_ENGINE) as session:
-            result = (
-                session.query(database.Verifieds)
-                .filter_by(
-                    role_id_permissions=f"{role_to_assign.id}_{role_permissions}"
-                )
-                .first()
+        if not database.add_permission_role(
+            ctx.guild.id,
+            ctx.guild.name,
+            role_to_assign.id,
+            role_to_assign.name,
+            role_permissions,
+        ):
+            await discord_utils.send_failure(
+                ctx,
+                f"Role {role_to_assign.mention} is already `{role_permissions}`!",
             )
-            if result is None:
-                stmt = sqlalchemy.insert(database.Verifieds).values(
-                    role_id=role_to_assign.id,
-                    role_name=role_to_assign.name,
-                    server_id=ctx.guild.id,
-                    server_name=ctx.guild.name,
-                    permissions=role_permissions,
-                    role_id_permissions=f"{role_to_assign.id}_{role_permissions}",
-                )
-                session.execute(stmt)
-                session.commit()
-            else:
-                await discord_utils.send_failure(
-                    ctx,
-                    f"Role {role_to_assign.mention} is already `{result.permissions}`!",
-                )
-                return
-
-        if role_permissions == models.VERIFIED:
-            if ctx.guild.id in database.VERIFIEDS:
-                database.VERIFIEDS[ctx.guild.id].append(role_to_assign.id)
-            else:
-                database.VERIFIEDS[ctx.guild.id] = [role_to_assign.id]
-        elif role_permissions == models.TRUSTED:
-            if ctx.guild.id in database.TRUSTEDS:
-                database.TRUSTEDS[ctx.guild.id].append(role_to_assign.id)
-            else:
-                database.TRUSTEDS[ctx.guild.id] = [role_to_assign.id]
-        elif role_permissions == models.SOLVER:
-            if ctx.guild.id in database.SOLVERS:
-                database.SOLVERS[ctx.guild.id].append(role_to_assign.id)
-            else:
-                database.SOLVERS[ctx.guild.id] = [role_to_assign.id]
-        elif role_permissions == models.TESTER:
-            if ctx.guild.id in database.TESTERS:
-                database.TESTERS[ctx.guild.id].append(role_to_assign.id)
-            else:
-                database.TESTERS[ctx.guild.id] = [role_to_assign.id]
+            return
 
         embed.add_field(
             name="Success",
@@ -151,12 +115,7 @@ class AdminCog(commands.Cog, name="Admin"):
             )
             return
 
-        cache_map = {
-            models.VERIFIED: database.VERIFIEDS,
-            models.TRUSTED: database.TRUSTEDS,
-            models.SOLVER: database.SOLVERS,
-            models.TESTER: database.TESTERS,
-        }
+        cache_map = database.PERMISSION_CACHES
 
         if (
             ctx.guild.id in cache_map[role_permissions]
@@ -211,53 +170,14 @@ class AdminCog(commands.Cog, name="Admin"):
             )
             return
 
-        with Session(database.DATABASE_ENGINE) as session:
-            result = (
-                session.query(database.Verifieds)
-                .filter_by(
-                    server_id=ctx.guild.id,
-                    role_id_permissions=f"{role_to_remove.id}_{role_permissions}",
-                )
-                .first()
-            )
-            if result is None:
-                await discord_utils.send_failure(
-                    ctx,
-                    f"Role {role_to_remove.mention} is not `{role_permissions}` in `{ctx.guild.name}`",
-                )
-                return
-            else:
-                session.delete(result)
-                session.commit()
-
-        if (
-            role_permissions == models.VERIFIED
-            and role_to_remove.id in database.VERIFIEDS[ctx.guild.id]
+        if not database.delete_permission_role(
+            ctx.guild.id, role_to_remove.id, role_permissions
         ):
-            database.VERIFIEDS[ctx.guild.id].pop(
-                database.VERIFIEDS[ctx.guild.id].index(role_to_remove.id)
+            await discord_utils.send_failure(
+                ctx,
+                f"Role {role_to_remove.mention} is not `{role_permissions}` in `{ctx.guild.name}`",
             )
-        elif (
-            role_permissions == models.TRUSTED
-            and role_to_remove.id in database.TRUSTEDS[ctx.guild.id]
-        ):
-            database.TRUSTEDS[ctx.guild.id].pop(
-                database.TRUSTEDS[ctx.guild.id].index(role_to_remove.id)
-            )
-        elif (
-            role_permissions == models.SOLVER
-            and role_to_remove.id in database.SOLVERS[ctx.guild.id]
-        ):
-            database.SOLVERS[ctx.guild.id].pop(
-                database.SOLVERS[ctx.guild.id].index(role_to_remove.id)
-            )
-        elif (
-            role_permissions == models.TESTER
-            and role_to_remove.id in database.TESTERS[ctx.guild.id]
-        ):
-            database.TESTERS[ctx.guild.id].pop(
-                database.TESTERS[ctx.guild.id].index(role_to_remove.id)
-            )
+            return
 
         embed.add_field(
             name="Success",
@@ -461,12 +381,7 @@ class AdminCog(commands.Cog, name="Admin"):
         """
         embed = discord_utils.create_embed()
 
-        with Session(database.DATABASE_ENGINE) as session:
-            session.query(database.Prefixes).filter_by(server_id=ctx.guild.id).update(
-                {"prefix": prefix}
-            )
-            session.commit()
-        database.PREFIXES[ctx.message.guild.id] = prefix
+        database.set_prefix(ctx.guild.id, prefix)
         embed.add_field(
             name="Success",
             value=f"Prefix for this server set to {prefix}",
@@ -493,48 +408,10 @@ class AdminCog(commands.Cog, name="Admin"):
         guild_id = ctx.guild.id
 
         # Read from the database first
-        custom_commands: dict[str, tuple] = {}
-        global_commands: dict[str, tuple] = {}
-        role_ids: dict[str, list[int]] = {
-            permissions: [] for permissions in models.VERIFIED_CATEGORIES
-        }
-
-        with Session(database.DATABASE_ENGINE) as session:
-            custom_command_result = (
-                session.query(database.CustomCommands).filter(
-                    database.CustomCommands.server_id.in_(
-                        [guild_id, constants.DB_GLOBAL]
-                    )
-                )
-            ).all()
-
-            for custom_command in custom_command_result:
-                # Populate custom command dict
-                if custom_command.server_id == constants.DB_GLOBAL:
-                    command_dict = global_commands
-                else:
-                    command_dict = custom_commands
-
-                command_dict[custom_command.command_name.lower()] = (
-                    custom_command.command_return,
-                    custom_command.image,
-                    custom_command.responses,
-                )
-
-            verified_result = (
-                session.query(database.Verifieds).filter_by(server_id=guild_id).all()
-            )
-            for verified in verified_result:
-                if verified.permissions in role_ids:
-                    role_ids[verified.permissions].append(verified.role_id)
-
-            prefix_result = (
-                session.query(database.Prefixes).filter_by(server_id=guild_id).first()
-            )
-            if prefix_result is not None:
-                prefix: str = prefix_result.prefix
-            else:
-                prefix = constants.DEFAULT_BOT_PREFIX
+        custom_commands = database.get_server_custom_commands(guild_id)
+        global_commands = database.get_server_custom_commands(constants.DB_GLOBAL)
+        role_ids = database.get_server_permission_roles(guild_id)
+        prefix = database.get_server_prefix(guild_id)
 
         # Mirrors are cached by the channel's ID, so reload al of them.
         channel_mirrors: dict[int, set[int]] = database.get_channel_mirrors()
