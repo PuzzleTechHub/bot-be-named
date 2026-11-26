@@ -1386,7 +1386,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                 value=new_value,
             )
             try:
-                overview_sheet.spreadsheet.batch_update(batch.build())
+                await asyncio.to_thread(
+                    overview_sheet.spreadsheet.batch_update, batch.build()
+                )
             except gspread.exceptions.APIError as e:
                 await sheet_utils.handle_gspread_error(ctx, e)
                 return
@@ -1404,8 +1406,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         self, ctx: commands.Context, overview_sheet, row_to_find, status_col, answer
     ):
         """Posts a solved puzzle in solve streams linked to that Google sheet."""
-        streams = database.get_solve_streams(
-            overview_sheet.spreadsheet.id, ctx.guild.id
+        streams = await asyncio.to_thread(
+            database.get_solve_streams, overview_sheet.spreadsheet.id, ctx.guild.id
         )
         if not streams:
             return

@@ -5,6 +5,8 @@ nextcord.Embed, so permission logic and embed contents are real. FakeContext.sen
 refuses embeds that Discord would reject.
 """
 
+import threading
+
 import nextcord
 from sqlalchemy.orm import Session
 
@@ -287,3 +289,19 @@ def patch_overview_sheets(monkeypatch, sheets):
 
     monkeypatch.setattr(sheet_utils, "OverviewSheet", open_sheet)
     return opened
+
+
+def watch_threads(monkeypatch, obj, *names, calls=None):
+    """Wraps the named functions or methods of obj to record each call as (name, on_loop).
+    on_loop is True when the call ran on the event loop's thread, so it blocked the bot.
+    Pass calls to record into an existing list, when watching several objects."""
+    calls = [] if calls is None else calls
+    for name in names:
+        original = getattr(obj, name)
+
+        def wrapper(*args, _original=original, _name=name, **kwargs):
+            calls.append((_name, threading.current_thread() is threading.main_thread()))
+            return _original(*args, **kwargs)
+
+        monkeypatch.setattr(obj, name, wrapper)
+    return calls

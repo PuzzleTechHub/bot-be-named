@@ -2,7 +2,13 @@ import gspread
 import nextcord
 import pytest
 
-from tests.fakes import FakeCategory, FakeChannel, FakeContext, FakeGuild
+from tests.fakes import (
+    FakeCategory,
+    FakeChannel,
+    FakeContext,
+    FakeGuild,
+    watch_threads,
+)
 from utils import sheet_utils, sheets_constants, solved_utils
 
 CHANNEL_ID = 20
@@ -286,3 +292,15 @@ async def test_update_puzzle_status_rename_forbidden_does_not_crash():
     assert ok is True
     # status_channel sends its own Failed, then the sheet Success follows
     assert _field_names(ctx) == ["Failed", "Success"]
+
+
+async def test_update_puzzle_status_calls_sheets_off_the_event_loop(monkeypatch):
+    ctx = _ctx(EditableChannel("puzzle-1"))
+    sheet = StatusSheet("In Progress")
+    calls = watch_threads(
+        monkeypatch, sheet.spreadsheet, "get_worksheet_by_id", "batch_update"
+    )
+
+    assert await solved_utils.update_puzzle_status(ctx, sheet, ROW, "solved", "abc")
+
+    assert calls == [("get_worksheet_by_id", False), ("batch_update", False)]

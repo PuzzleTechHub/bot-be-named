@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional
 
 import emoji
@@ -76,7 +77,9 @@ async def update_puzzle_status(
         tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
         tab_cell_label = sheets_constants.SHEET_TAB_ID_COLUMN + str(row_to_find)
         tab_id = overview_sheet.get_cell_value(tab_cell_label)
-        puzzle_tab = overview_sheet.spreadsheet.get_worksheet_by_id(int(tab_id))
+        puzzle_tab = await asyncio.to_thread(
+            overview_sheet.spreadsheet.get_worksheet_by_id, int(tab_id)
+        )
 
         batch_update_builder = batch_update_utils.BatchUpdateBuilder()
 
@@ -98,7 +101,10 @@ async def update_puzzle_status(
 
         # An API error here (permission denied included) goes to the except
         # at the bottom. On failure the channel is not renamed.
-        overview_sheet.worksheet.spreadsheet.batch_update(batch_update_builder.build())
+        await asyncio.to_thread(
+            overview_sheet.worksheet.spreadsheet.batch_update,
+            batch_update_builder.build(),
+        )
 
         embed.add_field(
             name="Success",

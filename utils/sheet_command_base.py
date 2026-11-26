@@ -1,3 +1,5 @@
+import asyncio
+
 from nextcord.ext import commands
 from utils import discord_utils, sheet_utils
 
@@ -12,8 +14,11 @@ class SheetCommandBase:
 
     async def get_sheet_context(self):
         """Returns (sheet_link, overview_sheet, row_num) or (None, None, None) on error"""
-        result, _ = sheet_utils.findsheettether(
-            self.ctx.message.channel.category_id, self.ctx.message.channel.id
+        # The tether lookup and the Overview both block, so they run in worker threads
+        result, _ = await asyncio.to_thread(
+            sheet_utils.findsheettether,
+            self.ctx.message.channel.category_id,
+            self.ctx.message.channel.id,
         )
 
         if result is None:

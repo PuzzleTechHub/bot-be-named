@@ -1052,7 +1052,9 @@ async def get_overview(
 async def sheet_move_to_archive(gspread_client, ctx: commands.Context):
     """Handles the sheet aspect of mtahydra."""
     embed = discord_utils.create_embed()
-    result, _ = findsheettether(ctx.message.channel.category_id, ctx.message.channel.id)
+    result, _ = await asyncio.to_thread(
+        findsheettether, ctx.message.channel.category_id, ctx.message.channel.id
+    )
 
     if result is None:
         await discord_utils.send_failure(
@@ -1076,7 +1078,7 @@ async def sheet_move_to_archive(gspread_client, ctx: commands.Context):
     tab_id = overview_sheet.get_cell_value(sheet_tab_id_col + str(row_to_find))
 
     try:
-        worksheets = overview_sheet.spreadsheet.worksheets()
+        worksheets = await asyncio.to_thread(overview_sheet.spreadsheet.worksheets)
         puzzle_tab = next((w for w in worksheets if w.id == int(tab_id)), None)
         if puzzle_tab is None:
             embed.add_field(
@@ -1085,7 +1087,7 @@ async def sheet_move_to_archive(gspread_client, ctx: commands.Context):
                 inline=False,
             )
         else:
-            puzzle_tab.update_index(len(worksheets))
+            await asyncio.to_thread(puzzle_tab.update_index, len(worksheets))
             embed.add_field(
                 name="Success",
                 value="Moved tab to the end of the sheet!",
@@ -1115,8 +1117,13 @@ async def batch_create_puzzle_channels(
     gspread_client,
     puzzle_configs: list[tuple[str, str | None, str | None]],
 ):
-    """Batch creates multiple puzzle channels and tabs from template. Reserved for `chanhydra`."""
-    result, _ = findsheettether(ctx.channel.category.id, ctx.channel.id)
+    """Batch creates multiple puzzle channels and tabs from template. Reserved for `chanhydra`.
+
+    Every Google Sheets call and database query runs in a worker thread, so the bot keeps
+    answering other commands while the sheet is set up."""
+    result, _ = await asyncio.to_thread(
+        findsheettether, ctx.channel.category.id, ctx.channel.id
+    )
 
     if result is None:
         embed = discord_utils.create_embed()
@@ -1130,12 +1137,15 @@ async def batch_create_puzzle_channels(
 
     curr_sheet_link = str(result.sheet_link)
 
-    try:
+    def open_template():
         spreadsheet = gspread_client.open_by_url(curr_sheet_link)
-        template_sheet = spreadsheet.worksheet("Template")
-
         # Fetch all existing worksheet names once (single API call)
-        all_worksheets = spreadsheet.worksheets()
+        return spreadsheet, spreadsheet.worksheet("Template"), spreadsheet.worksheets()
+
+    try:
+        spreadsheet, template_sheet, all_worksheets = await asyncio.to_thread(
+            open_template
+        )
         existing_sheet_names = {ws.title for ws in all_worksheets}
         insert_index = get_new_puzzle_tab_index(all_worksheets)
 
@@ -1224,7 +1234,7 @@ async def batch_create_puzzle_channels(
         )
 
     try:
-        batch_response = spreadsheet.batch_update({"requests": requests})  # noqa: F841
+        await asyncio.to_thread(spreadsheet.batch_update, {"requests": requests})
     except gspread.exceptions.APIError as e:
         error_message = e.error.get("message", "")
 
@@ -1254,15 +1264,19 @@ async def batch_create_puzzle_channels(
         return []
 
     # Refresh and get the newly created sheets
-    spreadsheet = gspread_client.open_by_url(curr_sheet_link)
-    worksheets_by_title = {ws.title: ws for ws in spreadsheet.worksheets()}
+    spreadsheet = await asyncio.to_thread(gspread_client.open_by_url, curr_sheet_link)
+    worksheets_by_title = {
+        ws.title: ws for ws in await asyncio.to_thread(spreadsheet.worksheets)
+    }
     # Each channel is (puzzle_name, tab_name, puzzle_url, notes, new_channel)
     worksheets = [
         worksheets_by_title.get(tab_name) for _, tab_name, _, _, _ in channels
     ]
 
     # Get overview wrapper and constants
-    overview_wrapper = OverviewSheet(gspread_client, curr_sheet_link)
+    overview_wrapper = await asyncio.to_thread(
+        OverviewSheet, gspread_client, curr_sheet_link
+    )
     overview_values = overview_wrapper.overview_data
     first_empty_row = len(overview_values) + 1
     overview_id = overview_wrapper.worksheet.id
@@ -1346,7 +1360,13 @@ async def batch_create_puzzle_channels(
             batch.unhide_sheet(newsheet.id)
 
             # Tether channel
-            addsheettethergeneric(gspread_client, curr_sheet_link, ctx.guild, channel)
+            await asyncio.to_thread(
+                addsheettethergeneric,
+                gspread_client,
+                curr_sheet_link,
+                ctx.guild,
+                channel,
+            )
 
             # Update channel topic
             await channel.edit(topic=f"Tab Link - {final_sheet_link}")
@@ -1393,7 +1413,7 @@ async def batch_create_puzzle_channels(
 
     # Execute single batch update for ALL changes
     try:
-        spreadsheet.batch_update(batch.build())
+        await asyncio.to_thread(spreadsheet.batch_update, batch.build())
     except gspread.exceptions.APIError as e:
         await handle_gspread_error(ctx, e)
         return []

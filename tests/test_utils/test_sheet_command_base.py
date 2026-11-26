@@ -7,6 +7,7 @@ from tests.fakes import (
     FakeGuild,
     add_tether,
     patch_overview_sheets,
+    watch_threads,
 )
 from utils import sheet_utils
 from utils.sheet_command_base import SheetCommandBase
@@ -58,6 +59,17 @@ async def test_get_sheet_context(ctx, monkeypatch, real_overview_lookup):
     assert sheet.sheet_url == CATEGORY_SHEET
     assert row == 4
     assert opened == [CATEGORY_SHEET]
+
+
+async def test_get_sheet_context_looks_up_tether_off_the_event_loop(
+    ctx, monkeypatch, real_overview_lookup
+):
+    add_tether(100, CATEGORY_SHEET)
+    patch_overview_sheets(monkeypatch, {CATEGORY_SHEET: _overview(201)})
+    calls = watch_threads(monkeypatch, sheet_utils, "findsheettether")
+    _, _, row = await SheetCommandBase(ctx, None).get_sheet_context()
+    assert row == 3
+    assert calls == [("findsheettether", False)]
     assert ctx.sent == []
 
 
