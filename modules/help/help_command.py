@@ -4,7 +4,7 @@ import re
 import nextcord
 from nextcord.ext import commands
 import database
-from utils import discord_utils
+from utils import discord_utils, paging_utils
 
 # Commands shown on each page of a module's help.
 COMMANDS_PER_PAGE = 10
@@ -33,17 +33,25 @@ def command_summary(command: commands.Command) -> str:
     return paragraph or "..."
 
 
-class HelpMenu(nextcord.ui.View):
+class HelpMenu(paging_utils.PageView):
     """Public help message with a module dropdown and previous/next buttons. Only the person who
     called the command can use the controls."""
 
+    not_owner_message = (
+        "Only the person who ran this help command can use these buttons. "
+        "Run the help command yourself to get your own menu."
+    )
+
     def __init__(self, author_id: int, pages: list, start: int = 0):
         """pages is a list of (module name, or None for the overview, embed)."""
-        super().__init__(timeout=MENU_TIMEOUT)
-        self.author_id = author_id
         self.pages = pages
-        self.index = start
-        self.message = None
+        super().__init__(
+            author_id,
+            [embed for _, embed in pages],
+            start,
+            timeout=MENU_TIMEOUT,
+            button_row=1,
+        )
 
         options = [nextcord.SelectOption(label="Overview", value="Overview")]
         for name in dict.fromkeys(name for name, _ in pages if name is not None):
@@ -58,58 +66,12 @@ class HelpMenu(nextcord.ui.View):
         self.module_select.callback = self.select_module
         self.add_item(self.module_select)
 
-        self.previous_button = nextcord.ui.Button(emoji="◀", row=1)
-        self.previous_button.callback = self.previous_page
-        self.add_item(self.previous_button)
-        self.next_button = nextcord.ui.Button(emoji="▶", row=1)
-        self.next_button.callback = self.next_page
-        self.add_item(self.next_button)
-        self._update_buttons()
-
-    @property
-    def embed(self) -> nextcord.Embed:
-        return self.pages[self.index][1]
-
-    def _update_buttons(self):
-        self.previous_button.disabled = self.index == 0
-        self.next_button.disabled = self.index == len(self.pages) - 1
-
-    async def _show(self, interaction: nextcord.Interaction, index: int):
-        self.index = max(0, min(index, len(self.pages) - 1))
-        self._update_buttons()
-        await interaction.response.edit_message(embed=self.embed, view=self)
-
-    async def previous_page(self, interaction: nextcord.Interaction):
-        await self._show(interaction, self.index - 1)
-
-    async def next_page(self, interaction: nextcord.Interaction):
-        await self._show(interaction, self.index + 1)
-
     async def select_module(self, interaction: nextcord.Interaction):
         chosen = self.module_select.values[0]
         for index, (name, _) in enumerate(self.pages):
             if (name or "Overview")[:100] == chosen:
                 await self._show(interaction, index)
                 return
-
-    async def interaction_check(self, interaction: nextcord.Interaction) -> bool:
-        if interaction.user is not None and interaction.user.id == self.author_id:
-            return True
-        await interaction.response.send_message(
-            "Only the person who ran this help command can use these buttons. "
-            "Run the help command yourself to get your own menu.",
-            ephemeral=True,
-        )
-        return False
-
-    async def on_timeout(self):
-        for item in self.children:
-            item.disabled = True
-        if self.message is not None:
-            try:
-                await self.message.edit(view=self)
-            except nextcord.HTTPException:
-                pass  # The message was deleted, so there is nothing to update.
 
 
 class HelpCommand(commands.MinimalHelpCommand):

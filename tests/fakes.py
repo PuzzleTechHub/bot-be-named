@@ -181,13 +181,18 @@ class FakeMember:
 
 
 class FakeMessage:
-    def __init__(self, content="", author=None, channel=None, embed=None):
+    def __init__(self, content="", author=None, channel=None, embed=None, view=None):
         self.content = content
         self.author = author
         self.channel = channel
         self.guild = None
         self.embed = embed
+        self.view = view
         self.deleted = False
+        self.edits = []
+
+    async def edit(self, **kwargs):
+        self.edits.append(kwargs)
 
     async def delete(self):
         if self.deleted:
@@ -231,10 +236,12 @@ class FakeContext:
         self.message.guild = guild
         self.sent = []
 
-    async def send(self, content=None, embed=None):
+    async def send(self, content=None, embed=None, view=None):
         if embed is not None:
             check_embed(embed)
-        message = FakeMessage(content or "", channel=self.channel, embed=embed)
+        message = FakeMessage(
+            content or "", channel=self.channel, embed=embed, view=view
+        )
         self.sent.append(message)
         return message
 
