@@ -1,3 +1,4 @@
+import asyncio
 import re
 import gspread
 import nextcord
@@ -88,10 +89,20 @@ async def get_roles_channels(gspread_client, ctx: commands.Context, role, catego
 async def find_channel_rows(gspread_client, ctx: commands.Context, channels):
     """Finds each channel's row in the tethered Overview sheet. Returns found, failed and missing lists.
     The missing channels either have no sheet tethered or are not on the overview."""
+    # One query for every tether, in a worker thread, so the bot keeps answering other
+    # commands meanwhile. A channel's own tether wins over its category's, like findsheettether.
+    tethers = await asyncio.to_thread(
+        database.get_tethers,
+        [
+            place_id
+            for channel in channels
+            for place_id in (channel.id, channel.category_id)
+        ],
+    )
     sheet_channels = {}
     missing = []
     for channel in channels:
-        result, _ = sheet_utils.findsheettether(channel.category_id, channel.id)
+        result = tethers.get(channel.id) or tethers.get(channel.category_id)
         if result is None:
             missing.append(channel)
             continue

@@ -1,3 +1,4 @@
+import asyncio
 from utils import sheets_constants
 from utils import discord_utils
 from utils import batch_update_utils
@@ -981,7 +982,10 @@ async def findchanidcell(
 ) -> list[tuple[int, Worksheet, list]] | None:
     """Find the cell with the discord channel id based on overview (moved from HydraCog)."""
     try:
-        overview_wrapper = OverviewSheet(gspread_client, sheet_link)
+        # gspread blocks, so open the sheet in a worker thread to keep the bot responsive.
+        overview_wrapper = await asyncio.to_thread(
+            OverviewSheet, gspread_client, sheet_link
+        )
     except gspread.exceptions.APIError as e:
         await discord_utils.send_failure(
             ctx,
@@ -1021,7 +1025,10 @@ async def get_overview(
 ) -> OverviewSheet | None:
     """Open an OverviewSheet with improved error messages (moved from HydraCog)."""
     try:
-        overview_sheet = OverviewSheet(gspread_client, sheet_link)
+        # gspread blocks, so open the sheet in a worker thread to keep the bot responsive.
+        overview_sheet = await asyncio.to_thread(
+            OverviewSheet, gspread_client, sheet_link
+        )
     except gspread.exceptions.APIError as e:
         if not is_permission_denied(e):
             raise

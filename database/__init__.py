@@ -28,6 +28,7 @@ from database.database_utils import (
     get_custom_commands,
     get_channel_mirrors,
     get_tether,
+    get_tethers,
     get_all_tethers,
     set_tether,
     delete_tether,

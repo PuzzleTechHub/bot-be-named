@@ -109,6 +109,23 @@ def get_tether(channel_or_cat_id: Optional[int]) -> Optional[models.SheetTethers
         return session.get(models.SheetTethers, channel_or_cat_id)
 
 
+def get_tethers(ids) -> dict[int, models.SheetTethers]:
+    """The tether rows for many category, channel or thread IDs in one query, keyed by ID.
+    IDs with no tether, and None, are left out."""
+    wanted = {
+        channel_or_cat_id for channel_or_cat_id in ids if channel_or_cat_id is not None
+    }
+    if not wanted:
+        return {}
+    with Session(models.DATABASE_ENGINE) as session:
+        rows = (
+            session.query(models.SheetTethers)
+            .filter(models.SheetTethers.channel_or_cat_id.in_(wanted))
+            .all()
+        )
+    return {row.channel_or_cat_id: row for row in rows}
+
+
 def get_all_tethers() -> list[models.SheetTethers]:
     with Session(models.DATABASE_ENGINE) as session:
         return session.query(models.SheetTethers).all()

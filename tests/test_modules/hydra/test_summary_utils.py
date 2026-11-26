@@ -395,6 +395,80 @@ async def test_find_channel_rows_failed_sheet(server, monkeypatch):
     assert "no tab named 'Overview'" in embed.fields[0].value
 
 
+async def test_find_channel_rows_one_tether_query(server, monkeypatch):
+    import database
+
+    add_tether(server.gph1_cat.id, GPH1_SHEET)
+    add_tether(server.gph2_cat.id, GPH2_SHEET)
+    patch_overview_sheets(
+        monkeypatch,
+        {
+            GPH1_SHEET: _overview(server.p1, server.p2),
+            GPH2_SHEET: _overview(server.p3),
+        },
+    )
+    real_get_tethers = database.get_tethers
+    calls = []
+
+    def counting_get_tethers(ids):
+        calls.append(list(ids))
+        return real_get_tethers(ids)
+
+    def no_single_lookups(_):
+        raise AssertionError("looked up one tether at a time")
+
+    monkeypatch.setattr(database, "get_tethers", counting_get_tethers)
+    monkeypatch.setattr(database, "get_tether", no_single_lookups)
+
+    found, _, _ = await summary_utils.find_channel_rows(
+        None, _ctx(server), [server.p1, server.p2, server.p3]
+    )
+
+    assert len(calls) == 1
+    assert [channel for channel, _, _ in found] == [server.p1, server.p2, server.p3]
+
+
+async def test_find_channel_rows_channel_tether_beats_category(server, monkeypatch):
+    add_tether(server.gph1_cat.id, GPH1_SHEET)
+    add_tether(server.p2.id, GPH2_SHEET)
+    opened = patch_overview_sheets(
+        monkeypatch,
+        {
+            GPH1_SHEET: _overview(server.p1),
+            GPH2_SHEET: _overview(server.p2),
+        },
+    )
+
+    found, _, missing = await summary_utils.find_channel_rows(
+        None, _ctx(server), [server.p1, server.p2]
+    )
+
+    assert opened == [GPH1_SHEET, GPH2_SHEET]
+    assert [channel for channel, _, _ in found] == [server.p1, server.p2]
+    assert missing == []
+
+
+async def test_find_channel_rows_opens_sheets_off_the_event_loop(server, monkeypatch):
+    import threading
+
+    from utils import sheet_utils
+    from tests.fakes import FakeOverviewSheet
+
+    add_tether(server.gph1_cat.id, GPH1_SHEET)
+    threads = []
+
+    def open_sheet(gspread_client, sheet_link):
+        threads.append(threading.current_thread())
+        return FakeOverviewSheet(sheet_link, _overview(server.p1))
+
+    monkeypatch.setattr(sheet_utils, "OverviewSheet", open_sheet)
+
+    found, _, _ = await summary_utils.find_channel_rows(None, _ctx(server), [server.p1])
+
+    assert [channel for channel, _, _ in found] == [server.p1]
+    assert threads and threads[0] is not threading.main_thread()
+
+
 async def test_find_channel_rows_no_channels(server, monkeypatch):
     _ = patch_overview_sheets(monkeypatch, {})
     assert await summary_utils.find_channel_rows(None, _ctx(server), []) == (

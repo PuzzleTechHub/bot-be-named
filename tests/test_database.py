@@ -184,6 +184,21 @@ def test_get_tether_missing_or_none():
     assert database.get_tether(None) is None
 
 
+def test_get_tethers_several_at_once():
+    database.set_tether(1, "Server", 100, "puzzles", LINK)
+    database.set_tether(1, "Server", 200, "puzzle-1", OTHER_LINK)
+    tethers = database.get_tethers([100, 200, 300, None])
+    assert {place_id: row.sheet_link for place_id, row in tethers.items()} == {
+        100: LINK,
+        200: OTHER_LINK,
+    }
+
+
+def test_get_tethers_nothing_asked():
+    assert database.get_tethers([]) == {}
+    assert database.get_tethers([None]) == {}
+
+
 def test_delete_tether_only_that_one():
     database.set_tether(1, "Server", 100, "puzzles", LINK)
     database.set_tether(1, "Server", 200, "puzzle-1", OTHER_LINK)
