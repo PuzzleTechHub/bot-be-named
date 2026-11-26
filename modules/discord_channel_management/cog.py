@@ -771,8 +771,8 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         aliases=["categorysort", "catsort", "sortcategory", "reorderchannels"],
     )
     async def categorysort(self, ctx: commands.Context, cat_name: str = ""):
-        """Sort all channels in a category. Specifically for puzzle hunts, `solved-`, `backsolved-`, and `solvedish-`
-        prefixes will be put behind channels without a prefix.
+        """Sort all channels in a category by name. Specifically for puzzle hunts, channels without a prefix come first,
+        then `solvedish-`, `backsolved-`, `solved-` and `postsolved-` channels, in that order.
         Permission Category : Verified Roles only.
 
         Usage: `~categorysort`
@@ -794,34 +794,34 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             return
 
         channel_list = self.sort_channels(category.text_channels)
+        new_positions = self.sorted_positions(category.text_channels, channel_list)
 
-        start_embed = discord_utils.create_embed()
-        start_embed.add_field(
-            name="Sort Started",
-            value=f"Your sort of category `{category.name}` has begun! "
-            f"This may take a while. If I run into any errors, I'll let you know.",
-            inline=False,
-        )
-        start_embed_msgs = await discord_utils.send_message(ctx, start_embed)
-        start_embed_msg = start_embed_msgs[0]
+        if not new_positions:
+            embed.add_field(
+                name="Success",
+                value=f"The channels in `{category.name}` are already sorted!",
+            )
+            await discord_utils.send_message(ctx, embed)
+            return
 
-        for idx, channel in enumerate(channel_list):
-            # Skip channels already in correct place.
-            if channel.position == idx:
-                continue
-            try:
-                await channel.edit(position=idx)
-            except nextcord.Forbidden:
-                if start_embed_msg:
-                    await start_embed_msg.delete()
-                await discord_utils.send_failure(
-                    ctx,
-                    f"Unable to sort `{channel.mention}`. Do I have the correct `manage_channel` positions?",
-                )
-                return
+        try:
+            # One request for the whole category. channel.edit(position=...) would
+            # rewrite every channel in the server, once per channel moved.
+            await category.guild._state.http.bulk_channel_update(
+                category.guild.id,
+                [
+                    {"id": channel.id, "position": position}
+                    for channel, position in new_positions
+                ],
+                reason=f"~sortcat by {ctx.author}",
+            )
+        except nextcord.Forbidden:
+            await discord_utils.send_failure(
+                ctx,
+                f"Unable to sort `{category.name}`. Do I have the `manage_channels` permission?",
+            )
+            return
 
-        if start_embed_msg:
-            await start_embed_msg.delete()
         embed.add_field(
             name="Success",
             value=f"Sorted the channels in `{category.name}`!",
@@ -831,22 +831,40 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     def sort_channels(
         self,
         channel_list: list,
-        prefixes: list = sheets_constants.solved_prefixes,
+        prefixes: list = sheets_constants.SORTCAT_PREFIX_ORDER,
     ) -> list:
-        """Sort channels according to some prefixes"""
-        channel_list_sorted = sorted(channel_list, key=lambda x: x.name)
-        prefixes = [x + "-" for x in prefixes]
+        """Sort channels by name, unprefixed ones first, then each prefix in turn."""
 
-        channel_list_prefixes = []
-        for prefix in prefixes:
-            channel_list_prefixes += list(
-                filter(lambda x: x.name.startswith(prefix), channel_list_sorted)
-            )
+        def group(channel):
+            for rank, prefix in enumerate(prefixes, start=1):
+                if channel.name.startswith(prefix + "-"):
+                    return rank
+            if any(
+                channel.name.startswith(prefix + "-")
+                for prefix in sheets_constants.solved_prefixes
+            ):
+                return len(prefixes) + 1
+            return 0
 
-        unsolved = channel_list_sorted
-        unsolved = list(filter(lambda x: x not in channel_list_prefixes, unsolved))
+        return sorted(channel_list, key=lambda channel: (group(channel), channel.name))
 
-        return unsolved + channel_list_prefixes
+    def sorted_positions(self, channels: list, sorted_channels: list) -> list:
+        """The (channel, position) changes that put channels in sorted_channels order.
+
+        The channels keep the category's existing position numbers, so channels outside
+        the category don't move. Channels already in place are left out."""
+        current = sorted(channels, key=lambda channel: (channel.position, channel.id))
+        if current == sorted_channels:
+            return []
+        positions = [channel.position for channel in current]
+        if len(set(positions)) != len(positions):
+            # Discord sometimes has clashing positions. Number them up from the lowest.
+            positions = range(positions[0], positions[0] + len(positions))
+        return [
+            (channel, position)
+            for channel, position in zip(sorted_channels, positions)
+            if channel.position != position
+        ]
 
     @command_predicates.is_verified()
     @commands.command(name="renamecat", aliases=["renamecategory"])

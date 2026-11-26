@@ -12,7 +12,7 @@ CATEGORY = "category"
 # Use for downloading sheets
 MIMETYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-# status of all sheet/prefix constants. This order matters for ~sortcat.
+# status of all sheet/prefix constants. ~sortcat uses SORTCAT_PREFIX_ORDER below instead.
 status_dict = {
     "Solved": {
         "color": [106, 168, 79],
@@ -90,6 +90,10 @@ UNSTARTED_NAME = "Unstarted"
 # ["solved","solvedish","backsolved"...]
 solved_prefixes = [status_dict[x].get("prefix_name") for x in status_dict]
 solved_prefixes = [y for y in solved_prefixes if y is not None]
+
+# Order of the prefixed channels after the unprefixed ones in ~sortcat. Backsolved comes
+# before solved. A prefix missing here goes last.
+SORTCAT_PREFIX_ORDER = ["solvedish", "backsolved", "solved", "postsolved"]
 
 # ["Solved", "Backsolved", "Postsolved"]
 solve_statuses = [x for x in status_dict if status_dict[x].get("is_solve")]
