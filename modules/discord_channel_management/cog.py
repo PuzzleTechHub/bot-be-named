@@ -3,7 +3,7 @@ import asyncio
 from typing import Union
 from utils import sheets_constants
 from nextcord.ext import commands
-from utils import discord_utils, command_predicates, solved_utils
+from utils import discord_utils, command_predicates, sheet_utils, solved_utils
 
 """
 Discord Channel management module. Bundle of all discord functions and commands related to managing a specific discord channel and managing it.
@@ -1416,6 +1416,57 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Usage: `~movetoarchive archive_category_name`
         """
         await discord_utils.movetoarchive_generic(ctx, archive_name)
+
+    @command_predicates.is_solver()
+    @commands.command(name="unmta", aliases=["unmovetoarchive", "unmtacrab"])
+    async def unmovetoarchive(self, ctx: commands.Context, category_name: str = ""):
+        """Does the rough opposite of ~mta. Moves the channel out of the archive, back into the main hunt category.
+        Only moves the channel. Use `~unmtahydra` to move the puzzle's sheet tab back too.
+
+        The main hunt category is the one tethered to the same sheet, if any, or else the archive's name
+        without "Archive", e.g. `MH21 Archive 2` -> `MH21`. If I cannot find it, I will ask the user to specify it.
+
+        Permission Category : Solver Roles only.
+        Usage: `~unmta`
+        Usage: `~unmta "Main Hunt Category Name"` (If I cannot find the main hunt category automatically)
+        """
+        if not isinstance(ctx.channel, nextcord.TextChannel):
+            await discord_utils.send_failure(
+                ctx, "This command can only be used in a server text channel."
+            )
+            return
+        if ctx.channel.category is None:
+            await discord_utils.send_failure(
+                ctx, f"The channel {ctx.channel.mention} is not in a category."
+            )
+            return
+
+        tether, _ = await asyncio.to_thread(
+            sheet_utils.find_channel_tether, ctx.channel
+        )
+        main_category = await sheet_utils.find_unarchive_category(
+            ctx,
+            category_name,
+            str(tether.sheet_link) if tether is not None else None,
+            "unmta",
+        )
+        if main_category is None:
+            return
+
+        try:
+            await ctx.channel.edit(category=main_category)
+        except nextcord.Forbidden:
+            await discord_utils.send_failure(
+                ctx,
+                f"I do not have permission to move the channel {ctx.channel.mention} to category `{main_category.name}`.",
+            )
+            return
+        await discord_utils.send_message(
+            ctx,
+            discord_utils.create_success_embed(
+                f"Moved channel {ctx.channel.mention} to category `{main_category.name}`."
+            ),
+        )
 
 
 def setup(bot):

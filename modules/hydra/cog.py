@@ -1579,6 +1579,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     async def unmtahydra(self, ctx: commands.Context, category_name: str = ""):
         """Does the rough opposite of ~mtahydra. Moves the channel into the main hunt category and moves the sheet into the active section.
         If I cannot find the main hunt category, I will ask the user to specify it.
+        To move only the channel and leave the sheet alone, use `~unmta`.
 
         Permission Category : Solver Roles only.
         Usage: `~unmtahydra`
@@ -1619,112 +1620,10 @@ class HydraCog(commands.Cog, name="Hydra"):
             await discord_utils.send_message(ctx, embed)
             return
 
-        # Find the main hunt category. We will first check if an argument was passed. Then, look for a category tethered to the
-        # same sheet. If that fails, we get the current category's name, and remove "Archive" and look for that. Else, we will
-        # just ask the user for the category name.
-
-        if ctx.guild is None:
-            embed = discord_utils.create_failure_embed(
-                "This command must be used in a guild (server)."
-            )
-            await discord_utils.send_message(ctx, embed)
-            return
-
-        main_category = None
-        full_categories = [
-            category
-            for category in ctx.guild.categories
-            if discord_utils.category_is_full(category)
-        ]
-
-        if category_name != "":
-            main_category = await discord_utils.find_category(ctx, category_name)
-            if main_category is None:
-                embed = discord_utils.create_failure_embed(
-                    f"I cannot find category `{category_name}`. Perhaps check your spelling and try again."
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
-            elif main_category in full_categories:
-                embed = discord_utils.create_failure_embed(
-                    f"The category `{category_name}` is full. Please specify a different category."
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
-
+        main_category = await sheet_utils.find_unarchive_category(
+            ctx, category_name, curr_sheet_link, "unmtahydra"
+        )
         if main_category is None:
-            if ctx.guild is None:
-                embed = discord_utils.create_failure_embed(
-                    "This command must be used in a guild (server)."
-                )
-                await discord_utils.send_message(ctx, embed)
-                return
-
-            for category in ctx.guild.categories:
-                if (
-                    category.id == ctx.channel.category.id
-                    or category in full_categories
-                ):
-                    continue  # Skip current category / full categories
-                cat_result, _ = await asyncio.to_thread(
-                    sheet_utils.findsheettether, category.id, 0
-                )
-                if (
-                    cat_result is not None
-                    and str(cat_result.sheet_link) == curr_sheet_link
-                ):
-                    main_category = category
-                    break
-
-        if main_category is None:
-            curr_cat_name = ctx.channel.category.name
-            base_name = re.sub(r"\s*Archive\s*\d*$", "", curr_cat_name).strip()
-            split_base_names = base_name.split()
-            possible_category_prefixes = [
-                " ".join(split_base_names[: len(split_base_names) - i])
-                for i, _ in enumerate(split_base_names)
-            ]
-
-            possible_solving_categories = []
-            # Look for categories that begin with the exact base name, then the base name minus last word, etc.
-            for possible_base_name in possible_category_prefixes:
-                to_add_candidates = [
-                    category
-                    for category in ctx.guild.categories
-                    if category.name.startswith(possible_base_name)
-                    and (not re.match(r".*Archive\s*\d*$", category.name))
-                    and (category not in full_categories)
-                ]
-
-                for candidate in to_add_candidates:
-                    # Skip categories that are full, prefer ones with space
-                    if (
-                        candidate not in possible_solving_categories
-                        and not discord_utils.category_is_full(candidate)
-                    ):
-                        possible_solving_categories.append(candidate)
-
-            if len(possible_solving_categories) == 1:
-                main_category = possible_solving_categories[0]
-            elif len(possible_solving_categories) > 1:
-                # Collate list into embed so user can pick
-                selection_embed = discord_utils.create_embed()
-                selection_embed.add_field(
-                    name="Multiple possible main hunt categories found",
-                    value='Please specify which category to move the channel to by using `~unmtahydra "Category Name"`.\n\n'
-                    + "\n".join(
-                        [f"- {cat.name}" for cat in possible_solving_categories]
-                    ),
-                )
-                await discord_utils.send_message(ctx, selection_embed)
-                return
-
-        if main_category is None:
-            embed = discord_utils.create_failure_embed(
-                "I could not automatically find the main hunt category. \n"
-                "Please specify the main hunt category name as an argument."
-            )
-            await discord_utils.send_message(ctx, embed)
             return
 
         # Try to move the channel

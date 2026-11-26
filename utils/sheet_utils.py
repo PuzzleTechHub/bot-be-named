@@ -1,4 +1,5 @@
 import asyncio
+import re
 from utils import sheets_constants
 from utils import discord_utils
 from utils import batch_update_utils
@@ -1485,3 +1486,114 @@ async def batch_create_puzzle_channels(
         results.append((None, None, None, puzzle_name))
 
     return results
+
+
+# The archive names ~mta looks for: "MH21 Archive", "MH21 archive", "Archive: MH21",
+# with or without a number ("MH21 Archive 2").
+ARCHIVE_SUFFIX_RE = re.compile(r"\s*archive\s*\d*\s*$", re.IGNORECASE)
+ARCHIVE_PREFIX_RE = re.compile(r"^\s*archive\s*\d*\s*:\s*", re.IGNORECASE)
+
+
+def archive_base_name(category_name: str) -> Optional[str]:
+    """The hunt name in an archive category's name, e.g. `MH21 Archive 2` -> `MH21`.
+    None if the name doesn't look like an archive."""
+    for pattern in (ARCHIVE_PREFIX_RE, ARCHIVE_SUFFIX_RE):
+        if pattern.search(category_name):
+            return pattern.sub("", category_name).strip()
+    return None
+
+
+async def find_unarchive_category(
+    ctx: commands.Context,
+    category_name: str = "",
+    sheet_link: Optional[str] = None,
+    command_name: str = "unmta",
+) -> Optional[nextcord.CategoryChannel]:
+    """Finds the category to move an archived channel back to, for ~unmta and ~unmtahydra.
+
+    In order: the category named by the user; a category tethered to sheet_link; the
+    current category's name without "Archive" (then without its last words). Full
+    categories are skipped. Sends the reason and returns None if none is found."""
+    if ctx.guild is None:
+        await discord_utils.send_failure(
+            ctx, "This command must be used in a guild (server)."
+        )
+        return None
+
+    full_categories = [
+        category
+        for category in ctx.guild.categories
+        if discord_utils.category_is_full(category)
+    ]
+
+    if category_name != "":
+        main_category = await discord_utils.find_category(ctx, category_name)
+        if main_category is None:
+            await discord_utils.send_failure(
+                ctx,
+                f"I cannot find category `{category_name}`. Perhaps check your spelling and try again.",
+            )
+            return None
+        if main_category in full_categories:
+            await discord_utils.send_failure(
+                ctx,
+                f"The category `{category_name}` is full. Please specify a different category.",
+            )
+            return None
+        return main_category
+
+    if sheet_link is not None:
+        for category in ctx.guild.categories:
+            if category.id == ctx.channel.category.id or category in full_categories:
+                continue  # Skip current category / full categories
+            cat_result, _ = await asyncio.to_thread(findsheettether, category.id, 0)
+            if cat_result is not None and str(cat_result.sheet_link) == sheet_link:
+                return category
+
+    curr_cat_name = ctx.channel.category.name
+    base_name = archive_base_name(curr_cat_name)
+    if base_name is None:
+        await discord_utils.send_failure(
+            ctx,
+            f"`{curr_cat_name}` doesn't look like an archive category, so I don't know where to move "
+            f'{ctx.channel.mention}. Use `{ctx.prefix}{command_name} "Category Name"` to pick one.',
+        )
+        return None
+    split_base_names = base_name.split()
+    possible_category_prefixes = [
+        " ".join(split_base_names[: len(split_base_names) - i])
+        for i, _ in enumerate(split_base_names)
+    ]
+
+    possible_solving_categories = []
+    # Look for categories that begin with the exact base name, then the base name minus last word, etc.
+    for possible_base_name in possible_category_prefixes:
+        for candidate in ctx.guild.categories:
+            if (
+                candidate.name.startswith(possible_base_name)
+                and candidate.id != ctx.channel.category.id
+                and archive_base_name(candidate.name) is None
+                and candidate not in full_categories
+                and candidate not in possible_solving_categories
+            ):
+                possible_solving_categories.append(candidate)
+
+    if len(possible_solving_categories) == 1:
+        return possible_solving_categories[0]
+    if len(possible_solving_categories) > 1:
+        # Collate list into embed so user can pick
+        selection_embed = discord_utils.create_embed()
+        selection_embed.add_field(
+            name="Multiple possible main hunt categories found",
+            value=f'Please specify which category to move the channel to by using `{ctx.prefix}{command_name} "Category Name"`.\n\n'
+            + "\n".join([f"- {cat.name}" for cat in possible_solving_categories]),
+        )
+        await discord_utils.send_message(ctx, selection_embed)
+        return None
+
+    await discord_utils.send_failure(
+        ctx,
+        "I could not automatically find the main hunt category. \n"
+        "Please specify the main hunt category name as an argument.",
+    )
+    return None
