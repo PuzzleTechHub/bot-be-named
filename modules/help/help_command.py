@@ -1,4 +1,5 @@
 import os
+import re
 
 import nextcord
 from nextcord.ext import commands
@@ -11,6 +12,25 @@ COMMANDS_PER_PAGE = 10
 MENU_TIMEOUT = 120
 # Max amount of options in a dropdown menu (enforced by Discord)
 MAX_SELECT_OPTIONS = 25
+# Max length of an embed field's value (enforced by Discord)
+MAX_FIELD_VALUE = 1024
+
+
+def unwrap(text: str) -> str:
+    """Joins a docstring's wrapped sentences back together. A line starting with a lowercase
+    letter carries on the sentence above it. Other line breaks, like separate Usage lines, stay."""
+    return re.sub(r"[ \t]*\n[ \t]*(?=[a-z])", " ", text)
+
+
+def command_summary(command: commands.Command) -> str:
+    """The command's brief, or else the whole first paragraph of its docstring on one line.
+    nextcord's short_doc stops at the first line break, which cuts wrapped sentences short."""
+    if command.brief:
+        return command.brief
+    paragraph = " ".join((command.help or "").split("\n\n", 1)[0].split())
+    if len(paragraph) > MAX_FIELD_VALUE:
+        paragraph = paragraph[: MAX_FIELD_VALUE - 1] + "…"
+    return paragraph or "..."
 
 
 class HelpMenu(nextcord.ui.View):
@@ -138,7 +158,8 @@ class HelpCommand(commands.MinimalHelpCommand):
             await self.get_destination().send(embed=embed)
 
     async def bot_help_embed(self, mapping: dict) -> nextcord.Embed:
-        """The overview page with every module and its commands."""
+        """The overview page with every module and what it is for. The commands are on each
+        module's own page."""
         prefix = self.context.clean_prefix
         embed = discord_utils.create_embed()
         embed.title = "Bot Commands"
@@ -146,20 +167,18 @@ class HelpCommand(commands.MinimalHelpCommand):
             name=self.context.bot.user.name,
             icon_url=self.context.bot.user.display_avatar.url,
         )
-        description = self.context.bot.description
-        if description:
-            embed.description = description
+        description = self.context.bot.description or ""
+        embed.description = (
+            f"{description}\n\n" if description else ""
+        ) + f"Pick a module below, or use `{prefix}help [module]`, to see its commands."
 
         for cog in sorted(
             (cog for cog in mapping if cog is not None),
             key=lambda cog: cog.qualified_name,
         ):
-            filtered = await self.filter_commands(mapping[cog], sort=True)
-            if filtered:
-                value = f"{chr(10)}".join(f"{prefix}{c.name}" for c in filtered)
-                if cog.description:
-                    value = f"{cog.description}\n{value}"
-                embed.add_field(name=cog.qualified_name, value=value)
+            # Only list modules the caller has a command they can use in
+            if await self.filter_commands(mapping[cog]):
+                embed.add_field(name=cog.qualified_name, value=cog.description or "...")
 
         embed.set_footer(text=self.get_ending_note())
         return embed
@@ -183,7 +202,7 @@ class HelpCommand(commands.MinimalHelpCommand):
             for command in chunk:
                 embed.add_field(
                     name=self.get_command_signature(command),
-                    value=command.short_doc or "...",
+                    value=command_summary(command),
                     inline=False,
                 )
             embed.set_footer(text=self.get_ending_note())
@@ -233,7 +252,7 @@ class HelpCommand(commands.MinimalHelpCommand):
         embed = discord_utils.create_embed()
         embed.title = group.qualified_name
         if group.help:
-            embed.description = group.help
+            embed.description = unwrap(group.help)
 
         if group.cog is not None:
             embed.add_field(name="Module", value=group.cog.qualified_name)
@@ -242,18 +261,20 @@ class HelpCommand(commands.MinimalHelpCommand):
                 name="Aliases",
                 value=", ".join(f"{prefix}{alias}" for alias in group.aliases),
             )
-        embed.add_field(
-            name="Usage",
-            value=f"`{prefix}{self.get_command_signature(group).strip()}`",
-            inline=False,
-        )
+        # Most docstrings already give usage examples, which are clearer than the signature
+        if "Usage:" not in (group.help or ""):
+            embed.add_field(
+                name="Usage",
+                value=f"`{prefix}{self.get_command_signature(group).strip()}`",
+                inline=False,
+            )
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
             for command in filtered:
                 embed.add_field(
                     name=self.get_command_signature(command),
-                    value=command.short_doc or "...",
+                    value=command_summary(command),
                     inline=False,
                 )
 

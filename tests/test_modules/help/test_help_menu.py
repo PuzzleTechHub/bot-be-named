@@ -119,6 +119,17 @@ async def test_help_sends_public_menu_on_overview(helper):
     assert len(view.module_select.options) <= help_command.MAX_SELECT_OPTIONS
 
 
+async def test_overview_lists_modules_not_commands(helper):
+    [(name, overview), *_] = await helper.help_pages()
+    assert name is None
+    bot = helper.context.bot
+    modules = {field.name: field.value for field in overview.fields}
+    assert modules["Hydra"] == bot.get_cog("Hydra").description
+    command_names = {f"~{command.name}" for command in bot.commands}
+    for value in modules.values():
+        assert not command_names & set(value.split())
+
+
 async def test_every_control_has_a_custom_id(helper):
     """Discord refuses a message whose buttons or dropdown lack a custom_id."""
     view = help_command.HelpMenu(AUTHOR_ID, await helper.help_pages())
@@ -197,5 +208,67 @@ async def test_command_help_shows_module_aliases_and_usage(helper):
     fields = {field.name: field.value for field in message.embed.fields}
     assert fields["Module"] == command.cog.qualified_name
     assert f"~{command.aliases[0]}" in fields["Aliases"]
-    assert fields["Usage"].startswith(f"`~{command.qualified_name}")
+    if "Usage:" not in command.help:
+        assert fields["Usage"].startswith(f"`~{command.qualified_name}")
     assert message.view is None
+
+
+async def test_command_help_docstring_usage_not_repeated(helper):
+    await helper.send_command_help(helper.context.bot.get_command("deletehydra"))
+    [message] = helper.context.channel.sent
+    embed = message.embed
+    assert "Usage" not in [field.name for field in embed.fields]
+    assert "triggers archiving and cleans up the overview." in embed.description
+    assert "Usage: `~deletehydra #puzzle-channel`" in embed.description
+    check_embed(embed)
+
+
+async def test_command_help_usage_field_when_docstring_has_none(helper):
+    command = helper.context.bot.get_command("about")
+    assert "Usage:" not in (command.help or "")
+    await helper.send_command_help(command)
+    [message] = helper.context.channel.sent
+    fields = {field.name: field.value for field in message.embed.fields}
+    assert fields["Usage"] == "`~about`"
+
+
+def test_unwrap_keeps_separate_lines():
+    doc = (
+        "Adds a role\n    to the list.\n\nPermission Category : Admin.\n"
+        "Usage: `~addperm Verified @Role`\nUsage: `~addperm Trusted @everyone`"
+    )
+    assert help_command.unwrap(doc) == (
+        "Adds a role to the list.\n\nPermission Category : Admin.\n"
+        "Usage: `~addperm Verified @Role`\nUsage: `~addperm Trusted @everyone`"
+    )
+
+
+async def test_wrapped_first_paragraph_is_kept_whole(helper):
+    pages = [embed for name, embed in await helper.help_pages() if name == "Hydra"]
+    fields = {
+        field.name.split()[0]: field.value for embed in pages for field in embed.fields
+    }
+    summary = fields["catsummaryhydra"]
+    assert summary.startswith("Collates all the notes")
+    assert summary.endswith("to work as expected.")
+    assert "\n" not in summary
+    assert "summaryallowhydra" not in summary
+
+
+def test_summary_prefers_brief():
+    @commands.command(brief="Short one.")
+    async def thing(ctx):
+        """Long first line
+        that wraps."""
+
+    assert help_command.command_summary(thing) == "Short one."
+
+
+def test_summary_capped_at_field_limit():
+    @commands.command(help="word " * 400)
+    async def thing(ctx):
+        pass
+
+    summary = help_command.command_summary(thing)
+    assert len(summary) == help_command.MAX_FIELD_VALUE
+    assert summary.endswith("…")
