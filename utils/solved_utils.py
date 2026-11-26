@@ -76,18 +76,14 @@ async def update_puzzle_status(
 
         tab_ans_loc = sheets_constants.TAB_ANSWER_LOCATION
         tab_cell_label = sheets_constants.SHEET_TAB_ID_COLUMN + str(row_to_find)
-        tab_id = overview_sheet.get_cell_value(tab_cell_label)
-        puzzle_tab = await asyncio.to_thread(
-            overview_sheet.spreadsheet.get_worksheet_by_id, int(tab_id)
-        )
+        # No tab lookup, the batch update below fails if the tab was deleted
+        tab_id = int(overview_sheet.get_cell_value(tab_cell_label))
 
         batch_update_builder = batch_update_utils.BatchUpdateBuilder()
 
         new_answer = answer_cell_value(status_info, answer)
         if new_answer is not None:
-            batch_update_builder.update_cell_by_label(
-                puzzle_tab.id, tab_ans_loc, new_answer
-            )
+            batch_update_builder.update_cell_by_label(tab_id, tab_ans_loc, new_answer)
 
         curr_status = overview_sheet.get_cell_value(status_col + str(row_to_find))
         curr_stat_info = get_status_info(curr_status)
@@ -139,7 +135,14 @@ async def update_puzzle_status(
         return True
 
     except gspread.exceptions.APIError as e:
-        await sheet_utils.handle_gspread_error(ctx, e)
+        if "No grid with id" in e.error.get("message", ""):
+            await discord_utils.send_failure(
+                ctx,
+                f"I can't find this puzzle's tab (id `{tab_id}`) on the sheet. "
+                f"Was it deleted? Nothing was changed.",
+            )
+        else:
+            await sheet_utils.handle_gspread_error(ctx, e)
         return False
 
 

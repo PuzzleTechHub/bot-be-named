@@ -4,6 +4,8 @@ threads, so one slow sheet doesn't freeze every other command."""
 import gspread
 import pytest
 
+import database
+
 from tests.fakes import (
     FakeCategory,
     FakeChannel,
@@ -168,9 +170,11 @@ async def test_batch_create_puzzle_channels_off_the_event_loop(
     tethered = []
     monkeypatch.setattr(sheet_utils, "OverviewSheet", FakeOverview)
     monkeypatch.setattr(
-        sheet_utils,
-        "addsheettethergeneric",
-        lambda gspread_client, link, guild, channel: tethered.append(channel.name),
+        database,
+        "set_tether",
+        lambda guild_id, guild_name, chan_id, chan_name, link: tethered.append(
+            (chan_name, link)
+        ),
     )
     monkeypatch.setattr(discord_utils, "createchannelgeneric", create_channel)
     monkeypatch.setattr(discord_utils, "pin_message", pin_message)
@@ -179,13 +183,9 @@ async def test_batch_create_puzzle_channels_off_the_event_loop(
         monkeypatch, spreadsheet, "worksheet", "worksheets", "batch_update", calls=calls
     )
     watch_threads(
-        monkeypatch,
-        sheet_utils,
-        "findsheettether",
-        "OverviewSheet",
-        "addsheettethergeneric",
-        calls=calls,
+        monkeypatch, sheet_utils, "findsheettether", "OverviewSheet", calls=calls
     )
+    watch_threads(monkeypatch, database, "set_tether", calls=calls)
 
     results = await sheet_utils.batch_create_puzzle_channels(
         None, ctx, client, [("puzzle-a", "", None), ("puzzle-b", "", None)]
@@ -193,7 +193,9 @@ async def test_batch_create_puzzle_channels_off_the_event_loop(
 
     assert [name for _, _, _, name in results] == ["puzzle-a", "puzzle-b"]
     assert all(link is not None for link, _, _, _ in results)
-    assert tethered == ["puzzle-a", "puzzle-b"]
+    # Each channel is tethered to the link already opened, without reopening the sheet
+    assert tethered == [("puzzle-a", SHEET), ("puzzle-b", SHEET)]
+    assert [name for name, _ in calls].count("open_by_url") == 1
     assert {name for name, _ in calls} == {
         "findsheettether",
         "open_by_url",
@@ -201,7 +203,7 @@ async def test_batch_create_puzzle_channels_off_the_event_loop(
         "worksheets",
         "batch_update",
         "OverviewSheet",
-        "addsheettethergeneric",
+        "set_tether",
     }
     _not_on_loop(calls)
 

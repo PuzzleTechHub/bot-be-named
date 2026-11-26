@@ -62,8 +62,12 @@ class SheetsCog(commands.Cog, name="Sheets"):
             )
             return
 
-        proposed_sheet = sheet_utils.addsheettethergeneric(
-            self.gspread_client, sheet_key_or_link, ctx.guild, ctx.channel.category
+        proposed_sheet = await asyncio.to_thread(
+            sheet_utils.addsheettethergeneric,
+            self.gspread_client,
+            sheet_key_or_link,
+            ctx.guild,
+            ctx.channel.category,
         )
 
         if proposed_sheet:
@@ -110,8 +114,12 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """
         embed = discord_utils.create_embed()
 
-        proposed_sheet = sheet_utils.addsheettethergeneric(
-            self.gspread_client, sheet_key_or_link, ctx.guild, ctx.channel
+        proposed_sheet = await asyncio.to_thread(
+            sheet_utils.addsheettethergeneric,
+            self.gspread_client,
+            sheet_key_or_link,
+            ctx.guild,
+            ctx.channel,
         )
 
         if proposed_sheet:
@@ -157,12 +165,16 @@ class SheetsCog(commands.Cog, name="Sheets"):
         curr_chan = ctx.message.channel
         in_thread = await discord_utils.is_thread(ctx, curr_chan)
 
-        curr_chan_or_cat_row, tether_type = sheet_utils.find_channel_tether(curr_chan)
+        curr_chan_or_cat_row, tether_type = await asyncio.to_thread(
+            sheet_utils.find_channel_tether, curr_chan
+        )
 
         # If the tethering exists, remove it from the sheet.
         if curr_chan_or_cat_row is not None:
             sheet_link = curr_chan_or_cat_row.sheet_link
-            database.delete_tether(curr_chan_or_cat_row.channel_or_cat_id)
+            await asyncio.to_thread(
+                database.delete_tether, curr_chan_or_cat_row.channel_or_cat_id
+            )
             if tether_type == sheets_constants.THREAD:
                 embed.add_field(
                     name="Success",
@@ -249,7 +261,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
         curr_chan = ctx.message.channel
         in_thread = await discord_utils.is_thread(ctx, curr_chan)
 
-        curr_chan_or_cat_row, tether_type = sheet_utils.find_channel_tether(curr_chan)
+        curr_chan_or_cat_row, tether_type = await asyncio.to_thread(
+            sheet_utils.find_channel_tether, curr_chan
+        )
 
         if curr_chan_or_cat_row is not None:
             curr_sheet_link = curr_chan_or_cat_row.sheet_link
@@ -312,11 +326,10 @@ class SheetsCog(commands.Cog, name="Sheets"):
         Permission Category : Solver Roles only.
         Usage: `~savesheet`
         """
-        http = self.gdrive_credentials.authorize(httplib2.Http())
-        service = discovery.build("drive", "v3", http=http)
-
         if sheet_url is None:
-            tether_db_result, _ = sheet_utils.find_channel_tether(ctx.channel)
+            tether_db_result, _ = await asyncio.to_thread(
+                sheet_utils.find_channel_tether, ctx.channel
+            )
             if tether_db_result is None:
                 if ctx.channel.category is None:
                     where = f"{ctx.channel.mention}"
@@ -333,7 +346,9 @@ class SheetsCog(commands.Cog, name="Sheets"):
                 return
             sheet_url = tether_db_result.sheet_link
 
-        sheet = sheet_utils.get_sheet_from_key_or_link(self.gspread_client, sheet_url)
+        sheet = await asyncio.to_thread(
+            sheet_utils.get_sheet_from_key_or_link, self.gspread_client, sheet_url
+        )
         if sheet is None:
             await discord_utils.send_failure(
                 ctx,
@@ -342,11 +357,17 @@ class SheetsCog(commands.Cog, name="Sheets"):
             )
             return
 
-        try:
+        def export_sheet():
+            http = self.gdrive_credentials.authorize(httplib2.Http())
+            service = discovery.build("drive", "v3", http=http)
             request = service.files().export_media(
                 fileId=sheet.id, mimeType=sheets_constants.MIMETYPE
             )
-            response = request.execute()
+            return request.execute()
+
+        try:
+            # The export can take a while for big sheets
+            response = await asyncio.to_thread(export_sheet)
         except googleapiclient.errors.HttpError:
             await discord_utils.send_failure(
                 ctx,
@@ -380,7 +401,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
     @loop(hours=12)
     async def prune_tethers(self):
         """Function which runs periodically to remove all tethers to channels which have been deleted"""
-        listresults = database.get_all_tethers()
+        listresults = await asyncio.to_thread(database.get_all_tethers)
         to_delete = []
         not_in_server = set()
         for x in listresults:
@@ -408,7 +429,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         print()
         for x in to_delete:
-            database.delete_tether(x[1])
+            await asyncio.to_thread(database.delete_tether, x[1])
             print(f"Deleting tether at {x[0]} - {x[1]}")
         return to_delete
 

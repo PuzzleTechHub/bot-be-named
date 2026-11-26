@@ -1,3 +1,4 @@
+import asyncio
 import nextcord
 import urllib
 import re
@@ -35,7 +36,8 @@ class LookupCog(commands.Cog, name="Lookup"):
             .replace(" ", "+")
         )  # html syntax
         url = "https://nutrimatic.org/?q=" + query + "&go=Go"
-        text = urllib.request.urlopen(url).read()
+        # A slow nutrimatic search would otherwise freeze every other command
+        text = await asyncio.to_thread(lambda: urllib.request.urlopen(url).read())
         text1 = text.decode()
 
         # set up embed template

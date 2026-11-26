@@ -303,4 +303,24 @@ async def test_update_puzzle_status_calls_sheets_off_the_event_loop(monkeypatch)
 
     assert await solved_utils.update_puzzle_status(ctx, sheet, ROW, "solved", "abc")
 
-    assert calls == [("get_worksheet_by_id", False), ("batch_update", False)]
+    # One Google call
+    assert calls == [("batch_update", False)]
+
+
+async def test_update_puzzle_status_deleted_tab_says_so():
+    channel = EditableChannel("puzzle-1")
+    ctx = _ctx(channel)
+    error = api_error(
+        "INVALID_ARGUMENT",
+        f"Invalid requests[0].updateCells: No grid with id: {TAB_ID}",
+    )
+    sheet = StatusSheet("In Progress", batch_error=error)
+
+    ok = await solved_utils.update_puzzle_status(ctx, sheet, ROW, "Solved", "abc")
+
+    assert ok is False
+    [embed] = ctx.sent_embeds
+    [field] = embed.fields
+    assert field.name == "Failed"
+    assert "deleted" in field.value and str(TAB_ID) in field.value
+    assert channel.edits == []

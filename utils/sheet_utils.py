@@ -345,12 +345,14 @@ async def chancrabgeneric(
     )
     await discord_utils.send_message(ctx, embed)
 
+    # The tethered link already opened, so save it without reopening the sheet
     await asyncio.to_thread(
-        addsheettethergeneric,
-        gspread_client,
+        database.set_tether,
+        ctx.message.guild.id,
+        ctx.message.guild.name,
+        new_chan.id,
+        new_chan.name,
         curr_sheet_link,
-        ctx.message.guild,
-        new_chan,
     )
     return curr_sheet_link, newsheet, new_chan
 
@@ -1006,12 +1008,14 @@ async def _create_and_set_up_puzzle_chan(
         await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
 
     # tether channel
+    # The tethered link already opened, so save it without reopening the sheet
     await asyncio.to_thread(
-        addsheettethergeneric,
-        gspread_client,
+        database.set_tether,
+        ctx.message.guild.id,
+        ctx.message.guild.name,
+        new_chan.id,
+        new_chan.name,
         curr_sheet_link,
-        ctx.message.guild,
-        new_chan,
     )
     return new_chan
 
@@ -1302,8 +1306,7 @@ async def batch_create_puzzle_channels(
         await discord_utils.send_message(ctx, embed)
         return []
 
-    # Refresh and get the newly created sheets
-    spreadsheet = await asyncio.to_thread(gspread_client.open_by_url, curr_sheet_link)
+    # Get the newly created sheets (worksheets() fetches fresh metadata, no reopen needed)
     worksheets_by_title = {
         ws.title: ws for ws in await asyncio.to_thread(spreadsheet.worksheets)
     }
@@ -1399,12 +1402,14 @@ async def batch_create_puzzle_channels(
             batch.unhide_sheet(newsheet.id)
 
             # Tether channel
+            # The tethered link already opened, so save it without reopening the sheet
             await asyncio.to_thread(
-                addsheettethergeneric,
-                gspread_client,
+                database.set_tether,
+                ctx.guild.id,
+                ctx.guild.name,
+                channel.id,
+                channel.name,
                 curr_sheet_link,
-                ctx.guild,
-                channel,
             )
 
             # Update channel topic

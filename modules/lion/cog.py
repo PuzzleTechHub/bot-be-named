@@ -1,3 +1,4 @@
+import asyncio
 import emoji
 import gspread
 from nextcord.ext import commands
@@ -153,7 +154,7 @@ class LionCog(commands.Cog, name="Lion"):
         tab_id = overview_sheet.get_cell_value(sheet_tab_id_col + str(row_to_find))
 
         try:
-            worksheets = overview_sheet.spreadsheet.worksheets()
+            worksheets = await asyncio.to_thread(overview_sheet.spreadsheet.worksheets)
             puzzle_tab = next((w for w in worksheets if w.id == int(tab_id)), None)
             if puzzle_tab is None:
                 embed.add_field(
@@ -162,7 +163,7 @@ class LionCog(commands.Cog, name="Lion"):
                     inline=False,
                 )
             else:
-                puzzle_tab.update_index(len(worksheets))
+                await asyncio.to_thread(puzzle_tab.update_index, len(worksheets))
                 embed.add_field(
                     name="Success",
                     value="Moved tab to the end of the sheet!",
@@ -217,13 +218,14 @@ class LionCog(commands.Cog, name="Lion"):
         try:
             tab_name = chan_name.replace("#", "").replace("-", " ")
 
-            sheet = self.gspread_client.open_by_url(curr_sheet_link)
             overview_sheet = await sheet_utils.get_overview(
                 self.gspread_client, ctx, curr_sheet_link
             )
 
             if not overview_sheet:
                 return
+            # The Overview already opened the spreadsheet, so reuse it
+            sheet = overview_sheet.spreadsheet
 
             overview_id = overview_sheet.worksheet.id
             first_empty = len(overview_sheet.overview_data) + 1
@@ -293,7 +295,7 @@ class LionCog(commands.Cog, name="Lion"):
                     sheet_id=newsheet.id, label=url_loc, value=url
                 )
 
-            sheet.batch_update(batch_update_builder.build())
+            await asyncio.to_thread(sheet.batch_update, batch_update_builder.build())
 
             await ctx.message.add_reaction(emoji.emojize(":check_mark_button:"))
         except gspread.exceptions.APIError as e:
