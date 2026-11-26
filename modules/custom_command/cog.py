@@ -224,10 +224,14 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
         All the possible responses for a custom command is referred to as the command's "responses".
 
+        The reply can use `$1`, `$2`, ... for the words typed after the command, and `$*` for all of them.
+        A `$1` with nothing typed for it stays as `$1`.
+
         Permission Category : Trusted Roles only.
         Usage: `~addcc command_name This is my custom command!`
         Usage: `~addcc flipcoin` (then say `Heads` and `Tails` in subsequent
         messages)
+        Usage: `~addcc issue https://github.com/PuzzleTechHub/bot-be-named/issues/$1` (then `~issue 312`)
 
         """
         command_name = command_name.lower()
@@ -255,6 +259,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         """Add your own custom command to the bot with a reply. It is not in a bot embed, so is ideal for images and role pings.
         Everything after the command name is the reply, line breaks included.
         Leave it empty and the bot asks for responses one message at a time. Give more than one and the bot picks one at random each time.
+        The reply can use `$1`, `$2`, ... for the words typed after the command, and `$*` for all of them.
 
         Permission Category : Trusted Roles only.
         Usage: `~addci command_name Link_to_image`

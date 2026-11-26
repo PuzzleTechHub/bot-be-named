@@ -11,7 +11,7 @@ from dotenv.main import load_dotenv
 load_dotenv(override=True)
 
 import database  # noqa: E402
-from utils import discord_utils, logging_utils  # noqa: E402
+from utils import custom_command_utils, discord_utils, logging_utils  # noqa: E402
 
 
 def get_prefix(client, message):
@@ -153,6 +153,16 @@ def main():
                 # If it has random responses, pick one of them
                 if responses:
                     command_return = random.choice(responses)
+
+                # Fill in $1, $2, ... and $* with what was typed after the command name.
+                # clean_content has @everyone, @here and user/role mentions removed, so the
+                # arguments can't ping anyone. Don't switch this to message.content.
+                arguments = custom_command_utils.arguments_after_command(
+                    message.clean_content, command_prefix
+                )
+                command_return = custom_command_utils.fill_parameters(
+                    command_return, arguments
+                )
 
                 # Image, so use normal text
                 if is_image:
