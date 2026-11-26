@@ -208,7 +208,7 @@ async def test_command_help_shows_module_aliases_and_usage(helper):
     fields = {field.name: field.value for field in message.embed.fields}
     assert fields["Module"] == command.cog.qualified_name
     assert f"~{command.aliases[0]}" in fields["Aliases"]
-    if "Usage:" not in command.help:
+    if "Usage:" not in (command.help or ""):
         assert fields["Usage"].startswith(f"`~{command.qualified_name}")
     assert message.view is None
 

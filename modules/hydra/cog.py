@@ -64,8 +64,10 @@ class HydraCog(commands.Cog, name="Hydra"):
         try:
             if round_name is None:
                 # If no arg passed, retrieve current round and tell user
-                current_round = overview_sheet.worksheet.acell(
-                    round_col + str(row_to_find)
+                current_round = (
+                    await asyncio.to_thread(
+                        overview_sheet.worksheet.acell, round_col + str(row_to_find)
+                    )
                 ).value
                 if current_round is None:
                     embed.add_field(
@@ -82,12 +84,16 @@ class HydraCog(commands.Cog, name="Hydra"):
                 await discord_utils.send_message(ctx, embed)
             else:
                 # Update round instead
-                current_round = overview_sheet.worksheet.acell(
-                    round_col + str(row_to_find)
+                current_round = (
+                    await asyncio.to_thread(
+                        overview_sheet.worksheet.acell, round_col + str(row_to_find)
+                    )
                 ).value
 
-                overview_sheet.worksheet.update_acell(
-                    round_col + str(row_to_find), round_name
+                await asyncio.to_thread(
+                    overview_sheet.worksheet.update_acell,
+                    round_col + str(row_to_find),
+                    round_name,
                 )
 
                 if current_round:
@@ -176,8 +182,10 @@ class HydraCog(commands.Cog, name="Hydra"):
         try:
             if notes is None:
                 # If no arg passed, retrieve current notes and tell user
-                current_notes = overview_sheet.worksheet.acell(
-                    notes_col + str(row_to_find)
+                current_notes = (
+                    await asyncio.to_thread(
+                        overview_sheet.worksheet.acell, notes_col + str(row_to_find)
+                    )
                 ).value
                 if current_notes is None:
                     embed.add_field(
@@ -194,12 +202,16 @@ class HydraCog(commands.Cog, name="Hydra"):
                 await discord_utils.send_message(ctx, embed)
             else:
                 # Update notes instead
-                current_notes = overview_sheet.worksheet.acell(
-                    notes_col + str(row_to_find)
+                current_notes = (
+                    await asyncio.to_thread(
+                        overview_sheet.worksheet.acell, notes_col + str(row_to_find)
+                    )
                 ).value
 
-                overview_sheet.worksheet.update_acell(
-                    notes_col + str(row_to_find), notes
+                await asyncio.to_thread(
+                    overview_sheet.worksheet.update_acell,
+                    notes_col + str(row_to_find),
+                    notes,
                 )
 
                 if current_notes:
@@ -272,11 +284,14 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         try:
             # Get the spreadsheet
-            curr_sheet = self.gspread_client.open_by_url(curr_sheet_link)
+            curr_sheet = await asyncio.to_thread(
+                self.gspread_client.open_by_url, curr_sheet_link
+            )
+            all_worksheets = await asyncio.to_thread(curr_sheet.worksheets)
 
             # Get the worksheet by ID
             worksheet = None
-            for ws in curr_sheet.worksheets():
+            for ws in all_worksheets:
                 if str(ws.id) == str(sheet_tab_id):
                     worksheet = ws
                     break
@@ -292,7 +307,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             new_tab_name = new_name.replace("#", "").replace("-", " ")
 
             # Check if a sheet with the new name already exists
-            existing_sheet_names = {ws.title for ws in curr_sheet.worksheets()}
+            existing_sheet_names = {ws.title for ws in all_worksheets}
             if new_tab_name in existing_sheet_names and new_tab_name != old_tab_name:
                 embed = discord_utils.create_failure_embed(
                     f"A sheet with the name `{new_tab_name}` already exists."
@@ -326,7 +341,7 @@ class HydraCog(commands.Cog, name="Hydra"):
             )
 
             # Execute the batch update
-            curr_sheet.batch_update(batch.build())
+            await asyncio.to_thread(curr_sheet.batch_update, batch.build())
 
             # Let users know the rename has started, since Discord allows
             # 2 renames per 10 minutes and holds the rename until then
@@ -874,7 +889,8 @@ class HydraCog(commands.Cog, name="Hydra"):
             return
 
         # Check that the target channel has a valid sheet tether
-        result, _ = sheet_utils.findsheettether(
+        result, _ = await asyncio.to_thread(
+            sheet_utils.findsheettether,
             target_channel.category_id if target_channel.category_id else 0,
             target_channel.id,
         )
@@ -1045,11 +1061,15 @@ class HydraCog(commands.Cog, name="Hydra"):
                         sh = (
                             overview_sheet.spreadsheet
                             if overview_sheet is not None
-                            else self.gspread_client.open_by_url(curr_sheet_link)
+                            else await asyncio.to_thread(
+                                self.gspread_client.open_by_url, curr_sheet_link
+                            )
                         )
 
-                        tab_name = sh.get_worksheet_by_id(tab_id).title
-                        sh.del_worksheet_by_id(tab_id)
+                        tab_name = (
+                            await asyncio.to_thread(sh.get_worksheet_by_id, tab_id)
+                        ).title
+                        await asyncio.to_thread(sh.del_worksheet_by_id, tab_id)
                         tab_deleted = True
 
                     except gspread.exceptions.WorksheetNotFound:
@@ -1074,7 +1094,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                         if not row_values:
                             row_problem = "its Overview row was already empty"
                         else:
-                            overview_ws.delete_rows(row_to_find)
+                            await asyncio.to_thread(
+                                overview_ws.delete_rows, row_to_find
+                            )
                             # A new row probably should be created here, but
                             # the filter on the overview sheet doesn't apply
                             # properly, so we'll just trust the users good
@@ -1644,7 +1666,9 @@ class HydraCog(commands.Cog, name="Hydra"):
                     or category in full_categories
                 ):
                     continue  # Skip current category / full categories
-                cat_result, _ = sheet_utils.findsheettether(category.id, 0)
+                cat_result, _ = await asyncio.to_thread(
+                    sheet_utils.findsheettether, category.id, 0
+                )
                 if (
                     cat_result is not None
                     and str(cat_result.sheet_link) == curr_sheet_link
@@ -1737,26 +1761,30 @@ class HydraCog(commands.Cog, name="Hydra"):
             curr_sheet = (
                 overview_sheet.spreadsheet
                 if overview_sheet is not None
-                else self.gspread_client.open_by_url(curr_sheet_link)
+                else await asyncio.to_thread(
+                    self.gspread_client.open_by_url, curr_sheet_link
+                )
+            )
+            new_index = sheet_utils.get_new_puzzle_tab_index(
+                await asyncio.to_thread(curr_sheet.worksheets)
             )
 
             # Use batch update to move the sheet
-            curr_sheet.batch_update(
+            await asyncio.to_thread(
+                curr_sheet.batch_update,
                 {
                     "requests": [
                         {
                             "updateSheetProperties": {
                                 "properties": {
                                     "sheetId": int(sheet_tab_id),
-                                    "index": sheet_utils.get_new_puzzle_tab_index(
-                                        curr_sheet.worksheets()
-                                    ),
+                                    "index": new_index,
                                 },
                                 "fields": "index",
                             }
                         }
                     ]
-                }
+                },
             )
             tab_embed = discord_utils.create_success_embed(
                 f"Successfully moved the sheet tab for {ctx.channel.mention} to the active section."
@@ -1944,7 +1972,9 @@ class HydraCog(commands.Cog, name="Hydra"):
         open_keys = []
         unopened_keys = []
         for sheet_key in sheet_keys:
-            if sheet_utils.get_sheet_from_key_or_link(self.gspread_client, sheet_key):
+            if await asyncio.to_thread(
+                sheet_utils.get_sheet_from_key_or_link, self.gspread_client, sheet_key
+            ):
                 open_keys.append(sheet_key)
             else:
                 unopened_keys.append(sheet_key)

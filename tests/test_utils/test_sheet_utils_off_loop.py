@@ -1,6 +1,7 @@
-"""The ~chanhydra and ~mtahydra sheet helpers make their Google Sheets calls and database
-queries in worker threads, so one slow sheet doesn't freeze every other command."""
+"""The Hydra sheet helpers make their Google Sheets calls and database queries in worker
+threads, so one slow sheet doesn't freeze every other command."""
 
+import gspread
 import pytest
 
 from tests.fakes import (
@@ -32,13 +33,26 @@ class FakeTab:
 
 class FakeSpreadsheet:
     title = "Hunt"
+    url = SHEET
 
     def __init__(self):
-        self.tabs = [FakeTab("Overview", 0, 0, self), FakeTab("Template", 1, 1, self)]
+        self.tabs = [
+            FakeTab("Overview", 0, 0, self),
+            FakeTab("Template", 1, 1, self),
+            FakeTab("Meta Template", 2, 2, self),
+        ]
         self.batches = []
 
     def worksheet(self, title):
-        return next(tab for tab in self.tabs if tab.title == title)
+        for tab in self.tabs:
+            if tab.title == title:
+                return tab
+        raise gspread.exceptions.WorksheetNotFound(title)
+
+    def duplicate_sheet(self, source_sheet_id, new_sheet_name, insert_sheet_index):
+        tab = FakeTab(new_sheet_name, 100 + len(self.tabs), insert_sheet_index, self)
+        self.tabs.append(tab)
+        return tab
 
     def worksheets(self):
         return list(self.tabs)
@@ -88,6 +102,18 @@ def ctx(category):
     return FakeContext(FakeGuild(categories=[category]), channel)
 
 
+class FakeOverview:
+    """Stands in for OverviewSheet, has an empty Overview whose column cells all say C."""
+
+    overview_data = [[""], [""], [""]]
+
+    def __init__(self, gspread_client, sheet_link):
+        self.worksheet = FakeTab("Overview", 0, 0)
+
+    def get_cell_value(self, label):
+        return "C"
+
+
 def _not_on_loop(calls):
     assert calls
     assert [name for name, on_loop in calls if on_loop] == []
@@ -117,7 +143,7 @@ async def test_sheet_move_to_archive_off_the_event_loop(ctx, monkeypatch):
 
     await sheet_utils.sheet_move_to_archive(None, ctx)
 
-    assert spreadsheet.tabs[-1].moved_to == 3
+    assert spreadsheet.tabs[-1].moved_to == len(spreadsheet.tabs)
     assert ctx.sent_embeds[-1].fields[0].name == "Success"
     assert {name for name, _ in calls} == {
         "findsheettether",
@@ -133,15 +159,6 @@ async def test_batch_create_puzzle_channels_off_the_event_loop(
     spreadsheet = FakeSpreadsheet()
     client = FakeClient(spreadsheet)
 
-    class Overview:
-        overview_data = [[""], [""], [""]]
-
-        def __init__(self, gspread_client, sheet_link):
-            self.worksheet = FakeTab("Overview", 0, 0)
-
-        def get_cell_value(self, label):
-            return "C"
-
     async def create_channel(guild, category, name):
         return PuzzleChannel(300, name, category)
 
@@ -149,7 +166,7 @@ async def test_batch_create_puzzle_channels_off_the_event_loop(
         return message.embed
 
     tethered = []
-    monkeypatch.setattr(sheet_utils, "OverviewSheet", Overview)
+    monkeypatch.setattr(sheet_utils, "OverviewSheet", FakeOverview)
     monkeypatch.setattr(
         sheet_utils,
         "addsheettethergeneric",
@@ -186,4 +203,91 @@ async def test_batch_create_puzzle_channels_off_the_event_loop(
         "OverviewSheet",
         "addsheettethergeneric",
     }
+    _not_on_loop(calls)
+
+
+async def test_create_puzzle_channel_from_template_off_the_event_loop(ctx, monkeypatch):
+    """The path behind ~anychanhydra, ~metachanhydra, ~forumhydra and friends."""
+    spreadsheet = FakeSpreadsheet()
+    client = FakeClient(spreadsheet)
+
+    async def add_reaction(reaction):
+        pass
+
+    ctx.message.add_reaction = add_reaction
+    monkeypatch.setattr(sheet_utils, "OverviewSheet", FakeOverview)
+    calls = watch_threads(monkeypatch, client, "open_by_url")
+    watch_threads(
+        monkeypatch,
+        spreadsheet,
+        "worksheet",
+        "worksheets",
+        "duplicate_sheet",
+        "batch_update",
+        calls=calls,
+    )
+    watch_threads(
+        monkeypatch, sheet_utils, "findsheettether", "OverviewSheet", calls=calls
+    )
+
+    link, newsheet, channel = await sheet_utils.create_puzzle_channel_from_template(
+        None, ctx, "puzzle-a", "Template", "", client, chan_type="none"
+    )
+
+    assert (link, newsheet.title, channel) == (SHEET, "puzzle a", None)
+    assert len(spreadsheet.batches) == 1
+    # The open sheet is reused for the final update, so it is opened once
+    assert [name for name, _ in calls].count("open_by_url") == 1
+    assert ctx.sent_embeds[-1].fields[0].name == "Success"
+    _not_on_loop(calls)
+
+
+async def test_sheetcreatetabgeneric_off_the_event_loop(ctx, category, monkeypatch):
+    spreadsheet = FakeSpreadsheet()
+    client = FakeClient(spreadsheet)
+    calls = watch_threads(monkeypatch, client, "open_by_url")
+    watch_threads(
+        monkeypatch,
+        spreadsheet,
+        "worksheet",
+        "worksheets",
+        "duplicate_sheet",
+        calls=calls,
+    )
+    watch_threads(monkeypatch, sheet_utils, "findsheettether", calls=calls)
+
+    link, newsheet = await sheet_utils.sheetcreatetabgeneric(
+        client, ctx, ctx.channel, category, "Puzzle A", "Meta Template"
+    )
+
+    assert (link, newsheet.title) == (SHEET, "Puzzle A")
+    assert {name for name, _ in calls} == {
+        "findsheettether",
+        "open_by_url",
+        "worksheet",
+        "worksheets",
+        "duplicate_sheet",
+    }
+    _not_on_loop(calls)
+
+
+async def test_tether_template_sheet_off_the_event_loop(ctx, monkeypatch):
+    spreadsheet = FakeSpreadsheet()
+    client = FakeClient(spreadsheet)
+    tethered = []
+    monkeypatch.setattr(
+        sheet_utils,
+        "addsheettethergeneric",
+        lambda gspread_client, link, guild, category: (
+            tethered.append(link) or spreadsheet
+        ),
+    )
+    calls = watch_threads(monkeypatch, client, "open_by_url")
+    watch_threads(monkeypatch, spreadsheet, "worksheet", calls=calls)
+    watch_threads(monkeypatch, sheet_utils, "addsheettethergeneric", calls=calls)
+
+    await sheet_utils.tether_template_sheet(client, ctx, SHEET)
+
+    assert tethered == [SHEET]
+    assert [name for name, _ in calls].count("worksheet") == 3
     _not_on_loop(calls)

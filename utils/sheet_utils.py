@@ -104,7 +104,9 @@ async def tether_template_sheet(
         )
         return
 
-    proposed_sheet = get_sheet_from_key_or_link(gspread_client, sheet_key_or_link)
+    proposed_sheet = await asyncio.to_thread(
+        get_sheet_from_key_or_link, gspread_client, sheet_key_or_link
+    )
     if not proposed_sheet:
         await discord_utils.send_failure(
             ctx,
@@ -116,7 +118,7 @@ async def tether_template_sheet(
     curr_link = proposed_sheet.url
     for tab_name in ["Template", "Meta Template", "Overview"]:
         try:
-            proposed_sheet.worksheet(tab_name)
+            await asyncio.to_thread(proposed_sheet.worksheet, tab_name)
         # Error when we can't open the sheet
         except gspread.exceptions.APIError as e:
             if not is_permission_denied(e):
@@ -135,8 +137,12 @@ async def tether_template_sheet(
             )
             return
 
-    proposed_sheet = addsheettethergeneric(
-        gspread_client, curr_link, ctx.guild, ctx.channel.category
+    proposed_sheet = await asyncio.to_thread(
+        addsheettethergeneric,
+        gspread_client,
+        curr_link,
+        ctx.guild,
+        ctx.channel.category,
     )
     if not proposed_sheet:
         await discord_utils.send_failure(
@@ -339,7 +345,13 @@ async def chancrabgeneric(
     )
     await discord_utils.send_message(ctx, embed)
 
-    addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
+    await asyncio.to_thread(
+        addsheettethergeneric,
+        gspread_client,
+        curr_sheet_link,
+        ctx.message.guild,
+        new_chan,
+    )
     return curr_sheet_link, newsheet, new_chan
 
 
@@ -487,7 +499,9 @@ async def sheetcreatetabgeneric(
     curr_sheet_link = None
     newsheet = None
 
-    tether_db_result, tether_type = findsheettether(curr_cat.id, curr_chan.id)
+    tether_db_result, tether_type = await asyncio.to_thread(
+        findsheettether, curr_cat.id, curr_chan.id
+    )
 
     try:
         if tether_db_result is not None:
@@ -505,8 +519,12 @@ async def sheetcreatetabgeneric(
 
         # Make sure the template/metatemplate tab exists on the sheet.
         try:
-            curr_sheet = gspread_client.open_by_url(curr_sheet_link)
-            template_id = curr_sheet.worksheet(template_or_meta).id
+            curr_sheet = await asyncio.to_thread(
+                gspread_client.open_by_url, curr_sheet_link
+            )
+            template_id = (
+                await asyncio.to_thread(curr_sheet.worksheet, template_or_meta)
+            ).id
         # Error when we can't open the curr sheet link
         except gspread.exceptions.APIError as e:
             if not is_permission_denied(e):
@@ -530,7 +548,7 @@ async def sheetcreatetabgeneric(
             return curr_sheet_link, newsheet
         # Make sure tab_name does not exist
         try:
-            curr_sheet.worksheet(tab_name)
+            await asyncio.to_thread(curr_sheet.worksheet, tab_name)
             # If there is a tab with the given name, that's an error!
             embed = discord_utils.create_embed()
             embed.add_field(
@@ -547,10 +565,14 @@ async def sheetcreatetabgeneric(
 
         # Try to duplicate the template/meta tab and rename it to the given name
         try:
-            newsheet = curr_sheet.duplicate_sheet(
+            insert_index = get_new_puzzle_tab_index(
+                await asyncio.to_thread(curr_sheet.worksheets)
+            )
+            newsheet = await asyncio.to_thread(
+                curr_sheet.duplicate_sheet,
                 source_sheet_id=template_id,
                 new_sheet_name=tab_name,
-                insert_sheet_index=get_new_puzzle_tab_index(curr_sheet.worksheets()),
+                insert_sheet_index=insert_index,
             )
         except gspread.exceptions.APIError as e:
             if not is_permission_denied(e):
@@ -667,8 +689,8 @@ async def create_puzzle_channel_from_template(
         await discord_utils.send_message(ctx, embed)
         return None, None, None
 
-    tether_db_result, tether_type = findsheettether(
-        ctx.channel.category.id, ctx.channel.id
+    tether_db_result, tether_type = await asyncio.to_thread(
+        findsheettether, ctx.channel.category.id, ctx.channel.id
     )
     if tether_db_result is None:
         embed.add_field(
@@ -683,7 +705,9 @@ async def create_puzzle_channel_from_template(
 
     # Open the spreadsheet and choose template tab
     try:
-        curr_sheet = gspread_client.open_by_url(curr_sheet_link)
+        curr_sheet = await asyncio.to_thread(
+            gspread_client.open_by_url, curr_sheet_link
+        )
     except gspread.exceptions.APIError as e:
         if not is_permission_denied(e):
             raise
@@ -705,10 +729,12 @@ async def create_puzzle_channel_from_template(
     used_fallback = False
 
     try:
-        template_ws = curr_sheet.worksheet(desired_template_tab)
+        template_ws = await asyncio.to_thread(
+            curr_sheet.worksheet, desired_template_tab
+        )
     except gspread.exceptions.WorksheetNotFound:
         try:
-            template_ws = curr_sheet.worksheet("Template")
+            template_ws = await asyncio.to_thread(curr_sheet.worksheet, "Template")
             used_fallback = True
         except gspread.exceptions.WorksheetNotFound:
             embed.add_field(
@@ -733,7 +759,7 @@ async def create_puzzle_channel_from_template(
 
     # Make sure tab_name does not exist
     try:
-        curr_sheet.worksheet(tab_name)
+        await asyncio.to_thread(curr_sheet.worksheet, tab_name)
         # If there is a tab with the given name, that's an error!
         embed = discord_utils.create_embed()
         embed.add_field(
@@ -751,10 +777,14 @@ async def create_puzzle_channel_from_template(
 
     # Try to duplicate the template tab and rename it to the given name
     try:
-        newsheet = curr_sheet.duplicate_sheet(
+        insert_index = get_new_puzzle_tab_index(
+            await asyncio.to_thread(curr_sheet.worksheets)
+        )
+        newsheet = await asyncio.to_thread(
+            curr_sheet.duplicate_sheet,
             source_sheet_id=template_id,
             new_sheet_name=tab_name,
-            insert_sheet_index=get_new_puzzle_tab_index(curr_sheet.worksheets()),
+            insert_sheet_index=insert_index,
         )
 
     except gspread.exceptions.APIError as e:
@@ -790,7 +820,9 @@ async def create_puzzle_channel_from_template(
 
     # update overview and new sheet
     try:
-        overview = OverviewSheet(gspread_client, curr_sheet_link)
+        overview = await asyncio.to_thread(
+            OverviewSheet, gspread_client, curr_sheet_link
+        )
         overview_id = overview.worksheet.id
         first_empty = len(overview.overview_data) + 1
 
@@ -866,7 +898,8 @@ async def create_puzzle_channel_from_template(
                 value=notes,
             )
 
-        gspread_client.open_by_url(curr_sheet_link).batch_update(batch.build())
+        # The sheet is already open, so there's no need to open it again
+        await asyncio.to_thread(curr_sheet.batch_update, batch.build())
 
     except gspread.exceptions.APIError as e:
         await handle_gspread_error(ctx, e)
@@ -973,7 +1006,13 @@ async def _create_and_set_up_puzzle_chan(
         await new_chan.edit(topic=f"Tab Link - {final_sheet_link}")
 
     # tether channel
-    addsheettethergeneric(gspread_client, curr_sheet_link, ctx.message.guild, new_chan)
+    await asyncio.to_thread(
+        addsheettethergeneric,
+        gspread_client,
+        curr_sheet_link,
+        ctx.message.guild,
+        new_chan,
+    )
     return new_chan
 
 
