@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    # Ruff version.
+    # Ruff version. Keep it the same as in requirements-dev.txt.
     rev: v0.17.6
     hooks:
       # Run the linter.

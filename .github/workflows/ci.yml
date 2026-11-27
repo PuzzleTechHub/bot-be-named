@@ -19,7 +19,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install ruff
-        run: pip install "$(grep '^ruff==' requirements.txt)"
+        run: pip install "$(grep '^ruff==' requirements-dev.txt)"
 
       - run: ruff check .
       - run: ruff format --check .

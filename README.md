@@ -60,8 +60,8 @@ python3.12 -m venv venv
 # Start the virtual environment
 source venv/bin/activate        # Windows: venv\Scripts\activate
 
-# Install all the packages in requirements
-pip install -r requirements.txt
+# Install the bot's packages, plus ruff and pytest for working on it
+pip install -r requirements-dev.txt
 
 # Install pre-commit, if not installed already
 pip install pre-commit
