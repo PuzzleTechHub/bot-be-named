@@ -11,7 +11,7 @@ from nextcord.ext import commands
 
 from modules.help import help_command
 from tests.fakes import check_embed
-from utils import google_utils
+from utils import command_predicates, google_utils
 
 COG_MODULES = sorted(
     f"modules.{path.parent.name}.cog"
@@ -272,3 +272,86 @@ def test_summary_capped_at_field_limit():
     summary = help_command.command_summary(thing)
     assert len(summary) == help_command.MAX_FIELD_VALUE
     assert summary.endswith("…")
+
+
+async def test_permission_pages_list_every_command_once(helper):
+    pages = helper.permission_pages()
+    assert pages[0][0] is None
+    listed = []
+    for _, embed in pages:
+        check_embed(embed)
+    for _, embed in pages[1:]:
+        for field in embed.fields:
+            listed += field.value.split(", ")
+    assert sorted(listed) == sorted(f"`~{c.name}`" for c in helper.context.bot.commands)
+
+
+async def test_permission_pages_match_the_checks(helper):
+    bot = helper.context.bot
+    for title, embed in helper.permission_pages()[1:]:
+        for field in embed.fields:
+            for name in field.value.split(", "):
+                command = bot.get_command(name.strip("`~"))
+                category = command_predicates.permission_category(command)
+                assert help_command.PERMISSION_PAGES[category][0] == title
+                assert command.cog.qualified_name == field.name
+
+
+async def test_permission_pages_go_from_least_to_most_restricted(helper):
+    titles = [title for title, _ in helper.permission_pages()[1:]]
+    order = [title for title, _ in help_command.PERMISSION_PAGES.values()]
+    assert titles[0] == "Everyone"
+    assert titles == sorted(titles, key=order.index)
+
+
+def test_every_permission_category_has_a_page():
+    categories = set(command_predicates.PERMISSION_CATEGORIES.values())
+    assert categories <= set(help_command.PERMISSION_PAGES)
+
+
+async def test_permission_overview_counts_each_category(helper):
+    [(_, overview), *pages] = helper.permission_pages()
+    assert [field.name for field in overview.fields] == [title for title, _ in pages]
+    for field, (_, embed) in zip(overview.fields, pages):
+        count = sum(len(f.value.split(", ")) for f in embed.fields)
+        assert field.value.endswith(f"{count} command{'s' * (count != 1)}.")
+
+
+async def test_permission_pages_use_the_server_prefix(helper):
+    helper.context.clean_prefix = "!"
+    pages = dict(helper.permission_pages()[1:])
+    assert (
+        pages["Solver Roles"].description == "Roles added with `!addperm Solver @role`."
+    )
+    assert all(
+        name.startswith("`!") for name in pages["Everyone"].fields[0].value.split(", ")
+    )
+
+
+@pytest.mark.parametrize("word", ["permissions", "Perms", " permission "])
+async def test_help_permissions_opens_the_permission_menu(helper, word):
+    await helper.command_callback(helper.context, command=word)
+    [message] = helper.context.channel.sent
+    assert message.embed.title == "Commands by Permission"
+    assert message.view.module_select.placeholder == "Jump to a category"
+    assert message.embed.footer.text.startswith(f"Page 1/{len(message.view.pages)}")
+
+
+async def test_help_module_still_opens_that_module(helper):
+    await helper.command_callback(helper.context, command="Hydra")
+    [message] = helper.context.channel.sent
+    assert message.embed.title.startswith("Hydra Commands")
+    assert message.view.module_select.placeholder == "Jump to a module"
+
+
+async def test_overview_points_to_help_permissions(helper):
+    [(_, overview), *_] = await helper.help_pages()
+    assert "`~help permissions`" in overview.description
+
+
+def test_chunk_names_splits_at_the_field_limit():
+    names = [f"`~command{number:03}`" for number in range(200)]
+    chunks = help_command.chunk_names(names)
+    assert len(chunks) > 1
+    assert all(len(chunk) <= help_command.MAX_FIELD_VALUE for chunk in chunks)
+    assert ", ".join(chunks) == ", ".join(names)

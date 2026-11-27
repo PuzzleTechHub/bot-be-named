@@ -4,7 +4,7 @@ import re
 import nextcord
 from nextcord.ext import commands
 import database
-from utils import discord_utils, paging_utils
+from utils import command_predicates, discord_utils, paging_utils
 
 # Commands shown on each page of a module's help.
 COMMANDS_PER_PAGE = 10
@@ -14,12 +14,62 @@ MENU_TIMEOUT = 120
 MAX_SELECT_OPTIONS = 25
 # Max length of an embed field's value (enforced by Discord)
 MAX_FIELD_VALUE = 1024
+# Words after ~help that open the commands-by-permission menu
+PERMISSION_WORDS = ("permissions", "permission", "perms")
+# Each permission category's page title and who it covers, from least to most restricted.
+# None is for commands anyone can use. A category missing here goes last, titled by its label.
+# {prefix} becomes the server's prefix.
+_category = command_predicates.PERMISSION_CATEGORIES
+PERMISSION_PAGES = {
+    None: ("Everyone", "Anyone can use these."),
+    _category["is_solver"]: (
+        "Solver Roles",
+        "Roles added with `{prefix}addperm Solver @role`.",
+    ),
+    _category["is_verified"]: (
+        "Verified Roles",
+        "Roles added with `{prefix}addperm Verified @role`.",
+    ),
+    _category["is_trusted"]: (
+        "Trusted Roles",
+        "Roles added with `{prefix}addperm Trusted @role`.",
+    ),
+    _category["is_trusted_or_bot_owner"]: (
+        "Trusted Roles or Bot Owner",
+        "Trusted roles, or whoever runs the bot.",
+    ),
+    _category["is_tester"]: (
+        "Tester Roles",
+        "Roles added with `{prefix}addperm Tester @role`.",
+    ),
+    _category["is_admin"]: (
+        "Admin",
+        "Members with the server's Administrator permission.",
+    ),
+    _category["is_bot_owner_or_admin"]: (
+        "Admin or Bot Owner",
+        "Server admins, or whoever runs the bot.",
+    ),
+    _category["is_bot_owner"]: ("Bot Owner", "Only whoever runs the bot."),
+}
 
 
 def unwrap(text: str) -> str:
     """Joins a docstring's wrapped sentences back together. A line starting with a lowercase
     letter carries on the sentence above it. Other line breaks, like separate Usage lines, stay."""
     return re.sub(r"[ \t]*\n[ \t]*(?=[a-z])", " ", text)
+
+
+def chunk_names(names: list) -> list:
+    """Joins names with commas into as few strings as fit in an embed field."""
+    chunks = [""]
+    for name in names:
+        joined = f"{chunks[-1]}, {name}" if chunks[-1] else name
+        if len(joined) > MAX_FIELD_VALUE:
+            chunks.append(name)
+        else:
+            chunks[-1] = joined
+    return chunks
 
 
 def command_summary(command: commands.Command) -> str:
@@ -42,7 +92,13 @@ class HelpMenu(paging_utils.PageView):
         "Run the help command yourself to get your own menu."
     )
 
-    def __init__(self, author_id: int, pages: list, start: int = 0):
+    def __init__(
+        self,
+        author_id: int,
+        pages: list,
+        start: int = 0,
+        placeholder: str = "Jump to a module",
+    ):
         """pages is a list of (module name, or None for the overview, embed)."""
         self.pages = pages
         super().__init__(
@@ -59,7 +115,7 @@ class HelpMenu(paging_utils.PageView):
         # Discord needs a dropdown with a custom_id, so make a random one for it
         self.module_select = nextcord.ui.StringSelect(
             custom_id=os.urandom(16).hex(),
-            placeholder="Jump to a module",
+            placeholder=placeholder,
             options=options[:MAX_SELECT_OPTIONS],
             row=0,
         )
@@ -130,9 +186,10 @@ class HelpCommand(commands.MinimalHelpCommand):
             icon_url=self.context.bot.user.display_avatar.url,
         )
         description = self.context.bot.description or ""
-        embed.description = (
-            f"{description}\n\n" if description else ""
-        ) + f"Pick a module below, or use `{prefix}help [module]`, to see its commands."
+        embed.description = (f"{description}\n\n" if description else "") + (
+            f"Pick a module below, or use `{prefix}help [module]`, to see its commands. "
+            f"Use `{prefix}help permissions` to see who can use which command."
+        )
 
         for cog in sorted(
             (cog for cog in mapping if cog is not None),
@@ -183,13 +240,77 @@ class HelpCommand(commands.MinimalHelpCommand):
                 pages.append((cog.qualified_name, embed))
         return pages
 
-    async def send_menu(self, pages: list, start: int = 0):
+    def permission_pages(self) -> list:
+        """An overview of the permission categories, then each category's commands by module.
+        Lists every command, not just the ones the caller can use, so people can see what
+        a role would get them."""
+        prefix = self.context.clean_prefix
+        by_category = {}
+        for command in self.context.bot.commands:
+            if command.hidden:
+                continue
+            category = command_predicates.permission_category(command)
+            module = command.cog.qualified_name if command.cog else "No Module"
+            by_category.setdefault(category, {}).setdefault(module, []).append(
+                f"`{prefix}{command.name}`"
+            )
+        order = list(PERMISSION_PAGES)
+        categories = sorted(
+            by_category,
+            key=lambda category: (
+                order.index(category) if category in order else len(order),
+                category,
+            ),
+        )
+
+        overview = discord_utils.create_embed()
+        overview.title = "Commands by Permission"
+        overview.description = (
+            "Who can use which command. Server admins give a role a category with "
+            f"`{prefix}addperm`, e.g. `{prefix}addperm Solver @role`. A role only gets "
+            "the commands of the categories it was added to.\n\n"
+            f"Pick a category below, or use `{prefix}help [command]` for more on a command."
+        )
+        pages = [(None, overview)]
+        for category in categories:
+            title, who = PERMISSION_PAGES.get(category, (category, None))
+            who = who and who.format(prefix=prefix)
+            modules = by_category[category]
+            count = sum(len(names) for names in modules.values())
+            overview.add_field(
+                name=title,
+                value=f"{who + ' ' if who else ''}{count} command{'s' * (count != 1)}.",
+                inline=False,
+            )
+            embed = discord_utils.create_embed()
+            embed.title = f"{title} Commands"
+            embed.description = who
+            for module in sorted(modules):
+                for chunk in chunk_names(sorted(modules[module])):
+                    embed.add_field(name=module, value=chunk, inline=False)
+            pages.append((title, embed))
+        return pages
+
+    async def send_permissions_help(self):
+        """implements ~help permissions, the commands-by-permission menu"""
+        await self.send_menu(self.permission_pages(), placeholder="Jump to a category")
+
+    async def command_callback(self, ctx: commands.Context, *, command: str = None):
+        """Sends the commands-by-permission menu for ~help permissions, else the usual help."""
+        if command is not None and command.strip().lower() in PERMISSION_WORDS:
+            await self.prepare_help_command(ctx, command)
+            return await self.send_permissions_help()
+        return await super().command_callback(ctx, command=command)
+
+    async def send_menu(
+        self, pages: list, start: int = 0, placeholder: str = "Jump to a module"
+    ):
         """Send pages as one public message with a HelpMenu, showing pages[start]."""
         for number, (_, embed) in enumerate(pages, start=1):
             embed.set_footer(
                 text=f"Page {number}/{len(pages)} • {self.get_ending_note()}"
             )
-        view = HelpMenu(self.context.author.id, pages, start)
+        view = HelpMenu(self.context.author.id, pages, start, placeholder)
         view.message = await self.get_destination().send(embed=view.embed, view=view)
 
     async def send_bot_help(self, mapping: dict):
