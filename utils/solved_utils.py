@@ -126,7 +126,8 @@ async def update_puzzle_status(
             new_embed = await status_remove(ctx)
         if add_prefix:
             new_embed = await status_channel(ctx, status_info.get("prefix_name"))
-        # status_channel returns None when it has already sent its own error
+        # None when status_channel already sent its own error, or when a later
+        # rename replaced this one (that command reports the channel name)
         if new_embed is not None:
             embed = discord_utils.merge_embed(embed, new_embed)
 
@@ -185,16 +186,23 @@ def remove_prefix(channel, prefix: str) -> str:
 
 async def status_channel(ctx: commands.Context, status_prefix):
     embed = discord_utils.create_embed()
-    new_channel_name = add_prefix(ctx.channel, status_prefix + "-")
-    if new_channel_name:
-        try:
-            await discord_utils.rename_channel(ctx.channel, new_channel_name)
-        except nextcord.Forbidden:
-            await discord_utils.send_failure(
-                ctx,
-                f"Unable to prepend `{status_prefix}` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?",
-            )
-            return
+    try:
+        # The new name is worked out from the name the channel has once any earlier
+        # rename of it is done, e.g. a ~solved still waiting for Discord's rename limit.
+        renamed = await discord_utils.rename_channel(
+            ctx.channel,
+            lambda name: add_prefix(name, status_prefix + "-"),
+            notify=ctx,
+        )
+    except nextcord.Forbidden:
+        await discord_utils.send_failure(
+            ctx,
+            f"Unable to prepend `{status_prefix}` to {ctx.channel.mention}. Do I have the `manage_channels` permissions?",
+        )
+        return
+    if renamed and renamed.replaced:
+        return None  # A later rename replaced this one and reports it
+    if renamed:
         embed.add_field(
             name="Success",
             value=f"Marking {ctx.channel.mention} as {status_prefix}!",
@@ -213,16 +221,27 @@ async def status_remove(ctx: commands.Context):
     embed = discord_utils.create_embed()
     channel = ctx.message.channel
     prefixes = sheets_constants.solved_prefixes
-    for prefix in prefixes:
-        new_channel_name = remove_prefix(ctx.message.channel, prefix + "-")
-        if new_channel_name:
-            await discord_utils.rename_channel(channel, new_channel_name)
-            embed.add_field(
-                name="Success",
-                value=f"Marking {channel.mention} as un-{prefix}!",
-                inline=False,
-            )
-            return embed
+    removed = []
+
+    def without_prefix(name):
+        # Called once any earlier rename of the channel is done, with the name it has then
+        for prefix in prefixes:
+            new_channel_name = remove_prefix(name, prefix + "-")
+            if new_channel_name:
+                removed.append(prefix)
+                return new_channel_name
+        return None
+
+    renamed = await discord_utils.rename_channel(channel, without_prefix, notify=ctx)
+    if renamed and renamed.replaced:
+        return None  # A later rename replaced this one and reports it
+    if renamed:
+        embed.add_field(
+            name="Success",
+            value=f"Marking {channel.mention} as un-{removed[-1]}!",
+            inline=False,
+        )
+        return embed
     embed.add_field(
         name="Failed",
         value=f"Channel is not marked as `{' / '.join(prefixes)}`!",

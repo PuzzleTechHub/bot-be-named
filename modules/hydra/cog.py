@@ -343,23 +343,14 @@ class HydraCog(commands.Cog, name="Hydra"):
             # Execute the batch update
             await asyncio.to_thread(curr_sheet.batch_update, batch.build())
 
-            # Let users know the rename has started, since Discord allows
-            # 2 renames per 10 minutes and holds the rename until then
-            progress_embed = discord_utils.create_embed()
-            progress_embed.add_field(
-                name="Rename in progress",
-                value="If this takes a while, Discord may delay channel renames by up to **10** minutes due to rate limiting."
-                "The spreadsheet has already been renamed.",
-                inline=False,
-            )
-            progress_msg = (await discord_utils.send_message(ctx, progress_embed))[0]
-
-            # Rename the Discord channel
+            # Rename the Discord channel. If Discord holds it back, a notice says so.
             new_channel_name = new_name.lower().replace(" ", "-")
-            try:
-                await discord_utils.rename_channel(ctx.channel, new_channel_name)
-            finally:
-                await progress_msg.delete()
+            await discord_utils.rename_channel(
+                ctx.channel,
+                new_channel_name,
+                notify=ctx,
+                note="The spreadsheet has already been renamed.",
+            )
 
             # Send success message
             embed.add_field(

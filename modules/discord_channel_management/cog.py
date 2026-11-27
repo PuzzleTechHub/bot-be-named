@@ -260,8 +260,11 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             new_channel_name = new_channel_name.name
 
         try:
-            # rename channel
-            await discord_utils.rename_channel(old_channel, new_channel_name)
+            # rename channel. The names come back from the rename itself, since it may
+            # have waited for earlier renames of the channel.
+            renamed = await discord_utils.rename_channel(
+                old_channel, new_channel_name, notify=ctx
+            )
         except nextcord.Forbidden:
             await discord_utils.send_failure(
                 ctx,
@@ -269,9 +272,16 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             )
             return
 
+        if renamed is None:
+            await discord_utils.send_failure(
+                ctx, f"{old_channel.mention} is already called `{new_channel_name}`."
+            )
+            return
+        if renamed.replaced:
+            return  # A later rename replaced this one, and its message says what happened
         embed.add_field(
             name="Success",
-            value=f"Renamed `{old_channel_name}` to `{new_channel_name}`: {ctx.channel.mention}!",
+            value=f"Renamed `{renamed.old}` to `{renamed.new}`: {old_channel.mention}!",
             inline=False,
         )
         await discord_utils.send_message(ctx, embed)
@@ -1356,7 +1366,8 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         status = "Solved"
         status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
         embed = await solved_utils.status_channel(ctx, status_prefix)
-        await discord_utils.send_message(ctx, embed)
+        if embed is not None:
+            await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
     @commands.command(name="solvedish", aliases=["solvedishcrab"])
@@ -1371,7 +1382,8 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         status = "Solvedish"
         status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
         embed = await solved_utils.status_channel(ctx, status_prefix)
-        await discord_utils.send_message(ctx, embed)
+        if embed is not None:
+            await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
     @commands.command(name="backsolved", aliases=["backsolvedcrab"])
@@ -1386,7 +1398,8 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         status = "Backsolved"
         status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
         embed = await solved_utils.status_channel(ctx, status_prefix)
-        await discord_utils.send_message(ctx, embed)
+        if embed is not None:
+            await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
     @commands.command(name="unsolved", aliases=["unsolvedcrab"])
@@ -1396,10 +1409,11 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Permission Category : Solver Roles only.
         Usage: `~unsolved`
 
-        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
+        Discord allows 2 renames per channel every 10 minutes. If it holds this one back, I'll say so and rename the channel when Discord allows it.
         """
         embed = await solved_utils.status_remove(ctx)
-        await discord_utils.send_message(ctx, embed)
+        if embed is not None:
+            await discord_utils.send_message(ctx, embed)
 
     @command_predicates.is_solver()
     @commands.command(name="mta", aliases=["movetoarchive", "mtacrab"])

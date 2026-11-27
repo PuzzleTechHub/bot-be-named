@@ -5,7 +5,7 @@ import time
 
 import nextcord
 from nextcord.ext import commands
-from typing import List, Optional, Union
+from typing import Callable, List, NamedTuple, Optional, Union
 import constants
 from utils import logging_utils
 
@@ -223,29 +223,245 @@ def bot_owner_mention() -> str:
     return f"<@{owner_ids[0]}>" if owner_ids else "the bot owner"
 
 
-async def rename_channel(channel, new_name: str) -> None:
+# Discord allows 2 renames per channel every 10 minutes. nextcord retries the 429 only a few
+# times, within about 2 seconds, and then raises it, so rename_channel waits out the limit itself.
+# A longer wait than RENAME_MAX_WAIT seconds is treated as an error.
+RENAME_MAX_WAIT = 15 * 60
+# How many times one rename waits for the limit before giving up.
+RENAME_MAX_WAITS = 3
+# Used when Discord's 429 doesn't say how long to wait.
+RENAME_DEFAULT_WAIT = 10 * 60
+# Seconds to spare after Discord's wait, so the retry doesn't land just before it allows it.
+RENAME_WAIT_MARGIN = 1
+# One _ChannelRenames per channel, so renames of the same channel happen one after another.
+# The waits are asyncio sleeps in the command's own task while other commands keep running.
+_rename_queues: dict[int, "_ChannelRenames"] = {}
+
+
+class Renamed(NamedTuple):
+    """What rename_channel did."""
+
+    old: str
+    new: str
+    # True if a rename asked for later replaced this one, so new isn't the name asked for.
+    # The later command reports the rename; the replaced one should stay quiet.
+    replaced: bool = False
+
+
+class _WaitingRename:
+    """A rename held back by Discord's limit. A rename asked for during the wait replaces its
+    target, so the channel goes straight to the newest name in one request."""
+
+    def __init__(self, target: str, wait: float):
+        self.target = target
+        self.wake_at = time.monotonic() + wait
+        # (old name, final name), or the error, once the rename is done
+        self.done = asyncio.get_running_loop().create_future()
+
+
+class _ChannelRenames:
+    """Renames of one channel: a lock that runs them in order, and the rename (if any) that is
+    waiting out Discord's limit."""
+
+    def __init__(self):
+        self.lock = asyncio.Lock()
+        self.waiting: Optional[_WaitingRename] = None
+
+
+async def rename_channel(
+    channel,
+    new_name: Union[str, Callable[[str], Optional[str]]],
+    notify=None,
+    note: str = "",
+) -> Optional[Renamed]:
     """Rename a channel or thread, logging the attempt and how long it took.
 
-    Discord allows 2 renames per channel every 10 minutes, and nextcord waits out
-    the limit without saying so, so a slow rename in the log means it was held back.
+    new_name is the new name, or a function that gets the channel's current name and returns
+    the new one (None to leave it as it is). The function gets the name the channel will have
+    once earlier renames of it are done, so a command that has to wait sees that name.
+    If Discord's rename limit holds the rename back, waits until Discord allows it and tries again.
+    A rename asked for during that wait replaces the waiting one. The channel goes straight to
+    the newest name, and the replaced call's result says replaced=True.
+    If notify was given, a temporary note about the channel's rename status will be sent.
+
+    Returns Renamed(old name, the name the channel got, replaced), or None if there was
+    nothing to rename.
     """
-    old_name = channel.name
+    queue = _rename_queues.setdefault(channel.id, _ChannelRenames())
+    notices = []
+    try:
+        if queue.waiting is not None:
+            return await _replace_waiting_rename(
+                queue.waiting, new_name, notify, note, notices
+            )
+        if queue.lock.locked():
+            await _send_rename_notice(
+                notices,
+                notify,
+                "I'll rename this channel as soon as the rename before it is done.",
+                note,
+            )
+        async with queue.lock:
+            # The rename before this one may have started waiting for Discord meanwhile
+            if queue.waiting is not None:
+                return await _replace_waiting_rename(
+                    queue.waiting, new_name, notify, note, notices
+                )
+            old_name = channel.name
+            wanted = new_name(old_name) if callable(new_name) else new_name
+            if not wanted or wanted == old_name:
+                return None
+            return await _rename_waiting_out_the_limit(
+                channel, queue, old_name, wanted, notify, note, notices
+            )
+    finally:
+        for notice in notices:
+            try:
+                await notice.delete()
+            except nextcord.HTTPException:
+                pass  # Already deleted, nothing to clean up.
+
+
+async def _replace_waiting_rename(waiting, new_name, notify, note, notices):
+    """Points a rename that is waiting for Discord at new_name instead, and waits for it."""
+    previous = waiting.target
+    wanted = new_name(previous) if callable(new_name) else new_name
+    if not wanted or wanted == previous:
+        return None
+    waiting.target = wanted
+    await _send_rename_notice(
+        notices,
+        notify,
+        f"I'll rename this channel to `{wanted}` instead of `{previous}` in about "
+        f"{_wait_text(waiting.wake_at - time.monotonic())}.",
+        note,
+    )
+    # shield: if this command is cancelled, the rename itself carries on
+    old_name, final_name = await asyncio.shield(waiting.done)
+    # waiting.target is the last name asked for; a later rename may have replaced this one too
+    return Renamed(old_name, final_name, replaced=waiting.target != wanted)
+
+
+async def _rename_waiting_out_the_limit(
+    channel, queue, old_name, new_name, notify, note, notices
+) -> Renamed:
+    """Renames the channel, waiting out Discord's rename limit.
+
+    While it waits, queue.waiting lets later renames change the target."""
+    asked_for = new_name
     where = getattr(getattr(channel, "guild", None), "name", "unknown server")
     logging_utils.print_with_timestamp(
         f"Renaming #{old_name} to #{new_name} in {where} ({channel.id})"
     )
     start = time.monotonic()
+    waits = 0
+    waiting = None
     try:
-        await channel.edit(name=new_name)
+        while True:
+            try:
+                edited = await channel.edit(name=new_name)
+                # Discord may tidy the name up (e.g. "My Puzzle" -> "my-puzzle"). Store what it
+                # returned, so the next rename doesn't have to wait for the gateway update.
+                new_name = getattr(edited, "name", None) or new_name
+                channel.name = new_name
+                break
+            except nextcord.HTTPException as e:
+                wait = _retry_after(e)
+                if (
+                    e.status != 429
+                    or waits >= RENAME_MAX_WAITS
+                    or wait > RENAME_MAX_WAIT
+                ):
+                    raise
+                waits += 1
+                logging_utils.print_with_timestamp(
+                    f"Discord is holding back the rename of #{old_name} to #{new_name}, "
+                    f"trying again in {wait:.0f} s"
+                )
+                if waiting is None:
+                    waiting = _WaitingRename(new_name, wait)
+                else:
+                    waiting.wake_at = time.monotonic() + wait
+                queue.waiting = waiting
+                if not notices:
+                    await _send_rename_notice(
+                        notices,
+                        notify,
+                        "Discord allows 2 renames per channel every 10 minutes, so I'll rename "
+                        f"this channel to `{new_name}` in about {_wait_text(wait)}.",
+                        note,
+                    )
+                await asyncio.sleep(wait + RENAME_WAIT_MARGIN)
+                # The target is settled now. A rename asked for from here on can't change the
+                # request about to be sent, so it queues behind this one instead.
+                queue.waiting = None
+                if waiting.target != new_name:
+                    logging_utils.print_with_timestamp(
+                        f"Rename of #{old_name} to #{new_name} replaced by #{waiting.target}"
+                    )
+                    new_name = waiting.target
+                    if new_name == channel.name:
+                        break  # e.g. ~solved, then ~unsolved during the wait: nothing to do
     except Exception as e:
-        logging_utils.print_with_timestamp(
-            f"Rename of #{old_name} to #{new_name} failed after "
-            f"{time.monotonic() - start:.1f} s: {type(e).__name__}"
-        )
+        _log_rename_failure(old_name, new_name, start, e)
+        if waiting is not None:
+            queue.waiting = None
+            waiting.done.set_exception(e)
+            waiting.done.exception()  # Mark it seen, in case no later rename waits on it
         raise
+    except asyncio.CancelledError:
+        if waiting is not None:
+            queue.waiting = None
+            waiting.done.cancel()
+        raise
+    if waiting is not None:
+        waiting.done.set_result((old_name, new_name))
     logging_utils.print_with_timestamp(
         f"Renamed #{old_name} to #{new_name} after {time.monotonic() - start:.1f} s"
     )
+    return Renamed(
+        old_name, new_name, replaced=waiting is not None and waiting.target != asked_for
+    )
+
+
+def _retry_after(error: nextcord.HTTPException) -> float:
+    """Seconds Discord asked to wait, from the 429's Retry-After header."""
+    try:
+        return float(error.response.headers["Retry-After"])
+    except (AttributeError, KeyError, TypeError, ValueError):
+        return RENAME_DEFAULT_WAIT
+
+
+def _wait_text(seconds: float) -> str:
+    if seconds < 90:
+        count, unit = max(1, round(seconds)), "second"
+    else:
+        count, unit = round(seconds / 60), "minute"
+    return f"{count} {unit}{'' if count == 1 else 's'}"
+
+
+def _log_rename_failure(old_name, new_name, start, error):
+    logging_utils.print_with_timestamp(
+        f"Rename of #{old_name} to #{new_name} failed after "
+        f"{time.monotonic() - start:.1f} s: {type(error).__name__}"
+    )
+
+
+async def _send_rename_notice(notices: list, notify, text: str, note: str) -> None:
+    """Sends a "Rename in progress" message to notify, if given, and adds it to notices.
+    Does nothing if it can't be sent."""
+    if notify is None:
+        return
+    embed = create_embed()
+    embed.add_field(
+        name="Rename in progress",
+        value=text + (f" {note}" if note else ""),
+        inline=False,
+    )
+    try:
+        notices.append(await notify.send(embed=embed))
+    except nextcord.HTTPException:
+        pass
 
 
 def create_embed() -> nextcord.Embed:

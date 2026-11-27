@@ -405,15 +405,20 @@ async def test_get_category_channels_empty():
 
 
 class RenamableChannel(FakeChannel):
-    def __init__(self, name, error=None):
-        super().__init__(20, name, FakeCategory(10, "Puzzles"))
+    """edit() raises each of errors in turn, then renames."""
+
+    def __init__(self, name, *errors, channel_id=20):
+        super().__init__(channel_id, name, FakeCategory(10, "Puzzles"))
         self.guild = FakeGuild()
-        self.error = error
+        self.errors = list(errors)
+        self.renames = []
 
     async def edit(self, name):
-        if self.error:
-            raise self.error
+        await asyncio.sleep(0)
+        if self.errors:
+            raise self.errors.pop(0)
         self.name = name
+        self.renames.append(name)
 
 
 async def test_rename_channel_logs_the_attempt_and_the_result(monkeypatch):
@@ -545,3 +550,335 @@ async def test_mta_named_archive_when_full_moves_to_the_highest(monkeypatch):
 
     channel.edit.assert_any_await(category=_category(guild, "Puzzles Archive 2"))
     assert ctx.cloned == []
+
+
+def _rename_ctx(channel):
+    return FakeContext(channel.guild, channel)
+
+
+async def test_quick_rename_sends_no_notice():
+    channel = RenamableChannel("puzzle-1")
+    ctx = _rename_ctx(channel)
+
+    await discord_utils.rename_channel(channel, "solved-puzzle-1", notify=ctx)
+
+    assert channel.name == "solved-puzzle-1"
+    assert ctx.sent == []
+
+
+class _RateLimited:
+    """A 429 response like the one Discord sends after 2 renames in 10 minutes."""
+
+    status = 429
+    reason = "Too Many Requests"
+
+    def __init__(self, retry_after="0.01"):
+        self.headers = {} if retry_after is None else {"Retry-After": retry_after}
+
+
+def rate_limited(retry_after="0.01"):
+    return nextcord.HTTPException(
+        _RateLimited(retry_after), "The resource is being rate limited."
+    )
+
+
+@pytest.fixture
+def no_wait_margin(monkeypatch):
+    monkeypatch.setattr(discord_utils, "RENAME_WAIT_MARGIN", 0)
+
+
+@pytest.fixture(autouse=True)
+def fresh_rename_locks(monkeypatch):
+    # Each test has its own event loop, and an asyncio.Lock belongs to one loop
+    monkeypatch.setattr(discord_utils, "_rename_queues", {})
+
+
+async def test_rate_limited_rename_waits_says_so_and_retries(no_wait_margin):
+    channel = RenamableChannel("puzzle-1", rate_limited())
+    ctx = _rename_ctx(channel)
+
+    await discord_utils.rename_channel(
+        channel, "solved-puzzle-1", notify=ctx, note="The sheet is done."
+    )
+
+    assert channel.name == "solved-puzzle-1"
+    [notice] = ctx.sent
+    [field] = notice.embed.fields
+    assert field.name == "Rename in progress"
+    assert "2 renames per channel every 10 minutes" in field.value
+    assert "`solved-puzzle-1` in about 1 second." in field.value
+    assert field.value.endswith("The sheet is done.")
+    assert notice.deleted
+
+
+async def test_rate_limited_twice_sends_one_notice(no_wait_margin):
+    channel = RenamableChannel("puzzle-1", rate_limited(), rate_limited())
+    ctx = _rename_ctx(channel)
+
+    await discord_utils.rename_channel(channel, "solved-puzzle-1", notify=ctx)
+
+    assert channel.name == "solved-puzzle-1"
+    [notice] = ctx.sent
+    assert notice.deleted
+
+
+async def test_gives_up_after_waiting_too_many_times(no_wait_margin, monkeypatch):
+    monkeypatch.setattr(discord_utils, "RENAME_MAX_WAITS", 2)
+    channel = RenamableChannel("puzzle-1", *[rate_limited() for _ in range(3)])
+    ctx = _rename_ctx(channel)
+
+    with pytest.raises(nextcord.HTTPException):
+        await discord_utils.rename_channel(channel, "solved-puzzle-1", notify=ctx)
+
+    assert channel.name == "puzzle-1"
+    [notice] = ctx.sent
+    assert notice.deleted
+
+
+async def test_does_not_wait_longer_than_the_maximum(monkeypatch):
+    lines = []
+    monkeypatch.setattr(logging_utils, "print_with_timestamp", lines.append)
+    channel = RenamableChannel("puzzle-1", rate_limited(retry_after="3600"))
+    ctx = _rename_ctx(channel)
+
+    with pytest.raises(nextcord.HTTPException):
+        await discord_utils.rename_channel(channel, "solved-puzzle-1", notify=ctx)
+
+    assert ctx.sent == []
+    assert lines[-1].endswith(": HTTPException")
+
+
+async def test_other_errors_are_not_retried():
+    channel = RenamableChannel(
+        "puzzle-1", nextcord.Forbidden(_Response(403), "Missing Permissions")
+    )
+    ctx = _rename_ctx(channel)
+
+    with pytest.raises(nextcord.Forbidden):
+        await discord_utils.rename_channel(channel, "solved-puzzle-1", notify=ctx)
+
+    assert ctx.sent == []
+
+
+async def test_notice_that_cannot_be_sent_does_not_stop_the_rename(no_wait_margin):
+    channel = RenamableChannel("puzzle-1", rate_limited())
+
+    class Muted:
+        async def send(self, embed):
+            raise nextcord.Forbidden(_Response(403), "Missing Permissions")
+
+    await discord_utils.rename_channel(channel, "solved-puzzle-1", notify=Muted())
+
+    assert channel.name == "solved-puzzle-1"
+
+
+async def test_rate_limited_rename_without_notify_just_waits(no_wait_margin):
+    channel = RenamableChannel("puzzle-1", rate_limited())
+
+    await discord_utils.rename_channel(channel, "solved-puzzle-1")
+
+    assert channel.name == "solved-puzzle-1"
+
+
+async def test_rename_during_a_wait_replaces_the_waiting_one(no_wait_margin):
+    channel = RenamableChannel("b", rate_limited("0.05"))
+    first_ctx, second_ctx = _rename_ctx(channel), _rename_ctx(channel)
+
+    first = asyncio.create_task(
+        discord_utils.rename_channel(channel, "c", notify=first_ctx)
+    )
+    await asyncio.sleep(0.01)
+    second = await discord_utils.rename_channel(channel, "d", notify=second_ctx)
+
+    assert channel.renames == ["d"]  # one request, straight to the newest name
+    assert second == discord_utils.Renamed("b", "d", replaced=False)
+    assert await first == discord_utils.Renamed("b", "d", replaced=True)
+    [notice] = second_ctx.sent
+    assert "to `d` instead of `c` in about 1 second." in notice.embed.fields[0].value
+    assert all(m.deleted for m in first_ctx.sent + second_ctx.sent)
+
+
+async def test_each_rename_during_a_wait_replaces_the_one_before(no_wait_margin):
+    channel = RenamableChannel("b", rate_limited("0.05"))
+    ctx = _rename_ctx(channel)
+
+    first = asyncio.create_task(discord_utils.rename_channel(channel, "c"))
+    await asyncio.sleep(0.01)
+    second = asyncio.create_task(discord_utils.rename_channel(channel, "d"))
+    await asyncio.sleep(0.01)
+    third = await discord_utils.rename_channel(channel, "e", notify=ctx)
+
+    assert channel.renames == ["e"]
+    assert third.replaced is False
+    assert (await first).replaced and (await second).replaced
+    assert "to `e` instead of `d`" in ctx.sent[0].embed.fields[0].value
+
+
+async def test_renaming_back_during_a_wait_sends_no_request(no_wait_margin):
+    # e.g. ~solved, then ~unsolved while the first rename waits for Discord
+    channel = RenamableChannel("puzzle-1", rate_limited("0.05"))
+
+    first = asyncio.create_task(
+        discord_utils.rename_channel(channel, "solved-puzzle-1")
+    )
+    await asyncio.sleep(0.01)
+    second = await discord_utils.rename_channel(channel, "puzzle-1")
+
+    assert channel.renames == []
+    assert second == discord_utils.Renamed("puzzle-1", "puzzle-1", replaced=False)
+    assert (await first).replaced
+
+
+async def test_same_name_as_the_waiting_rename_returns_none(no_wait_margin):
+    channel = RenamableChannel("b", rate_limited("0.05"))
+
+    first = asyncio.create_task(discord_utils.rename_channel(channel, "c"))
+    await asyncio.sleep(0.01)
+    assert await discord_utils.rename_channel(channel, "c") is None
+    assert await discord_utils.rename_channel(channel, lambda name: name) is None
+
+    assert await first == discord_utils.Renamed("b", "c", replaced=False)
+    assert channel.renames == ["c"]
+
+
+async def test_name_function_during_a_wait_gets_the_waiting_name(no_wait_margin):
+    channel = RenamableChannel("puzzle-1", rate_limited("0.05"))
+    seen = []
+
+    def add_x(name):
+        seen.append(name)
+        return name + "-x"
+
+    first = asyncio.create_task(
+        discord_utils.rename_channel(channel, "solved-puzzle-1")
+    )
+    await asyncio.sleep(0.01)
+    await discord_utils.rename_channel(channel, add_x)
+    await first
+
+    assert seen == ["solved-puzzle-1"]
+    assert channel.renames == ["solved-puzzle-1-x"]
+
+
+async def test_a_failure_after_the_wait_reaches_the_replacing_rename(no_wait_margin):
+    forbidden = nextcord.Forbidden(_Response(403), "Missing Permissions")
+    channel = RenamableChannel("b", rate_limited("0.05"), forbidden)
+
+    first = asyncio.create_task(discord_utils.rename_channel(channel, "c"))
+    await asyncio.sleep(0.01)
+    with pytest.raises(nextcord.Forbidden):
+        await discord_utils.rename_channel(channel, "d")
+    with pytest.raises(nextcord.Forbidden):
+        await first
+
+    # The next rename starts afresh
+    assert await discord_utils.rename_channel(channel, "e") == ("b", "e", False)
+
+
+async def test_rename_after_the_wait_ended_queues_instead_of_replacing(
+    no_wait_margin,
+):
+    # The waiting rename has woken up and sent its request, which is still in flight
+    class SlowRetry(RenamableChannel):
+        def __init__(self):
+            super().__init__("b", rate_limited("0.01"))
+            self.in_flight = asyncio.Event()
+            self.release = asyncio.Event()
+
+        async def edit(self, name):
+            if not self.errors and not self.renames:
+                self.in_flight.set()
+                await self.release.wait()
+            await super().edit(name)
+
+    channel = SlowRetry()
+    first = asyncio.create_task(discord_utils.rename_channel(channel, "c"))
+    await channel.in_flight.wait()
+    second = asyncio.create_task(discord_utils.rename_channel(channel, "d"))
+    await asyncio.sleep(0.01)
+    channel.release.set()
+
+    assert await first == ("b", "c", False)
+    assert await second == ("c", "d", False)
+    assert channel.renames == ["c", "d"]
+
+
+async def test_rename_queued_behind_one_in_flight_waits_for_it():
+    # The rename before it hasn't hit Discord's limit, it's just not done yet
+    channel = RenamableChannel("puzzle-1")
+    ctx = _rename_ctx(channel)
+
+    first = asyncio.create_task(
+        discord_utils.rename_channel(channel, "solved-puzzle-1")
+    )
+    await asyncio.sleep(0)
+    await discord_utils.rename_channel(channel, "puzzle-1", notify=ctx)
+    await first
+
+    assert channel.renames == ["solved-puzzle-1", "puzzle-1"]
+    [notice] = ctx.sent
+    assert "as soon as the rename before it is done" in notice.embed.fields[0].value
+    assert notice.deleted
+
+
+async def test_a_waiting_rename_does_not_stall_other_channels(no_wait_margin):
+    waiting = RenamableChannel("puzzle-1", rate_limited("0.2"), channel_id=21)
+    other = RenamableChannel("puzzle-2", channel_id=22)
+
+    slow = asyncio.create_task(discord_utils.rename_channel(waiting, "solved-puzzle-1"))
+    await asyncio.sleep(0.01)
+    await asyncio.wait_for(
+        discord_utils.rename_channel(other, "solved-puzzle-2"), timeout=0.1
+    )
+
+    assert other.name == "solved-puzzle-2"
+    assert waiting.name == "puzzle-1"  # still waiting for Discord
+    await slow
+    assert waiting.name == "solved-puzzle-1"
+
+
+async def test_uses_the_name_discord_returns_without_waiting_for_the_gateway():
+    class LaggingChannel(RenamableChannel):
+        # Like nextcord: edit() returns the updated channel, the cached one only
+        # changes when the gateway update arrives (never, here)
+        async def edit(self, name):
+            self.renames.append(name)
+            return SimpleNamespace(name=name.lower().replace(" ", "-"))
+
+    channel = LaggingChannel("puzzle-1")
+
+    first = await discord_utils.rename_channel(channel, "Solved Puzzle 1")
+    second = await discord_utils.rename_channel(channel, lambda name: name + "-x")
+
+    assert first == ("puzzle-1", "solved-puzzle-1", False)
+    assert second == ("solved-puzzle-1", "solved-puzzle-1-x", False)
+    assert channel.renames == ["Solved Puzzle 1", "solved-puzzle-1-x"]
+
+
+async def test_nothing_to_rename_returns_none_without_a_request():
+    channel = RenamableChannel("puzzle-1")
+
+    assert await discord_utils.rename_channel(channel, "puzzle-1") is None
+    assert await discord_utils.rename_channel(channel, lambda name: None) is None
+    assert channel.renames == []
+
+
+def test_retry_after_defaults_when_discord_does_not_say():
+    assert (
+        discord_utils._retry_after(rate_limited(retry_after=None))
+        == discord_utils.RENAME_DEFAULT_WAIT
+    )
+
+
+@pytest.mark.parametrize(
+    "seconds, text",
+    [
+        (0.2, "1 second"),
+        (30, "30 seconds"),
+        (60, "60 seconds"),
+        (90, "2 minutes"),
+        (420, "7 minutes"),
+    ],
+)
+def test_wait_text(seconds, text):
+    assert discord_utils._wait_text(seconds) == text

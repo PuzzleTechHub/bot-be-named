@@ -1,8 +1,10 @@
+import asyncio
+
 import nextcord
 import pytest
 
 from tests.fakes import FakeCategory, FakeChannel, FakeContext, FakeGuild
-from utils import solved_utils
+from utils import discord_utils, solved_utils
 
 
 class EditableChannel(FakeChannel):
@@ -95,6 +97,78 @@ async def test_status_remove_not_marked():
     assert field.value == (
         "Channel is not marked as `solved / solvedish / backsolved / postsolved`!"
     )
+
+
+# Status changes queued behind a rename that Discord holds back
+
+
+class _RateLimited:
+    status = 429
+    reason = "Too Many Requests"
+    headers = {"Retry-After": "0.05"}
+
+
+class HeldBackChannel(EditableChannel):
+    """The first rename is refused with a 429, like a 3rd rename within 10 minutes."""
+
+    def __init__(self, name):
+        super().__init__(name)
+        self.held_back = False
+
+    async def edit(self, name):
+        if not self.held_back:
+            self.held_back = True
+            raise nextcord.HTTPException(_RateLimited(), "rate limited")
+        await super().edit(name)
+
+
+@pytest.fixture
+def queued_renames(monkeypatch):
+    monkeypatch.setattr(discord_utils, "RENAME_WAIT_MARGIN", 0)
+    monkeypatch.setattr(discord_utils, "_rename_queues", {})
+
+
+async def test_unsolved_while_solved_waits_undoes_it(queued_renames):
+    channel = HeldBackChannel("puzzle-1")
+    solved = asyncio.create_task(solved_utils.status_channel(_ctx(channel), "solved"))
+    await asyncio.sleep(0.01)
+
+    # The channel is still called puzzle-1 here, but ~unsolved sees the waiting ~solved
+    embed = await solved_utils.status_remove(_ctx(channel))
+    solved_embed = await solved
+
+    assert channel.edits == []  # back where it started, no rename needed
+    assert channel.name == "puzzle-1"
+    assert embed.fields[0].name == "Success"
+    assert embed.fields[0].value == f"Marking {channel.mention} as un-solved!"
+    assert solved_embed is None  # only ~unsolved reports
+
+
+async def test_backsolved_while_solved_waits_replaces_it(queued_renames):
+    channel = HeldBackChannel("puzzle-1")
+    solved = asyncio.create_task(solved_utils.status_channel(_ctx(channel), "solved"))
+    await asyncio.sleep(0.01)
+
+    # ~unsolved then ~backsolved should mean the channel goes straight to backsolved
+    await solved_utils.status_remove(_ctx(channel))
+    backsolved = await solved_utils.status_channel(_ctx(channel), "backsolved")
+    solved_embed = await solved
+
+    assert channel.edits == ["backsolved-puzzle-1"]
+    assert backsolved.fields[0].value == f"Marking {channel.mention} as backsolved!"
+    assert solved_embed is None
+
+
+async def test_second_solved_while_the_first_waits_is_already_marked(queued_renames):
+    channel = HeldBackChannel("puzzle-1")
+    first = asyncio.create_task(solved_utils.status_channel(_ctx(channel), "solved"))
+    await asyncio.sleep(0.01)
+
+    second = await solved_utils.status_channel(_ctx(channel), "solved")
+    await first
+
+    assert channel.edits == ["solved-puzzle-1"]  # no rename wasted
+    assert second.fields[0].value == "Channel already marked as solved!"
 
 
 # Prefix
