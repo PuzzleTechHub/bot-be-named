@@ -2,8 +2,9 @@
 target-version = "py312"
 
 [tool.ruff.lint]
-# Keep the rule set ruff used before 0.17.
-select = ["E4", "E7", "E9", "F"]
+# The rule set ruff used before 0.17, plus pyupgrade (UP: list[int], X | None, ...)
+# and RUF013 (a "= None" default needs "| None" in its type hint).
+select = ["E4", "E7", "E9", "F", "UP", "RUF013"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,6 +1,5 @@
 import nextcord
 from nextcord.ext import commands
-from typing import Union
 from utils import discord_utils, command_predicates
 
 """
@@ -25,8 +24,8 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
     async def assignrole(
         self,
         ctx: commands.Context,
-        rolename: Union[nextcord.Role, nextcord.Member, str],
-        *args: Union[nextcord.Member, str],
+        rolename: nextcord.Role | nextcord.Member | str,
+        *args: nextcord.Member | str,
     ):
         """Assign a role to a list of users. If the role does not already exist, then creates the role.
         You may name the role or the users (nick or username) instead. Mentioning either is also guaranteed to work, but pings them.
@@ -150,8 +149,8 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
     async def unassignrole(
         self,
         ctx: commands.Context,
-        rolename: Union[nextcord.Role, str],
-        *args: Union[nextcord.Member, str],
+        rolename: nextcord.Role | str,
+        *args: nextcord.Member | str,
     ):
         """Unassigns a role from a list of users.
         To not ping them, you may name the role or the users (nick or username) instead. Mentioning either is also guaranteed to work.
@@ -255,8 +254,8 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
     async def clonerole(
         self,
         ctx: commands.Context,
-        oldrole: Union[nextcord.Role, str],
-        newrole: Union[nextcord.Role, str],
+        oldrole: nextcord.Role | str,
+        newrole: nextcord.Role | str,
     ):
         """Clones a role to another role in the Server.
         If the role does not already exist, then creates the role, else just copies the permissions.
@@ -327,9 +326,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
     @command_predicates.is_bot_owner_or_admin()
     @commands.command(name="deleterole")
-    async def deleterole(
-        self, ctx: commands.Context, rolename: Union[nextcord.Role, str]
-    ):
+    async def deleterole(self, ctx: commands.Context, rolename: nextcord.Role | str):
         """Delete a role from the server
 
         Permission Category : Admin or Bot Owner only.
@@ -367,7 +364,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
 
     @commands.command(name="listroles", aliases=["lsroles", "listrole", "lsrole"])
     async def listroles(
-        self, ctx: commands.Context, rolename: Union[nextcord.Role, str] = ""
+        self, ctx: commands.Context, rolename: nextcord.Role | str = ""
     ):
         """List all roles in the server, or all users under a given role.
 
@@ -421,8 +418,8 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
     async def subtractrole(
         self,
         ctx: commands.Context,
-        rolename: Union[nextcord.Role, str],
-        *args: Union[nextcord.Role, nextcord.Member, str],
+        rolename: nextcord.Role | str,
+        *args: nextcord.Role | nextcord.Member | str,
     ):
         """Lists all the users in a role, but removes those in subsequent roles, or given users.
 
@@ -479,9 +476,7 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
         await discord_utils.send_message(ctx, embed)
 
     @commands.command(name="unreactrole", aliases=[])
-    async def unreactrole(
-        self, ctx: commands.Context, *args: Union[nextcord.Role, str]
-    ):
+    async def unreactrole(self, ctx: commands.Context, *args: nextcord.Role | str):
         """List all people for a given role who have not reacted to a message. (Either reply to the message, or it takes the message above)
 
         Usage:(as reply to message) `~unreactrole here` (Everyone who can see this channel, including BBN)

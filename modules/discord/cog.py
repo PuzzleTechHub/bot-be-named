@@ -1,4 +1,3 @@
-import typing
 import nextcord
 import aiohttp
 import io
@@ -318,7 +317,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def steal(
         self,
         ctx: commands.Context,
-        *emojis: typing.Union[nextcord.Emoji, nextcord.PartialEmoji],
+        *emojis: nextcord.Emoji | nextcord.PartialEmoji,
     ):
         """Steals an emote from another server and uploads it to this server with the same name.
 

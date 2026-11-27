@@ -1,5 +1,3 @@
-from typing import Optional
-
 from sqlalchemy.orm import Session
 
 import constants
@@ -101,7 +99,7 @@ def get_channel_mirrors():
 #################
 
 
-def get_tether(channel_or_cat_id: Optional[int]) -> Optional[models.SheetTethers]:
+def get_tether(channel_or_cat_id: int | None) -> models.SheetTethers | None:
     """The tether row for a category, channel or thread ID, or None."""
     if channel_or_cat_id is None:
         return None
@@ -502,7 +500,7 @@ def _command_entry(row: models.CustomCommands) -> tuple:
     return (row.command_return, row.image, row.responses)
 
 
-def find_custom_command(server_id: int, command_name: str) -> Optional[tuple]:
+def find_custom_command(server_id: int, command_name: str) -> tuple | None:
     """Looks a command up in the database, in this server and then globally, and caches it under
     the ID it was found under. None if it's in neither."""
     with Session(models.DATABASE_ENGINE) as session:

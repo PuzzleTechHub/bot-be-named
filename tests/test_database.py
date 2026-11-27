@@ -112,8 +112,8 @@ def test_importing_does_not_touch_the_database():
         f"modules.{p.parent.name}.cog" for p in (REPO / "modules").glob("*/cog.py")
     )
     code = (
-        "import importlib, database\nfor m in %r:\n    importlib.import_module(m)\n"
-        % cogs
+        "import importlib, database\n"
+        f"for m in {cogs!r}:\n    importlib.import_module(m)\n"
     )
     env = dict(os.environ, DATABASE_URL="postgresql://nobody:nothing@127.0.0.1:1/none")
     result = subprocess.run(

@@ -295,7 +295,9 @@ class HelpCommand(commands.MinimalHelpCommand):
         """implements ~help permissions, the commands-by-permission menu"""
         await self.send_menu(self.permission_pages(), placeholder="Jump to a category")
 
-    async def command_callback(self, ctx: commands.Context, *, command: str = None):
+    async def command_callback(
+        self, ctx: commands.Context, *, command: str | None = None
+    ):
         """Sends the commands-by-permission menu for ~help permissions, else the usual help."""
         if command is not None and command.strip().lower() in PERMISSION_WORDS:
             await self.prepare_help_command(ctx, command)

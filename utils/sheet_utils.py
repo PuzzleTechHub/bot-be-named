@@ -7,10 +7,9 @@ import nextcord
 import gspread
 from gspread.worksheet import Worksheet
 import database
-from typing import Optional, Union
 import emoji
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from nextcord.ext import commands
 
 """
@@ -72,7 +71,7 @@ def addsheettethergeneric(
     gspread_client,
     sheet_key_or_link: str,
     curr_guild: nextcord.Guild,
-    curr_catorchan: Union[nextcord.CategoryChannel, nextcord.TextChannel],
+    curr_catorchan: nextcord.CategoryChannel | nextcord.TextChannel,
 ) -> gspread.Spreadsheet:
     """Add a sheet to the current channel"""
     # We accept both sheet keys or full links
@@ -369,7 +368,7 @@ def normalize_status(status: str) -> str:
 
 def get_timestamp() -> str:
     """Finds the current UTC timestamp."""
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def hyperlink_formula(link: str, text: str) -> str:
@@ -384,7 +383,7 @@ def hyperlink_formula(link: str, text: str) -> str:
 
 
 def findsheettether(
-    curr_cat_id: int, curr_chan_id: int, curr_thread_id: Optional[int] = None
+    curr_cat_id: int, curr_chan_id: int, curr_thread_id: int | None = None
 ):
     """For finding the appropriate sheet tethering for a given category or channel"""
     result = None
@@ -1494,7 +1493,7 @@ ARCHIVE_SUFFIX_RE = re.compile(r"\s*archive\s*\d*\s*$", re.IGNORECASE)
 ARCHIVE_PREFIX_RE = re.compile(r"^\s*archive\s*\d*\s*:\s*", re.IGNORECASE)
 
 
-def archive_base_name(category_name: str) -> Optional[str]:
+def archive_base_name(category_name: str) -> str | None:
     """The hunt name in an archive category's name, e.g. `MH21 Archive 2` -> `MH21`.
     None if the name doesn't look like an archive."""
     for pattern in (ARCHIVE_PREFIX_RE, ARCHIVE_SUFFIX_RE):
@@ -1506,9 +1505,9 @@ def archive_base_name(category_name: str) -> Optional[str]:
 async def find_unarchive_category(
     ctx: commands.Context,
     category_name: str = "",
-    sheet_link: Optional[str] = None,
+    sheet_link: str | None = None,
     command_name: str = "unmta",
-) -> Optional[nextcord.CategoryChannel]:
+) -> nextcord.CategoryChannel | None:
     """Finds the category to move an archived channel back to, for ~unmta and ~unmtahydra.
 
     In order: the category named by the user; a category tethered to sheet_link; the

@@ -1,6 +1,5 @@
 import nextcord
 import asyncio
-from typing import Union
 from utils import sheets_constants
 from nextcord.ext import commands
 from utils import discord_utils, command_predicates, sheet_utils, solved_utils
@@ -30,7 +29,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         self,
         ctx: commands.Context,
         category_name: str,
-        *args: Union[nextcord.TextChannel, str],
+        *args: nextcord.TextChannel | str,
     ):
         """Command to move channels to category with given name
 
@@ -224,8 +223,8 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     async def renamechannel(
         self,
         ctx: commands.Context,
-        chan_a: Union[nextcord.TextChannel, nextcord.Thread, str],
-        chan_b: Union[nextcord.TextChannel, nextcord.Thread, str] = "",
+        chan_a: nextcord.TextChannel | nextcord.Thread | str,
+        chan_b: nextcord.TextChannel | nextcord.Thread | str = "",
     ):
         """Changes current channel name to whatever is asked.
 
@@ -327,7 +326,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         self,
         ctx: commands.Context,
         name: str,
-        category_arg: Union[nextcord.CategoryChannel, str] = "",
+        category_arg: nextcord.CategoryChannel | str = "",
     ):
         """Command to create channel in a given category. If given no category name, it defaults to current category.
 
@@ -401,10 +400,12 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     async def addroletochan(
         self,
         ctx: commands.Context,
-        role: Union[nextcord.Role, str],
-        channel: Union[
-            nextcord.TextChannel, nextcord.VoiceChannel, nextcord.Thread, str, None
-        ] = None,
+        role: nextcord.Role | str,
+        channel: nextcord.TextChannel
+        | nextcord.VoiceChannel
+        | nextcord.Thread
+        | str
+        | None = None,
     ):
         """Grant a role view access to a channel (Discord permission overwrite).
         Merges onto existing overwrites; only sets `view_channel`.
@@ -472,10 +473,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     async def clonechannel(
         self,
         ctx: commands.Context,
-        chan_a: Union[nextcord.TextChannel, nextcord.VoiceChannel, str],
+        chan_a: nextcord.TextChannel | nextcord.VoiceChannel | str,
         chan_b: str = "",
-        origRoleorUser: Union[nextcord.Role, nextcord.Member, str, None] = None,
-        targetRoleorUser: Union[nextcord.Role, nextcord.Member, str, None] = None,
+        origRoleorUser: nextcord.Role | nextcord.Member | str | None = None,
+        targetRoleorUser: nextcord.Role | nextcord.Member | str | None = None,
     ):
         """Command to create channel in same category with given name.
         If user/role is specified, then syncs permissions as well.
@@ -638,8 +639,8 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     async def shiftchannel(
         self,
         ctx: commands.Context,
-        chan_a_name: Union[nextcord.TextChannel, str],
-        chan_b_name: Union[nextcord.TextChannel, str] = "",
+        chan_a_name: nextcord.TextChannel | str,
+        chan_b_name: nextcord.TextChannel | str = "",
     ):
         """Shifts a channel to below another channel in the same category.
 
@@ -1083,8 +1084,8 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         ctx: commands.Context,
         origCatName: str,
         targetCatName: str,
-        origRole: Union[nextcord.Role, str] = None,
-        targetRole: Union[nextcord.Role, str] = None,
+        origRole: nextcord.Role | str = None,
+        targetRole: nextcord.Role | str = None,
     ):
         """Clones one category as another.
         If roles are given, takes OrigRole's perms in OrigCat and clones them for Targetrole in TargetCat.
@@ -1344,7 +1345,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
                     value="The operation was cancelled.",
                     inline=False,
                 )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             final_embed.add_field(name="Canceled", value="The operation was cancelled.")
         finally:
             await discord_utils.send_message(ctx, final_embed)
@@ -1417,7 +1418,9 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
 
     @command_predicates.is_solver()
     @commands.command(name="mta", aliases=["movetoarchive", "mtacrab"])
-    async def movetoarchive(self, ctx: commands.Context, archive_name: str = None):
+    async def movetoarchive(
+        self, ctx: commands.Context, archive_name: str | None = None
+    ):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category, or is the category is full (i.e. 50 Channels).
         If called from thread (instead of channel), closes the thread instead of moving channel.

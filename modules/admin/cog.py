@@ -4,7 +4,6 @@ import constants
 from nextcord.ext import commands
 from utils import discord_utils, command_predicates
 from database import models
-from typing import Union
 
 """
 Admin module. Bundle of commands related to Bot management and permission categories,
@@ -32,7 +31,7 @@ class AdminCog(commands.Cog, name="Admin"):
         self,
         ctx: commands.Context,
         role_permissions: str,
-        role_or_rolename: Union[nextcord.Role, str],
+        role_or_rolename: nextcord.Role | str,
     ):
         """Add a new Permission Category for a given role on this server. Only available to server admins or bot owners.
 
@@ -142,7 +141,7 @@ class AdminCog(commands.Cog, name="Admin"):
         self,
         ctx: commands.Context,
         role_permissions: str,
-        role_or_rolename: Union[nextcord.Role, str],
+        role_or_rolename: nextcord.Role | str,
     ):
         """Remove a role from the given Permission Category within the server.
         Only available to server admins or bot owners.
@@ -196,8 +195,8 @@ class AdminCog(commands.Cog, name="Admin"):
     async def commonmemberguilds(
         self,
         ctx: commands.Context,
-        guild_1: Union[nextcord.Guild, str],
-        guild_2: Union[nextcord.Guild, str],
+        guild_1: nextcord.Guild | str,
+        guild_2: nextcord.Guild | str,
     ):
         """List all users in common between 2 guilds that the bot is in.
 
@@ -266,7 +265,7 @@ class AdminCog(commands.Cog, name="Admin"):
     async def guildowner(
         self,
         ctx: commands.Context,
-        guild_name: Union[nextcord.Guild, str],
+        guild_name: nextcord.Guild | str,
     ):
         """Mentions the guild owner for a specific guild the bot is in.
 
@@ -334,9 +333,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(
         name="quitguild",
     )
-    async def quitguild(
-        self, ctx: commands.Context, guild_name: Union[nextcord.Guild, str]
-    ):
+    async def quitguild(self, ctx: commands.Context, guild_name: nextcord.Guild | str):
         """Quit a guild.
 
         Permission Category : Bot Owner only.

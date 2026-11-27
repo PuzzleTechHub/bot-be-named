@@ -1,5 +1,4 @@
 import asyncio
-from typing import Optional
 
 from nextcord.ext import commands
 
@@ -212,7 +211,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         ctx: commands.Context,
         command_name: str,
         *,
-        command_return: Optional[str] = None,
+        command_return: str | None = None,
     ):
         """Add your own custom command to the bot with an embed reply.
         Everything after the command name is the reply, line breaks are included.
@@ -254,7 +253,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         ctx: commands.Context,
         command_name: str,
         *,
-        command_return: Optional[str] = None,
+        command_return: str | None = None,
     ):
         """Add your own custom command to the bot with a reply. It is not in a bot embed, so is ideal for images and role pings.
         Everything after the command name is the reply, line breaks included.
@@ -290,7 +289,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         ctx: commands.Context,
         command_name: str,
         *,
-        command_return: Optional[str] = None,
+        command_return: str | None = None,
     ):
         """Add a global custom command to the bot with an embed reply. Every
         server with this bot will be able to call a global command, as long
@@ -334,7 +333,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         ctx: commands.Context,
         command_name: str,
         *,
-        command_return: Optional[str] = None,
+        command_return: str | None = None,
     ):
         """Add a global custom command to the bot with a reply. It is not in
         a bot embed, so is ideal for images and role pings.
@@ -477,7 +476,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         ctx: commands.Context,
         command_name: str,
         *,
-        command_return: Optional[str] = None,
+        command_return: str | None = None,
     ):
         """Edit a custom command for the bot, by replacing all its responses. If the
         command doesn't already exist, this command will add it instead (see `~help addcc`).
@@ -510,7 +509,7 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
         ctx: commands.Context,
         command_name: str,
         *,
-        command_return: Optional[str] = None,
+        command_return: str | None = None,
     ):
         """Edit a global custom command for the bot, by replacing all its responses. If the
         global command doesn't already exist, this command will add it instead (see `~help addgcc`).

@@ -129,7 +129,7 @@ async def test_no_results_is_one_message_without_buttons(cog, serve):
     assert message.embed.description == "No results found, sorry."
 
 
-@pytest.mark.parametrize("error", [aiohttp.ClientError(), asyncio.TimeoutError()])
+@pytest.mark.parametrize("error", [aiohttp.ClientError(), TimeoutError()])
 async def test_nutrimatic_down_says_so(cog, serve, error):
     serve(error=error)
     ctx = _ctx()

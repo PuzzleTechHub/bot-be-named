@@ -1,7 +1,6 @@
 import asyncio
 import os
 import zipfile
-from typing import List, Set, Tuple, Union
 
 import nextcord
 from nextcord.ext import commands
@@ -36,7 +35,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
         archive_utils.reset_archive_dir()
 
-    def zip_dir(self, out_dir: str, zip_path: str, skip: Set[str] = frozenset()) -> int:
+    def zip_dir(self, out_dir: str, zip_path: str, skip: set[str] = frozenset()) -> int:
         """Zip the export in out_dir, leaving out the files in skip (paths relative
         to out_dir), and return the zip's size"""
         with zipfile.ZipFile(zip_path, mode="w") as zf:
@@ -51,7 +50,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     def zip_without_biggest_media(
         self, out_dir: str, zip_path: str, zip_size: int, filesize_limit: int
-    ) -> Tuple[int, List[Tuple[str, int]], bool]:
+    ) -> tuple[int, list[tuple[str, int]], bool]:
         """Zip the export again, leaving out the biggest media files until it fits.
 
         Returns the new zip's size, the files left out (biggest first), and whether
@@ -69,7 +68,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
             skipped.append(media[len(skipped)])
 
     @staticmethod
-    def list_skipped(skipped: List[Tuple[str, int]], max_shown: int = 8) -> str:
+    def list_skipped(skipped: list[tuple[str, int]], max_shown: int = 8) -> str:
         """One line per left-out file, biggest first, short enough for an embed field"""
         lines = [
             f"`{archive_utils.media_display_name(path)[:50]}` "
@@ -90,8 +89,8 @@ class ArchiveCog(commands.Cog, name="Archive"):
 
     async def archive_one_channel(
         self,
-        channel: Union[nextcord.TextChannel, nextcord.ForumChannel, nextcord.Thread],
-    ) -> Tuple[str, str, int, List[str]]:
+        channel: nextcord.TextChannel | nextcord.ForumChannel | nextcord.Thread,
+    ) -> tuple[str, str, int, list[str]]:
         """Export a channel's history (with its threads and attachments) and zip it up"""
         out_dir = os.path.join(archive_constants.ARCHIVE, str(channel.id))
         returncode, stderr, failed = await archive_utils.run_export(
@@ -212,7 +211,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
     @command_predicates.is_verified()
     @commands.command(name="archivechannel", aliases=["archivechan", "archivethread"])
     async def archivechannel(
-        self, ctx: commands.Context, *args: Union[nextcord.TextChannel, str]
+        self, ctx: commands.Context, *args: nextcord.TextChannel | str
     ):
         """Command to download channel's history
 

@@ -1,4 +1,3 @@
-from typing import Optional, Union
 import nextcord
 import constants
 import gspread
@@ -44,7 +43,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="roundhydra")
-    async def roundhydra(self, ctx: commands.Context, round_name: str = None):
+    async def roundhydra(self, ctx: commands.Context, round_name: str | None = None):
         """Sets or updates the round information on the Overview sheet. Passing no argument retrieves the current round.
 
         Permission Category : Solver Roles only.
@@ -235,7 +234,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="renamehydra")
-    async def renamehydra(self, ctx: commands.Context, new_name: Optional[str] = None):
+    async def renamehydra(self, ctx: commands.Context, new_name: str | None = None):
         """Renames the current discord channel and puzzle tab to the new name.
         Keep in mind, if there is a status prefix in the channel name, it will be overwritten.
         Don't worry, you can just call the command you used to change the status again to restore it.
@@ -685,7 +684,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     @command_predicates.is_solver()
     @commands.command(name="mtahydra", aliases=["movetoarchivehydra"])
     async def mtahydra(
-        self, ctx: commands.Context, *, category_name: Optional[str] = None
+        self, ctx: commands.Context, *, category_name: str | None = None
     ):
         """Finds a category with `<category_name> Archive`, and moves the channel to that category.
         Fails if there is no such category. If `<category_name> Archive 2`, `3`... exist, uses the highest-numbered
@@ -928,7 +927,7 @@ class HydraCog(commands.Cog, name="Hydra"):
                 timeout=hydra_constants.DELETE_CONFIRM_TIMEOUT,
                 check=check_correct_react,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             timeout_embed = discord_utils.create_embed()
             timeout_embed.add_field(
                 name="Cancelled!",
@@ -1152,7 +1151,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         aliases=["watchcathydra", "watchcat", "watchcategory"],
     )
     async def watchcategoryhydra(
-        self, ctx: commands.Context, limit_arg: Optional[int] = None
+        self, ctx: commands.Context, limit_arg: int | None = None
     ):
         """Summarise the last `limit` messages across the categories allowed for your roles:
         `limit` caps off at 250.
@@ -1356,7 +1355,9 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="statushydra")
-    async def statushydra(self, ctx: commands.Context, status: str, answer: str = None):
+    async def statushydra(
+        self, ctx: commands.Context, status: str, answer: str | None = None
+    ):
         """Adds a status to the puzzle and updates the sheet and channel name accordingly.
         Same as `~statuslion`, but adds functionality for the timestamps on the Overview sheet:
 
@@ -1487,7 +1488,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="solvedhydra")
-    async def solvedhydra(self, ctx: commands.Context, answer: str = None):
+    async def solvedhydra(self, ctx: commands.Context, answer: str | None = None):
         """Sets the puzzle to solved and updates the sheet and channel name accordingly.
         Also records the solved time on the Overview sheet.
 
@@ -1499,7 +1500,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="backsolvedhydra")
-    async def backsolvedhydra(self, ctx: commands.Context, answer: str = None):
+    async def backsolvedhydra(self, ctx: commands.Context, answer: str | None = None):
         """Sets the puzzle to backsolved and updates the sheet and channel name accordingly.
         Also records the solved time on the Overview sheet.
 
@@ -1511,7 +1512,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="solvedishhydra")
-    async def solvedishhydra(self, ctx: commands.Context, answer: str = None):
+    async def solvedishhydra(self, ctx: commands.Context, answer: str | None = None):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly.
         Records a new solved time on te Overview sheet.
 
@@ -1535,7 +1536,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="slainhydra", aliases=["donehydra"])
-    async def slainhydra(self, ctx: commands.Context, answer: str = None):
+    async def slainhydra(self, ctx: commands.Context, answer: str | None = None):
         """Runs `~solvedhydra` "ANSWER" then `~mtahydra`.
 
         Permission Category : Solver Roles only.
@@ -1551,7 +1552,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
     @command_predicates.is_solver()
     @commands.command(name="backslainhydra")
-    async def backslainhydra(self, ctx: commands.Context, answer: str = None):
+    async def backslainhydra(self, ctx: commands.Context, answer: str | None = None):
         """Runs `~backsolvedhydra` "ANSWER" then `~mtahydra`.
 
         Permission Category : Solver Roles only.
@@ -1695,8 +1696,8 @@ class HydraCog(commands.Cog, name="Hydra"):
     async def summaryallowhydra(
         self,
         ctx: commands.Context,
-        role_or_rolename: Union[nextcord.Role, str],
-        chan_or_channame: Optional[Union[nextcord.TextChannel, str]] = None,
+        role_or_rolename: nextcord.Role | str,
+        chan_or_channame: nextcord.TextChannel | str | None = None,
     ):
         """Allows a role to run `~catsummaryhydra` and `~watchcategoryhydra` in a channel.
         If no channel is given, uses the current channel.
@@ -1752,8 +1753,8 @@ class HydraCog(commands.Cog, name="Hydra"):
     async def summarydisallowhydra(
         self,
         ctx: commands.Context,
-        role_or_rolename: Union[nextcord.Role, str],
-        chan_or_channame: Union[nextcord.TextChannel, str],
+        role_or_rolename: nextcord.Role | str,
+        chan_or_channame: nextcord.TextChannel | str,
     ):
         """Removes a role's permission to run summaries in a channel.
 
@@ -1828,7 +1829,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     async def addupdateshydra(
         self,
         ctx: commands.Context,
-        channel: Optional[nextcord.TextChannel] = None,
+        channel: nextcord.TextChannel | None = None,
         *sheet_links: str,
     ):
         """Posts updates (most importantly puzzle solves) to a channel every time a puzzle is solved on the linked sheets.
@@ -1914,7 +1915,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     async def rmupdateshydra(
         self,
         ctx: commands.Context,
-        channel: Optional[nextcord.TextChannel] = None,
+        channel: nextcord.TextChannel | None = None,
         *sheet_links: str,
     ):
         """Removes solve streams for the given sheets from a channel.

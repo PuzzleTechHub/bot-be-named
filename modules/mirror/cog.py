@@ -1,7 +1,6 @@
 import time
 import nextcord
 import database
-from typing import Optional
 from nextcord.ext import commands
 from utils import discord_utils, command_predicates, logging_utils
 
@@ -109,7 +108,7 @@ class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
         self,
         ctx: commands.Context,
         source: nextcord.TextChannel,
-        target: Optional[nextcord.TextChannel] = None,
+        target: nextcord.TextChannel | None = None,
     ):
         """Mirrors every new message from a source channel into a target channel.
         Messages before this command was called, edits, and deletes will not be mirrored.
@@ -166,7 +165,7 @@ class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
         self,
         ctx: commands.Context,
         source: nextcord.TextChannel,
-        target: Optional[nextcord.TextChannel] = None,
+        target: nextcord.TextChannel | None = None,
     ):
         """Stops all mirroring of messages from a channel into a current channel (or given channels).
 

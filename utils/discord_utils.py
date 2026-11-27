@@ -5,7 +5,8 @@ import time
 
 import nextcord
 from nextcord.ext import commands
-from typing import Callable, List, NamedTuple, Optional, Union
+from typing import NamedTuple
+from collections.abc import Callable
 import constants
 from utils import logging_utils
 
@@ -72,7 +73,7 @@ def server_is_full(guild: nextcord.Guild) -> bool:
 
 
 async def is_thread(
-    ctx: commands.Context, channel: Union[nextcord.Thread, nextcord.TextChannel, str]
+    ctx: commands.Context, channel: nextcord.Thread | nextcord.TextChannel | str
 ) -> bool:
     """Checks if a given channel is a Thread or not.
 
@@ -134,7 +135,7 @@ async def createchannelgeneric(
 async def createthreadgeneric(
     ctx: commands.Context,
     message: nextcord.Message,
-    chan_or_forum: Union[nextcord.TextChannel, nextcord.ForumChannel],
+    chan_or_forum: nextcord.TextChannel | nextcord.ForumChannel,
     name: str,
 ) -> nextcord.Thread:
     """Command to create thread in same channel with given name
@@ -265,15 +266,15 @@ class _ChannelRenames:
 
     def __init__(self):
         self.lock = asyncio.Lock()
-        self.waiting: Optional[_WaitingRename] = None
+        self.waiting: _WaitingRename | None = None
 
 
 async def rename_channel(
     channel,
-    new_name: Union[str, Callable[[str], Optional[str]]],
+    new_name: str | Callable[[str], str | None],
     notify=None,
     note: str = "",
-) -> Optional[Renamed]:
+) -> Renamed | None:
     """Rename a channel or thread, logging the attempt and how long it took.
 
     new_name is the new name, or a function that gets the channel's current name and returns
@@ -541,12 +542,12 @@ def get_ordinal_suffix(n: int) -> str:
     return {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
 
 
-def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
+def split_embed(embed: nextcord.Embed) -> list[nextcord.Embed]:
     """Splits embeds that are too long (discord character limit)
     Arguments:
         - embed (nextcord.Embed)
     Returns
-        - embed_list (List[nextcord.Embed]):
+        - embed_list (list[nextcord.Embed]):
     """
     embed_title = embed.title or ""
     embed_description = embed.description or ""
@@ -626,7 +627,7 @@ def split_embed(embed: nextcord.Embed) -> List[nextcord.Embed]:
 
 
 async def find_guild(
-    ctx: commands.Context, guild_name: Union[nextcord.Guild, str]
+    ctx: commands.Context, guild_name: nextcord.Guild | str
 ) -> nextcord.Guild:
     """Uses nextcord.py's GuildConverter to convert the name to a discord Guild
     Arguments:
@@ -721,7 +722,7 @@ async def get_category_channels(
 _CHANNEL_NAME_EDGE_JUNK = "\u2060\u200b\u200c\u200d\ufeff \t\n\r"
 
 
-def _normalize_channel_query(chan_name: Optional[str]) -> Optional[str]:
+def _normalize_channel_query(chan_name: str | None) -> str | None:
     """Strip leading # and edge paste artifacts from a channel name query.
 
     Returns None if chan_name is None or empty after cleaning.
@@ -735,13 +736,13 @@ def _normalize_channel_query(chan_name: Optional[str]) -> Optional[str]:
 
 async def _lookup_chan_or_thread(
     ctx: commands.Context, query: str, *, normalize_names: bool
-) -> Union[
-    nextcord.TextChannel,
-    nextcord.Thread,
-    nextcord.ForumChannel,
-    nextcord.VoiceChannel,
-    None,
-]:
+) -> (
+    nextcord.TextChannel
+    | nextcord.Thread
+    | nextcord.ForumChannel
+    | nextcord.VoiceChannel
+    | None
+):
     """Try converters, then case-insensitive name match for one query string."""
     for converter in (
         commands.TextChannelConverter,
@@ -786,21 +787,19 @@ async def _lookup_chan_or_thread(
 
 async def find_chan_or_thread(
     ctx: commands.Context,
-    chan_name: Union[
-        nextcord.TextChannel,
-        nextcord.Thread,
-        nextcord.ForumChannel,
-        nextcord.VoiceChannel,
-        str,
-        None,
-    ],
-) -> Union[
-    nextcord.TextChannel,
-    nextcord.Thread,
-    nextcord.ForumChannel,
-    nextcord.VoiceChannel,
-    None,
-]:
+    chan_name: nextcord.TextChannel
+    | nextcord.Thread
+    | nextcord.ForumChannel
+    | nextcord.VoiceChannel
+    | str
+    | None,
+) -> (
+    nextcord.TextChannel
+    | nextcord.Thread
+    | nextcord.ForumChannel
+    | nextcord.VoiceChannel
+    | None
+):
     """Convert a name or object to a nextcord channel/thread.
 
     Arguments:
@@ -836,7 +835,7 @@ async def find_chan_or_thread(
 
 
 async def find_role(
-    ctx: commands.Context, role_name: Union[nextcord.Role, str]
+    ctx: commands.Context, role_name: nextcord.Role | str
 ) -> nextcord.Role:
     """Convert the name to a nextcord Role
     Arguments:
@@ -860,7 +859,7 @@ async def find_role(
 MEMBER_FETCH_TIMEOUT = 60
 
 
-async def ensure_members_cached(guild: Optional[nextcord.Guild]) -> bool:
+async def ensure_members_cached(guild: nextcord.Guild | None) -> bool:
     """Make sure the guild's full member list is cached, fetching it from Discord if needed.
 
     Arguments:
@@ -872,18 +871,18 @@ async def ensure_members_cached(guild: Optional[nextcord.Guild]) -> bool:
         return True
     try:
         await asyncio.wait_for(guild.chunk(), timeout=MEMBER_FETCH_TIMEOUT)
-    except (asyncio.TimeoutError, nextcord.ClientException):
+    except (TimeoutError, nextcord.ClientException):
         return False
     return True
 
 
-async def chunk_all_guilds(guilds: List[nextcord.Guild]) -> List[nextcord.Guild]:
+async def chunk_all_guilds(guilds: list[nextcord.Guild]) -> list[nextcord.Guild]:
     """Fetch the member list of every guild that isn't fully cached yet, one guild at a time.
 
     Arguments:
-        - guilds (List[nextcord.Guild]): The guilds to fetch
+        - guilds (list[nextcord.Guild]): The guilds to fetch
     Returns:
-        - List[nextcord.Guild]: The guilds whose member list couldn't be fetched"""
+        - list[nextcord.Guild]: The guilds whose member list couldn't be fetched"""
     failed = []
     for guild in guilds:
         try:
@@ -895,7 +894,7 @@ async def chunk_all_guilds(guilds: List[nextcord.Guild]) -> List[nextcord.Guild]
 
 
 async def find_user(
-    ctx: commands.Context, user_name: Union[nextcord.Member, str]
+    ctx: commands.Context, user_name: nextcord.Member | str
 ) -> nextcord.Role:
     """Convert the name to a nextcord Member
     Arguments:
@@ -1076,7 +1075,7 @@ async def movetoarchive_generic(ctx: commands.Context, archive_name: str):
     await send_message(ctx, embed)
 
 
-async def category_move_to_archive(ctx: commands.Context, archive_name: Optional[str]):
+async def category_move_to_archive(ctx: commands.Context, archive_name: str | None):
     """Moves the current channel to an archive category, or archives the thread if called from a thread.
     1. Takes the current channel's category name, and splits it into words. Looks for (all words) Archive, then (all but last word) Archive,
     then (all but last two words) Archive etc.

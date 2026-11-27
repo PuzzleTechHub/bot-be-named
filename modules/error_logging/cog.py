@@ -39,7 +39,7 @@ class ErrorLogCog(commands.Cog):
             await discord_utils.send_message(ctx, embed)
             return
 
-        with open(error_constants.ERROR_LOGFILE, "r") as f:
+        with open(error_constants.ERROR_LOGFILE) as f:
             lines = f.readlines()
             last_n_lines = "".join(lines[-num_lines:])
             # Trim the length of the log messages

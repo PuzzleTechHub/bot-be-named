@@ -5,7 +5,6 @@ import os
 import re
 import shutil
 import urllib.parse
-from typing import List, Tuple
 
 
 def get_delay_embed():
@@ -32,7 +31,7 @@ def dce_installed() -> bool:
 
 async def run_export(
     channel_id: int, out_dir: str, include_threads: bool
-) -> Tuple[int, str, List[str]]:
+) -> tuple[int, str, list[str]]:
     """Export one channel (and its threads) to HTML with DiscordChatExporter.
 
     Returns the exit code, DCE's stderr, and the channels DCE says failed.
@@ -67,7 +66,7 @@ async def run_export(
         _, stderr_bytes = await asyncio.wait_for(
             proc.communicate(), archive_constants.DCE_TIMEOUT
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         proc.kill()
         await proc.wait()
         return -1, "Timed out", []
@@ -93,7 +92,7 @@ def first_error(stderr: str) -> str:
     return "Unknown error"
 
 
-def list_media(out_dir: str) -> List[Tuple[str, int]]:
+def list_media(out_dir: str) -> list[tuple[str, int]]:
     """Every file in the export's media folder as (path relative to out_dir, size), biggest first"""
     media_dir = os.path.join(out_dir, archive_constants.MEDIA)
     files = []
@@ -105,8 +104,8 @@ def list_media(out_dir: str) -> List[Tuple[str, int]]:
 
 
 def pick_media_to_skip(
-    media: List[Tuple[str, int]], zip_size: int, filesize_limit: int
-) -> List[Tuple[str, int]]:
+    media: list[tuple[str, int]], zip_size: int, filesize_limit: int
+) -> list[tuple[str, int]]:
     """Pick the biggest media files to leave out so the zip should fit under the limit.
 
     media is (path, size) sorted biggest first. Media is mostly images and videos,
@@ -136,7 +135,7 @@ def safe_filename(name: str, max_len: int = 80) -> str:
     return safe[:max_len] or "channel"
 
 
-def list_for_embed(names: List[str], limit: int = 1024) -> str:
+def list_for_embed(names: list[str], limit: int = 1024) -> str:
     """One name per line, cut off with "...and N more" so it fits in an embed field
     (Discord allows 1024 characters per field)"""
     lines = []

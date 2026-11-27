@@ -1,5 +1,4 @@
 import asyncio
-from typing import Optional
 
 import emoji
 import gspread
@@ -29,7 +28,7 @@ def is_solve_status(status: str) -> bool:
     return sheet_utils.normalize_status(status) in sheets_constants.solve_statuses
 
 
-def answer_cell_value(status_info: dict, answer: Optional[str]) -> Optional[str]:
+def answer_cell_value(status_info: dict, answer: str | None) -> str | None:
     """Returns what to write in the puzzle tab's answer cell, or None to leave it. Statuses that don't take an answer clear it."""
     if not status_info.get("update_ans"):
         return ""
@@ -40,7 +39,7 @@ def answer_cell_value(status_info: dict, answer: Optional[str]) -> Optional[str]
 
 def solved_time_value(
     prev_status: str, new_status: str, has_solved_time: bool, now: str
-) -> Optional[str]:
+) -> str | None:
     """What to write in the Overview's solved timestamp cell.
     Non-solve to solve sets the time. Solve to non-solve clears it.
     Going between solves (e.g. Solved -> Backsolved) keeps the original time,
@@ -59,7 +58,7 @@ async def update_puzzle_status(
     overview_sheet,
     row_to_find: int,
     status: str,
-    answer: Optional[str] = None,
+    answer: str | None = None,
 ) -> bool:
     """Sets a puzzle's status, i.e., the answer on its tab, the status on the Overview,
     the tab colour, then the channel prefix. Sends the result to ctx.
