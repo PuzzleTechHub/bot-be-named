@@ -26,7 +26,7 @@ class ErrorLogCog(commands.Cog):
     async def errorlog(self, ctx: commands.Context, num_lines: int = 50):
         """Shows errors in reverse chronological order
 
-        Permission Category : Admin and Bot Owner only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~errorlog`
         """
         if not os.path.exists(error_constants.ERROR_LOGFILE):

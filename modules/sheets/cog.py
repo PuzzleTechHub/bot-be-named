@@ -230,7 +230,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
 
         See also : ~addtether
 
-        Permission Category : Owner or Admin only
+        Permission Category : Admin or Bot Owner only.
         Usage : `~prunetethers`
         """
         embed = discord_utils.create_embed()

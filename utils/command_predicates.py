@@ -124,3 +124,28 @@ def is_trusted_or_bot_owner():
             return False
 
     return commands.check(predicate)
+
+
+# The "Permission Category : ..." line each check's commands show in their docstring
+PERMISSION_CATEGORIES = {
+    "is_bot_owner": "Bot Owner only.",
+    "is_admin": "Admin only.",
+    "is_bot_owner_or_admin": "Admin or Bot Owner only.",
+    "is_tester": "Tester Roles only.",
+    "is_solver": "Solver Roles only.",
+    "is_verified": "Verified Roles only.",
+    "is_trusted": "Trusted Roles only.",
+    "is_trusted_or_bot_owner": "Trusted Roles or Bot Owner only.",
+}
+
+
+def permission_category(command: commands.Command) -> str | None:
+    """Who can use the command, worked out from its checks, e.g. "Solver Roles only.".
+    Non-guarded commands return None. Several checks are joined with "and"."""
+    names = [
+        PERMISSION_CATEGORIES.get(check.__qualname__.split(".")[0])
+        for check in command.checks
+    ]
+    if None in names:
+        raise ValueError(f"{command.qualified_name} has a check with no category")
+    return " and ".join(names) or None

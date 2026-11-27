@@ -117,7 +117,7 @@ class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
 
         See also `~unmirrorchan` and `~listmirrorchan`.
 
-        Permission Category : Server Moderators only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~mirrorchan #mod-mails` (copies #mod-mails into the current channel)
         Usage: `~mirrorchan #mod-mails #vets-chat` (copies #mod-mails into #vets-chat)
         """
@@ -172,7 +172,7 @@ class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
 
         See also `~mirrorchan` and `~listmirrorchan`.
 
-        Permission Category : Server Moderators only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~unmirrorchan #mod-mails` (stops mirroring #mod-mails into current channel)
         Usage: `~unmirrorchan #mod-mails #vets-chat` (stops mirroring #mod-mails into #vets-chat)
         """
@@ -210,7 +210,7 @@ class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
 
         See also `~mirrorchan` and `~unmirrorchan`.
 
-        Permission Category : Server Moderators only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~listmirrorchan`
         """
         if ctx.guild is None:

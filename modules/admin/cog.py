@@ -41,7 +41,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         See `~info` for more info.
 
-        Permission Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~addperm Verified @VerifiedRoleName`
         Usage: `~addperm Trusted @everyone`
         """
@@ -102,7 +102,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         See also: `~addperms`
 
-        Permission Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~listperm Verified`
         """
         embed = discord_utils.create_embed()
@@ -147,7 +147,7 @@ class AdminCog(commands.Cog, name="Admin"):
         """Remove a role from the given Permission Category within the server.
         Only available to server admins or bot owners.
 
-        Permission Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~removeperm Verified @VerifiedRoleName`
         Usage: `~removeperm Trusted @everyone`
         """
@@ -201,7 +201,7 @@ class AdminCog(commands.Cog, name="Admin"):
     ):
         """List all users in common between 2 guilds that the bot is in.
 
-        Permission Category : Bot Owner Roles only.
+        Permission Category : Bot Owner only.
         See also : `~lsguilds`
         Usage: `~commonmemberguilds "Guild1" "Guild2"`
         """
@@ -272,7 +272,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
         Note - This command is planned to be used extremely sparingly and for important (usually notification related) reasons only.
 
-        Permission Category : Bot Owner Roles only.
+        Permission Category : Bot Owner only.
         Usage: `~guildowner "Guild1"`
         """
         embed = discord_utils.create_embed()
@@ -302,7 +302,7 @@ class AdminCog(commands.Cog, name="Admin"):
     async def lsguilds(self, ctx: commands.Context):
         """List all guilds that the bot is in, with their owners.
 
-        Permission Category : Bot Owner Roles only.
+        Permission Category : Bot Owner only.
         Usage: `~lsguilds`
         """
         embed = discord_utils.create_embed()
@@ -339,7 +339,7 @@ class AdminCog(commands.Cog, name="Admin"):
     ):
         """Quit a guild.
 
-        Permission Category : Bot Owner Roles only.
+        Permission Category : Bot Owner only.
         Usage: `~quitguild "Guildname"`
         """
         embed = discord_utils.create_embed()
@@ -375,7 +375,7 @@ class AdminCog(commands.Cog, name="Admin"):
     async def setprefix(self, ctx: commands.Context, prefix: str):
         """Sets the bot prefix for the server.
 
-        Permission Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~setprefix !`
         """
         embed = discord_utils.create_embed()
@@ -400,7 +400,7 @@ class AdminCog(commands.Cog, name="Admin"):
         """Reloads this server's custom commands, permission roles and prefix, channel mirrors plus
         the global custom commands. This is useful when we're editing commands or playing with the Database.
 
-        Permission Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~reloaddatabasecache`
         """
         embed = discord_utils.create_embed()

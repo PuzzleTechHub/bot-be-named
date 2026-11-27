@@ -412,7 +412,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         Defaults to the current channel if none is given.
         Does not work on threads; use the parent text channel instead.
 
-        Permission Category : Admin and Bot Owner only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~addroletochan @Role`
         Usage: `~addroletochan RoleName`
         Usage: `~addroletochan @Role #channel`
@@ -1208,7 +1208,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     async def listcategories(self, ctx: commands.Context, cat_name: str = ""):
         """List all the categories in a server. If Category is provided, list all channels in it.
 
-        Permission Category : Admin and Bot Owner only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~listcat` (List all the categories in the server)
         Usage: `~listcat "Cat A"` (List all the channels in the given category)
         """
@@ -1257,7 +1257,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     async def deletecategory(self, ctx: commands.Context, cat_name: str = ""):
         """Delete a category in the server. Requires emoji confirmation
 
-        Permission Category : Server Moderators only.
+        Permission Category : Admin only.
         Usage: `~deletecat "Cat A"` (List all the channels in the given category)
         """
         embed = discord_utils.create_embed()

@@ -47,7 +47,7 @@ class HydraCog(commands.Cog, name="Hydra"):
     async def roundhydra(self, ctx: commands.Context, round_name: str = None):
         """Sets or updates the round information on the Overview sheet. Passing no argument retrieves the current round.
 
-        Permission Category : Solver Roles only
+        Permission Category : Solver Roles only.
         Usage: `~roundhydra` (retrieves current round)
         Usage: `~roundhydra "Round Name"` (sets round)
         """
@@ -122,7 +122,7 @@ class HydraCog(commands.Cog, name="Hydra"):
 
         Passing channel mentions retrieves the notes for each of those channels instead.
 
-        Permission Category : Solver Roles only
+        Permission Category : Solver Roles only.
         Usage: `~noteshydra` (retrieves current notes)
         Usage: `~noteshydra "This puzzle has unclued anagrams."` (sets notes)
         Usage: `~noteshydra #puzzle-1 #puzzle-2` (retrieves notes for the mentioned channels)
@@ -1702,7 +1702,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         If no channel is given, uses the current channel.
         Note: The category permissions must explicitly allow the role to view the channel.
 
-        Permission Category : Trusted roles only.
+        Permission Category : Trusted Roles only.
         Usage: `~summaryallowhydra @role #channel`
         Usage: `~summaryallowhydra @role`
         """

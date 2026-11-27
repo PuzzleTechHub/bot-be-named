@@ -543,6 +543,7 @@ class LionCog(commands.Cog, name="Lion"):
 
         Sheet must have the following tabs: Overview, Template, Meta Template
 
+        Permission Category : Solver Roles only.
         Usage: ~tetherlion sheeturl
         """
         await sheet_utils.tether_template_sheet(

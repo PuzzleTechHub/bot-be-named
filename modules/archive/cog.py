@@ -442,7 +442,7 @@ class ArchiveCog(commands.Cog, name="Archive"):
         """Command to archive every text and forum channel in the server. WARNING: This command will take *very*
         long on any reasonably aged server
 
-        Permission Category : Admin or Bot Owner Roles only.
+        Permission Category : Admin or Bot Owner only.
         Usage: `~archiveserver`
         """
         if not await self.check_dce_installed(ctx):

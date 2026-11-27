@@ -315,7 +315,7 @@ class MiscCog(commands.Cog, name="Misc"):
     async def botsay(self, ctx: commands.Context, channel_id_or_name: str, *args):
         """Say something in another channel
 
-        Permission Category : Trusted roles only.
+        Permission Category : Trusted Roles only.
         Usage: `~botsay channelname Message`
         Usage: `~botsay #channelmention Longer Message`
         """
@@ -358,7 +358,7 @@ class MiscCog(commands.Cog, name="Misc"):
     async def botsayembed(self, ctx: commands.Context, channel_id_or_name: str, *args):
         """Say something in another channel, but as an embed
 
-        Permission Category : Trusted roles only.
+        Permission Category : Trusted Roles only.
         Usage: `~botsayembed channelname Message`
         Usage: `~botsayembed #channelmention Longer Message`
         """
