@@ -10,3 +10,4 @@ psycopg2-binary==2.9.13
 python-dotenv==1.2.4
 setuptools==84.2.1
 SQLAlchemy==2.1.9
+tzdata==2026.6
