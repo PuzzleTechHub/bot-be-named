@@ -16,8 +16,9 @@ def _jsonb_as_json_on_sqlite(type_, compiler, **kw):
 
 
 import pytest  # noqa: E402
-import database  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
+
+import database  # noqa: E402
 
 assert database.DATABASE_ENGINE.dialect.name == "sqlite"
 database.load_all()

@@ -2,6 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+import database
 from modules.sheets.cog import SheetsCog
 from tests.fakes import (
     FakeCategory,
@@ -12,7 +13,6 @@ from tests.fakes import (
     add_tether,
     watch_threads,
 )
-import database
 from utils import google_utils, sheet_utils
 
 CHANNEL_SHEET = "https://docs.google.com/spreadsheets/d/channel/edit"

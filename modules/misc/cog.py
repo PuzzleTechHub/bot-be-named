@@ -1,8 +1,9 @@
-import nextcord
-from nextcord.ext import commands
-from emoji import EMOJI_DATA, emojize
 import emoji
-from utils import discord_utils, command_predicates
+import nextcord
+from emoji import EMOJI_DATA, emojize
+from nextcord.ext import commands
+
+from utils import command_predicates, discord_utils
 
 """
 Misc module. A collection of Misc useful/fun commands. Also everything not in any other module.

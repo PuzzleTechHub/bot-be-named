@@ -2,11 +2,12 @@ import asyncio
 import os
 import re
 import time
+from collections.abc import Callable
+from typing import NamedTuple
 
 import nextcord
 from nextcord.ext import commands
-from typing import NamedTuple
-from collections.abc import Callable
+
 import constants
 from utils import logging_utils
 

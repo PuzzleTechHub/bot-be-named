@@ -4,10 +4,8 @@ import emoji
 import gspread
 import nextcord
 from nextcord.ext import commands
-from utils import sheets_constants
-from utils import discord_utils
-from utils import batch_update_utils
-from utils import sheet_utils
+
+from utils import batch_update_utils, discord_utils, sheet_utils, sheets_constants
 
 """
 Solved Utils. Used to edit "solved states" from discord channels etc. Allows us to deduplicate code when trying to edit channel names etc.

@@ -1,8 +1,10 @@
-from modules.error_logging import error_constants
-from datetime import datetime
-from nextcord import Webhook
-import aiohttp
 import os
+from datetime import datetime
+
+import aiohttp
+from nextcord import Webhook
+
+from modules.error_logging import error_constants
 
 """
 Logging utils. Sends errors to log and to a specific private webhook used for BBN errors and command usage.

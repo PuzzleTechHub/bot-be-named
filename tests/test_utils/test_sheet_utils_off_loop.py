@@ -5,7 +5,6 @@ import gspread
 import pytest
 
 import database
-
 from tests.fakes import (
     FakeCategory,
     FakeChannel,

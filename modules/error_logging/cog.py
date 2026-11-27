@@ -1,9 +1,11 @@
-import sys
 import os
+import sys
+
 from nextcord.ext import commands
-from modules.error_logging.error_handling import ErrorHandler
+
 from modules.error_logging import error_constants
-from utils import discord_utils, command_predicates
+from modules.error_logging.error_handling import ErrorHandler
+from utils import command_predicates, discord_utils
 
 """
 Error logging module.

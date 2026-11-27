@@ -1,8 +1,15 @@
-import nextcord
 import asyncio
-from utils import sheets_constants
+
+import nextcord
 from nextcord.ext import commands
-from utils import discord_utils, command_predicates, sheet_utils, solved_utils
+
+from utils import (
+    command_predicates,
+    discord_utils,
+    sheet_utils,
+    sheets_constants,
+    solved_utils,
+)
 
 """
 Discord Channel management module. Bundle of all discord functions and commands related to managing a specific discord channel and managing it.

@@ -1,8 +1,10 @@
 import time
+
 import nextcord
-import database
 from nextcord.ext import commands
-from utils import discord_utils, command_predicates, logging_utils
+
+import database
+from utils import command_predicates, discord_utils, logging_utils
 
 """
 Channel Mirror module. Copies messages heard from one channel and puts them in another.

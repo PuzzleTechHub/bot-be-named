@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 from typing import Any
+
 import gspread
 import nextcord
 import pytest
@@ -451,8 +452,8 @@ async def test_find_channel_rows_channel_tether_beats_category(server, monkeypat
 async def test_find_channel_rows_opens_sheets_off_the_event_loop(server, monkeypatch):
     import threading
 
-    from utils import sheet_utils
     from tests.fakes import FakeOverviewSheet
+    from utils import sheet_utils
 
     add_tether(server.gph1_cat.id, GPH1_SHEET)
     threads = []

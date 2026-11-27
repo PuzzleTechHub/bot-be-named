@@ -1,9 +1,11 @@
-import nextcord
-import aiohttp
 import io
+
+import aiohttp
 import emoji
+import nextcord
 from nextcord.ext import commands
-from utils import discord_utils, command_predicates
+
+from utils import command_predicates, discord_utils
 
 """
 Discord module. Functions and commands related specifically to discord functionality, that does not intersect with any other modules.

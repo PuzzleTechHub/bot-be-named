@@ -1,6 +1,7 @@
 import nextcord
 from nextcord.ext import commands
-from utils import discord_utils, command_predicates
+
+from utils import command_predicates, discord_utils
 
 """
 Discord Role management module. Bundle of all discord functions and commands related to managing roles in any discord guild.

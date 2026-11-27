@@ -1,8 +1,9 @@
-import geopy
 import os
 
-from modules.time import time_utils
+import geopy
 from nextcord.ext import commands
+
+from modules.time import time_utils
 from utils import discord_utils
 
 """
