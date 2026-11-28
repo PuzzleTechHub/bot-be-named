@@ -201,8 +201,9 @@ class AdminCog(commands.Cog, name="Admin"):
     ):
         """List all users in common between 2 guilds that the bot is in.
 
+        See also `~lsguilds`.
+
         Permission Category : Bot Owner only.
-        See also : `~lsguilds`
         Usage: `~commonmemberguilds "Guild1" "Guild2"`
         """
         embed = discord_utils.create_embed()

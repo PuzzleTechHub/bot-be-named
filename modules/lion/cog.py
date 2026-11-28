@@ -41,8 +41,7 @@ class LionCog(commands.Cog, name="Lion"):
         Also see ~sheetlion and ~displaytether.
 
         Permission Category : Solver Roles only.
-
-        Usage: ~gettablion
+        Usage: `~gettablion`
         """
         base = SheetCommandBase(ctx, self.gspread_client)
         curr_sheet_link, overview_sheet, row_to_find = await base.get_sheet_context()
@@ -69,8 +68,8 @@ class LionCog(commands.Cog, name="Lion"):
         """Sets the puzzle to solved and updates the sheet and channel name accordingly.
 
         Permission Category : Solver Roles only.
-        Usage: ~solvedlion
-        Usage: ~solvedlion "answer"
+        Usage: `~solvedlion`
+        Usage: `~solvedlion "answer"`
         """
         await self.statuslion(ctx, "solved", answer)
 
@@ -80,9 +79,8 @@ class LionCog(commands.Cog, name="Lion"):
         """Sets the puzzle to backsolved and updates the sheet and channel name accordingly.
 
         Permission Category : Solver Roles only.
-
-        Usage: ~backsolvedlion
-        Usage: ~backsolvedlion "answer"
+        Usage: `~backsolvedlion`
+        Usage: `~backsolvedlion "answer"`
         """
         await self.statuslion(ctx, "backsolved", answer)
 
@@ -92,9 +90,8 @@ class LionCog(commands.Cog, name="Lion"):
         """Sets the puzzle to solvedish and updates the sheet and channel name accordingly
 
         Permission Category : Solver Roles only.
-
-        Usage: ~solvedishlion
-        Usage: ~solvedishlion "answer"
+        Usage: `~solvedishlion`
+        Usage: `~solvedishlion "answer"`
         """
         await self.statuslion(ctx, "solvedish", answer)
 
@@ -104,9 +101,8 @@ class LionCog(commands.Cog, name="Lion"):
         """Sets the puzzle to in progress and updates the sheet and channel name accordingly
 
         Permission Category : Solver Roles only.
-
-        Usage: ~unsolvedlion (Removes the answer from the sheet)
-        Usage: ~unsolvedlion "answer" (Updates the answer from the sheet to "answer")
+        Usage: `~unsolvedlion` (Removes the answer from the sheet)
+        Usage: `~unsolvedlion "answer"` (Updates the answer from the sheet to "answer")
 
         """
         await self.statuslion(ctx, "In Progress", answer)
@@ -125,10 +121,9 @@ class LionCog(commands.Cog, name="Lion"):
         For statuses  [solved, solvedish, backsolved, postsolved, "In Progress"] the channel name gets updated
 
         Permission Category : Solver Roles only.
-
-        Usage: ~statuslion status
-        Usage: ~statuslion solved "answer"
-        Usage: ~statuslion "custom-update-string" "answer"
+        Usage: `~statuslion status`
+        Usage: `~statuslion solved "answer"`
+        Usage: `~statuslion "custom-update-string" "answer"`
         """
         try:
             base = SheetCommandBase(ctx, self.gspread_client)
@@ -313,8 +308,8 @@ class LionCog(commands.Cog, name="Lion"):
         Requires that the sheet has Overview and Template tabs
 
         Permission Category : Solver Roles only.
-        Usage: ~chanlion "Puzzle Name"
-        Usage: ~chanlion PuzzleName "http://www.linktopuzzle.com"
+        Usage: `~chanlion "Puzzle Name"`
+        Usage: `~chanlion PuzzleName "http://www.linktopuzzle.com"`
         """
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
@@ -343,8 +338,8 @@ class LionCog(commands.Cog, name="Lion"):
         Requires that the sheet has Overview and Meta Template tabs
 
         Permission Category : Solver Roles only.
-        Usage: ~metalion PuzzleName
-        Usage: ~metalion PuzzleName linktopuzzle
+        Usage: `~metalion PuzzleName`
+        Usage: `~metalion PuzzleName linktopuzzle`
         """
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
@@ -373,8 +368,8 @@ class LionCog(commands.Cog, name="Lion"):
         Requires that the sheet has Overview and Template tabs
 
         Permission Category : Solver Roles only.
-        Usage: ~threadlion PuzzleName
-        Usage: ~threadlion PuzzleName linktopuzzle
+        Usage: `~threadlion PuzzleName`
+        Usage: `~threadlion PuzzleName linktopuzzle`
         """
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
@@ -403,8 +398,8 @@ class LionCog(commands.Cog, name="Lion"):
         Requires that the sheet has Overview and Meta Template tabs
 
         Permission Category : Solver Roles only.
-        Usage: ~metathreadlion PuzzleName
-        Usage: ~metathreadlion PuzzleName linktopuzzle
+        Usage: `~metathreadlion PuzzleName`
+        Usage: `~metathreadlion PuzzleName linktopuzzle`
         """
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
@@ -433,8 +428,8 @@ class LionCog(commands.Cog, name="Lion"):
         Requires that the sheet has Overview and Template tabs. Works only from within a forum post.
 
         Permission Category : Solver Roles only.
-        Usage: ~forumlion PuzzleName
-        Usage: ~forumlion PuzzleName linktopuzzle
+        Usage: `~forumlion PuzzleName`
+        Usage: `~forumlion PuzzleName linktopuzzle`
         """
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
@@ -463,8 +458,8 @@ class LionCog(commands.Cog, name="Lion"):
         Requires that the sheet has Overview and Meta Template tabs. Works only from within a forum post.
 
         Permission Category : Solver Roles only.
-        Usage: ~metaforumlion PuzzleName
-        Usage: ~metaforumlion PuzzleName linktopuzzle
+        Usage: `~metaforumlion PuzzleName`
+        Usage: `~metaforumlion PuzzleName linktopuzzle`
         """
         curr_sheet_link, newsheet, new_chan = None, None, None
         text_to_pin = " ".join(args)
@@ -495,8 +490,8 @@ class LionCog(commands.Cog, name="Lion"):
         Requires that the sheet has Overview and Template tabs
 
         Permission Category : Solver Roles only.
-        Usage: ~sheetlion PuzzleName
-        Usage: ~sheetlion PuzzleName linktopuzzle
+        Usage: `~sheetlion PuzzleName`
+        Usage: `~sheetlion PuzzleName linktopuzzle`
         """
         curr_sheet_link, newsheet = await sheet_utils.sheetcrabgeneric(
             self.gspread_client, ctx, tab_name, False
@@ -520,8 +515,8 @@ class LionCog(commands.Cog, name="Lion"):
         Requires that the sheet has Overview and Meta Template tabs
 
         Permission Category : Solver Roles only.
-        Usage: ~metasheetlion PuzzleName
-        Usage: ~metasheetlion PuzzleName linktopuzzle
+        Usage: `~metasheetlion PuzzleName`
+        Usage: `~metasheetlion PuzzleName linktopuzzle`
         """
         curr_sheet_link, newsheet = None, None
 
@@ -549,7 +544,7 @@ class LionCog(commands.Cog, name="Lion"):
         Sheet must have the following tabs: Overview, Template, Meta Template
 
         Permission Category : Solver Roles only.
-        Usage: ~tetherlion sheeturl
+        Usage: `~tetherlion sheeturl`
         """
         await sheet_utils.tether_template_sheet(
             self.gspread_client, ctx, sheet_key_or_link

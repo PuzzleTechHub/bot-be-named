@@ -68,7 +68,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def pinme(self, ctx: commands.Context):
         """Pins the message that called it.
 
-        Usage : `~pinme Message`
+        Usage: `~pinme Message`
         """
         embed_or_none = await discord_utils.pin_message(ctx.message)
         # Error pinning, send error message to user
@@ -157,7 +157,7 @@ class DiscordCog(commands.Cog, name="Discord"):
     async def listpin(self, ctx: commands.Context):
         """Lists all the pinned posts in the current channel
 
-        Usage: `~listpins~`
+        Usage: `~listpins`
         """
 
         embed = discord_utils.create_embed()

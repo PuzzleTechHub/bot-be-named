@@ -216,6 +216,20 @@ class HelpMenu(paging_utils.PageView):
 class HelpCommand(commands.MinimalHelpCommand):
     """Custom help command override using embeds"""
 
+    def __init__(self, **options):
+        # The ~help command's own docstring, shown by ~help help
+        options.setdefault(
+            "command_attrs",
+            {
+                "help": "Shows every module and its commands, or the page for one module or command.\n\n"
+                "Usage: `~help`\n"
+                "Usage: `~help addperm` (one command's page)\n"
+                "Usage: `~help Hydra` (one module's commands)\n"
+                "Usage: `~help permissions` (commands grouped by who can use them)"
+            },
+        )
+        super().__init__(**options)
+
     def get_ending_note(self):
         """Returns note to display at the bottom"""
         prefix = self.context.clean_prefix

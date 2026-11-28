@@ -40,12 +40,12 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     ):
         """Command to move channels to category with given name
 
+        Note that channels may be mentioned or named, but a channel is named "all", then it must be mentioned to avoid issues.
+
         Permission Category : Verified Roles only.
         Usage: `~movechannel "CatA"` (Moves current channel to CatA)
         Usage: `~movechannel "CatA" #chan1 "chan2" "chan3"` (Moves all listed channels to CatA. Note - This does not move current channel unless listed)
         Usage: `~movechannel "CatA" all` (Moves all channels in current category to CatA.)
-
-        Note that channels may be mentioned or named, but a channel is named "all", then it must be mentioned to avoid issues.
         """
         embed = discord_utils.create_embed()
 
@@ -235,14 +235,14 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     ):
         """Changes current channel name to whatever is asked.
 
-        Permission Category : Verified Roles only.
-        Usage: `~renamechannel newname` (Renames current channel)
-        Usage: `~renamechan #old-chan newname`
-
         Can rename threads as well.
 
         Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes.
         Those channels will have to be renamed manually, or wait for the full 10 mins.
+
+        Permission Category : Verified Roles only.
+        Usage: `~renamechannel newname` (Renames current channel)
+        Usage: `~renamechan #old-chan newname`
         """
         embed = discord_utils.create_embed()
 
@@ -789,7 +789,6 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         """Sort all channels in a category by name. Specifically for puzzle hunts, channels without a prefix come first,
         then `solvedish-`, `backsolved-`, `solved-` and `postsolved-` channels, in that order.
         Permission Category : Verified Roles only.
-
         Usage: `~categorysort`
         """
         embed = discord_utils.create_embed()
@@ -1357,10 +1356,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     async def solved(self, ctx: commands.Context):
         """Changes channel name to solved-<channel-name>
 
+        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
+
         Permission Category : Solver Roles only.
         Usage: `~solved`
-
-        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
         status = "Solved"
         status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
@@ -1373,10 +1372,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     async def solvedish(self, ctx: commands.Context):
         """Changes channel name to solvedish-<channel-name>
 
+        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
+
         Permission Category : Solver Roles only.
         Usage: `~solvedish`
-
-        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
         status = "Solvedish"
         status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
@@ -1389,10 +1388,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     async def backsolved(self, ctx: commands.Context):
         """Changes channel name to backsolved-<channel-name>
 
+        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
+
         Permission Category : Solver Roles only.
         Usage: `~backsolved`
-
-        Note that if you use more than 2 channel renaming commands quickly, Discord automatically stops any more channel-name changes for 10 more minutes. Those channels will have to be renamed manually, or wait for the full 10 mins.
         """
         status = "Backsolved"
         status_prefix = sheets_constants.status_dict.get(status).get("prefix_name")
@@ -1405,10 +1404,10 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
     async def unsolved(self, ctx: commands.Context):
         """removes one of the solved prefixes from channel name
 
+        Discord allows 2 renames per channel every 10 minutes. If it holds this one back, I'll say so and rename the channel when Discord allows it.
+
         Permission Category : Solver Roles only.
         Usage: `~unsolved`
-
-        Discord allows 2 renames per channel every 10 minutes. If it holds this one back, I'll say so and rename the channel when Discord allows it.
         """
         embed = await solved_utils.status_remove(ctx)
         if embed is not None:

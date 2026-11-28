@@ -229,12 +229,15 @@ async def test_command_help_moves_usage_and_permission_out_of_the_description(he
 
 
 async def test_command_help_usage_field_when_docstring_has_none(helper):
-    command = helper.context.bot.get_command("about")
-    assert "Usage:" not in (command.help or "")
-    await helper.send_command_help(command)
+    # Every real command has Usage lines now, so use a made-up one
+    @commands.command(help="Says hello.")
+    async def hello(ctx, name: str):
+        pass
+
+    await helper.send_command_help(hello)
     [message] = helper.context.channel.sent
     fields = {field.name: field.value for field in message.embed.fields}
-    assert fields["Usage"] == "`~about`"
+    assert fields["Usage"] == "`~hello <name>`"
 
 
 async def test_every_command_help_page_is_valid(helper):

@@ -77,7 +77,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         See also `~sheetcrab` and `~sheethydra`.
 
         Permission Category : Solver Roles only.
-        Usage : `~tether SheetLink`
+        Usage: `~tether SheetLink`
         """
         embed = discord_utils.create_embed()
 
@@ -137,7 +137,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         See also `~sheetcrab` and `~sheethydra`.
 
         Permission Category : Solver Roles only.
-        Usage : `~chantether SheetLink`
+        Usage: `~chantether SheetLink`
         """
         embed = discord_utils.create_embed()
 
@@ -184,7 +184,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         See also `~tether` and `~sheetcrab` and `~sheethydra`.
 
         Permission Category : Solver Roles only.
-        Usage : `~removetether`
+        Usage: `~removetether`
         """
         embed = discord_utils.create_embed()
 
@@ -258,7 +258,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         See also : ~addtether
 
         Permission Category : Admin or Bot Owner only.
-        Usage : `~prunetethers`
+        Usage: `~prunetethers`
         """
         embed = discord_utils.create_embed()
 
@@ -280,7 +280,7 @@ class SheetsCog(commands.Cog, name="Sheets"):
         """Find the sheet the category is current tethered too
 
         Permission Category : Solver Roles only.
-        Usage : `~showtether`
+        Usage: `~showtether`
         """
         embed = discord_utils.create_embed()
 

@@ -387,7 +387,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         categories that explicitly give that role View Channel, and leaves out channels that explicitly deny it.
 
         Permission Category : Solver Roles only.
-
         Usage: `~catsummaryhydra`
         """
         matched_roles = await summary_utils.get_matched_roles(ctx)
@@ -503,11 +502,10 @@ class HydraCog(commands.Cog, name="Hydra"):
         Requires that Template tab follows Hydra rules (Cell B4 must be used for answer).
 
         Permission Category : Solver Roles only.
-
-        Usage: ~anychanhydra "Puzzle Name" "TemplateName" (uses "TemplateName Template" from the sheet)
-        Usage: ~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" (uses "Square Template" from the sheet)
-        Usage: ~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" "Some notes here" (with notes)
-        Usage: ~anychanhydra "Puzzle Name" "Template" (uses the plain "Template" tab)
+        Usage: `~anychanhydra "Puzzle Name" "TemplateName"` (uses "TemplateName Template" from the sheet)
+        Usage: `~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com"` (uses "Square Template" from the sheet)
+        Usage: `~anychanhydra PuzzleName "Square" "http://www.linktopuzzle.com" "Some notes here"` (with notes)
+        Usage: `~anychanhydra "Puzzle Name" "Template"` (uses the plain "Template" tab)
         """
         arg_list = shlex.split(args)
         if len(arg_list) < 2 or len(arg_list) > 4:
@@ -580,9 +578,9 @@ class HydraCog(commands.Cog, name="Hydra"):
         Uses the "Template" tab if the sheet has no "Meta Template" tab.
 
         Permission Category : Solver Roles only.
-        Usage: ~metachanhydra "Meta Name"
-        Usage: ~metachanhydra "Meta Name" "http://www.linktopuzzle.com"
-        Usage: ~metachanhydra "Meta Name" "http://www.linktopuzzle.com" "Some notes here"
+        Usage: `~metachanhydra "Meta Name"`
+        Usage: `~metachanhydra "Meta Name" "http://www.linktopuzzle.com"`
+        Usage: `~metachanhydra "Meta Name" "http://www.linktopuzzle.com" "Some notes here"`
         """
         await self.puzzle_from_template(ctx, args, "Meta", "chan")
 
@@ -594,9 +592,9 @@ class HydraCog(commands.Cog, name="Hydra"):
         Can't be used inside a thread.
 
         Permission Category : Solver Roles only.
-        Usage: ~threadhydra "Puzzle Name"
-        Usage: ~threadhydra "Puzzle Name" "http://www.linktopuzzle.com"
-        Usage: ~threadhydra "Puzzle Name" "http://www.linktopuzzle.com" "Some notes here"
+        Usage: `~threadhydra "Puzzle Name"`
+        Usage: `~threadhydra "Puzzle Name" "http://www.linktopuzzle.com"`
+        Usage: `~threadhydra "Puzzle Name" "http://www.linktopuzzle.com" "Some notes here"`
         """
         await self.puzzle_from_template(ctx, args, "Template", "thread")
 
@@ -608,8 +606,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         Can't be used inside a thread. Uses the "Template" tab if the sheet has no "Meta Template" tab.
 
         Permission Category : Solver Roles only.
-        Usage: ~metathreadhydra "Meta Name"
-        Usage: ~metathreadhydra "Meta Name" "http://www.linktopuzzle.com" "Some notes here"
+        Usage: `~metathreadhydra "Meta Name"`
+        Usage: `~metathreadhydra "Meta Name" "http://www.linktopuzzle.com" "Some notes here"`
         """
         await self.puzzle_from_template(ctx, args, "Meta", "thread")
 
@@ -621,9 +619,9 @@ class HydraCog(commands.Cog, name="Hydra"):
         Must be used inside a post in the forum.
 
         Permission Category : Solver Roles only.
-        Usage: ~forumhydra "Puzzle Name"
-        Usage: ~forumhydra "Puzzle Name" "http://www.linktopuzzle.com"
-        Usage: ~forumhydra "Puzzle Name" "http://www.linktopuzzle.com" "Some notes here"
+        Usage: `~forumhydra "Puzzle Name"`
+        Usage: `~forumhydra "Puzzle Name" "http://www.linktopuzzle.com"`
+        Usage: `~forumhydra "Puzzle Name" "http://www.linktopuzzle.com" "Some notes here"`
         """
         await self.puzzle_from_template(ctx, args, "Template", "forum")
 
@@ -635,8 +633,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         Must be used inside a post in the forum. Uses the "Template" tab if the sheet has no "Meta Template" tab.
 
         Permission Category : Solver Roles only.
-        Usage: ~metaforumhydra "Meta Name"
-        Usage: ~metaforumhydra "Meta Name" "http://www.linktopuzzle.com" "Some notes here"
+        Usage: `~metaforumhydra "Meta Name"`
+        Usage: `~metaforumhydra "Meta Name" "http://www.linktopuzzle.com" "Some notes here"`
         """
         await self.puzzle_from_template(ctx, args, "Meta", "forum")
 
@@ -648,9 +646,9 @@ class HydraCog(commands.Cog, name="Hydra"):
         The Overview row has no channel ID, so status commands can't find it.
 
         Permission Category : Solver Roles only.
-        Usage: ~sheethydra "Puzzle Name"
-        Usage: ~sheethydra "Puzzle Name" "http://www.linktopuzzle.com"
-        Usage: ~sheethydra "Puzzle Name" "http://www.linktopuzzle.com" "Some notes here"
+        Usage: `~sheethydra "Puzzle Name"`
+        Usage: `~sheethydra "Puzzle Name" "http://www.linktopuzzle.com"`
+        Usage: `~sheethydra "Puzzle Name" "http://www.linktopuzzle.com" "Some notes here"`
         """
         await self.puzzle_from_template(ctx, args, "Template", "none")
 
@@ -663,8 +661,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         Uses the "Template" tab if the sheet has no "Meta Template" tab.
 
         Permission Category : Solver Roles only.
-        Usage: ~metasheethydra "Meta Name"
-        Usage: ~metasheethydra "Meta Name" "http://www.linktopuzzle.com" "Some notes here"
+        Usage: `~metasheethydra "Meta Name"`
+        Usage: `~metasheethydra "Meta Name" "http://www.linktopuzzle.com" "Some notes here"`
         """
         await self.puzzle_from_template(ctx, args, "Meta", "none")
 
@@ -677,7 +675,7 @@ class HydraCog(commands.Cog, name="Hydra"):
         See also `~chantether` to tether a single channel.
 
         Permission Category : Solver Roles only.
-        Usage: ~tetherhydra sheeturl
+        Usage: `~tetherhydra sheeturl`
         """
         await sheet_utils.tether_template_sheet(
             self.gspread_client, ctx, sheet_key_or_link
@@ -719,8 +717,8 @@ class HydraCog(commands.Cog, name="Hydra"):
         Supports creating multiple channels in parallel delimited by new lines (CTRL + Enter).
 
         Permission Category : Solver Roles only.
-        Usage: ~chanhydra "Puzzle Name"
-        Usage: ~chanhydra PuzzleName "http://www.linktopuzzle.com"
+        Usage: `~chanhydra "Puzzle Name"`
+        Usage: `~chanhydra PuzzleName "http://www.linktopuzzle.com"`
         Usage:
         ~chanhydra
         APuzzle "http://linktoapuzzle.com"
@@ -831,7 +829,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         You'll need to confirm the deletion by reacting to the confirmation message within 15 seconds.
 
         Permission Category : Trusted Roles only.
-
         Usage: `~deletehydra #puzzle-channel` (deletes #puzzle-channel)
         """
         embed = discord_utils.create_embed()
@@ -1367,7 +1364,6 @@ class HydraCog(commands.Cog, name="Hydra"):
         Alternatively, you can give a custom status.
 
         Permission Category : Solver Roles only.
-
         Usage: `~statushydra status`
         Usage: `~statushydra solved "answer"`
         Usage: `~statushydra "custom-update-string" "answer"`

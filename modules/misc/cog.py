@@ -24,8 +24,8 @@ class MiscCog(commands.Cog, name="Misc"):
     async def emojiall(self, ctx: commands.Context, emoji_count: int = 20):
         """Reacts to the replied message with respective number of emojis (Uses A-Z emojis).
 
-        Use: (as reply to another message) `~emojiall 5`
-        Use: (as reply to another message) `~emojiall` (defaults to 20)
+        Usage: `~emojiall 5` (as a reply to another message)
+        Usage: `~emojiall` (as a reply to another message, defaults to 20)
         """
         if emoji_count <= 0:
             emoji_count = 1
@@ -61,9 +61,9 @@ class MiscCog(commands.Cog, name="Misc"):
 
         If this command is a reply to another message, it'll instead be a react to that message.
 
-        Usage : `~emoji snoo_glow delete`
-        Usage : `~emoji :snoo_grin:`
-        Usage : `~emoji :an_emoji: sunglasses`
+        Usage: `~emoji snoo_glow delete`
+        Usage: `~emoji :snoo_grin:`
+        Usage: `~emoji :an_emoji: sunglasses`
         """
 
         embed = discord_utils.create_embed()
@@ -214,7 +214,7 @@ class MiscCog(commands.Cog, name="Misc"):
     async def about(self, ctx: commands.Context):
         """A quick primer about BBN and what it does
 
-        Usage : `~about`
+        Usage: `~about`
         """
         embed = discord_utils.create_embed()
 
@@ -262,7 +262,7 @@ class MiscCog(commands.Cog, name="Misc"):
     async def info(self, ctx: commands.Context):
         """A quick primer about helpful BBN functions
 
-        Usage : `~info`
+        Usage: `~info`
         """
         embed = discord_utils.create_embed()
 

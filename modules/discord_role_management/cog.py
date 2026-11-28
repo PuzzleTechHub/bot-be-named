@@ -369,8 +369,8 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
     ):
         """List all roles in the server, or all users under a given role.
 
-        Usage:`~listroles` (All roles in the server)
-        Usage:`~listrole @RoleName` (List all users with role @RoleName)
+        Usage: `~listroles` (All roles in the server)
+        Usage: `~listrole @RoleName` (List all users with role @RoleName)
         """
         embed = discord_utils.create_embed()
 
@@ -480,8 +480,8 @@ class DiscordRoleManagementCog(commands.Cog, name="Discord Role Management"):
     async def unreactrole(self, ctx: commands.Context, *args: nextcord.Role | str):
         """List all people for a given role who have not reacted to a message. (Either reply to the message, or it takes the message above)
 
-        Usage:(as reply to message) `~unreactrole here` (Everyone who can see this channel, including BBN)
-        Usage:(to just consider the last message) `~unreactrole @RoleA "RoleB"`
+        Usage: `~unreactrole here` (as a reply to the message: everyone who can see this channel, including BBN)
+        Usage: `~unreactrole @RoleA "RoleB"` (checks the last message)
         """
         embed = discord_utils.create_embed()
 
