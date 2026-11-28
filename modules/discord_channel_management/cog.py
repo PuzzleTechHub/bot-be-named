@@ -880,7 +880,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
             positions = range(positions[0], positions[0] + len(positions))
         return [
             (channel, position)
-            for channel, position in zip(sorted_channels, positions)
+            for channel, position in zip(sorted_channels, positions, strict=True)
             if channel.position != position
         ]
 

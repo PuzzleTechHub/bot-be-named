@@ -385,7 +385,6 @@ def findsheettether(
     curr_cat_id: int, curr_chan_id: int, curr_thread_id: int | None = None
 ):
     """For finding the appropriate sheet tethering for a given category or channel"""
-    result = None
     for tether_type, place_id in (
         (sheets_constants.THREAD, curr_thread_id),
         (sheets_constants.CHANNEL, curr_chan_id),
@@ -393,8 +392,8 @@ def findsheettether(
     ):
         result = database.get_tether(place_id)
         if result is not None:
-            break
-    return result, tether_type
+            return result, tether_type
+    return None, sheets_constants.CATEGORY
 
 
 def find_channel_tether(channel):
@@ -1472,7 +1471,9 @@ async def batch_create_puzzle_channels(
 
     # Return results
     results = []
-    for idx, (puzzle_name, tab_name, puzzle_url, notes, channel) in enumerate(channels):
+    for idx, (puzzle_name, _tab_name, _puzzle_url, _notes, channel) in enumerate(
+        channels
+    ):
         if worksheets[idx] is not None:
             final_link = curr_sheet_link + "/edit#gid=" + str(worksheets[idx].id)
             results.append((final_link, worksheets[idx], channel, puzzle_name))

@@ -312,7 +312,7 @@ def test_every_permission_category_has_a_page():
 async def test_permission_overview_counts_each_category(helper):
     [(_, overview), *pages] = helper.permission_pages()
     assert [field.name for field in overview.fields] == [title for title, _ in pages]
-    for field, (_, embed) in zip(overview.fields, pages):
+    for field, (_, embed) in zip(overview.fields, pages, strict=True):
         count = sum(len(f.value.split(", ")) for f in embed.fields)
         assert field.value.endswith(f"{count} command{'s' * (count != 1)}.")
 

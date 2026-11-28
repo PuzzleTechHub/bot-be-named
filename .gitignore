@@ -11,3 +11,4 @@ env/
 nohup.out
 .coverage
 fly.toml
+saved_sheets/

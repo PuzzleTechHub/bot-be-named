@@ -1,8 +1,11 @@
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 
+import constants
 import database
+from modules.sheets import cog as sheets_cog
 from modules.sheets.cog import SheetsCog
 from tests.fakes import (
     FakeCategory,
@@ -149,3 +152,111 @@ async def test_prune_tethers_off_the_event_loop(cog, monkeypatch):
 
     assert [name for name, _ in calls] == ["get_all_tethers", "delete_tether"]
     _not_on_loop(calls)
+
+
+# ~downloadsheet
+
+
+class FileContext(FakeContext):
+    """Also records files sent."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.files = []
+
+    async def send(self, content=None, embed=None, view=None, file=None):
+        if file is not None:
+            self.files.append(file)
+        return await super().send(content, embed, view)
+
+
+@pytest.fixture
+def exported(cog, monkeypatch, tmp_path):
+    """~downloadsheet in an empty folder, with a sheet whose export is the bytes set
+    on exported.data and whose title is exported.title."""
+    monkeypatch.chdir(tmp_path)
+    exported = SimpleNamespace(data=b"sheet bytes", title="GPH/Round 1")
+    monkeypatch.setattr(
+        sheet_utils,
+        "get_sheet_from_key_or_link",
+        lambda client, link: SimpleNamespace(id="abc", title=exported.title),
+    )
+    build = MagicMock()
+    build.return_value.files.return_value.export_media.return_value.execute.side_effect = (
+        lambda: exported.data
+    )
+    monkeypatch.setattr(sheets_cog.discovery, "build", build)
+    return exported
+
+
+def file_context():
+    channel = FakeChannel(201, "puzzle-1", FakeCategory(100, "GPH 1 Puzzles"))
+    return FileContext(FakeGuild(categories=[channel.category]), channel)
+
+
+async def test_downloadsheet_title_with_slash(cog, exported, tmp_path):
+    """Used to fail: the title went into the path, so "/" pointed at a missing folder."""
+    ctx = file_context()
+    await cog.downloadsheet.callback(cog, ctx, CHANNEL_SHEET)
+    [file] = ctx.files
+    assert file.filename == "GPH_Round 1.xlsx"
+    [field] = ctx.sent[-1].embed.fields
+    assert (field.name, field.value) == ("Success", sheets_cog.DOWNLOAD_NOTE)
+    assert (tmp_path / "saved_sheets" / "sheet.xlsx").read_bytes() == b"sheet bytes"
+
+
+async def test_downloadsheet_title_cannot_leave_the_folder(cog, exported, tmp_path):
+    exported.title = "../../escape"
+    ctx = file_context()
+    await cog.downloadsheet.callback(cog, ctx, CHANNEL_SHEET)
+    [file] = ctx.files
+    assert file.filename == "_.._escape.xlsx"
+    assert sorted(path.name for path in tmp_path.rglob("*")) == [
+        "saved_sheets",
+        "sheet.xlsx",
+    ]
+
+
+async def test_downloadsheet_too_big(cog, exported, monkeypatch, tmp_path):
+    """The limit used to show as literal "{(...):.2f}MB" text."""
+    monkeypatch.setattr(
+        constants, "HARDCODED_FILE_SIZE", 2 * constants.BYTES_TO_MEGABYTES
+    )
+    exported.data = b"x" * (3 * constants.BYTES_TO_MEGABYTES)
+    ctx = file_context()
+    await cog.downloadsheet.callback(cog, ctx, CHANNEL_SHEET)
+    assert ctx.files == []
+    assert ctx.sent_embeds[-1].fields[0].value == (
+        "Sorry, your sheet is 3.00MB big, but I can only send files of up to 2.00MB."
+    )
+    assert not (tmp_path / "saved_sheets").exists()
+
+
+@pytest.mark.parametrize("too_big", [False, True])
+async def test_downloadsheet_progress_message(cog, exported, monkeypatch, too_big):
+    """A "Download in Progress" message is shown during the export and removed after,
+    whether the sheet is sent or not."""
+    if too_big:
+        monkeypatch.setattr(constants, "HARDCODED_FILE_SIZE", 1)
+    ctx = file_context()
+    await cog.downloadsheet.callback(cog, ctx, CHANNEL_SHEET)
+    progress = ctx.sent[0]
+    assert progress.embed.fields[0].name == "Download in Progress"
+    assert progress.embed.fields[0].value == (
+        "Downloading **GPH/Round 1**. Please wait..."
+    )
+    assert progress.deleted
+    assert len(ctx.files) == (0 if too_big else 1)
+
+
+@pytest.mark.parametrize(
+    "title, filename",
+    [
+        ("Puzzles", "Puzzles.xlsx"),
+        ('a\\b:c*d?e"f<g>h|i', "a_b_c_d_e_f_g_h_i.xlsx"),
+        ("  ..  ", "sheet.xlsx"),
+        ("", "sheet.xlsx"),
+    ],
+)
+def test_download_filename(title, filename):
+    assert sheets_cog.download_filename(title) == filename

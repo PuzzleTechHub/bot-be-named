@@ -104,7 +104,7 @@ def is_trusted():
                 role_id = role.id
                 if role_id in database.TRUSTEDS[ctx.guild.id]:
                     return True
-            return False
+        return False
 
     return commands.check(predicate)
 
@@ -122,7 +122,7 @@ def is_trusted_or_bot_owner():
                 role_id = role.id
                 if role_id in database.TRUSTEDS[ctx.guild.id]:
                     return True
-            return False
+        return False
 
     return commands.check(predicate)
 

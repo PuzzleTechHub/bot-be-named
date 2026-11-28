@@ -1,3 +1,4 @@
+import asyncio
 import os
 import sys
 
@@ -31,7 +32,7 @@ class ErrorLogCog(commands.Cog):
         Permission Category : Admin or Bot Owner only.
         Usage: `~errorlog`
         """
-        if not os.path.exists(error_constants.ERROR_LOGFILE):
+        if not await asyncio.to_thread(os.path.exists, error_constants.ERROR_LOGFILE):
             embed = discord_utils.create_embed()
             embed.add_field(
                 name="Error!",
@@ -41,13 +42,16 @@ class ErrorLogCog(commands.Cog):
             await discord_utils.send_message(ctx, embed)
             return
 
-        with open(error_constants.ERROR_LOGFILE) as f:
-            lines = f.readlines()
-            last_n_lines = "".join(lines[-num_lines:])
-            # Trim the length of the log messages
-            if len(last_n_lines) > 1990:
-                last_n_lines = f"...\n{last_n_lines[-1990:]}"
-            await ctx.send(f"```{last_n_lines}```")
+        def read_log():
+            with open(error_constants.ERROR_LOGFILE) as f:
+                return f.readlines()
+
+        lines = await asyncio.to_thread(read_log)
+        last_n_lines = "".join(lines[-num_lines:])
+        # Trim the length of the log messages
+        if len(last_n_lines) > 1990:
+            last_n_lines = f"...\n{last_n_lines[-1990:]}"
+        await ctx.send(f"```{last_n_lines}```")
 
 
 async def on_error(event, *args, **kwargs):

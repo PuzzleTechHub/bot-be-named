@@ -65,7 +65,7 @@ async def test_role_check_no_matching_role(monkeypatch, factory, cache):
 
 @pytest.mark.parametrize("factory, cache", ROLE_CHECKS)
 async def test_role_check_server_not_in_cache(factory, cache):
-    assert not await check(factory, make_ctx([ROLE_ID]))
+    assert await check(factory, make_ctx([ROLE_ID])) is False
 
 
 @pytest.mark.parametrize("factory, cache", ROLE_CHECKS)

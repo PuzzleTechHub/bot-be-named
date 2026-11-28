@@ -98,7 +98,8 @@ class CustomCommandCog(commands.Cog, name="Custom Commands"):
 
             def check_reaction(reaction, user):
                 return (
-                    reaction.message.id == prompt.id
+                    # The tasks end each round, so this is always this round's prompt
+                    reaction.message.id == prompt.id  # noqa: B023
                     and user == ctx.author
                     and (
                         reaction.emoji == abort_emoji

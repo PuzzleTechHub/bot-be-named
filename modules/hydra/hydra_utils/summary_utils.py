@@ -119,7 +119,9 @@ async def find_channel_rows(gspread_client, ctx: commands.Context, channels):
         if cells is None:
             failed.extend(sheet_channel)
             continue
-        for channel, (rownum, _, overview_values) in zip(sheet_channel, cells):
+        for channel, (rownum, _, overview_values) in zip(
+            sheet_channel, cells, strict=True
+        ):
             if rownum is None:
                 missing.append(channel)
             else:

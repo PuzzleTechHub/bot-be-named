@@ -1,5 +1,7 @@
 import asyncio
+import contextlib
 import os
+import re
 import shutil
 
 import googleapiclient
@@ -24,6 +26,24 @@ from utils import (
 Sheets module. Useful for any sheet related commands.
 Required to allow Lion/Hydra commands.
 """
+
+
+# ~downloadsheet saves the sheet here before sending it. The sheet's own title can hold
+# "/" or "..", so it only names the file in Discord.
+DOWNLOAD_DIR = "saved_sheets"
+DOWNLOAD_PATH = os.path.join(DOWNLOAD_DIR, "sheet.xlsx")
+# Excel does not like Google Sheet exports, most of the time.
+DOWNLOAD_NOTE = (
+    "Please open this file in Google Sheets (File > Import > Upload). "
+    "Excel may not open this file correctly."
+)
+
+
+def download_filename(title: str) -> str:
+    """The sheet's title as a file name. Characters Windows doesn't allow in file names
+    become "_"."""
+    name = re.sub(r'[\\/:*?"<>|\x00-\x1f]', "_", title).strip(" .")
+    return f"{name or 'sheet'}.xlsx"
 
 
 class SheetsCog(commands.Cog, name="Sheets"):
@@ -372,8 +392,23 @@ class SheetsCog(commands.Cog, name="Sheets"):
             )
             return request.execute()
 
+        # The export can take a while for big sheets, so say it has started
+        progress_embed = discord_utils.create_embed()
+        progress_embed.add_field(
+            name="Download in Progress",
+            value=f"Downloading **{sheet.title}**. Please wait...",
+            inline=False,
+        )
+        progress_msg = (await discord_utils.send_message(ctx, progress_embed))[0]
         try:
-            # The export can take a while for big sheets
+            await self._send_sheet(ctx, sheet, export_sheet)
+        finally:
+            with contextlib.suppress(nextcord.HTTPException):
+                await progress_msg.delete()
+
+    async def _send_sheet(self, ctx, sheet, export_sheet):
+        """The rest of ~downloadsheet: export the sheet and send it as a file."""
+        try:
             response = await asyncio.to_thread(export_sheet)
         except googleapiclient.errors.HttpError:
             await discord_utils.send_failure(
@@ -382,28 +417,30 @@ class SheetsCog(commands.Cog, name="Sheets"):
             )
             return
 
-        download_dir = "saved_sheets"
-        download_path = os.path.join(download_dir, sheet.title + ".xlsx")
-        async with self.lock:
-            if os.path.exists(download_dir):
-                shutil.rmtree(download_dir)
-            os.mkdir(download_dir)
-            with open(download_path, "wb") as sheet_file:
-                sheet_file.write(response)
-                file_size = sheet_file.tell()
-                if (
-                    file_size
-                    > ctx.guild.filesize_limit * 0 + constants.HARDCODED_FILE_SIZE
-                ):
-                    await discord_utils.send_failure(
-                        ctx,
-                        f"Sorry, your sheet is {(file_size / constants.BYTES_TO_MEGABYTES):.2f}MB big, "
-                        "but I can only send files of up to "
-                        "{(ctx.guild.filesize_limit*0+constants.HARDCODED_FILE_SIZE/constants.BYTES_TO_MEGABYTES):.2f}MB.",
-                    )
-                    return
+        if len(response) > constants.HARDCODED_FILE_SIZE:
+            await discord_utils.send_failure(
+                ctx,
+                f"Sorry, your sheet is {len(response) / constants.BYTES_TO_MEGABYTES:.2f}MB big, "
+                "but I can only send files of up to "
+                f"{constants.HARDCODED_FILE_SIZE / constants.BYTES_TO_MEGABYTES:.2f}MB.",
+            )
+            return
 
-            await ctx.send(file=nextcord.File(download_path))
+        def save_sheet():
+            if os.path.exists(DOWNLOAD_DIR):
+                shutil.rmtree(DOWNLOAD_DIR)
+            os.mkdir(DOWNLOAD_DIR)
+            with open(DOWNLOAD_PATH, "wb") as sheet_file:
+                sheet_file.write(response)
+
+        async with self.lock:
+            await asyncio.to_thread(save_sheet)
+            await ctx.send(
+                embed=discord_utils.create_success_embed(DOWNLOAD_NOTE),
+                file=nextcord.File(
+                    DOWNLOAD_PATH, filename=download_filename(sheet.title)
+                ),
+            )
 
     @loop(hours=12)
     async def prune_tethers(self):
