@@ -15,6 +15,8 @@ MENU_TIMEOUT = 120
 MAX_SELECT_OPTIONS = 25
 # Max length of an embed field's value (enforced by Discord)
 MAX_FIELD_VALUE = 1024
+# Field on a command's help page (and its permission errors) naming who can use it
+PERMISSION_FIELD = "Required permission(s)"
 # Words after ~help that open the commands-by-permission menu
 PERMISSION_WORDS = ("permissions", "permission", "perms")
 # Each permission category's page title and who it covers, from least to most restricted.
@@ -82,6 +84,86 @@ def command_summary(command: commands.Command) -> str:
     if len(paragraph) > MAX_FIELD_VALUE:
         paragraph = paragraph[: MAX_FIELD_VALUE - 1] + "…"
     return paragraph or "..."
+
+
+# A docstring line giving an example, e.g. "Usage: `~addperm Verified @Role`". Some docstrings
+# leave out the backticks or the space, or add a note in brackets after the example.
+USAGE_LINE = re.compile(r"^Usage\s*:\s*(.+)$")
+PERMISSION_LINE = re.compile(r"^Permission Category\s*:")
+
+
+def format_usage(text: str) -> str:
+    """One usage example as code, keeping a bracketed note after it as plain text."""
+    if "`" in text:
+        return text
+    example, note = re.match(r"^(.*?)\s*(\(.*\))?$", text).groups()
+    return f"`{example}` {note}" if note else f"`{example}`"
+
+
+def split_docstring(command: commands.Command) -> tuple:
+    """(the docstring without its Permission Category and Usage lines, the usage examples).
+    A "Usage:" line with nothing after it starts an example spread over the lines below it,
+    up to the next blank line, shown as a code block."""
+    text_lines, usages = [], []
+    lines = unwrap(command.help or "").splitlines()
+    index = 0
+    while index < len(lines):
+        line = lines[index].strip()
+        index += 1
+        if PERMISSION_LINE.match(line):
+            continue
+        if re.fullmatch(r"Usage\s*:", line):
+            block = []
+            while index < len(lines) and lines[index].strip():
+                block.append(lines[index].strip())
+                index += 1
+            if block:
+                usages.append("```\n" + "\n".join(block) + "\n```")
+            continue
+        match = USAGE_LINE.match(line)
+        if match:
+            usages.append(format_usage(match.group(1)))
+        else:
+            text_lines.append(lines[index - 1])
+    description = re.sub(r"\n{3,}", "\n\n", "\n".join(text_lines)).strip()
+    return description, usages
+
+
+def usage_lines(command: commands.Command, prefix: str) -> list:
+    """The command's usage examples from its docstring, or else its signature."""
+    usages = split_docstring(command)[1]
+    if not usages:
+        signature = f"{command.qualified_name} {command.signature}".strip()
+        usages = [f"`{prefix}{signature}`"]
+    return usages
+
+
+def add_usage_field(embed: nextcord.Embed, command: commands.Command, prefix: str):
+    """The Usage field a command's help page and its input errors both show."""
+    value = "\n".join(usage_lines(command, prefix))
+    if len(value) > MAX_FIELD_VALUE:
+        value = value[: MAX_FIELD_VALUE - 1] + "…"
+    embed.add_field(name="Usage", value=value, inline=False)
+
+
+def who_can_use(command: commands.Command, prefix: str) -> str | None:
+    """Who can use the command, e.g. "Trusted Roles: See `~addperm Trusted @role`.".
+    None when one of its checks has no permission category."""
+    try:
+        category = command_predicates.permission_category(command)
+    except ValueError:
+        return None
+    if category is None:
+        return "Everyone"
+    title, who = PERMISSION_PAGES.get(category, (category, ""))
+    # The ~help permissions pages say "Roles added with ..."; a command's page points to the command
+    who = who.format(prefix=prefix).replace("Roles added with ", "See ", 1)
+    return f"{title}: {who}" if who else title
+
+
+def description_text(command: commands.Command) -> str:
+    """The docstring without its Permission Category and Usage lines, which get their own fields."""
+    return split_docstring(command)[0]
 
 
 class HelpMenu(paging_utils.PageView):
@@ -336,23 +418,19 @@ class HelpCommand(commands.MinimalHelpCommand):
         """implements group help page and command help page"""
         prefix = self.context.clean_prefix
         embed = discord_utils.create_embed()
-        embed.title = group.qualified_name
-        if group.help:
-            embed.description = unwrap(group.help)
+        embed.title = f"{prefix}{group.qualified_name}"
+        embed.description = description_text(group)
 
+        add_usage_field(embed, group, prefix)
+        who = who_can_use(group, prefix)
+        if who is not None:
+            embed.add_field(name=PERMISSION_FIELD, value=who, inline=False)
         if group.cog is not None:
             embed.add_field(name="Module", value=group.cog.qualified_name)
         if group.aliases:
             embed.add_field(
                 name="Aliases",
                 value=", ".join(f"{prefix}{alias}" for alias in group.aliases),
-            )
-        # Most docstrings already give usage examples, which are clearer than the signature
-        if "Usage:" not in (group.help or ""):
-            embed.add_field(
-                name="Usage",
-                value=f"`{prefix}{self.get_command_signature(group).strip()}`",
-                inline=False,
             )
 
         if isinstance(group, commands.Group):

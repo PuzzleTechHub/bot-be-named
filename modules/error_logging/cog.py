@@ -88,10 +88,12 @@ async def on_error(event, *args, **kwargs):
 async def on_command_error(ctx: commands.Context, error):
     """When a command exception is raised, log it in err.log and bot log channel"""
     details = f"**Error while running command**\n'''\n{ctx.message.clean_content}\n'''"
-    user_error = ErrorHandler(ctx.message, error, details).handle_error()
+    handler = ErrorHandler(ctx.message, error, details, ctx)
+    user_error = handler.handle_error()
     if user_error:
         embed = discord_utils.create_embed()
         embed.add_field(name="Error!", value=user_error, inline=False)
+        handler.add_details(embed)
         await discord_utils.send_message(ctx, embed)
     else:
         print("on_command_error has no user_error")

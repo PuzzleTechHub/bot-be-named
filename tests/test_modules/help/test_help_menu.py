@@ -206,20 +206,25 @@ async def test_command_help_shows_module_aliases_and_usage(helper):
     await helper.send_command_help(command)
     [message] = helper.context.channel.sent
     fields = {field.name: field.value for field in message.embed.fields}
+    assert message.embed.title == f"~{command.qualified_name}"
     assert fields["Module"] == command.cog.qualified_name
     assert f"~{command.aliases[0]}" in fields["Aliases"]
-    if "Usage:" not in (command.help or ""):
-        assert fields["Usage"].startswith(f"`~{command.qualified_name}")
+    assert fields["Usage"].startswith("`")
     assert message.view is None
 
 
-async def test_command_help_docstring_usage_not_repeated(helper):
+async def test_command_help_moves_usage_and_permission_out_of_the_description(helper):
     await helper.send_command_help(helper.context.bot.get_command("deletehydra"))
     [message] = helper.context.channel.sent
     embed = message.embed
-    assert "Usage" not in [field.name for field in embed.fields]
+    fields = {field.name: field.value for field in embed.fields}
     assert "triggers archiving and cleans up the overview." in embed.description
-    assert "Usage: `~deletehydra #puzzle-channel`" in embed.description
+    assert "Usage" not in embed.description
+    assert "Permission Category" not in embed.description
+    assert "`~deletehydra #puzzle-channel`" in fields["Usage"]
+    assert fields["Required permission(s)"] == (
+        "Trusted Roles: See `~addperm Trusted @role`."
+    )
     check_embed(embed)
 
 
@@ -230,6 +235,54 @@ async def test_command_help_usage_field_when_docstring_has_none(helper):
     [message] = helper.context.channel.sent
     fields = {field.name: field.value for field in message.embed.fields}
     assert fields["Usage"] == "`~about`"
+
+
+async def test_every_command_help_page_is_valid(helper):
+    cogs = helper.context.bot.cogs.values()
+    for command in [c for cog in cogs for c in cog.walk_commands()]:
+        helper.context.channel.sent.clear()
+        await helper.send_command_help(command)
+        [message] = helper.context.channel.sent
+        fields = {field.name: field.value for field in message.embed.fields}
+        assert fields["Usage"], command.qualified_name
+        assert "Usage:" not in message.embed.description, command.qualified_name
+        assert "Required permission(s)" in fields, command.qualified_name
+
+
+def test_usage_formats_in_docstrings():
+    def usage(doc):
+        @commands.command(help=doc)
+        async def thing(ctx):
+            pass
+
+        return help_command.usage_lines(thing, "~")
+
+    assert usage("Usage: `~a b`") == ["`~a b`"]
+    assert usage("Usage:`~a b` (all roles)") == ["`~a b` (all roles)"]
+    assert usage("Usage : `~a b`") == ["`~a b`"]
+    assert usage('Usage: ~a "B C" (uses the plain tab)') == [
+        '`~a "B C"` (uses the plain tab)'
+    ]
+    assert usage("Usage: ~a b") == ["`~a b`"]
+    assert usage("Usage:(as a reply) `~a here`") == ["(as a reply) `~a here`"]
+    assert usage("Usage:\n~a\nB\n3rd\n\nAfter.") == ["```\n~a\nB\n3rd\n```"]
+    assert usage("Usage: `~a b\n    c`") == ["`~a b c`"]
+
+
+def test_who_can_use_names_the_category_and_how_to_get_it():
+    @command_predicates.is_trusted()
+    @commands.command()
+    async def thing(ctx):
+        pass
+
+    @commands.command()
+    async def anyone(ctx):
+        pass
+
+    assert help_command.who_can_use(thing, "!") == (
+        "Trusted Roles: See `!addperm Trusted @role`."
+    )
+    assert help_command.who_can_use(anyone, "~") == "Everyone"
 
 
 def test_unwrap_keeps_separate_lines():
