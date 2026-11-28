@@ -331,38 +331,40 @@ class DiscordCog(commands.Cog, name="Discord"):
         for to_steal in emojis:
             url = str(to_steal.url)
             name = to_steal.name
-            async with aiohttp.ClientSession() as ses:
-                async with ses.get(url) as r:
+            async with (
+                aiohttp.ClientSession() as ses,
+                ses.get(url) as r,
+            ):
+                try:
+                    img_or_gif = io.BytesIO(await r.read())
+                    b_value = img_or_gif.getvalue()
                     try:
-                        img_or_gif = io.BytesIO(await r.read())
-                        b_value = img_or_gif.getvalue()
-                        try:
-                            to_steal = await ctx.guild.create_custom_emoji(
-                                image=b_value, name=name
-                            )
+                        to_steal = await ctx.guild.create_custom_emoji(
+                            image=b_value, name=name
+                        )
 
-                            embed.add_field(
-                                name="Success",
-                                value=f"Added {to_steal} with name {to_steal.name}",
-                            )
-                            await ses.close()
-                        except nextcord.Forbidden:
-                            embed.add_field(
-                                name="Failed",
-                                value=f"Error adding `:{name}:` to server. Do I have the correct permissions to manage emotes in this server?",
-                            )
-                            await ses.close()
-                        except nextcord.HTTPException:
-                            embed.add_field(
-                                name="Failed",
-                                value=f"Could not add `:{name}:` to server. Do you have any emote slots left?",
-                            )
-                            await ses.close()
-                    except aiohttp.ClientError:
+                        embed.add_field(
+                            name="Success",
+                            value=f"Added {to_steal} with name {to_steal.name}",
+                        )
+                        await ses.close()
+                    except nextcord.Forbidden:
                         embed.add_field(
                             name="Failed",
-                            value=f"Could not find emote `:{name}:`.",
+                            value=f"Error adding `:{name}:` to server. Do I have the correct permissions to manage emotes in this server?",
                         )
+                        await ses.close()
+                    except nextcord.HTTPException:
+                        embed.add_field(
+                            name="Failed",
+                            value=f"Could not add `:{name}:` to server. Do you have any emote slots left?",
+                        )
+                        await ses.close()
+                except aiohttp.ClientError:
+                    embed.add_field(
+                        name="Failed",
+                        value=f"Could not find emote `:{name}:`.",
+                    )
         await discord_utils.send_message(ctx, embed)
 
     #####################

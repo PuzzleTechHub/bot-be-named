@@ -1,3 +1,5 @@
+import contextlib
+
 import emoji
 import nextcord
 from emoji import EMOJI_DATA, emojize
@@ -180,10 +182,8 @@ class MiscCog(commands.Cog, name="Misc"):
                     return
 
             for emoji, _ in emojis:
-                try:
+                with contextlib.suppress(nextcord.Forbidden, nextcord.HTTPException):
                     await orig_msg.add_reaction(emoji)
-                except (nextcord.Forbidden, nextcord.HTTPException):
-                    pass
 
             if failed_emojis:
                 embed.add_field(

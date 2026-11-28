@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import os
 import re
 import time
@@ -94,14 +95,11 @@ async def is_thread(
     if channel is None:
         return False
 
-    if channel.type in {
+    return channel.type in {
         nextcord.ChannelType.news_thread,
         nextcord.ChannelType.public_thread,
         nextcord.ChannelType.private_thread,
-    }:
-        return True
-
-    return False
+    }
 
 
 ###########
@@ -318,10 +316,9 @@ async def rename_channel(
             )
     finally:
         for notice in notices:
-            try:
+            # Already deleted means nothing to clean up
+            with contextlib.suppress(nextcord.HTTPException):
                 await notice.delete()
-            except nextcord.HTTPException:
-                pass  # Already deleted, nothing to clean up.
 
 
 async def _replace_waiting_rename(waiting, new_name, notify, note, notices):
@@ -460,10 +457,8 @@ async def _send_rename_notice(notices: list, notify, text: str, note: str) -> No
         value=text + (f" {note}" if note else ""),
         inline=False,
     )
-    try:
+    with contextlib.suppress(nextcord.HTTPException):
         notices.append(await notify.send(embed=embed))
-    except nextcord.HTTPException:
-        pass
 
 
 def create_embed() -> nextcord.Embed:

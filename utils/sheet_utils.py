@@ -173,10 +173,7 @@ async def sheetcrabgeneric(
     curr_chan = ctx.message.channel
     curr_cat = ctx.message.channel.category
 
-    if is_meta:
-        tab_type = "Meta Template"
-    else:
-        tab_type = "Template"
+    tab_type = "Meta Template" if is_meta else "Template"
 
     curr_sheet_link, newsheet = await sheetcreatetabgeneric(
         gspread_client, ctx, curr_chan, curr_cat, tab_name, tab_type
@@ -244,10 +241,7 @@ async def chancrabgeneric(
             await discord_utils.send_message(ctx, embed)
             return None, None, None
 
-    if is_meta:
-        tab_type = "Meta Template"
-    else:
-        tab_type = "Template"
+    tab_type = "Meta Template" if is_meta else "Template"
 
     if chan_type == "thread" and await discord_utils.is_thread(ctx, ctx.channel):
         embed.add_field(

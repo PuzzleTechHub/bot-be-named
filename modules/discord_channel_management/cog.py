@@ -343,10 +343,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         """
         embed = discord_utils.create_embed()
 
-        if category_arg == "":
-            category = ctx.channel.category
-        else:
-            category = category_arg
+        category = ctx.channel.category if category_arg == "" else category_arg
 
         category = await discord_utils.find_category(ctx, category)
 
@@ -797,10 +794,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         """
         embed = discord_utils.create_embed()
 
-        if cat_name == "":
-            category_to_sort_name = ctx.channel.category
-        else:
-            category_to_sort_name = cat_name
+        category_to_sort_name = ctx.channel.category if cat_name == "" else cat_name
 
         category = await discord_utils.find_category(ctx, category_to_sort_name)
 
@@ -944,10 +938,7 @@ class DiscordChannelManagementCog(commands.Cog, name="Discord Channel Management
         """
         embed = discord_utils.create_embed()
 
-        if cat_name == "":
-            category_to_sync_name = ctx.channel.category
-        else:
-            category_to_sync_name = cat_name
+        category_to_sync_name = ctx.channel.category if cat_name == "" else cat_name
 
         category = await discord_utils.find_category(ctx, category_to_sync_name)
 

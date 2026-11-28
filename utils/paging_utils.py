@@ -2,6 +2,8 @@
 Button pager for multi-page embeds (e.g. ~help and Nutrimatic results).
 """
 
+import contextlib
+
 import nextcord
 from nextcord.ext import commands
 
@@ -69,10 +71,9 @@ class PageView(nextcord.ui.View):
         for item in self.children:
             item.disabled = True
         if self.message is not None:
-            try:
+            # The message may have been deleted, then there is nothing to update
+            with contextlib.suppress(nextcord.HTTPException):
                 await self.message.edit(view=self)
-            except nextcord.HTTPException:
-                pass  # The message was deleted, so there is nothing to update.
 
 
 async def send_pages(ctx: commands.Context, embeds: list[nextcord.Embed]):

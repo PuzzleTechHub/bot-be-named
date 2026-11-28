@@ -72,10 +72,12 @@ def nutrimatic_pages(
 async def fetch_page(url: str) -> str:
     """Gets a page without blocking the bot. Raises aiohttp.ClientError or TimeoutError."""
     timeout = aiohttp.ClientTimeout(total=NUTRIMATIC_TIMEOUT)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        async with session.get(url) as response:
-            response.raise_for_status()
-            return await response.text()
+    async with (
+        aiohttp.ClientSession(timeout=timeout) as session,
+        session.get(url) as response,
+    ):
+        response.raise_for_status()
+        return await response.text()
 
 
 class LookupCog(commands.Cog, name="Lookup"):

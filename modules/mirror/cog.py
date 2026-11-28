@@ -1,3 +1,4 @@
+import contextlib
 import time
 
 import nextcord
@@ -35,14 +36,12 @@ class ChannelMirrorCog(commands.Cog, name="Channel Mirror"):
             return
 
         self.last_failure_notice[mapping_key] = current_timestamp
-        try:
+        # If I can't post here either, the log line is all we can do
+        with contextlib.suppress(nextcord.HTTPException):
             await source.send(
                 f"Couldn't mirror messages to {target.mention}. "
                 "Check that I can send messages and embeds there.",
             )
-        except nextcord.HTTPException:
-            # Can't post here either, the log line is all we can do
-            pass
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
